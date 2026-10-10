@@ -4,8 +4,8 @@
 -- Description: Checked sequential signed 128-bit multiplier and divider.
 --
 -- Accepts one operand pair and operation on inputValid/inputReady.
--- Multiplication uses unsigned magnitudes, shift/add accumulation and a
--- 256-bit product; division uses restoring division with a widened remainder.
+-- Multiplication uses unsigned magnitudes, a 128-bit shift/add accumulator
+-- and sticky overflow bits; division uses restoring division with a widened remainder.
 -- Both iterative paths consume 128 steps, then restore the result sign and
 -- check that the answer fits in signed 128 bits. Divide by zero terminates
 -- with resultError.
@@ -80,8 +80,10 @@ architecture rtl of PtpMath is
       negativeA       : sl;
       a               : unsigned(127 downto 0);
       b               : unsigned(127 downto 0);
-      product         : unsigned(255 downto 0);
-      multiplicand    : unsigned(255 downto 0);
+      product         : unsigned(127 downto 0);
+      productOverflow : sl;
+      multiplicand    : unsigned(127 downto 0);
+      shiftOverflow   : sl;
       remainderValue  : unsigned(128 downto 0);
       resultValid     : sl;
       resultValue     : slv(127 downto 0);
@@ -100,7 +102,9 @@ architecture rtl of PtpMath is
       a               => (others => '0'),
       b               => (others => '0'),
       product         => (others => '0'),
+      productOverflow => '0',
       multiplicand    => (others => '0'),
+      shiftOverflow   => '0',
       remainderValue  => (others => '0'),
       resultValid     => '0',
       resultValue     => (others => '0'),
@@ -116,14 +120,14 @@ begin
       variable v : RegType;
 
       -- Calculations used only during this evaluation.
-      variable magnitude  : unsigned(255 downto 0);
-      variable limitValue : unsigned(255 downto 0);
+      variable magnitude  : unsigned(128 downto 0);
+      variable limitValue : unsigned(128 downto 0);
    begin
       v := r;
 
       v.inputReady := '0';
       magnitude    := (others => '0');
-      limitValue   := shift_left(to_unsigned(1, 256), 127);
+      limitValue   := shift_left(to_unsigned(1, 129), 127);
       if r.negative = '0' then
          limitValue := limitValue - 1;
       end if;
@@ -148,7 +152,7 @@ begin
                if operandB(127) = '1' then
                   v.b := unsigned(-signed(operandB));
                end if;
-               v.multiplicand := resize(v.b, 256);
+               v.multiplicand := v.b;
                if divide = '1' and v.b = 0 then
                   v.error := '1';
                   v.state := DONE_S;
@@ -171,14 +175,23 @@ begin
                   v.remainderValue := v.remainderValue - resize(r.b, 129);
                   v.a(0)           := '1';
                end if;
-               magnitude := resize(v.a, 256);
+               magnitude := resize(v.a, 129);
             else
+               -- Keep the exact low 128 product bits plus whether any higher
+               -- bit was nonzero. Magnitude partial products are nonnegative,
+               -- so discarded high bits can never cancel in a later addition.
                if r.a(0) = '1' then
-                  v.product := r.product + r.multiplicand;
+                  magnitude         := resize(r.product, 129) + resize(r.multiplicand, 129);
+                  v.product         := magnitude(127 downto 0);
+                  v.productOverflow := r.productOverflow or r.shiftOverflow or magnitude(128);
                end if;
-               v.a            := shift_right(r.a, 1);
-               v.multiplicand := shift_left(r.multiplicand, 1);
-               magnitude      := v.product;
+               -- A shifted-out bit matters only if this multiplicand is later
+               -- selected. Shifting after the last set bit of a must not turn
+               -- a small or zero product into an overflow error.
+               v.a             := shift_right(r.a, 1);
+               v.multiplicand  := shift_left(r.multiplicand, 1);
+               v.shiftOverflow := r.shiftOverflow or r.multiplicand(127);
+               magnitude       := resize(v.product, 129);
             end if;
             -- Only the final bit triggers rounding, range checking and sign restoration.
             if r.count = 127 then
@@ -193,7 +206,7 @@ begin
                      v.resultRemainder := slv(-signed(v.resultRemainder));
                   end if;
                end if;
-               if magnitude > limitValue then
+               if magnitude > limitValue or (r.divide = '0' and v.productOverflow = '1') then
                   v.error := '1';
                end if;
                v.resultValue := slv(magnitude(127 downto 0));

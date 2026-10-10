@@ -11,6 +11,7 @@
 # Test methodology:
 # - Sweep: Both oscillator correction signs, variable sample intervals, offset
 #   signs, command backpressure, median startup and holdover cancellation.
+#   Exercise default limits and +/-200000 ppb with sums beyond 35 signed bits.
 #   Check registered valid/cancel/expiry before and after input-changing edges.
 # - Stimulus: AXI configuration and independent rational PI oracle; intervals are injected
 #   directly so numerical seconds do not require millions of simulator cycles.
@@ -46,12 +47,14 @@ async def numerical_control(d):
     d.rst.value = 0
     axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
 
-    async def configure():
+    async def configure(limits):
         # Use the production shadow/candidate/active path. Shared limits are
         # supplied by the fixture's port record; local limits belong to AXI.
-        for address, value in ((0x060, (1 << 62)-1), (0x068, 250000000),
-                               (0x070, 1), (0x078, (1 << 62)-1)):
-            transaction = cocotb.start_soon(axil.write(address, value.to_bytes(8, "little")))
+        settings = [(0x028, limits[0], 4), (0x02C, limits[1], 4), (0x030, limits[2], 4),
+                    (0x060, (1 << 62)-1, 8), (0x068, 250000000, 8),
+                    (0x070, 1, 8), (0x078, (1 << 62)-1, 8)]
+        for address, value, size in settings:
+            transaction = cocotb.start_soon(axil.write(address, value.to_bytes(size, "little")))
             for _ in range(100):
                 await edge()
                 if transaction.done():
@@ -84,11 +87,13 @@ async def numerical_control(d):
         await edge(commandReady=1)
         await edge(commandReady=0, commandAck=1)
         await edge(commandAck=0)
-    for ppm in (-100, 100):
+    cases = [(-100, (100000, 50000, 150000)), (100, (100000, 50000, 150000)),
+             (-200, (200000, 200000, 200000)), (200, (200000, 200000, 200000))]
+    for ppm, limits in cases:
         await edge(rst=1)
         await edge(rst=0)
-        await configure()
-        model = PiController()
+        await configure(limits)
+        model = PiController(max_frequency=limits[0], max_slew=limits[1], max_rate=limits[2])
         ratio = nearest(8*(1+Fraction(ppm, 1000000))*Q48)
         bootstrap = nearest(Fraction((ratio-8*Q48)*NS, 8*Q32))
         now = 100
@@ -102,7 +107,14 @@ async def numerical_control(d):
         for index in range(20):
             interval = (Fraction(1, 8), Fraction(1, 4), Fraction(1))[index % 3]
             now = last_sample + int(interval*125000000)
-            offset = (1000, -500, 100, -20, 0)[index % 5]*Q16+13
+            offsets = (1000, -500, 100, -20, 0)
+            if abs(ppm) == 200:
+                # Bootstrap minus opposite slew can reach +/-400000 ppb.
+                # Subsequent same-sign frequency/slew sums exercise the final
+                # clamp and anti-windup; preserve low fractional bits as well.
+                sign = 1 if ppm > 0 else -1
+                offsets = tuple(sign*x for x in (800000, -800000, -1600000, 1600000, 0))
+            offset = offsets[index % 5]*Q16+13
             expected_ppb = model.sample(offset, interval, bootstrap)
             assert int(d.inputReady.value)
             await edge(ticks=now+100, sampleTicks=now, isDelay=0, forwardValue=(100*Q16+offset) & ((1 << 128)-1),

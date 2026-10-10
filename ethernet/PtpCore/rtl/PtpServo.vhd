@@ -10,6 +10,13 @@
 -- sample chronology and raw-tick age checks reject stale measurements before
 -- they can affect the clock.
 --
+-- Control is measurement-driven: delay updates refresh the filter, while an
+-- eligible forward (Sync) update starts a correction using the latest delay.
+-- There is no local 1 Hz servo timer. A 1 Hz Sync source gives approximately
+-- that update cadence after acquisition; qualification can reject updates.
+-- The actuator here is the PHC's numerical ns-per-tick increment. No output
+-- of this module directly tunes the oscillator supplying clk.
+--
 -- During acquisition, an enabled large phase adjustment can establish the
 -- epoch. Otherwise the qualified raw-clock rate estimate initializes frequency
 -- control. A serialized PtpMath engine evaluates the fixed-point
@@ -103,6 +110,16 @@ architecture rtl of PtpServo is
    -- It is independent of the port's raw-oscillator qualification bound.
    constant MAX_ACTUATOR_PPB_C : positive := 200000;
 
+   -- Every stored controller term has passed a validated actuator clamp.
+   -- 1 sign + 18 integer + 16 fractional bits covers +/-200000 ppb exactly.
+   constant RATE_PPB_WIDTH_C : positive := 1+bitSize(MAX_ACTUATOR_PPB_C)+PTP_PPB_FRAC_BITS_C;
+   subtype RatePpbType is signed(RATE_PPB_WIDTH_C-1 downto 0);
+
+   -- ptpValidTimeout limits tracking intervals to fewer than 2**62 ticks.
+   -- For every positive CLK_FREQ_G, nominalQ32 <= 1e9 * 2**32; hence the
+   -- rounded interval in seconds Q32 is < 2**94, needing 95 signed bits.
+   subtype IntervalType is signed(94 downto 0);
+
    function initialConfig return PtpServoConfigType is
       variable v      : PtpServoConfigType    := PTP_SERVO_CONFIG_INIT_C;
       constant TICK_C : unsigned(63 downto 0) := to_unsigned(CLK_FREQ_G, 64);
@@ -174,6 +191,9 @@ architecture rtl of PtpServo is
    constant PROPORTIONAL_SHIFT_C : natural := PTP_TIME_FRAC_BITS_C+PTP_GAIN_FRAC_BITS_C-PTP_PPB_FRAC_BITS_C;
    constant INTEGRAL_SHIFT_C     : natural := PROPORTIONAL_SHIFT_C+PTP_PHC_FRAC_BITS_C;
 
+   -- Arithmetic/command progress, distinct from status.state's synchronization
+   -- quality (acquiring, tracking, locked, holdover, fault). PtpPhc continues
+   -- ticking while this FSM waits for a multi-cycle math result or command ACK.
    type StateType is (
       IDLE_S,
       ISSUE_S,
@@ -234,11 +254,14 @@ architecture rtl of PtpServo is
       tracking           : sl;
       holding            : sl;
       holdApplied        : sl;
-      workFrequency      : signed(127 downto 0);
-      frequency          : signed(127 downto 0);
-      slew               : signed(127 downto 0);
-      bootstrap          : signed(127 downto 0);
-      interval           : signed(127 downto 0);
+      -- Signed Q16 ppb: frequency is the acknowledged integral state, slew is
+      -- the temporary proportional correction, and workFrequency is a candidate
+      -- retained as frequency only after the PHC acknowledges its rate command.
+      workFrequency      : RatePpbType;
+      frequency          : RatePpbType;
+      slew               : RatePpbType;
+      bootstrap          : RatePpbType;
+      interval           : IntervalType;
       good               : unsigned(7 downto 0);
       bad                : unsigned(7 downto 0);
    end record;
@@ -296,21 +319,21 @@ architecture rtl of PtpServo is
    signal errorMath     : sl;
    signal roundMath     : sl;
 
-   -- The 32-bit ppb bound with 16 fractional bits fits the 64-bit status
-   -- rate field. Keep wide arithmetic until this clamp, then sign-extend the
-   -- stored rate when issuing 128-bit math operands.
+   -- Only validated active limits reach this helper. Compare at full width
+   -- before narrowing: truncating first could wrap an out-of-range correction
+   -- through zero and choose the wrong saturation sign.
    function clamp (
       value   : signed(127 downto 0);
-      maximum : slv(31 downto 0)) return signed is
+      maximum : slv(31 downto 0)) return RatePpbType is
       variable limitValue : signed(127 downto 0);
    begin
       limitValue := shift_left(signed(resize(unsigned(maximum), 128)), PTP_PPB_FRAC_BITS_C);
       if value > limitValue then
-         return limitValue;
+         return resize(limitValue, RATE_PPB_WIDTH_C);
       elsif value < -limitValue then
-         return -limitValue;
+         return resize(-limitValue, RATE_PPB_WIDTH_C);
       end if;
-      return value;
+      return resize(value, RATE_PPB_WIDTH_C);
    end function;
 
 begin
@@ -348,14 +371,18 @@ begin
       variable sampleTickDelta    : signed(127 downto 0);
       variable frequencyCandidate : signed(127 downto 0);
       variable integralDelta      : signed(127 downto 0);
+      variable rateCandidate      : signed(RATE_PPB_WIDTH_C downto 0);
       variable stale              : boolean;
       variable acceptSample       : boolean;
       variable integrate          : boolean;
    begin
+      -- r is the current registered state; v collects next-edge updates. A
+      -- later read of r still sees the old value, even after assigning v.
       v                  := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
       sorted             := r.delays;
       temp               := (others => '0');
+      rateCandidate      := (others => '0');
 
       -- A held link/port abort cancels once, allowing later holdover work.
       -- Generation changes and stale samples independently invalidate work.
@@ -401,7 +428,7 @@ begin
                -- Holdover removes the phase slew but preserves the last good
                -- frequency estimate. Conversion uses the same checked path as
                -- tracking; no combinational wide divider enters the clock loop.
-               v.status.ratePpb := slv(resize(clamp(r.frequency, r.activeConfig.maxRatePpb), 64));
+               v.status.ratePpb := slv(resize(clamp(resize(r.frequency, 128), r.activeConfig.maxRatePpb), 64));
                v.a              := slv(resize(signed(v.status.ratePpb), 128));
                v.b              := slv(resize(NOMINAL_C, 128));
                v.divide         := '0';
@@ -417,6 +444,9 @@ begin
                      unsigned(phcStatus.ticks)-unsigned(measurementMaster.data.ticks) > unsigned(sharedConfig.associationTimeout) then
                      v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                   elsif measurementMaster.data.isDelay = '1' then
+                     -- Delay_Req/Delay_Resp results have their own cadence. A
+                     -- delay sample updates this rolling filter without running
+                     -- the PI calculation; filling five entries is not required.
                      if signed(measurementMaster.data.delayValue) >= 0 and signed(measurementMaster.data.delayValue) <= signed(sharedConfig.maxPathDelay) and
                         (unsigned(r.status.filterCount) = 0 or unsigned(measurementMaster.data.ticks) > unsigned(r.delayTicks)) then
                         v.delays(r.delayPtr) := signed(measurementMaster.data.delayValue(63 downto 0));
@@ -444,11 +474,17 @@ begin
                   elsif unsigned(r.status.filterCount) /= 0 and measurementMaster.data.ratioValid = '1' and
                      unsigned(phcStatus.ticks)-unsigned(r.delayTicks) <= unsigned(r.activeConfig.maxDelayAge) and
                      (r.haveSample = '0' or unsigned(measurementMaster.data.ticks) > unsigned(r.lastTicks)) then
+                     -- A forward Sync sample drives the loop using the latest
+                     -- fresh filtered delay. Several Sync updates can therefore
+                     -- reuse one delay estimate; the median does not decimate Sync.
                      sampleTickDelta := signed(resize(unsigned(measurementMaster.data.ticks), 128))-signed(resize(unsigned(r.lastTicks), 128));
                      if r.tracking = '1' and (sampleTickDelta < signed(resize(unsigned(r.activeConfig.minSampleTicks), 128)) or
                         sampleTickDelta > signed(resize(unsigned(r.activeConfig.maxSampleTicks), 128))) then
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      else
+                        -- e = local - master, in Q16 ns. Positive e means our
+                        -- numerical time is ahead: step it back while invalid,
+                        -- or reduce the tracking rate with negative phase feedback.
                         v.status.offsetValue            := slv(signed(measurementMaster.data.forward)-signed(r.status.filteredDelay)-resize(signed(r.activeConfig.delayAsymmetry), 128));
                         v.sampleTicks                   := measurementMaster.data.ticks;
                         v.holding                       := '0';
@@ -466,6 +502,9 @@ begin
                         elsif resize(resize(signed(v.status.offsetValue), 64), 128) /= signed(v.status.offsetValue) then
                            v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                         else
+                           -- ratio is master ns per raw local cycle (Q48), not
+                           -- a dimensionless ratio. Compute the bootstrap ppb as
+                           -- 1e9 * (ratio / nominalIncrement - 1).
                            v.a         := slv(signed(resize(unsigned(measurementMaster.data.ratio), 128))-
                                       signed(shift_left(resize(NOMINAL_C, 128), PTP_PHC_TO_RATIO_SHIFT_C)));
                            v.b         := slv(to_signed(PTP_PPB_SCALE_C, 128));
@@ -503,17 +542,27 @@ begin
                         v.divide    := '0';
                         v.operation := PROPORTIONAL_S;
                      when PROPORTIONAL_S =>
+                        -- Temporary phase removal by rate: slew = -Kp * e.
+                        -- Kp has units ppb/ns. This slews numerical time through
+                        -- its increment; it does not issue a PHASE step.
                         v.slew := clamp(-ptpRoundShift(signed(valueMath), PROPORTIONAL_SHIFT_C), r.activeConfig.maxSlewPpb);
                         if r.tracking = '0' then
                            -- First apply qualified oscillator feedforward. Seed
                            -- the integrator minus the new proportional term, so
                            -- entry to tracking preserves this applied command.
-                           v.workFrequency  := clamp(r.bootstrap-v.slew, r.activeConfig.maxFrequencyPpb);
-                           v.status.ratePpb := slv(resize(clamp(v.workFrequency+v.slew, r.activeConfig.maxRatePpb), 64));
+                           -- Widen before adding/subtracting clamped terms: two
+                           -- 35-bit values can require a 36-bit signed result.
+                           rateCandidate    := resize(r.bootstrap, rateCandidate'length)-resize(v.slew, rateCandidate'length);
+                           v.workFrequency  := clamp(resize(rateCandidate, 128), r.activeConfig.maxFrequencyPpb);
+                           rateCandidate    := resize(v.workFrequency, rateCandidate'length)+resize(v.slew, rateCandidate'length);
+                           v.status.ratePpb := slv(resize(clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb), 64));
                            v.a              := slv(resize(signed(v.status.ratePpb), 128));
                            v.b              := slv(resize(NOMINAL_C, 128));
                            v.operation      := RATE_SCALE_S;
                         else
+                           -- Use actual sample spacing in raw ticks, converted
+                           -- with the nominal period. Do not assume one second
+                           -- or measure this interval with already-steered time.
                            v.a         := slv(resize(unsigned(r.sampleTicks)-unsigned(r.lastTicks), 128));
                            v.b         := slv(resize(NOMINAL_C, 128));
                            v.operation := INTERVAL_SCALE_S;
@@ -524,18 +573,21 @@ begin
                         v.divide    := '1';
                         v.operation := INTERVAL_DIVIDE_S;
                      when INTERVAL_DIVIDE_S =>
-                        v.interval  := signed(valueMath); -- seconds Q32
+                        v.interval  := resize(signed(valueMath), v.interval'length); -- seconds Q32; bounded above by the tick limit.
                         v.a         := r.status.offsetValue;
                         v.b         := slv(resize(unsigned(r.activeConfig.ki), 128));
                         v.divide    := '0';
                         v.operation := INTEGRAL_GAIN_S;
                      when INTEGRAL_GAIN_S =>
                         v.a         := valueMath; -- Q16 offset * Q30 gain
-                        v.b         := slv(r.interval); -- seconds Q32
+                        v.b         := slv(resize(r.interval, 128)); -- seconds Q32
                         v.operation := INTEGRAL_TIME_S;
                      when INTEGRAL_TIME_S =>
+                        -- Persistent rate estimate: Fnew = Fold - Ki * e * dt.
+                        -- Ki is ppb/(ns*s); dt is nominal raw elapsed seconds.
+                        -- The final command is Fnew + slew, subject to limits.
                         integralDelta      := -ptpRoundShift(signed(valueMath), INTEGRAL_SHIFT_C); -- ppb Q16
-                        frequencyCandidate := r.frequency+integralDelta;
+                        frequencyCandidate := resize(r.frequency, 128)+integralDelta;
                         v.workFrequency    := clamp(frequencyCandidate, r.activeConfig.maxFrequencyPpb);
                         -- Conditional integration freezes only outward movement
                         -- at either frequency or final-rate saturation. Movement
@@ -546,20 +598,26 @@ begin
                               integrate := false;
                            end if;
                         end if;
-                        if clamp(v.workFrequency+r.slew, r.activeConfig.maxRatePpb) /= v.workFrequency+r.slew then
-                           if (v.workFrequency+r.slew > 0 and integralDelta > 0) or (v.workFrequency+r.slew < 0 and integralDelta < 0) then
+                        rateCandidate := resize(v.workFrequency, rateCandidate'length)+resize(r.slew, rateCandidate'length);
+                        if clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb) /= rateCandidate then
+                           if (rateCandidate > 0 and integralDelta > 0) or (rateCandidate < 0 and integralDelta < 0) then
                               integrate := false;
                            end if;
                         end if;
                         if not integrate then
                            v.workFrequency := r.frequency;
                         end if;
-                        v.status.ratePpb := slv(resize(clamp(v.workFrequency+r.slew, r.activeConfig.maxRatePpb), 64));
+                        rateCandidate    := resize(v.workFrequency, rateCandidate'length)+resize(r.slew, rateCandidate'length);
+                        v.status.ratePpb := slv(resize(clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb), 64));
                         v.a              := slv(resize(signed(v.status.ratePpb), 128));
                         v.b              := slv(resize(NOMINAL_C, 128));
                         v.divide         := '0';
                         v.operation      := RATE_SCALE_S;
                      when RATE_SCALE_S =>
+                        -- Convert requested Q16 ppb to a Q32 ns/tick addend:
+                        -- round(nominalQ32 * ratePpbQ16 / (1e9 * 2**16)).
+                        -- status.ratePpb is a candidate; phcStatus.rate and
+                        -- phcStatus.increment report the committed PHC actuator.
                         v.a         := valueMath;
                         v.b         := slv(PPB_Q16_SCALE_C); -- Convert Q16 ppb to a dimensionless rate.
                         v.divide    := '1';
@@ -609,6 +667,8 @@ begin
                      v.tracking    := '1';
                      v.holdApplied := '0';
                      if phcStatus.timeValid = '0' then
+                        -- An accepted rate can establish usable time before
+                        -- enough good samples have accumulated to claim LOCKED.
                         v.commandMaster.data.kind  := PTP_CMD_VALID_C;
                         v.commandMaster.data.value := '1';
                         v.state                    := COMMAND_S;
@@ -618,6 +678,8 @@ begin
             end if;
       end case;
       -- Lock hysteresis uses only a sample whose rate command was acknowledged.
+      -- This qualifies the internal offset estimate. It is not an independent
+      -- accuracy measurement, nor the LOCKED indication of a physical PLL.
       if acceptSample then
          v.lastTicks    := r.sampleTicks;
          v.haveSample   := '1';

@@ -10,7 +10,8 @@
 
 # Test methodology:
 # - Sweep: Signed multiply/divide, rounding, overflow, and synchronous reset.
-# - Stimulus: Boundary operands and seeded independent Python integer vectors.
+# - Stimulus: Boundary operands and seeded independent Python integer vectors;
+#   distinguish signed overflow, addition carry, and selected shifted-out bits.
 # - Checks: Full 128-bit result, truncation remainder, error, stable stalled output.
 # - Registered-valid check: cancel may not change resultValid before the edge;
 #   producer and consumer must exclude cancellation edges from transfers.
@@ -47,6 +48,14 @@ async def checked_arithmetic(d):
     pairs = [(0, 0), (1, 0), (-(1 << 127), -1), (-(1 << 127), 1),
              ((1 << 127)-1, 2), (3, 2), (-3, 2), (3, -2), (-3, -2),
              (1 << 100, 1 << 50), (-(1 << 80), 1 << 30)]
+    # Multiplicand shifts continue for all 128 iterations. Unused high bits
+    # must not flag overflow; selected ones and carries must, even when the
+    # wrapped low product looks small. Check both operand orders and signs.
+    boundaries = [(0, -(1 << 127)), (1, -(1 << 127)),
+                  (2, 1 << 126), (-2, 1 << 126),
+                  (3, (1 << 127)-1), (-(1 << 127), -(1 << 127)),
+                  ((1 << 100)+1, (1 << 50)+3)]
+    pairs += boundaries + [(b, a) for a, b in boundaries]
     pairs += [(rng.randrange(-(1 << 126), 1 << 126), rng.randrange(-(1 << 100), 1 << 100)) for _ in range(60)]
     for divide in (0, 1):
         for index, (a, b) in enumerate(pairs):
@@ -54,15 +63,18 @@ async def checked_arithmetic(d):
             await edge(inputValid=1, operandA=a & MASK, operandB=b & MASK,
                        divide=divide, roundNearest=rounding, resultReady=0)
             await edge(inputValid=0)
+            work_cycles = 1
             for _ in range(129):
                 if int(d.resultValid.value):
                     break
                 await edge()
+                work_cycles += 1
             else:
                 assert False, "bounded arithmetic completion"
             if divide and b == 0:
                 error = True
             else:
+                assert work_cycles == 128, "arithmetic schedule changed"
                 trunc = (abs(a)//abs(b)) * (-1 if (a < 0) != (b < 0) else 1) if divide else 0
                 expected = (nearest(Fraction(a, b)) if rounding else trunc) if divide else a*b
                 error = not -(1 << 127) <= expected < (1 << 127)

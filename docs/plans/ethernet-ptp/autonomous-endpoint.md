@@ -345,6 +345,81 @@ Bootstrap therefore estimates rate independently of already-valid path delay.
 Do not constrain the individual cross-clock differences to a network-delay
 range before their potentially large epoch offsets cancel.
 
+### Fixed-point width audit
+
+The October 2026 source audit sizes stored values from the accepted configuration
+and interface ranges, including standalone clock-frequency generics. It does not
+assume that every Sync arrives one second apart or that every offset is small.
+The first reduction preserves all fractional bits, register/command formats,
+rounding points, overflow rejection and the 128-iteration arithmetic schedule.
+Behavioral equivalence still awaits the [paused acceptance checks](rtl-review.md#fixed-point-width-acceptance).
+
+| Quantity | Bound and implementation decision |
+| --- | --- |
+| Stored servo frequency, candidate frequency, slew and bootstrap | Each is clamped to at most +/-200,000 ppb. With 16 fractional bits, `200000 * 2^16 < 2^34`: **35 signed bits** suffice. `RatePpbType` replaces four signed128 registers. |
+| Sum/difference of two clamped rate terms | Can reach +/-400,000 ppb before clamping. Explicit **36-bit** arithmetic preserves the carry/sign before saturation and anti-windup decisions. |
+| Tracking offset and gain product | Tracking admission requires the offset to fit signed64 Q16 ns; Kp/Ki are unsigned32 Q2.30. Their exact product fits **signed96**. The shared engine still publishes signed128 because other operations need the wider contract. |
+| Elapsed sample time | Validated timeouts are nonzero and below `2^62` raw ticks. For any positive `CLK_FREQ_G`, nominal Q32 ns/tick is at most `1e9 * 2^32`. Thus the rounded interval in Q32 seconds is below `2^94`: **95 signed bits** suffice for `interval`, formerly signed128. |
+| Integral update | Multiplying the offset/gain product by the permitted interval can exceed signed128 before the existing 62-bit rounded shift. Retain checked128 overflow rejection; a narrower engine or an earlier rounding shift could change which samples are rejected or change the PI result. |
+| Rate-to-PHC conversion | The clamped signed35 rate times the nominal increment fits signed97 for all positive clock-frequency generics. At 125 MHz, the exact nominal increment is `2^35`, so signed70 suffices for this product. The shared engine retains its wider interface. |
+| Epoch and manual phase adjustment | A full 48-bit seconds epoch expressed in Q16 ns needs about 95 signed bits. The software phase operand and measurement/normalization interfaces accept signed128; phase division must retain that public input range and its quotient-fit checks. |
+| E2E and raw-rate estimation | Raw ticks/phase, unsigned64 ratios, correction fields and calibration conversions have separate bounds. The E2E tick-span/ratio product can exceed signed128 and is checked. Do not infer smaller operands merely from the subsequently qualified oscillator or path-delay range. |
+
+The narrow servo state relies on the existing coordinated configuration contract:
+the endpoint applies a candidate only after all banks vote valid. Changing the
+actuator cap or timeout policy requires revisiting these bounds. The cap remains
+an implementation policy awaiting qualification, as recorded above; this audit
+does not establish its physical suitability.
+
+`PtpMath` now stores the low 128 bits of its product and shifted multiplicand,
+with two sticky flags in place of their previous 256-bit registers. A 129-bit
+addition detects carry. A shifted-out high bit contributes to product overflow
+only when a subsequent multiplier bit selects that partial product. Because
+the engine multiplies unsigned magnitudes, all partial products are nonnegative:
+discarded high bits cannot cancel later. The final sign-dependent range check
+still distinguishes `-2^127` from the overflowing positive `+2^127`, and the low
+result bits on overflow are preserved. Division retains its widened remainder,
+nearest-rounding option and truncation remainder semantics.
+
+These changes remove 405 declared state bits from the servo and 254 from each
+multiply-capable math instance before synthesis optimization. These are source
+width counts, not measured FPGA savings; constant divide-only instances may
+already prune multiplication logic. LUT/FF/DSP use and critical paths require
+Vivado evidence. Operation-specific multiplier/divider widths or DSP mapping
+remain later options after behavioral acceptance and a measured resource need.
+
+### Deferred floating-point servo option
+
+Floating-point arithmetic is a future option for the message-rate PI servo's
+gain, proportional and integral calculations. It could simplify experiments
+with controller equations and scaling. The current implementation remains
+fixed point; this is an investigation idea, not an implementation commitment
+or an expected accuracy improvement.
+
+An experiment should convert already-formed, bounded offset and elapsed-time
+values to floating point and keep frequency corrections separate from the
+nominal clock increment. Evaluate binary64 first rather than assuming binary32
+has sufficient precision. Floating point provides approximately constant
+relative precision, so its absolute resolution depends on magnitude: a small
+integral update can disappear when added to a large retained state. Form epoch
+differences in integer/fixed point before conversion; converting large absolute
+timestamps first can lose the small difference the controller needs.
+
+Integer/fixed-point arithmetic remains the preferred choice for the rest of
+the timing chain: PHC accumulation, timestamp capture and subtraction, correction
+fields, E2E delay and raw-rate estimation, phase normalization, and final PHC
+commands. These paths benefit from explicit absolute resolution, exact counters
+and predictable rounding/overflow behavior. A floating-point servo would still
+return a bounded fixed-point correction through the existing command interface,
+with explicit conversion, rounding, saturation and non-finite-result handling.
+
+Compare any prototype with the appropriately sized fixed-point baseline for
+numerical error, small accumulated corrections, acquisition/holdover behavior,
+FPGA resources and latency. Message-rate computation offers time to serialize
+operations, but does not establish a resource or precision advantage. Existing
+configuration, cancellation and command-acknowledgement contracts must remain
+intact; behavioral evaluation remains subject to the current verification pause.
+
 ## AXI-Lite register map
 
 The [register map](register-map.md) defines the implemented four-bank ABI,

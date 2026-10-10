@@ -10,6 +10,13 @@
 -- seconds rollover. A separate 64-bit unsteered cycle counter provides
 -- protocol timers and rate-estimation intervals independent of clock steering.
 --
+-- This disciplines a numerical time coordinate, not the physical clk input.
+-- At 125 MHz the nominal increment is 8 ns; a +10 ppm numerical correction
+-- makes it 8.000080 ns per tick without moving any physical clock edge.
+-- Fractional bits preserve small accumulated corrections, not sub-cycle I/O
+-- timing. Separate integration logic owns waveform generation and physical
+-- oscillator control.
+--
 -- A single ready/valid command slot latches immutable operands and commits
 -- them on the following edge. SET names commit-edge time, PHASE adjusts
 -- normally advanced time, and RATE changes subsequent increments. Other
@@ -121,6 +128,8 @@ architecture rtl of PtpPhc is
 
    constant SECOND_Q16_C : slv(127 downto 0) := slv(shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
 
+   -- Q32 ns: the encoded value is ns * 2**32. The signed status.rate uses the
+   -- same scale, so adding it changes ns/tick directly, without a ppb conversion.
    constant NOMINAL_C : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
    constant SECOND_C  : signed(66 downto 0)   := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
 
@@ -247,6 +256,8 @@ begin
       variable tickIncrement   : signed(64 downto 0);
       variable nextIncrement   : signed(64 downto 0);
    begin
+      -- r is pre-edge state. v collects the state to register next; ordinary
+      -- ticking happens even while command preparation or arbitration is busy.
       v := r;
 
       -- Default one-cycle indications. Manual completion stays latched until
@@ -406,12 +417,20 @@ begin
       -------------------------------------------------------------------------
       -- Advance once with the pre-edge rate. Keep widened signed intermediates
       -- until all command arithmetic and epoch bounds have been checked.
+      -- Concatenating nanoseconds and fraction forms one Q32-ns value. Carry
+      -- across bit 31 advances integer ns; SECOND_C handles the decimal second.
       tickIncrement      := signed('0' & slv(NOMINAL_C)) + resize(signed(r.status.rate), 65);
       nextNanoseconds    := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67)) + resize(tickIncrement, 67);
       nextSeconds        := signed(resize(unsigned(r.timeValue.seconds), 66));
       v.status.increment := slv(tickIncrement(63 downto 0));
+      -- Raw ticks deliberately ignore numerical rate and phase corrections.
+      -- They count oscillator edges, not calibrated nanoseconds; physically
+      -- steering clk would also change their relationship to real elapsed time.
       v.status.ticks     := slv(unsigned(r.status.ticks) + 1);
       if nextNanoseconds >= SECOND_C then
+         -- Detect crossing, not equality: an adjusted increment can skip over
+         -- exactly zero ns. PPS is one clk cycle on this edge grid (8 ns at
+         -- 125 MHz); final validity/command checks below may suppress it.
          nextNanoseconds := nextNanoseconds - SECOND_C;
          nextSeconds     := nextSeconds + 1;
          v.pps           := r.ppsEnable and r.status.timeValid;
@@ -436,6 +455,8 @@ begin
          else
             case r.command.kind is
                when PTP_CMD_SET_C =>
+                  -- SET names the desired time at this commit edge. Unlike
+                  -- PHASE, it replaces rather than offsets the ordinary tick.
                   if unsigned(r.command.setTime.nanoseconds) >= PTP_NANOSECONDS_PER_SECOND_C then
                      v.status.error := '1';
                   elsif r.activeMonotonic = '1' and r.status.timeValid = '1' then
@@ -467,6 +488,9 @@ begin
                      v.status.discontinuity := '1';
                   end if;
                when PTP_CMD_RATE_C =>
+                  -- The commit edge has already advanced with r.status.rate.
+                  -- Publish the new increment beside the resulting timestamp
+                  -- so consumers know the rate for subsequent clock intervals.
                   nextIncrement := signed('0' & slv(NOMINAL_C)) + resize(signed(r.command.rate), 65);
                   if nextIncrement <= 0 or nextIncrement >= SECOND_C then
                      v.status.error := '1';
@@ -486,6 +510,8 @@ begin
 
       -- A successful SET/PHASE invalidates captures and advances provenance,
       -- even if its arithmetic subsequently trips the fatal epoch check.
+      -- generation is a discontinuity tag, not the seconds counter. Old packet
+      -- captures and queued commands must not be reused across a time step.
       if v.status.discontinuity = '1' then
          if unsigned(r.status.generation) = x"FFFFFFFF" then
             v.status.fault := '1';
@@ -509,6 +535,8 @@ begin
          v.timeValue        := r.timeValue;
          v.status.timeValid := '0';
       else
+         -- Invalid time still advances. clearValid revokes its qualification;
+         -- it does not stop timekeeping or erase the retained rate correction.
          v.timeValue.seconds     := slv(nextSeconds(47 downto 0));
          v.timeValue.nanoseconds := slv(nextNanoseconds(63 downto 32));
          v.timeValue.fraction    := slv(nextNanoseconds(31 downto 0));

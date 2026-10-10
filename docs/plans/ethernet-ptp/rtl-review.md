@@ -211,6 +211,34 @@ reset handling. No checkpoint was regenerated or converted; the dedicated GTH
 asset remains missing. Register layouts and exact clock/reset/constraint paths
 are maintained in the [composition guide](../../../ethernet/PtpCore/README.md#1g-phy-compositions).
 
+## Fixed-point width static evidence
+
+The October 9, 2026 working-tree change based on `4319702d0` follows the
+[fixed-point width audit](autonomous-endpoint.md#fixed-point-width-audit).
+`PtpServo` stores clamped Q16 ppb terms in 35 bits and elapsed Q32 seconds in
+95 bits; 36-bit sums/differences precede rate clamping. `PtpMath` replaces two
+256-bit multiplication registers with 128-bit low parts and sticky overflow
+flags. The source review covers carry before narrowing, selected versus unused
+shift overflow, signed minimum, rounding, cancellation/reset initialization,
+registered result holding and the unchanged operation count. It is not a
+behavioral-equivalence result.
+
+GHDL 6.0.0 (LLVM 22.1.0) import and compile/link passed for `PtpMath`,
+`PtpServoWrapper`, `PtpPhc`, `PtpE2eWrapper` and `PtpPortWrapper`, covering all
+four math-engine consumers. An isolated temporary library used the current
+`PtpCore/rtl` sources, those wrappers and their checked-out package, reset and
+AXI adapter dependencies, with the flags below. No ruckus-wide import, vendor
+stub, previous compiled library or simulator execution was used. An initial
+`PtpPhcWrapper` link encountered its readback mailbox's `FifoAsync` dependency
+outside this focused source inventory; the production `PtpPhc` leaf was linked
+instead. PHC mailbox-wrapper coverage is not claimed. Warnings concern existing
+package elaboration order, hidden declarations and AXI interface attributes.
+
+Python syntax parsing (without imports), changed documentation links/anchors
+and `git diff --check` passed. VSG was unavailable. Simulation, pytest collection
+and pure models remain paused. No Vivado resource/timing comparison was run;
+declared bit-count reductions do not establish mapped FPGA savings.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),
@@ -272,6 +300,29 @@ Device timing, added register/resource cost, physical CDC, calibrated hardware
 accuracy, external-master interoperability and live PyRogue transport remain
 separate qualification work. Include the one-step and PHY acceptance below;
 prepared fixtures are not passing results.
+
+### Fixed-point width acceptance
+
+After explicit maintainer approval, run the prepared `test_ptp_math.py` and
+`test_ptp_servo.py` fixtures before the existing PHC, E2E, port and endpoint
+checks. None has been executed for this change.
+
+- Math vectors now distinguish unused shifted-out bits from selected high
+  partial products, addition carry from signed-range overflow, both operand
+  orders, zero, signed minimum and nonzero wrapped low products. Exact 128-work-
+  cycle latency is checked alongside the existing remainder, stall and cancel
+  checks. Compare results/error/latency against the previous implementation.
+- Servo vectors retain the rational PI oracle and exercise both signs of the
+  maximum 200,000-ppb limits, bootstrap subtraction and tracking sums approaching
+  +/-400,000 ppb, anti-windup, fractional corrections and holdover. These cases
+  would expose narrowing a sum to 35 bits before clamping.
+- Extend interval/configuration boundary coverage to the largest accepted
+  timeout, both supported endpoint clocks and standalone frequency generics.
+  Include integral-product overflow rejection and full-range manual phase
+  normalization; the ordinary default-interval cases do not cover those bounds.
+- Obtain a Vivado before/after utilization and timing comparison at the same
+  target/configuration before claiming LUT/FF savings or deciding whether
+  operation-specific widths or DSP implementation are worthwhile.
 
 ## One-step receive acceptance
 

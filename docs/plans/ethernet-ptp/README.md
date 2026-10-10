@@ -42,6 +42,10 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
 - One-step receive selects origin/correction per Sync without a mode register.
   Its association rules are part of the [endpoint contract](autonomous-endpoint.md#port-policy-and-numerical-envelope),
   with prepared fixtures awaiting behavioral approval.
+- The [fixed-point width audit](autonomous-endpoint.md#fixed-point-width-audit)
+  narrows bounded servo state and the math engine's internal product storage.
+  Precision and public arithmetic ranges are retained; added boundary fixtures
+  await [behavioral acceptance](rtl-review.md#fixed-point-width-acceptance).
 
 ## PHY composition implementation
 
@@ -84,6 +88,9 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
    only with a concrete resource/timing need. Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.
+   A [floating-point servo](autonomous-endpoint.md#deferred-floating-point-servo-option)
+   is also a deferred investigation; integer/fixed point remains preferred for
+   the rest of the timing chain.
 
 ## Maintaining this workstream
 
