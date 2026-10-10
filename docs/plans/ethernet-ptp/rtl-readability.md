@@ -78,6 +78,10 @@ defines the record contracts and has no module outputs.
 
 The remaining exceptions are:
 
+- `PtpRxFrontend` acknowledges its synchronous FWFT FIFO combinationally on
+  the edge that captures the presented word into the registered head. This
+  follows the SURF FIFO consumer pattern; delaying acknowledgement would need
+  another reserved slot. FIFO writes and reset remain registered.
 - Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpProtocolEngine` and
   `PtpServo` expresses current capacity, simultaneous retirement or competing
   admission/cancellation. A timing break needs an additional reserved slot or
@@ -173,9 +177,11 @@ registered level; its consumption overrides validity-setting commands and PPS.
 RX overflow/flush detection at N clears the queue and publishes registered
 abort/overflow/epoch after N. A valid old head may transfer at N; consumers give
 the now-visible abort priority at N+1 and discard pending work. The RX queue head
-itself is registered, including selection after enqueue or consume/refill.
-It holds a copy of the counted head, so queue capacity is unchanged; selection
-uses resolved queue data and pointers before the register.
+itself is registered. Its [synchronous FWFT FIFO](autonomous-endpoint.md#rx-queue-storage)
+delivers a new completion to an available head three clocks after EOF. Logical
+occupancy includes the write/read pipeline and head, preserving configured
+capacity. Invalidation suppresses head capture while the registered FIFO reset
+clears internal validity on the following edge.
 
 Port lifecycle and measurement fields are registered together. A local cause
 sampled at N is visible after N and consumed by PHC/servo/children at N+1.

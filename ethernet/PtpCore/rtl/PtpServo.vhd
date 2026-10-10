@@ -202,6 +202,47 @@ architecture rtl of PtpServo is
       ACK_S);
 
    type DelayArray is array (0 to DELAY_FILTER_DEPTH_C-1) of signed(63 downto 0);
+
+   -- Sort a copy, never the circular history. Unpopulated entries sort last;
+   -- accepted delays fit nonnegative signed64, including the sentinel itself.
+   function medianDelay (delays : DelayArray; count : positive) return signed is
+      variable sorted : DelayArray := delays;
+
+      procedure compareSwap (variable a : inout signed; variable b : inout signed) is
+         variable temp : signed(a'range);
+      begin
+         if a > b then
+            temp := a;
+            a    := b;
+            b    := temp;
+         end if;
+      end procedure;
+
+   begin
+      for i in sorted'range loop
+         if i >= count then
+            sorted(i) := signed'(x"7FFFFFFFFFFFFFFF");
+         end if;
+      end loop;
+      -- Nine fixed compare/swaps replace five unrolled bubble-sort passes.
+      compareSwap(sorted(0), sorted(3));
+      compareSwap(sorted(1), sorted(4));
+      compareSwap(sorted(0), sorted(2));
+      compareSwap(sorted(1), sorted(3));
+      compareSwap(sorted(0), sorted(1));
+      compareSwap(sorted(2), sorted(4));
+      compareSwap(sorted(1), sorted(2));
+      compareSwap(sorted(3), sorted(4));
+      compareSwap(sorted(2), sorted(3));
+      -- Lower median for even populations; no sample or fraction is invented.
+      if count <= 2 then
+         return sorted(0);
+      elsif count <= 4 then
+         return sorted(1);
+      end if;
+      return sorted(2);
+   end function;
+
    type OperationType is (
       RATIO_SCALE_S,
       RATIO_DIVIDE_S,
@@ -362,10 +403,8 @@ begin
    comb : process (r, measurementMaster, rst, regRst, axiReadMaster, axiWriteMaster, configControl,
                    snapshotControl, servoEnable, sharedConfig, restart, phcStatus, commandSlave,
                    readyMath, validMath, valueMath, remainderMath, errorMath) is
-      variable v      : RegType;
-      variable ep     : AxiLiteEndpointType;
-      variable sorted : DelayArray;
-      variable temp   : signed(63 downto 0);
+      variable v  : RegType;
+      variable ep : AxiLiteEndpointType;
 
       -- Calculations used only during this evaluation.
       variable sampleTickDelta    : signed(127 downto 0);
@@ -380,8 +419,6 @@ begin
       -- later read of r still sees the old value, even after assigning v.
       v                  := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
-      sorted             := r.delays;
-      temp               := (others => '0');
       rateCandidate      := (others => '0');
 
       -- A held link/port abort cancels once, allowing later holdover work.
@@ -454,19 +491,7 @@ begin
                         if unsigned(r.status.filterCount) < DELAY_FILTER_DEPTH_C then
                            v.status.filterCount := slv(unsigned(r.status.filterCount)+1);
                         end if;
-                        sorted := v.delays;
-                        -- Sort only populated entries. Zero-filled startup history
-                        -- is never mistaken for five accepted zero-delay samples.
-                        for i in sorted'range loop
-                           for j in sorted'low to sorted'high-1 loop
-                              if j+1 < unsigned(v.status.filterCount) and sorted(j) > sorted(j+1) then
-                                 temp        := sorted(j);
-                                 sorted(j)   := sorted(j+1);
-                                 sorted(j+1) := temp;
-                              end if;
-                           end loop;
-                        end loop;
-                        v.status.filteredDelay := slv(resize(sorted((to_integer(unsigned(v.status.filterCount))-1)/2), 128));
+                        v.status.filteredDelay := slv(resize(medianDelay(v.delays, to_integer(unsigned(v.status.filterCount))), 128));
                         v.delayTicks           := measurementMaster.data.ticks;
                      else
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);

@@ -6,6 +6,8 @@
 -- Consumes normalized destination-MAC-through-FCS bytes every clk cycle with
 -- rxMaster.tValid; this physical input has no backpressure. Binds the capture
 -- at SOF, streams the CRC and TLV checks, then queues a complete decoded record.
+-- A synchronous FWFT FIFO delivers a record to an available head three clocks
+-- after completion. Logical capacity includes the write/read pipeline and head.
 -- The registered queue head remains stable while messageReady is low.
 -- Transfer requires messageValid, messageReady and no rxAbort on the same edge.
 -- A full-queue completion discards queued work and registers an abort event;
@@ -69,6 +71,9 @@ end entity PtpRxFrontend;
 architecture rtl of PtpRxFrontend is
 
    constant PREFIX_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_ANNOUNCE_BYTES_C;
+   -- The portable FIFO has a minimum address width of four and reserves one
+   -- RAM slot. Logical occupancy below includes every stage, not just RAM.
+   constant FIFO_ADDR_BITS_C : positive := maximum(4, log2(FIFO_DEPTH_G+1));
    -- Good Ethernet FCS residue in CrcPkg's register convention.
    constant ETH_CRC_RESIDUE_C : slv(31 downto 0) := x"C704DD7B";
 
@@ -84,9 +89,11 @@ architecture rtl of PtpRxFrontend is
       prefix       : Slv8Array(0 to PREFIX_BYTES_C-1);
       crc          : slv(31 downto 0);
       capture      : PtpRxCaptureType;
+      base         : natural range 0 to PTP_ANNOUNCE_BYTES_C;
+      messageEnd   : natural range 0 to MAX_FRAME_G;
       tlvBytes     : natural range 0 to PTP_TLV_HEADER_BYTES_C-1;
       tlvLength    : slv(15 downto 0);
-      tlvRemaining : natural range 0 to 65535;
+      tlvRemaining : natural range 0 to MAX_FRAME_G;
    end record;
 
    constant FRAME_INIT_C : FrameType := (
@@ -96,6 +103,8 @@ architecture rtl of PtpRxFrontend is
       prefix       => (others => (others => '0')),
       crc          => (others => '1'),
       capture      => PTP_RX_CAPTURE_INIT_C,
+      base         => 0,
+      messageEnd   => 0,
       tlvBytes     => 0,
       tlvLength    => (others => '0'),
       tlvRemaining => 0);
@@ -103,19 +112,21 @@ architecture rtl of PtpRxFrontend is
    -- The small same-clock queue stores complete records, including captures.
    -- No separately lossy packet/timestamp streams remain to be joined by key.
    -- generation belongs to the PHC/configuration owner; epoch belongs to this
-   -- RX queue. Clearing live pointers suffices to invalidate stored queue data.
+   -- RX queue. Logical occupancy includes the registered write, FIFO and head.
    type RegType is record
       -- Registered queue boundary and invalidation events.
       message          : PtpRxMessageType;
       queueOverflow    : sl;
       abortNow         : sl;
 
+      -- Registered FIFO write/reset and recomputed FWFT read acknowledgement.
+      fifoWrite        : sl;
+      fifoWriteData    : PtpRxStorageType;
+      fifoRst          : sl;
+      fifoRead         : sl;
       counters         : PtpRxCountersType;
       messageValid     : sl;
       frame            : FrameType;
-      queue            : PtpRxMessageArray(0 to FIFO_DEPTH_G-1);
-      wrPtr            : natural range 0 to FIFO_DEPTH_G-1;
-      rdPtr            : natural range 0 to FIFO_DEPTH_G-1;
       fill             : natural range 0 to FIFO_DEPTH_G;
       generation       : slv(31 downto 0);
       epoch            : unsigned(31 downto 0);
@@ -125,12 +136,13 @@ architecture rtl of PtpRxFrontend is
       message          => PTP_RX_MESSAGE_INIT_C,
       queueOverflow    => '0',
       abortNow         => '0',
+      fifoWrite        => '0',
+      fifoWriteData    => (others => '0'),
+      fifoRst          => '1',
+      fifoRead         => '0',
       counters         => PTP_RX_COUNTERS_INIT_C,
       messageValid     => '0',
       frame            => FRAME_INIT_C,
-      queue            => (others => PTP_RX_MESSAGE_INIT_C),
-      wrPtr            => 0,
-      rdPtr            => 0,
       fill             => 0,
       generation       => (others => '0'),
       epoch            => (others => '0'));
@@ -138,14 +150,12 @@ architecture rtl of PtpRxFrontend is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   -- Explicit wrapping also supports depth one and non-power-of-two depths.
-   function advance (ptr : natural) return natural is
-   begin
-      if ptr = FIFO_DEPTH_G-1 then
-         return 0;
-      end if;
-      return ptr+1;
-   end function;
+   signal fifoWrite     : sl;
+   signal fifoWriteData : PtpRxStorageType;
+   signal fifoRst       : sl;
+   signal fifoRead      : sl;
+   signal fifoReadData  : PtpRxStorageType;
+   signal fifoValid     : sl;
 
    -- Fixed lengths include the 34-byte PTP header: Sync/Follow_Up (44),
    -- Delay_Resp (54), Announce (64). Delay_Req is TX-only for this receiver.
@@ -187,12 +197,56 @@ architecture rtl of PtpRxFrontend is
 
 begin
 
-   comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady) is
-      variable v      : RegType;
-      variable octet  : slv(7 downto 0);
-      variable base   : natural range 0 to PTP_ANNOUNCE_BYTES_C;
-      variable length : natural range 0 to 65535;
-      variable offset : natural range 0 to MAX_FRAME_G+1;
+   -- Completion at N registers a write, accepted by the synchronous FIFO at
+   -- N+1. Its FWFT read presents data/valid at N+2 for the head to capture at
+   -- N+3. Logical fill reserves capacity throughout these stages. This backend
+   -- recovers from reset in one clock; parsing a minimum frame takes at least
+   -- eight clocks, so a fresh completion cannot overlap reset recovery.
+   -- Invalidation clears the head immediately and registers fifoRst for the
+   -- following edge. No FIFO data is captured while that reset is pending.
+   U_Queue : entity surf.Fifo
+      generic map (
+         TPD_G           => TPD_G,
+         RST_POLARITY_G  => '1',
+         RST_ASYNC_G     => false,
+         GEN_SYNC_FIFO_G => true,
+         FWFT_EN_G       => true,
+         SYNTH_MODE_G    => "inferred",
+         MEMORY_TYPE_G   => "distributed",
+         PIPE_STAGES_G   => 0,
+         DATA_WIDTH_G    => PTP_RX_STORAGE_BITS_C,
+         ADDR_WIDTH_G    => FIFO_ADDR_BITS_C)
+      port map (
+         rst           => fifoRst,        -- [in]
+         wr_clk        => clk,            -- [in]
+         wr_en         => fifoWrite,      -- [in]
+         din           => fifoWriteData,  -- [in]
+         wr_data_count => open,           -- [out]
+         wr_ack        => open,           -- [out]
+         overflow      => open,           -- [out]
+         prog_full     => open,           -- [out]
+         almost_full   => open,           -- [out]
+         full          => open,           -- [out]
+         not_full      => open,           -- [out]
+         rd_clk        => clk,            -- [in]
+         rd_en         => fifoRead,       -- [in]
+         dout          => fifoReadData,   -- [out]
+         rd_data_count => open,           -- [out]
+         valid         => fifoValid,      -- [out]
+         underflow     => open,           -- [out]
+         prog_empty    => open,           -- [out]
+         almost_empty  => open,           -- [out]
+         empty         => open);          -- [out]
+
+   comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady, fifoReadData, fifoValid) is
+      variable v            : RegType;
+      variable octet        : slv(7 downto 0);
+      variable base         : natural range 0 to PTP_ANNOUNCE_BYTES_C;
+      variable length       : natural range 0 to 65535;
+      variable offset       : natural range 0 to MAX_FRAME_G+1;
+      variable first        : natural range 0 to MAX_FRAME_G+1;
+      variable last         : natural range 0 to MAX_FRAME_G+9;
+      variable alignedBytes : Slv8Array(0 to 7);
 
       -- Calculations used only during this evaluation.
       variable completedMessage : PtpRxMessageType;
@@ -201,19 +255,38 @@ begin
       variable crcData          : slv(63 downto 0);
       variable keepGap          : boolean;
    begin
-      v      := r;
-      octet  := (others => '0');
-      base   := 0;
-      length := 0;
-      offset := 0;
+      v            := r;
+      octet        := (others => '0');
+      base         := 0;
+      length       := 0;
+      offset       := 0;
+      first        := 0;
+      last         := 0;
+      alignedBytes := (others => (others => '0'));
 
       completedMessage := PTP_RX_MESSAGE_INIT_C;
       frameComplete    := false;
       v.abortNow       := '0';
       v.queueOverflow  := '0';
+      v.fifoWrite      := '0';
+      v.fifoRead       := '0';
+      v.fifoRst        := '0';
       byteCount        := 0;
       crcData          := (others => '0');
       keepGap          := false;
+
+      -- Release a consumed head, then capture an available FWFT word. The
+      -- read acknowledgement consumes exactly the word captured on this edge;
+      -- registering it would require another slot for the delayed consumption.
+      if r.messageValid = '1' and messageReady = '1' then
+         v.messageValid := '0';
+         v.fill         := r.fill-1;
+      end if;
+      if v.messageValid = '0' and fifoValid = '1' and r.fifoRst = '0' then
+         v.message      := ptpUnpackRxMessage(fifoReadData);
+         v.messageValid := '1';
+         v.fifoRead     := '1';
+      end if;
 
       if rxMaster.tValid = '1' then
          if ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, rxMaster) = '1' then
@@ -252,46 +325,75 @@ begin
                   for b in 0 to 7 loop
                      crcData(63-8*i-b) := octet(b);
                   end loop;
-                  offset := v.frame.count;
-                  if offset < MAX_FRAME_G then
-                     v.frame.count := offset+1;
-                     if offset < PREFIX_BYTES_C then
-                        v.frame.prefix(offset) := octet;
-                     end if;
-                     -- Byte 14 holds messageType; bytes 16..17 hold messageLength.
-                     base   := baseLength(v.frame.prefix(14)(3 downto 0));
-                     length := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
-                     -- TLVs occupy [14+base, 14+messageLength). Their four-byte
-                     -- header is type then value length; only length is needed
-                     -- to skip unknown values. Padding lies outside this span.
-                     -- Updating v within the loop handles headers split across
-                     -- beats and a value ending partway through the same beat.
-                     if base /= 0 and offset >= PTP_ETH_HEADER_BYTES_C+base and offset < PTP_ETH_HEADER_BYTES_C+length then
-                        if v.frame.tlvRemaining /= 0 then
-                           v.frame.tlvRemaining := v.frame.tlvRemaining-1;
-                        else
-                           if v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C then
-                              v.frame.tlvLength(15 downto 8) := octet;
-                           elsif v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C+1 then
-                              v.frame.tlvLength(7 downto 0) := octet;
-                              v.frame.tlvRemaining          := to_integer(unsigned(v.frame.tlvLength));
-                              -- offset is the last TLV-header byte. A declared
-                              -- value may not extend past the PTP message end.
-                              -- IEEE 1588-2019 5.3.8 requires even TLV lengths.
-                              if v.frame.tlvLength(0) = '1' or
-                                 v.frame.tlvRemaining > PTP_ETH_HEADER_BYTES_C+length-offset-1 then
-                                 v.frame.bad := '1';
-                              end if;
-                           end if;
-                           v.frame.tlvBytes := (v.frame.tlvBytes+1) mod PTP_TLV_HEADER_BYTES_C;
-                        end if;
-                     end if;
-                  else
-                     v.frame.count := MAX_FRAME_G+1;
-                     v.frame.bad   := '1';
-                  end if;
                else
                   keepGap := true;
+               end if;
+            end loop;
+
+            -- Rotate once into frame-byte lanes, then give each prefix byte
+            -- one write enable. Contiguous keeps make frame offsets distinct;
+            -- sparse beats are already bad and can never publish a record.
+            first := v.frame.count;
+            last  := first+byteCount;
+            for i in 0 to 7 loop
+               alignedBytes(i) := rxMaster.tData(8*((i+8-(first mod 8)) mod 8)+7 downto 8*((i+8-(first mod 8)) mod 8));
+            end loop;
+            for i in v.frame.prefix'range loop
+               if first <= i and i < last then
+                  v.frame.prefix(i) := alignedBytes(i mod 8);
+               end if;
+            end loop;
+            if last > MAX_FRAME_G then
+               v.frame.count := MAX_FRAME_G+1;
+               v.frame.bad   := '1';
+            else
+               v.frame.count := last;
+            end if;
+
+            -- Decode once when the messageLength field is complete. Even an
+            -- eight-byte beat cannot also reach the first TLV (byte 58), so
+            -- these bounds are registered before any TLV needs them.
+            if first < 18 and last >= 18 then
+               v.frame.base := baseLength(v.frame.prefix(14)(3 downto 0));
+               length       := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
+               if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+                  v.frame.bad := '1';
+               else
+                  v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
+               end if;
+            end if;
+
+            -- Only TLV header transitions need byte ordering. Prefix writes,
+            -- byte counting and header bounds no longer feed an eight-stage
+            -- chain. Keep the parser able to finish a value and start another
+            -- header in the same beat, including zero-length TLVs.
+            for i in 0 to 7 loop
+               if i < byteCount and v.frame.bad = '0' then
+                  offset := first+i;
+                  octet  := rxMaster.tData(8*i+7 downto 8*i);
+                  if offset >= PTP_ETH_HEADER_BYTES_C+r.frame.base and offset < r.frame.messageEnd then
+                     if v.frame.tlvRemaining /= 0 then
+                        v.frame.tlvRemaining := v.frame.tlvRemaining-1;
+                     else
+                        if v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C then
+                           v.frame.tlvLength(15 downto 8) := octet;
+                        elsif v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C+1 then
+                           v.frame.tlvLength(7 downto 0) := octet;
+                           -- offset is the last TLV-header byte. A declared
+                           -- value may not extend past the PTP message end.
+                           -- IEEE 1588-2019 5.3.8 requires even TLV lengths.
+                           if v.frame.tlvLength(0) = '1' or
+                              to_integer(unsigned(v.frame.tlvLength)) > r.frame.messageEnd-offset-1 then
+                              v.frame.bad := '1';
+                           else
+                              -- Validate all 16 wire bits before narrowing
+                              -- the remaining-byte counter to frame capacity.
+                              v.frame.tlvRemaining := to_integer(unsigned(v.frame.tlvLength));
+                           end if;
+                        end if;
+                        v.frame.tlvBytes := (v.frame.tlvBytes+1) mod PTP_TLV_HEADER_BYTES_C;
+                     end if;
+                  end if;
                end if;
             end loop;
             -- One parallel CRC update per physical group. SURF uses the
@@ -326,8 +428,7 @@ begin
                -- contain padding/FCS after a short message's meaningful bytes.
                -- Header positions below are Ethernet-frame byte offsets:
                -- EtherType 12..13, type 14, version 15, messageLength 16..17.
-               base   := baseLength(v.frame.prefix(14)(3 downto 0));
-               length := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
+               base := v.frame.base;
                -- Validate framing/FCS, protocol identity, then bounded body/TLV
                -- lengths. Keep the rejection order explicit for first-time readers.
                frameComplete := true;
@@ -345,9 +446,9 @@ begin
                elsif v.frame.prefix(15)(3 downto 0) /= PTP_MAJOR_VERSION_C then
                   frameComplete := false;
                -- Require the fixed body and complete TLVs before the FCS.
-               elsif base = 0 or length < base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+               elsif base = 0 then
                   frameComplete := false;
-               elsif v.frame.count < PTP_ETH_OVERHEAD_BYTES_C+length or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
+               elsif v.frame.count < PTP_ETH_FCS_BYTES_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
                   frameComplete := false;
                end if;
                if frameComplete then
@@ -393,26 +494,18 @@ begin
       -- Downstream work remains revocable until that event is consumed next edge.
       if frameComplete and r.fill = FIFO_DEPTH_G then
          v.fill              := 0;
-         v.wrPtr             := 0;
-         v.rdPtr             := 0;
+         v.messageValid      := '0';
+         v.fifoRead          := '0';
+         v.fifoRst           := '1';
          v.epoch             := r.epoch+1;
          v.counters.overflow := ptpSatInc(r.counters.overflow);
          v.queueOverflow     := '1';
          v.abortNow          := '1';
-      else
-         -- Ordinary edge: remove the old head, then append a new completion.
-         -- Outputs still come from r, so an arrival cannot fall through an empty
-         -- queue and a stalled head stays stable unless explicitly aborted.
-         if r.fill /= 0 and messageReady = '1' then
-            v.rdPtr := advance(r.rdPtr);
-            v.fill  := r.fill-1;
-         end if;
-         if frameComplete then
-            v.queue(r.wrPtr)    := completedMessage;
-            v.wrPtr             := advance(r.wrPtr);
-            v.fill              := v.fill+1;
-            v.counters.accepted := ptpSatInc(r.counters.accepted);
-         end if;
+      elsif frameComplete then
+         v.fifoWrite         := '1';
+         v.fifoWriteData     := ptpPackRxMessage(completedMessage);
+         v.fill              := v.fill+1;
+         v.counters.accepted := ptpSatInc(r.counters.accepted);
       end if;
 
       -- Logical invalidation overrides parsing, admission, consumption, and
@@ -420,40 +513,39 @@ begin
       -- asserted edge advances epoch. No old queue entry or partial frame is
       -- reachable afterward, but downstream consumers must invalidate their
       -- own pending work. This operation neither resets the PHC nor frees TX keys.
+      -- An already registered write may commit on this invalidation edge;
+      -- the FIFO reset discards it before another head can be published.
       if rxFlush = '1' or (not TX_OBSERVE_G and generation /= r.generation) then
          v := r;
 
          v.queueOverflow := '0';
          v.frame         := FRAME_INIT_C;
          v.fill          := 0;
-         v.rdPtr         := 0;
-         v.wrPtr         := 0;
+         v.messageValid  := '0';
          v.generation    := generation;
          v.epoch         := r.epoch+1;
          v.abortNow      := '1';
+         v.fifoWrite     := '0';
+         v.fifoRead      := '0';
+         v.fifoRst       := '1';
       end if;
       -- Shared system reset excludes transfers. Unlike a logical flush,
       -- it resets epoch/counters; the owner must coordinate reset with consumers
       -- before reusing that epoch space. Async state reset occurs in seq.
       if rst = RST_POLARITY_G then
-         v.abortNow := '1';
-      end if;
-      -- Register nonempty alongside the resolved queue pointers and fill.
-      v.messageValid := '0';
-      if v.fill /= 0 then
-         v.messageValid := '1';
-      end if;
-      -- Select the next head before the register boundary. Use v.queue so an
-      -- arrival into an empty queue and simultaneous consume/refill both work.
-      -- The register holds through stalls; no read-pointer mux follows it.
-      if v.fill /= 0 then
-         v.message := v.queue(v.rdPtr);
+         v.abortNow  := '1';
+         v.fifoRead  := '0';
       end if;
       -- Apply synchronous reset before publishing next state and outputs.
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
       rin <= v;
+
+      fifoWrite     <= r.fifoWrite;
+      fifoWriteData <= r.fifoWriteData;
+      fifoRst       <= r.fifoRst;
+      fifoRead      <= v.fifoRead;
 
       message       <= r.message;
       queueOverflow <= r.queueOverflow;

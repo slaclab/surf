@@ -27,6 +27,13 @@ separates simulated behavior from remaining device and interoperability work.
   consumed on the following edge, including full-queue consume/overflow.
 - `test_ptp_rx_mac.py` runs the RX RTL beside the unchanged MAC under the
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
+- `test_ptp_rx_storage.py` checks TX-observer queues at depths two and three:
+  lossless capture increment/error storage, pointer wrap, generation retention,
+  simultaneous consume/enqueue, three-clock FIFO delivery, consumption and
+  reset/flush throughout the write/read pipeline, full-before-edge discard
+  and malformed keep/TLV rejection.
+  The RX oracle additionally covers depths one through four
+  and partial normalized beats of every width.
 - `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
   packing for both reference and RTL tests.
 - `test_ptp_wire_vectors.py` anchors the shared Sync builder against four
@@ -141,6 +148,9 @@ reporting the previous full-suite result as validation of a later edit.
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
+  Direct median checks cover every ordering of five distinct values, each
+  startup population, duplicates, signed64 maximum, circular replacement and
+  rejected samples without changing same-edge admission.
   It also checks registered command/cancellation/expiry stability between edges.
   `test_ptp_phc.py` exercises revocation after admission and expiry priority over
   validity-setting commands. Execution outcomes are tracked in the acceptance record.

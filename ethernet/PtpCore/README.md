@@ -31,6 +31,11 @@ insertion remains outside scope.
   keeps frame bytes and their start capture aligned. The leaf blocks remain
   independently testable. `PtpTxTimestampTap` composes the same leaves in
   TX-observation mode for actual TX wire completion.
+- `PtpRxFrontend` aligns beat data for fixed prefix writes and stores complete
+  message/capture records in a synchronous SURF FWFT FIFO with a registered
+  output head. Delivery takes three clocks after completion. Logical capacity
+  includes the write/read pipeline; no-backpressure input, full-before-edge
+  overflow and abort timing are unchanged. See [queue storage](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-queue-storage).
 - `PtpProtocolEngine` (formerly `PtpPort`), `PtpTxLedger`, `PtpE2e`: fixed-source
   policy, message association, persistent TX reservations, rate estimation,
   request building and E2E arithmetic. The Python device is also
@@ -38,6 +43,9 @@ insertion remains outside scope.
   Shared `PtpPort*Type` records retain their existing names and layouts.
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
+  The servo's combinational median uses nine fixed compare/swaps over a copy
+  of its circular history, preserving populated-only lower-median semantics
+  and same-edge sample admission. FPGA area/timing improvements need synthesis.
 - `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
   configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
   Servo command payload, valid, cancellation and expiry are registered. The

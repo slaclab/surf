@@ -33,53 +33,58 @@ entity PtpRxFrontendWrapper is
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
       RST_ASYNC_G       : boolean          := false;
+      TX_OBSERVE_G      : boolean          := false;
       PHY_TYPE_G        : string           := "XGMII";
       FIFO_DEPTH_G      : positive         := 4;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0'));
    port (
-      clk              : in  sl;
-      rst              : in  sl;
-      rxFlush          : in  sl               := '0';
-      phyReady         : in  sl               := '1';
-      generation       : in  slv(31 downto 0) := (others => '0');
-      phcSeconds       : in  slv(47 downto 0) := (others => '0');
-      phcNanoseconds   : in  slv(31 downto 0) := (others => '0');
-      phcFraction      : in  slv(31 downto 0) := (others => '0');
-      phcIncrement     : in  slv(63 downto 0) := x"0000000666666666";
-      tickCount        : in  slv(63 downto 0) := (others => '0');
-      timeValid        : in  sl               := '0';
-      xgmiiRxd         : in  slv(63 downto 0) := (others => '0');
-      xgmiiRxc         : in  slv(7 downto 0)  := (others => '1');
-      gmiiRxd          : in  slv(7 downto 0)  := (others => '0');
-      gmiiRxDv         : in  sl               := '0';
-      gmiiRxEr         : in  sl               := '0';
-      directValid      : in  sl               := '0';
-      directData       : in  slv(63 downto 0) := (others => '0');
-      directKeep       : in  slv(7 downto 0)  := (others => '0');
-      directSof        : in  sl               := '0';
-      directLast       : in  sl               := '0';
-      directError      : in  sl               := '0';
-      directPhase      : in  slv(2 downto 0)  := (others => '0');
-      normValid        : out sl;
-      normData         : out slv(63 downto 0);
-      normKeep         : out slv(7 downto 0);
-      normSof          : out sl;
-      normLast         : out sl;
-      normError        : out sl;
-      normTime         : out slv(95 downto 0);
-      normTicks        : out slv(63 downto 0);
-      normPhase        : out slv(2 downto 0);
-      normGeneration   : out slv(31 downto 0);
-      normTimeValid    : out sl;
-      normCaptureError : out sl;
-      messageData      : out slv(PTP_RX_MESSAGE_BITS_C-1 downto 0);
-      messageValid     : out sl;
-      messageReady     : in  sl               := '1';
-      rxAbort          : out sl;
-      rxEpoch          : out slv(31 downto 0);
-      acceptedCount    : out slv(31 downto 0);
-      droppedCount     : out slv(31 downto 0);
-      overflowCount    : out slv(31 downto 0));
+      clk                : in  sl;
+      rst                : in  sl;
+      rxFlush            : in  sl               := '0';
+      phyReady           : in  sl               := '1';
+      generation         : in  slv(31 downto 0) := (others => '0');
+      phcSeconds         : in  slv(47 downto 0) := (others => '0');
+      phcNanoseconds     : in  slv(31 downto 0) := (others => '0');
+      phcFraction        : in  slv(31 downto 0) := (others => '0');
+      phcIncrement       : in  slv(63 downto 0) := x"0000000666666666";
+      tickCount          : in  slv(63 downto 0) := (others => '0');
+      timeValid          : in  sl               := '0';
+      xgmiiRxd           : in  slv(63 downto 0) := (others => '0');
+      xgmiiRxc           : in  slv(7 downto 0)  := (others => '1');
+      gmiiRxd            : in  slv(7 downto 0)  := (others => '0');
+      gmiiRxDv           : in  sl               := '0';
+      gmiiRxEr           : in  sl               := '0';
+      directValid        : in  sl               := '0';
+      directData         : in  slv(63 downto 0) := (others => '0');
+      directKeep         : in  slv(7 downto 0)  := (others => '0');
+      directSof          : in  sl               := '0';
+      directLast         : in  sl               := '0';
+      directError        : in  sl               := '0';
+      directPhase        : in  slv(2 downto 0)  := (others => '0');
+      directCaptureError : in sl                := '0';
+      normValid          : out sl;
+      normData           : out slv(63 downto 0);
+      normKeep           : out slv(7 downto 0);
+      normSof            : out sl;
+      normLast           : out sl;
+      normError          : out sl;
+      normTime           : out slv(95 downto 0);
+      normTicks          : out slv(63 downto 0);
+      normPhase          : out slv(2 downto 0);
+      normGeneration     : out slv(31 downto 0);
+      normTimeValid      : out sl;
+      normCaptureError   : out sl;
+      normIncrement      : out slv(63 downto 0);
+      messageData        : out slv(PTP_RX_MESSAGE_BITS_C-1 downto 0);
+      messageIncrement   : out slv(63 downto 0);
+      messageError       : out sl;
+      messageValid       : out sl;
+      messageReady       : in  sl               := '1';
+      rxAbort            : out sl;
+      rxEpoch            : out slv(31 downto 0);
+      acceptedCount      : out slv(31 downto 0);
+      droppedCount       : out slv(31 downto 0);
+      overflowCount      : out slv(31 downto 0));
 end entity PtpRxFrontendWrapper;
 
 architecture rtl of PtpRxFrontendWrapper is
@@ -115,6 +120,7 @@ begin
             TPD_G             => TPD_G,
             RST_POLARITY_G    => RST_POLARITY_G,
             RST_ASYNC_G       => RST_ASYNC_G,
+            TX_OBSERVE_G      => TX_OBSERVE_G,
             PHY_TYPE_G        => PHY_TYPE_G,
             INGRESS_LATENCY_G => INGRESS_LATENCY_G)
          port map (
@@ -157,7 +163,7 @@ begin
       capture.generation <= generation;
       capture.increment  <= phcIncrement;
       capture.timeValid  <= timeValid;
-      capture.error      <= '0';
+      capture.error      <= directCaptureError;
    end generate GEN_DIRECT;
 
    -- Observation only: these ports add no queue or independent capture delay.
@@ -174,13 +180,17 @@ begin
    normGeneration   <= capture.generation;
    normTimeValid    <= capture.timeValid;
    normCaptureError <= capture.error;
+   normIncrement    <= capture.increment;
    messageData      <= toSlv(rxMessage);
+   messageIncrement <= rxMessage.capture.increment;
+   messageError     <= rxMessage.capture.error;
 
    U_DUT : entity surf.PtpRxFrontend
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
+         TX_OBSERVE_G   => TX_OBSERVE_G,
          FIFO_DEPTH_G   => FIFO_DEPTH_G)
       port map (
          clk               => clk,             -- [in]

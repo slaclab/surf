@@ -159,7 +159,7 @@ configured complete-record queue (default four). The Python oracle holds four
 trailing FCS bytes; RTL instead proves the declared body ends before the FCS.
 The legacy 744-bit diagnostic packing gives 2,976 data bits for four records,
 but omits capture increment/error and is not a lossless transport or device-area
-estimate. See the [deferred FIFO option](#deferred-rx-fifo-optimization).
+estimate. See the [lossless FIFO implementation](#rx-queue-storage).
 
 A completion finding the queue full **before the edge** discards the completion
 and whole queue, advances RX epoch and increments overflow even if ready is high.
@@ -481,24 +481,48 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 `readValid` responses in their current reset session.
 
 
-## Deferred RX FIFO optimization
+## RX queue storage
 
-Consider replacing `PtpRxFrontend`'s manual `r.queue` with a synchronous SURF
-FIFO using distributed RAM and `FWFT_EN_G => true`. RX currently defaults to
-four records; TX observation selects two and is always ready in
-`EthMacPtpEndpoint`. A nominal 16-entry RAM for both is a candidate, matching
-the public `Fifo` wrapper's minimum address width, not a protocol requirement.
-No RTL or depth change is selected yet; resource/timing benefits need synthesis
-evidence, and usable capacity must account for backend/FWFT buffering.
+`PtpRxFrontend` uses SURF `Fifo` with `GEN_SYNC_FIFO_G => true`,
+`FWFT_EN_G => true`, inferred distributed memory and no optional output pipeline.
+`FIFO_DEPTH_G` remains the exact logical capacity, including depth one and
+non-power-of-two depths; RX defaults to four and the TX observer selects two.
+Occupancy counts accepted completions until downstream consumption, including
+the registered write request, FIFO read pipeline and registered output head.
+The portable FIFO allocates at least 16 physical locations and reserves one RAM
+slot; its address width is at least `log2(FIFO_DEPTH_G+1)`. Extra physical
+capacity never increases the frontend's configured logical capacity.
 
-A replacement must retain atomic message/capture storage, stable registered
-outputs, and explicit flush/generation/epoch and abort timing. Preserve the
-pre-edge-full discard-all policy unless deliberately revising its contract.
-Add lossless record packing: the existing verification `toSlv` omits
-`capture.increment` and `capture.error`. Larger queues preserve capture times
-but can increase backlog age; retain stale-record rejection. Revisit queue
-capacity and interface latency tests when implementing, following the current
-verification authorization and acceptance record.
+Completion at edge N registers the complete payload and write enable together;
+the FIFO accepts the write at N+1 and presents FWFT data/valid at N+2. The head
+captures that word at N+3, allowing its first downstream transfer at N+4.
+Backpressure can delay delivery further. A primed queue drains one record per
+clock, and the published head holds during stalls. The combinational FWFT read
+acknowledgement consumes exactly the word captured into the head on that edge,
+following the [SURF consumer pattern](../../vhdl-conventions.md#fifo-and-ram-timing-contracts).
+Writes and reset publish directly from `r`; no custom RAM pointers or write
+forwarding remain. Added buffering latency does not change the SOF timestamp.
+
+Reset/flush clear logical occupancy, the head and the next write request;
+a registered active-high FIFO reset clears internal validity on the following
+edge without clearing payload RAM. Capture into the head is inhibited while
+that reset is pending. An already issued write may commit on the invalidation
+edge but is then discarded by the FIFO reset. The selected synchronous backend
+recovers in one clock, before a newly started minimum-length frame can complete
+(at least eight input clocks). Pre-edge-full completion still discards all
+queued work and registers the same overflow/abort event.
+Generation and RX epoch rules, capture/message atomicity and downstream
+stale-record rejection are unchanged. TX still preserves physical completion
+identity across PHC generation changes and when capture arithmetic reports error.
+
+`PtpPkg.ptpPackRxMessage`/`ptpUnpackRxMessage` transport all 809 record bits,
+including capture increment/error. They extend the existing 744-bit `toSlv`
+verification layout without changing it. The parser separately aligns each
+input beat for fixed prefix-byte writes, caches validated header bounds before
+the first TLV and checks all 16 received length bits before loading its bounded
+remaining-byte counter. These changes preserve the no-backpressure byte stream.
+See the [LUT workstream](lut-optimization.md) for source provenance and the
+outstanding Vivado resource/timing comparison; simulation is not area evidence.
 
 
 Validation history is retained in [historical evidence](history/verification.md);

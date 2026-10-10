@@ -9,14 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Direct normalized input, GMII, XGMII lanes 0/4, depth 1/4,
+# - Sweep: Direct normalized input, GMII, XGMII lanes 0/4, depth 1/2/3/4,
 #   synchronous active-high and asynchronous active-low reset, signed latency.
 # - Stimulus: Independent one-/two-step wire encoders, malformed/FCS-bad duplicates,
 #   minimum-gap traffic, record pressure, reset/generation during reception.
 # - Checks: Every cycle compares the RTL queue, record fields and abort priority
 #   with the bounded reference model; physical tests also require whole-frame
 #   acceptance and independently calculate the SOF timestamp and byte phase.
-# - Timing: Registered payload/valid/abort hold between edges. An event detected
+# - Timing: A completion reaches the registered head three clocks after EOF;
+#   logical occupancy includes the FIFO pipeline. Payload/valid/abort hold between edges. An event detected
 #   on this edge cancels downstream work on the next edge; old-head transfer
 #   may precede that event. Compare post-edge state with the frame/queue oracle.
 
@@ -54,6 +55,8 @@ class Bench:
         self.received = []
         self.aborts = 0
         self.increment = round((8 if self.mode == "GMII" else 6.4) * (1 << 32))
+        self.capture_extra = {}
+        self.available_at = {}
         # Exercise large seconds and nanosecond carry independently of PHC RTL.
         self.base = (((1 << 40) * 1_000_000_000 + 999999990) << 32)
         for name, value in dict(clk=0, rst=1-self.polarity, rxFlush=0, phyReady=1,
@@ -62,7 +65,7 @@ class Bench:
 
     async def step(self, **inputs):
         d = self.dut
-        names = ("messageValid", "messageData", "rxAbort", "rxEpoch")
+        names = ("messageValid", "messageData", "messageIncrement", "messageError", "rxAbort", "rxEpoch")
         published = tuple(integer(getattr(d, name)) for name in names) if self.cycle else None
         was_reset = integer(d.rst) == self.polarity if self.cycle else True
         d.clk.value = 0
@@ -80,16 +83,21 @@ class Bench:
             assert published == tuple(integer(getattr(d, name)) for name in names), "RX boundary changed between edges"
         if in_reset:
             self.model = RxFrontend(depth=self.depth)
+            self.available_at.clear()
             expected = None
         else:
             # The pure frame/queue model reports events at detection. The RTL
             # boundary publishes them after that edge. Decide the old-head
             # transfer first, using the event already visible to the consumer.
-            assert integer(d.messageValid) == bool(self.model.entries), self.cycle
-            if self.model.entries:
+            available = bool(self.model.entries and
+                             self.cycle >= self.available_at[self.model.entries[0].stamp.ticks])
+            assert integer(d.messageValid) == available, self.cycle
+            if available:
                 assert integer(d.messageData) == pack_record(self.model.entries[0]), self.cycle
+                stamp = self.model.entries[0].stamp
+                assert (integer(d.messageIncrement), integer(d.messageError)) == self.capture_extra[stamp.ticks], self.cycle
             assert integer(d.rxAbort) == self.model.abort, self.cycle
-            expected = self.model.entries[0] if (self.model.entries and integer(d.messageReady) and not self.model.abort) else None
+            expected = self.model.entries[0] if (available and integer(d.messageReady) and not self.model.abort) else None
             actual_transfer = integer(d.messageValid) and integer(d.messageReady) and not integer(d.rxAbort)
             assert bool(actual_transfer) == (expected is not None), self.cycle
             self.aborts += integer(d.rxAbort)
@@ -101,12 +109,16 @@ class Bench:
                 if integer(d.normSof):
                     stamp = RxStamp(unpack_time(integer(d.normTime)), integer(d.normTicks),
                                     integer(d.normGeneration), bool(integer(d.normTimeValid)), integer(d.normPhase))
+                    self.capture_extra[stamp.ticks] = (integer(d.normIncrement), integer(d.normCaptureError))
                 beat = RxBeat(integer(d.normData).to_bytes(8, "little")[:keep.bit_count()],
                               bool(integer(d.normSof)), bool(integer(d.normLast)),
                               bool(integer(d.normError) or (stamp is not None and integer(d.normCaptureError))), stamp)
-            self.model.edge(beat, ready=bool(integer(d.messageReady)),
+            accepted = self.model.counters["accepted"]
+            self.model.edge(beat, ready=bool(actual_transfer),
                             restart=bool(integer(d.rxFlush) or not integer(d.phyReady)),
                             generation=integer(d.generation))
+            if self.model.counters["accepted"] > accepted:
+                self.available_at[self.model.entries[-1].stamp.ticks] = self.cycle+4
         if expected is not None:
             self.received.append(expected)
         d.clk.value = 1
@@ -122,7 +134,7 @@ class Bench:
         await self.step(rst=self.polarity)
         await self.step(rst=1-self.polarity)
 
-    async def wait(self, count=4, **kwargs):
+    async def wait(self, count=6, **kwargs):
         for _ in range(count):
             await self.step(**kwargs)
 
@@ -164,7 +176,7 @@ class Bench:
                                 rxFlush=int(i == flush_at), **extra)
             await self.wait(12, rxFlush=0)
             point_cycles = Fraction(8)
-        await self.wait(3, rxFlush=0)
+        await self.wait(6, rxFlush=0)
         # Quantize at the capture boundary, after fractional lane advance and
         # signed calibration. The RTL uses the active increment, not 0.8 ns.
         point_q32 = self.base + (start + point_cycles) * self.increment - (self.latency << 16)
@@ -290,6 +302,29 @@ async def rx_contract(dut):
     assert bench.received[-1].message_length == 1500
 
     if mode == "DIRECT":
+        # Prefix rotation must handle arbitrary partial beats, not just the
+        # fixed eight-byte cadence used by the physical XGMII producer.
+        for width in range(1, 9):
+            before = len(bench.received)
+            await bench.direct(frame(kind=11, marker=width,
+                                     tlvs=bytes.fromhex("1234000056780002abcd")), width=width)
+            await bench.wait()
+            assert len(bench.received) == before+1
+            assert int.from_bytes(bench.received[-1].body[:10], "big") == width
+
+        # Fill and drain repeatedly with distinct increment sidecars. Later
+        # entries use the synchronous FIFO, with the exact logical capacity
+        # enforced independently of the FIFO's physical allocation.
+        for batch in range(3):
+            dut.messageReady.value = 0
+            before = len(bench.received)
+            for slot in range(bench.depth):
+                bench.increment += 17
+                await bench.direct(frame(marker=1000+batch*bench.depth+slot))
+            dut.messageReady.value = 1
+            await bench.wait(bench.depth+4)
+            assert len(bench.received) == before+bench.depth
+
         # Exact collision: full before the EOF edge even though ready is high.
         dut.messageReady.value = 0
         for slot in range(bench.depth):
@@ -399,6 +434,8 @@ async def rx_contract(dut):
 
 @pytest.mark.parametrize("mode,depth,polarity,async_reset,latency", [
     ("DIRECT", 1, 1, False, 0),
+    ("DIRECT", 2, 1, False, 0),
+    ("DIRECT", 3, 1, False, 0),
     ("XGMII", 4, 1, False, 475136),  # +7.25 ns ingress subtraction
     ("GMII", 4, 0, True, -229376),  # -3.5 ns, active-low async reset
 ])

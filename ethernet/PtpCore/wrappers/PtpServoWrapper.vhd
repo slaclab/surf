@@ -67,6 +67,7 @@ entity PtpServoWrapper is
       isDelay              : in  sl;
       forwardValue         : in  slv(127 downto 0);
       delayValue           : in  slv(127 downto 0);
+      maxPathDelay         : in  slv(63 downto 0) := x"0000000F42400000";
       ratio                : in  slv(63 downto 0);
       inputValid           : in  sl;
       inputReady           : out sl;
@@ -104,6 +105,7 @@ begin
    resetN                          <= not rst;
    sharedConfig.syncTimeout        <= x"3FFFFFFFFFFFFFFF";
    sharedConfig.associationTimeout <= x"3FFFFFFFFFFFFFFF";
+   sharedConfig.maxPathDelay       <= maxPathDelay;
    status.ticks                    <= ticks;
    status.timeValid                <= '1';
    measurement.ticks               <= sampleTicks;

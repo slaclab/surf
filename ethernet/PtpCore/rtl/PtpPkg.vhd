@@ -325,6 +325,15 @@ package PtpPkg is
       PTP_RX_MESSAGE_INIT_C.correction'length + PTP_RX_MESSAGE_INIT_C.control'length +
       PTP_RX_MESSAGE_INIT_C.logInterval'length + PTP_RX_MESSAGE_INIT_C.messageBody'length;
 
+   -- Lossless storage representation extends the unchanged verification layout.
+   -- MSBs are toSlv(message); low bits are capture.increment then capture.error.
+   constant PTP_RX_STORAGE_BITS_C : positive :=
+      PTP_RX_MESSAGE_BITS_C + PTP_RX_CAPTURE_INIT_C.increment'length + 1;
+
+   subtype PtpRxStorageType is slv(PTP_RX_STORAGE_BITS_C-1 downto 0);
+   function ptpPackRxMessage (message : PtpRxMessageType) return PtpRxStorageType;
+   function ptpUnpackRxMessage (value : PtpRxStorageType) return PtpRxMessageType;
+
    -- Message-specific body views, in network significance. Callers first
    -- qualify messageType; these accessors do not perform protocol admission.
    function ptpMessageTimestamp (message : PtpRxMessageType) return slv;
@@ -817,6 +826,39 @@ package body PtpPkg is
          message.destination & message.sourcePortIdentity & message.sequenceId & message.domainNumber &
          message.messageType & message.minorVersion & message.transportSpecific & message.messageLength &
          message.flags & message.correction & message.control & message.logInterval & message.messageBody;
+   end function;
+
+   function ptpPackRxMessage (message : PtpRxMessageType) return PtpRxStorageType is
+   begin
+      return toSlv(message) & message.capture.increment & message.capture.error;
+   end function;
+
+   function ptpUnpackRxMessage (value : PtpRxStorageType) return PtpRxMessageType is
+      variable retVar : PtpRxMessageType := PTP_RX_MESSAGE_INIT_C;
+      variable index  : integer := 0;
+   begin
+      assignRecord(index, value, retVar.capture.error);
+      assignRecord(index, value, retVar.capture.increment);
+      assignRecord(index, value, retVar.messageBody);
+      assignRecord(index, value, retVar.logInterval);
+      assignRecord(index, value, retVar.control);
+      assignRecord(index, value, retVar.correction);
+      assignRecord(index, value, retVar.flags);
+      assignRecord(index, value, retVar.messageLength);
+      assignRecord(index, value, retVar.transportSpecific);
+      assignRecord(index, value, retVar.minorVersion);
+      assignRecord(index, value, retVar.messageType);
+      assignRecord(index, value, retVar.domainNumber);
+      assignRecord(index, value, retVar.sequenceId);
+      assignRecord(index, value, retVar.sourcePortIdentity);
+      assignRecord(index, value, retVar.destination);
+      assignRecord(index, value, retVar.rxEpoch);
+      assignRecord(index, value, retVar.capture.timeValid);
+      assignRecord(index, value, retVar.capture.generation);
+      assignRecord(index, value, retVar.capture.tickPhase);
+      assignRecord(index, value, retVar.capture.ticks);
+      assignRecord(index, value, retVar.capture.timestamp);
+      return retVar;
    end function;
 
    function ptpRxCapture (

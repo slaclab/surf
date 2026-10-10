@@ -452,6 +452,81 @@ RTL checklist review traced identity admission, same-edge wire retirement,
 registered completion, retained-key replay and final cancellation priority; no
 new state, clock crossing or public interface was introduced.
 
+## October 9 LUT optimization checks
+
+The working-tree optimization based on
+`6db41ad53ed5d17491fcfddfcff30325755d244f` replaces the servo bubble sort with
+nine fixed compare/swaps and changes RX prefix/header parsing and queue payload
+storage. `PtpPkg` adds lossless 809-bit storage helpers; production interfaces
+and the 744-bit verification representation remain stable. Independent protocol
+and specification edits are present in the same tree and are not attributed to
+this change. See the [implementation handoff](lut-optimization.md) and
+[queue contract](autonomous-endpoint.md#rx-queue-storage).
+
+Using the existing Python 3.13.2 / pytest 9.0.2 / cocotb 2.1.0 environment at
+`/Users/bareese/surf/.venv/bin/python` and GHDL 6.0.0, the focused checks cover:
+
+- `test_ptp_servo.py`: the independent PI/holdover checks plus a new median
+  scenario covering all 120 orderings, startup counts, duplicates, signed64
+  maximum, circular replacement, rejection and abort/reacquisition of history.
+- `test_ptp_rx_rtl.py`: five configurations (direct depths one/two/three,
+  XGMII depth four, GMII depth four with active-low asynchronous reset), keeping
+  the cycle-exact queue/abort oracle and adding all partial beat widths and
+  capture-increment checks through repeated fill/drain/wrap.
+- `test_ptp_rx_storage.py`: two TX-observer configurations, depths two/three,
+  including capture errors, PHC generation changes, full records through RAM,
+  immediate consume/refill, full-before-edge overflow, reset/flush, sparse keeps
+  and full-width malformed TLV lengths followed by recovery.
+- `test_ptp_specification_rx_rules[tlv_suffix]`: selected structural TLV rules.
+- `test_ptp_rx_mac.py`: real-MAC CRC/pressure/retained-head/overflow behavior,
+  including 240 independently captured records while the MAC FIFO loses frames.
+
+These ten production-RTL configurations passed. The separate historical
+`test_ptp_mac_association.py` model/counterexample fixture also passed, bringing
+the union to **11 distinct configurations**. It does not verify production TX
+observation. The initial five-case batch passed in 57.70 seconds, the expanded
+ten-case batch in 536.40 seconds, and the final two TX storage cases with added
+malformed/refill checks in 1.05 seconds. Logs/JUnit are temporary local evidence under
+`/tmp/ptp-lut-{initial,expanded,storage}.{log,xml}`; retained fixtures and this
+record describe the durable assertions.
+
+The subsequent synchronous-FIFO revision replaces that custom RAM queue with
+SURF `Fifo` in synchronous FWFT mode, validated on
+`2bb198b10efc964f1d861ebc34a33d214052afd7` plus the local optimization patch.
+The registered-RAM intermediate passed
+seven leaf configurations in 42.97 seconds before being superseded. For the
+FIFO revision, the five RX configurations and two TX-storage configurations
+passed in **46.58 seconds**. Their independent queue oracle now requires
+three clocks from completion to head publication, counts records throughout
+the pipeline and checks consumption/invalidation before write/read delivery.
+TX storage sweeps reset/flush across all four completion/pipeline/head edges,
+then refills and drains to detect surviving stale entries. Local logs/JUnit:
+`/tmp/ptp-rx-sync-fifo.{log,xml}`.
+
+Six additional configurations passed in **254.60 seconds**: the real-MAC RX
+fixture, the XGMII port fixture (both adversarial and one-step/mixed-mode
+scenarios), literal RX headers, both RX specification-rule cases, and ordinary
+master header admission. These exercise shared RX-bench timing, physical RX/TX
+observer integration, retained-head cancellation and MAC FIFO pressure.
+The FIFO revision therefore passed **13 distinct configurations**, with zero
+failures/skips. Local logs/JUnit:
+`/tmp/ptp-rx-sync-fifo-integration.{log,xml}`. The GMII port integration and full
+endpoint/servo settling suite were not rerun; GMII frontend/adapter behavior
+is covered by the leaf configuration above.
+
+VSG checked 689 rules with no violations on all five edited VHDL files
+(three production files and two wrappers). Flake8 and the focused test
+compliance audit passed on the three edited/added Python tests. No environment
+was installed, no manifest was changed and no full PTP suite was run.
+The FIFO follow-up also passed VSG on `PtpRxFrontend` and Flake8/compliance
+checks on the two changed RX tests.
+
+Vivado synthesis/implementation, actual distributed-RAM mapping, resource
+savings and timing remain unmeasured. Compare the same device/tool/constraints
+and parent hierarchy against the recorded baseline before claiming an area
+improvement. This run does not close endpoint settling, every possible generic
+combination, physical clock/CDC or external-master/hardware acceptance.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),

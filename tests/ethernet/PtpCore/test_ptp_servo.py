@@ -13,6 +13,8 @@
 #   signs, command backpressure, median startup and holdover cancellation.
 #   Exercise default limits and +/-200000 ppb with sums beyond 35 signed bits.
 #   Check registered valid/cancel/expiry before and after input-changing edges.
+#   Median cases cover every ordering, startup count, duplicates, signed64
+#   maximum, circular replacement and abort/restart of partially filled history.
 # - Stimulus: AXI configuration and independent rational PI oracle; intervals are injected
 #   directly so numerical seconds do not require millions of simulator cycles.
 # - Checks: Every applied rate addend, full-width offset/filter state, and held
@@ -21,6 +23,8 @@
 #   only after a real ready/valid transfer. Abort precedes holdover work.
 
 from fractions import Fraction
+from collections import deque
+from itertools import permutations
 import cocotb
 from cocotb.triggers import Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
@@ -45,6 +49,7 @@ async def numerical_control(d):
                  "inputValid", "commandReady", "commandAck", "commandError", "prepareConfig", "applyConfig"):
         getattr(d, name).value = 0
     d.rst.value = 0
+    d.maxPathDelay.value = 1000000*Q16
     axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
 
     async def configure(limits):
@@ -144,6 +149,58 @@ async def numerical_control(d):
         await edge(check_registered=True, ticks=now+250000001)
         assert int(d.expireTime.value)
         await edge(cancel=0)
+
+
+@cocotb.test()
+async def median_history(d):
+    # No bus transactions are needed: the wrapper supplies the full allowed
+    # shared delay bound, while the production servo still validates each sample.
+    for name in ("clk", "rst", "cancel", "ticks", "sampleTicks", "isDelay", "forwardValue",
+                 "delayValue", "ratio", "inputValid", "commandReady", "commandAck",
+                 "commandError", "prepareConfig", "applyConfig", "axil_awaddr", "axil_awvalid",
+                 "axil_wdata", "axil_wstrb", "axil_wvalid", "axil_bready", "axil_araddr",
+                 "axil_arvalid", "axil_rready"):
+        getattr(d, name).value = 0
+    maximum = (1 << 63)-1
+    d.maxPathDelay.value = maximum
+
+    async def edge(**values):
+        d.clk.value = 0
+        for name, value in values.items():
+            getattr(d, name).value = value
+        await Timer(4, unit="ns")
+        d.clk.value = 1
+        await Timer(4, unit="ns")
+
+    await edge(rst=1)
+    await edge(rst=0)
+    cases = list(permutations((0, 1, Q16, maximum-1, maximum)))
+    cases += [(maximum,)*7, (0,)*7, (5, 5, 1, 1, 5, 0, maximum, 2, 2, 3, 4)]
+    now = 0
+    for values in cases:
+        await edge(cancel=1, inputValid=0)
+        assert int(d.filterCount.value) == 0
+        await edge(cancel=0)
+        history = deque(maxlen=5)
+        for value in values:
+            now += 1
+            assert int(d.inputReady.value), "median update added an admission bubble"
+            await edge(ticks=now, sampleTicks=now, inputValid=1, isDelay=1, delayValue=value)
+            history.append(value)
+            expected = sorted(history)[(len(history)-1)//2]
+            assert int(d.filterCount.value) == len(history)
+            assert int(d.filteredDelay.value) == expected, (values, list(history), expected)
+        # A rejected sample must leave both the median and replacement order intact.
+        rejected = int(d.rejectedCount.value)
+        now += 1
+        await edge(ticks=now, sampleTicks=now, delayValue=maximum+1)
+        assert int(d.rejectedCount.value) == rejected+1
+        assert int(d.filteredDelay.value) == expected
+        now += 1
+        await edge(ticks=now, sampleTicks=now, delayValue=17)
+        history.append(17)
+        assert int(d.filteredDelay.value) == sorted(history)[(len(history)-1)//2]
+        await edge(inputValid=0)
 
 
 def test_ptp_servo():

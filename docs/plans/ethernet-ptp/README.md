@@ -15,6 +15,7 @@ acceptance remain open.
 | What was checked, and what remains to approve? | [Review and acceptance record](rtl-review.md), [test procedures/fixtures](../../../tests/ethernet/PtpCore/README.md) |
 | How do tests relate to IEEE 1588? | [Specification coverage and gaps](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
+| What changed for servo/RX area, and what remains to measure? | [LUT optimization implementation and follow-ups](lut-optimization.md) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
@@ -68,6 +69,14 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   Precision and public arithmetic ranges are retained; current and pre-width-change
   RTL pass the prepared boundary fixtures. Additional
   [width acceptance](rtl-review.md#fixed-point-width-acceptance) remains open.
+- [LUT optimization](lut-optimization.md) replaces the servo bubble sort with
+  a fixed nine-comparison network and restructures RX prefix/header parsing.
+  The [RX queue](autonomous-endpoint.md#rx-queue-storage) uses a synchronous FWFT
+  FIFO with lossless capture packing and exact logical capacity. Delivery now
+  takes three clocks after completion; write/read pipeline occupancy counts
+  toward that capacity. See the [focused verification record](rtl-review.md#october-9-lut-optimization-checks)
+  for the original optimization checks and subsequent FIFO validation.
+  Vivado resource and timing improvement remains unmeasured.
 
 ## PHY composition implementation
 
@@ -107,8 +116,9 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
 4. Select physical reference/cleanup and application epoch-transfer requirements
    through [physical-clock integration](physical-clock-integration.md). Numerical
    time, physical frequency/phase and application events remain distinct.
-5. Revisit the [deferred RX FIFO option](autonomous-endpoint.md#deferred-rx-fifo-optimization)
-   only with a concrete resource/timing need. Additional PHYs, a timed-event
+5. Measure the [servo/RX LUT changes](lut-optimization.md) against their baseline
+   on the synthesis host before choosing further arithmetic or CRC changes.
+   Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.
    A [floating-point servo](autonomous-endpoint.md#deferred-floating-point-servo-option)
