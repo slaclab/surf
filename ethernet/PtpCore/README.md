@@ -227,10 +227,11 @@ preserving absolute Ethernet `0x50000` and endpoint `0x60000` addresses.
 
 The extraction adds `U_Phy/` to the legacy checkpoint instance hierarchy.
 Review external XDC/Tcl queries and DCP constraints that name the former
-`U_GigEth*Core` path. GTH paths now include
-`U_Phy/GEN_FABRIC_REF/U_GigEthGthUltraScaleCore` or
-`U_Phy/GEN_GT_REF/U_GigEthGthUltraScaleRefCore`; KCU105 prefixes the latter
-with `U_Ptp/`. GTY retains `U_Phy/U_GigEthGtyUltraScaleCore`.
+`U_GigEth*Core` path. The GTH path is
+`U_Phy/U_GigEthGthUltraScaleCore`, with KCU105 prefixing it with `U_Ptp/`; the
+earlier `GEN_FABRIC_REF`/`GEN_GT_REF` generate labels no longer exist now that
+one core serves both reference modes. GTY retains
+`U_Phy/U_GigEthGtyUltraScaleCore`.
 The legacy checkpoints remain unchanged.
 
 These are source integrations, not hardware-qualified PHYs. Static interface
@@ -241,17 +242,17 @@ in the [PTP plan](../../docs/plans/ethernet-ptp/README.md#phy-composition-implem
 ### Dedicated GTH reference and copper SGMII
 
 [GigEthGthUltraScalePtp](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd)
-passes `USE_GTREFCLK_G` to `GigEthGthUltraScalePhy`. False (default) keeps
-`sysClk125` as the reference and ignores the optional `gtRefClk` input. True
-uses `gtRefClk` for the dedicated 125 MHz reference and selects the separately
-named `GigEthGthUltraScaleRefCore` checkpoint. Supply related fabric
-125/62.5 MHz clocks in either mode. Selection is static at elaboration; the
-fixed GT routing inside each DCP requires distinct checkpoint assets, but no
-separate PHY or PTP VHDL wrapper. The dedicated-reference asset is not yet
-supplied: the selected component cannot bind with only the existing legacy DCP.
-Develop compatible IP in `surf-dcp-targets`, as identified by the
-[checkpoint README](../GigEthCore/gthUltraScale/images/README.md), then qualify
-its reference routing and integrate the asset through the normal ruckus manifest.
+passes `USE_GTREFCLK_G` to `GigEthGthUltraScalePhy`. False (default) keeps the
+fabric `sysClk125` reference and ignores the optional `gtRefClk` input. True
+uses `gtRefClk` for the dedicated 125 MHz reference. Supply related fabric
+125/62.5 MHz clocks in either mode.
+
+A single dual-mode checkpoint serves both paths: it leaves `CPLLREFCLKSEL`
+untied, so the generic drives a reference-select port on the core instead of
+choosing between distinct assets, and no separate PHY or PTP VHDL wrapper is
+needed. Selection is still static at elaboration. See the
+[checkpoint README](../GigEthCore/gthUltraScale/images/README.md) for the
+select mapping. Reference routing and timing remain unqualified in both modes.
 No checkpoint conversion or environment-variable loading workflow is required.
 
 [Sgmii88E1111LvdsUltraScalePtp](lvdsUltraScale/rtl/Sgmii88E1111LvdsUltraScalePtp.vhd)
