@@ -527,6 +527,91 @@ and parent hierarchy against the recorded baseline before claiming an area
 improvement. This run does not close endpoint settling, every possible generic
 combination, physical clock/CDC or external-master/hardware acceptance.
 
+## October 11 ledger optimization checks
+
+Working-tree source based on SURF `1bd476a89cac78f5945007b8975ef95755899a8d`.
+`PtpTxLedger` replaces the wide register table with complete 636-bit RAM rows,
+four ownership bits per slot and a shared read/modify/write scan. Completion
+and response producers now hold their records through ready/valid acceptance.
+The [storage contract](autonomous-endpoint.md#tx-ledger-storage) specifies the
+scan timing, allocation and cancellation rules. The
+[optimization handoff](lut-optimization.md#october-11-ledger-storage-and-counter-pass)
+records the supplied Vivado placed reference and remaining area comparison.
+
+The existing Python 3.13.2 / pytest 9.0.2 / cocotb 2.1.0 environment at
+`/Users/bareese/surf/.venv/bin/python` and GHDL 6.0.0 were used without changing
+installed environments. The existing ruckus inventory resolves to this checkout;
+all modified entities and the RAM selector already belong to the manifests.
+
+Selected behavioral coverage:
+
+- Eleven ledger configurations: lifecycle; one-/four-slot timeout/rejection counts;
+  full-row payloads at distributed depths one/three/four and block depth four;
+  cancellation at every phase of a four-slot scan; one-slot reuse under a held
+  output; and four occupied two-bit keys with collision search, stored identities,
+  identical/conflicting response duplicates and unknown physical ownership;
+  and wire/response duplicates arriving after scan start while output is released.
+  The last case verifies that unscanned inputs block publication/reclamation.
+  Storage checks include both arrival orders, simultaneous and consecutive inputs
+  with valid held high, all capture fields, response metadata and output stalls.
+  Logical restart retains the physical completion until its handshake, while
+  MAC/system reset clears ownership and excludes stale RAM contents.
+- `test_exchange_rejection[response_overflow]` and `[response_association]`:
+  actual protocol/ledger/E2E rejection and same-request/fresh-exchange recovery.
+  The latter now gives rejected responses a long log interval, checking that
+  accepted metadata stays aligned through delayed ledger acknowledgement.
+- Real-MAC lifecycle: two-step GMII and one-step XGMII, including paused TX,
+  restart, late completion, stale-exchange rejection and fresh E2E recovery.
+- Three pure request-ledger model cases passed in 0.02 seconds: early response
+  and sequence wrap, bounded unknown fates, and stale response after restart.
+  These are logical-model evidence, not additional cycle-accurate RTL runs.
+
+Execution results:
+
+| Selection | Result | Local evidence |
+| --- | --- | --- |
+| Initial full-RAM leaf selection | 9 passed, 24.71 s | `/tmp/ptp-area-ledger-full.{log,xml}` |
+| Continuous-valid storage, scan cancellation, key/identity boundaries | 6 passed, 26.37 s | `/tmp/ptp-area-ledger-boundaries.{log,xml}` |
+| Final whole-row RAM-port setting, distributed/block depth four | 2 passed, 13.82 s | `/tmp/ptp-area-ledger-ram-final.{log,xml}` |
+| Protocol rejection plus GMII/XGMII real-MAC lifecycle | 4 passed, 928.86 s | `/tmp/ptp-area-ledger-full-integration.{log,xml}` |
+| Strengthened response log-interval alignment | 1 passed, 200.67 s | `/tmp/ptp-area-ledger-metadata.{log,xml}` |
+| Final pending-input ordering fix plus distributed/block payload regression | 3 passed, 16.70 s | `/tmp/ptp-area-ledger-pending-input.{log,xml}` |
+
+The final pending-input guard was added after the integration simulations had
+compiled. Its focused validation is the final three-case row and fresh GHDL
+synthesis; the long real-MAC runs validate the scan/backpressure integration
+before that last guard, and were not repeated for the guard alone.
+
+An earlier capture-only iteration passed its leaf/protocol checks, but both
+real-MAC cases stopped at an existing fixture mismatch: the monitor expected
+legacy control byte 1 while explicitly checking a minor-version-1 frame.
+The source-backed packet contract and current request builder use control byte
+0 for that configuration; the monitor expectation is corrected. This changes
+the test expectation, not the transmitted packet or protocol policy.
+
+GHDL synthesis of the production ledger succeeds and reports RAM `mem`, width
+636 bits, depth four. The initial attempt encountered the RAM selector's
+unequal-width inactive byte-enable branch. Explicit whole-row `BYTE_WIDTH_G`
+with byte enables disabled makes both branch widths one without modifying the
+shared RAM implementation. GHDL ignores vendor mapping attributes; its RAM
+recognition is not evidence of physical LUTRAM/BRAM placement or a resource saving.
+Synthesis diagnostics/netlist are at `/tmp/ptp-area-ledger-synth.{log,vhd}`.
+
+All eight edited VHDL entities pass VSG (689 rules each, zero violations).
+The three edited Python files pass flake8. The changed ledger/exchange tests
+have no enforced compliance baseline differences. Changed relative links,
+anchors and diff whitespace pass. The endpoint helper retains five pre-existing audit
+findings (one propagation-delay classification and four lifetime-loop
+classifications), confirmed identical by comparing `audit_source()` results
+against HEAD; its only behavior change is the literal control-byte expectation.
+
+Counter saturation has an explicit bound: at most two local rejection events
+feed a 33-bit sum, so carry cannot be lost. Tests exercise event multiplicity,
+retirement and reset precedence; they do not force live 32-bit counters near
+saturation. No full PTP suite, every-depth/reset-generic sweep, long servo
+settling, Vivado implementation/timing or hardware check is claimed. Inferred
+block/distributed simulations check the shared RAM timing interface only.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),

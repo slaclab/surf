@@ -106,8 +106,10 @@ entity PtpProtocolEngine is
       rxReady             : out sl;
       rxQueueOverflow     : in  sl := '0';
       rxAbort             : in  sl;
+      -- Physical completion producer holds its record through txMessageReady.
       txMessage           : in  PtpRxMessageType;
       txValid             : in  sl;
+      txMessageReady      : out sl;
       txAbort             : in  sl;
       txMaster            : out AxiStreamMasterType;
       txSlave             : in  AxiStreamSlaveType;
@@ -375,6 +377,7 @@ architecture rtl of PtpProtocolEngine is
    signal rin              : RegType;
    signal abortNow         : sl;
    signal responseAccepted : sl;
+   signal responseReady    : sl;
    signal responseValid    : sl;
    signal allocate         : sl;
    signal allocateReady    : sl;
@@ -603,8 +606,10 @@ begin
          allocateReady    => allocateReady,         -- [out]
          allocateSequence => allocateSequence,      -- [out]
          wireMessage      => txMessage,             -- [in]
+         wireReady        => txMessageReady,        -- [out]
          wireValid        => txValid,               -- [in]
          response         => r.response,            -- [in]
+         responseReady    => responseReady,         -- [out]
          responseValid    => responseValid,         -- [in]
          sample           => delaySample,           -- [out]
          sampleValid      => delayValid,            -- [out]
@@ -660,7 +665,7 @@ begin
    comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, configControl, snapshotControl,
                    enable, rxCounters, restart, linkReady, localMac, phcStatus, captureAbort, rxMessage,
                    rxValid, rxQueueOverflow, rxAbort, txAbort, txSlave, measurementSlave,
-                   responseAccepted, allocateReady, allocateSequence, delaySample, delayValid,
+                   responseAccepted, responseReady, allocateReady, allocateSequence, delaySample, delayValid,
                    rateReady, rateResultValid, rateResult, rateError, e2eReady, e2eResult, e2eValid,
                    e2eError, ledgerStatus, timeoutCount) is
       variable v  : RegType;
@@ -688,10 +693,12 @@ begin
       policyFlags := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
 
       -- Requests retain their complete payload until the child accepts them.
-      -- The response lane accepts one RX message per clock and returns its
-      -- registered acceptance one edge later; delay the log interval with it.
-      v.responseValid := '0';
-      v.responseLog   := r.response.logInterval;
+      -- The RAM ledger scans the held response before accepting it. Retain
+      -- its log interval for the registered acceptance result on the next edge.
+      if r.responseValid = '1' and responseReady = '1' then
+         v.responseValid := '0';
+         v.responseLog   := r.response.logInterval;
+      end if;
       if r.e2eInput = '1' and e2eReady = '1' then
          v.e2eInput := '0';
       end if;
@@ -774,7 +781,8 @@ begin
          qualifiedRatio := '1';
       end if;
       v.rxReady := '0';
-      if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' then
+      if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' and
+         (r.responseValid = '0' or responseReady = '1') then
          v.rxReady := '1';
       end if;
       validResponse := '0';

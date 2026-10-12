@@ -1,4 +1,4 @@
-# PtpServo and PtpRxFrontend LUT optimization
+# PTP logic and storage optimization
 
 October 9, 2026. Goal: reduce combinational logic while preserving numerical,
 packet-validation, queue and cancellation behavior. The maintainer reported
@@ -6,7 +6,8 @@ high LUT use relative to registers; synthesis reports are on another machine.
 Optimization baseline: SURF `6db41ad53ed5d17491fcfddfcff30325755d244f`. Subsequent
 FIFO validation uses `2bb198b10efc964f1d861ebc34a33d214052afd7` plus the local
 optimization patch. Independent protocol/specification changes are outside
-this optimization. No resource reduction has been measured yet.
+this optimization. The October 11 placed reports below now provide an area
+reference; no before/after resource reduction has been measured yet.
 
 ## Implemented changes
 
@@ -45,6 +46,60 @@ synthesis comparisons. The initial `LutRam` version and its registered-write
 follow-up are superseded; preserving their immediate head delivery is no longer
 a requirement. Public ready/valid, abort priority and capture timestamps remain
 unchanged.
+
+## October 11 ledger storage and counter pass
+
+Source baseline: SURF `1bd476a89cac78f5945007b8975ef95755899a8d`. The consuming
+`ptp-dev` repository preserves supplied reports in
+`docs/reference/ptpkcu105-utilization-2026-10-11/`, added by `d4f94c9`.
+They describe Vivado 2025.2, `xcku040-ffva1156-2-e`, after placement; routing did
+not complete. They do not embed the exact source revision/patch or complete
+strategy, so confirm those before attributing a later difference to this pass.
+
+| Placed reference | LUTs | FFs | DSPs |
+| --- | ---: | ---: | ---: |
+| SFP lane, including MAC/PHY | 53,802 | 39,009 | 48 |
+| SFP protocol engine, own logic | 15,954 | 11,827 | 30 |
+| SFP TX ledger | 6,959 | 3,566 | 0 |
+| SFP servo, own logic | 7,817 | 3,932 | 0 |
+| Copper TX ledger | 6,931 | 3,566 | 0 |
+
+These rows mix parent totals and explicitly exclusive own-logic rows; do not
+sum them. Both ledger instances benefit from the same reusable source change.
+
+`PtpTxLedger` now puts the entire 636-bit entry in synchronous
+`SimpleDualPortRam`, distributed by default with an optional block setting at
+the leaf. The wide `r.entries` array is removed. Four ownership bits per slot
+remain in registers so restart/reset can invalidate associations immediately
+without clearing memory. A shared scan replaces the parallel key comparisons,
+age arithmetic, record updates and chained counter increments. Each row is
+visited every `2*DEPTH_G+2` clocks, ten at the default depth four.
+
+Wire and response records remain stable through explicit ready/valid handshakes
+at the end of the scan. Completion readiness is wired through the protocol and
+endpoint to the existing TX tap queue. The protocol holds a response and its
+log interval until the ledger acknowledges it. Those low-level entity interfaces
+now require ready wiring; the MAC/PHY wrapper interfaces, software ABI and
+numeric precision are unchanged. The [ledger storage contract](autonomous-endpoint.md#tx-ledger-storage)
+owns timing, capacity, simultaneous-event priority and cancellation rules.
+
+Only one row contributes to each diagnostic update. Local rejection events are
+summed before one 33-bit saturating addition; timeout has one increment site.
+For initial count `c` and nonnegative events `e`, repeated saturation equals
+`min(2^32-1, c+e)`. The local event bound is two, so the carry is retained at the
+maximum count. This is an arithmetic bound, not a billions-of-events simulation
+or a measured LUT saving.
+
+The [October 11 checks](rtl-review.md#october-11-ledger-optimization-checks)
+record leaf and consumer evidence. Existing ruckus manifests already load all
+modified entities and the reused RAM selector; no source-list change is needed.
+
+Next step: compare both ledgers in the same Vivado configuration, including
+LUT-as-logic, LUTRAM, FF, carry, BRAM and critical paths. Account for the write
+register, RAM read register and retained sample; 636 bits per slot is a storage
+width, not a promised resource reduction. Confirm actual inferred RAM mapping.
+Subsequent candidates are shared protocol timestamp conversion and the servo's
+local clamp/median logic. Those changes are outside this ledger pass.
 
 ## Evidence and remaining acceptance
 

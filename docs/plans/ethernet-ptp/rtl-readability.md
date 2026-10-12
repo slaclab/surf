@@ -203,13 +203,14 @@ The exact multi-hop boundaries are:
 | Transfer | Detection and consumption edges |
 | --- | --- |
 | Port lifecycle to `PtpEndpointControl` | A cause sampled at N publishes after N; the controller consumes at N+1 and publishes its event for consumption at N+2. MAC-change restart therefore crosses two registered hops. |
-| Delay response to ledger | Port RX at N stages the response; ledger consumption at N+1 registers acceptance; the port consumes that acceptance with retained log-interval metadata at N+2. |
-| Ledger allocation | Registered capacity promises a slot to the sole allocator until shared cancellation/reset. The request handshake creates the first TX beat; a reservation already accepted on a cancellation-detection edge is preserved. |
+| Delay response to ledger | Port RX stages and holds the response until a complete RAM scan acknowledges it. That handshake at H registers acceptance; the port consumes acceptance and the retained log interval at H+1. |
+| Ledger allocation | Each completed scan can offer one registered capacity pulse. The handshake creates the first TX beat; a reservation already accepted on a cancellation-detection edge is preserved. |
+| Ledger row/sample | Read request at N, synchronous RAM read at N+1, row evaluation and optional registered sample at N+2. A full scan repeats every 2*depth+2 clocks; restart cancels eligibility/output while physical completions continue. |
 | E2E request | Registered valid and frozen Sync/Delay/ratio/limit remain owned through result consumption or cancellation; no replacement request may overwrite the diagnostic exchange tag. |
 
 Ledger samples, sample-valid, occupancy and counters remain registered;
 sequence extension is fixed wiring. Allocation capacity derives from the
-resolved table and next key. Response acceptance is a registered one-cycle
+completed table scan and checked sequence candidate. Response acceptance is a registered one-cycle
 completion, aligned with metadata retained by the caller. Servo math-child
 cancellation is registered too; local cancellation immediately clears the
 parent's transaction and excludes results.

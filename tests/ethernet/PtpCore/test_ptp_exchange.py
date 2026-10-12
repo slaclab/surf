@@ -26,6 +26,7 @@ import os
 
 import cocotb
 import pytest
+from cocotb.triggers import RisingEdge, Timer
 
 from tests.common.regression_utils import cocotb_filtered_env, cocotb_test_filter, run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_master_test_utils import master_frame, LOCAL
@@ -182,7 +183,15 @@ class ExchangeBench(Bench):
         self.d.wireGeneration.value = self.generation
         self.now = max(self.now, ticks)
         self.d.ticks.value = self.now
-        await self.pulse('wireValid')
+        self.d.wireValid.value = 1
+        for _ in range(40):
+            await RisingEdge(self.d.clk)
+            accepted = int(self.d.wireReady.value)
+            await Timer(1.1, unit='ns')
+            if accepted:
+                self.d.wireValid.value = 0
+                return
+        assert False, 'TX completion did not finish its RAM lookup'
 
     def response(self, seq, ticks, **kwargs):
         # Corrected master receipt=ticks*8+100.25 ns. A negative quarter-ns
@@ -276,6 +285,10 @@ async def response_association(d):
                 ticks = b.now+100
                 valid = b.response(seq, ticks)
                 packet = bytearray(valid)
+                # A rejected response advertises a very long interval. The
+                # later accepted response must carry its own log metadata
+                # through the ledger's variable-latency acknowledgement.
+                packet[47] = 10
                 mutations = {'requester clock': (58, b'\x80'), 'requester port': (67, b'\x02'),
                              'sequence': (44, ((seq+1) & 65535).to_bytes(2, 'big')),
                              'source clock': (34, b'\x80'), 'source port': (43, b'\x02'),

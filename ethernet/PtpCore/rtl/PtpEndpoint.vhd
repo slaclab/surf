@@ -83,8 +83,10 @@ entity PtpEndpoint is
       rxQueueOverflow : in  sl := '0';
       rxAbort         : in  sl;
       rxCounters      : in  PtpRxCountersType;
+      -- Physical completion producer holds its record through txMessageReady.
       txMessage       : in  PtpRxMessageType;
       txValid         : in  sl;
+      txMessageReady  : out sl;
       txAbort         : in  sl;
 
       -- Private Delay_Req stream in TX_AXIS_CONFIG_G format.
@@ -283,6 +285,7 @@ begin
          rxAbort           => rxAbort,                          -- [in]
          txMessage         => txMessage,                        -- [in]
          txValid           => txValid,                          -- [in]
+         txMessageReady    => txMessageReady,                   -- [out]
          txAbort           => txAbort,                          -- [in]
          txMaster          => portTxMaster,                     -- [out]
          txSlave           => portTxSlave,                      -- [in]

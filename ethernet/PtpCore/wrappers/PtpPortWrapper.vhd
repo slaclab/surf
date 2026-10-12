@@ -71,6 +71,7 @@ entity PtpPortWrapper is
       measurementDelaySeq   : out slv(15 downto 0);
       delayCount            : out slv(31 downto 0);
       ledgerStatus          : out slv(31 downto 0);
+      wireReady             : out sl;
       wireValid             : in  sl                := '0';
       wireSequence          : in  slv(15 downto 0)  := (others => '0');
       wireTime              : in  slv(95 downto 0)  := (others => '0');
@@ -244,6 +245,7 @@ begin
          rxAbort           => rxAbort,                   -- [in]
          txMessage         => wireMessage,               -- [in]
          txValid           => wireValid,                 -- [in]
+         txMessageReady    => wireReady,                 -- [out]
          txAbort           => '0',                       -- [in]
          txMaster          => txMaster,                  -- [out]
          txSlave           => txSlave,                   -- [in]

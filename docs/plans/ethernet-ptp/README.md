@@ -15,7 +15,7 @@ acceptance remain open.
 | What was checked, and what remains to approve? | [Review and acceptance record](rtl-review.md), [test procedures/fixtures](../../../tests/ethernet/PtpCore/README.md) |
 | How do tests relate to IEEE 1588? | [Specification coverage and gaps](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
-| What changed for servo/RX area, and what remains to measure? | [LUT optimization implementation and follow-ups](lut-optimization.md) |
+| What changed for ledger/servo/RX area, and what remains to measure? | [LUT optimization implementation and follow-ups](lut-optimization.md) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
@@ -77,6 +77,13 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   toward that capacity. See the [focused verification record](rtl-review.md#october-9-lut-optimization-checks)
   for the original optimization checks and subsequent FIFO validation.
   Vivado resource and timing improvement remains unmeasured.
+
+- The October 11 [ledger optimization](lut-optimization.md#october-11-ledger-storage-and-counter-pass)
+  stores complete entries in synchronous RAM and shares row processing across
+  a ten-clock scan at depth four. Completion/response paths honor backpressure;
+  the software ABI is unchanged. Supplied KCU105 placed
+  reports provide the reference; before/after savings remain unmeasured. See the
+  [focused acceptance record](rtl-review.md#october-11-ledger-optimization-checks).
 
 ## PHY composition implementation
 

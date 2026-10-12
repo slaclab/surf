@@ -176,6 +176,64 @@ capture, completion, generation and abort together; an independent reset or CDC
 would need coordinated invalidation before admitting new work. The current
 physical producer boundary has no CDC.
 
+## TX ledger storage
+
+`PtpTxLedger` stores the complete 636-bit entry in SURF `SimpleDualPortRam`:
+sequence, generation, requester identity, domain, allocation/wire ages, response
+metadata and the capture timestamp/increment/phase/validity. Only four ownership
+bits per slot (`used`, `retired`, `wireSeen`, `responseSeen`) remain in registers.
+There is no register array of wide records. `MEMORY_TYPE_G` defaults to
+`"distributed"`; `"block"` selects the same synchronous one-cycle read interface.
+Depths 1–255 retain their logical capacities; address rounding adds no slots.
+The endpoint uses the distributed default. Physical mapping and area improvement
+require the [Vivado comparison](lut-optimization.md#october-11-ledger-storage-and-counter-pass).
+
+A shared read/modify/write path scans rows in ascending address order, two
+clocks per row. For the first row, START at N registers the read request, RAM
+reads at N+1, and CHECK at N+2 evaluates that row and registers any write or
+completed sample. Subsequent rows follow every two clocks. The last CHECK
+asserts registered input readiness; ADMIT on the next edge acknowledges inputs
+and can allocate one new row. The next START follows immediately. A scan thus
+repeats every `2*DEPTH_G+2` clocks: ten at the default depth four. Scanning runs
+independently of output readiness, so maintenance and physical completions
+continue during a stalled sample. Timeout/reclamation visibility can lag a raw
+clock threshold by one scan; each row rechecks expiry before attachment or
+publication. Very short lifetime bounds can expire before processing completes.
+
+Each scan observes at most one wire record and one response. Both producers
+assert valid independently of ready and retain their entire record through the
+end-of-scan handshake, including unmatched records. Inputs arriving after START
+wait for the next scan; publication and reclamation wait until those pending
+records have been checked, so a late-arriving duplicate cannot be bypassed.
+`wireReady` is connected through `txMessageReady` on
+`PtpProtocolEngine` and `PtpEndpoint` to the TX tap's existing completion queue.
+`responseReady` lets the protocol engine retain its staged response, applying
+RX backpressure while that stage is occupied. Response acceptance remains a
+registered pulse after the response **handshake**, with its log interval retained
+for the following protocol edge. It no longer means acceptance one edge after
+valid first appears. External instantiations of these low-level entities must
+connect the new ready outputs and honor this contract; MAC/PHY wrapper ports
+and the software register ABI are unchanged.
+
+At each row, timeout retirement precedes wire handling, then response handling,
+then sample publication. Duplicate wire observations renew quarantine before
+reclamation and cannot overwrite an already published output. Matching duplicate
+responses compare their original timestamp/correction without refreshing age.
+Samples copy the complete row into a held output register before the row can be
+reused. Raw capture ticks and generation are reconstructed from matching entry
+fields, and error is zero because error/generation failures prevent selection.
+No timestamp precision is discarded. Writes are registered; overlapping reads
+and writes address different rows. Allocation writes drain before the next read,
+including at depth one, avoiding same-address read/write assumptions.
+
+Logical restart retires all ownership flags and cancels response eligibility and
+the output, while the physical completion still drains through the scan. Unknown
+TX ownership is never released by logical restart or timeout. Only confirmed MAC
+reset clears all slots and starts network-lifetime quarantine. System reset
+requires that confirmation again before admission. RAM contents are not cleared;
+a fresh allocation writes the entire row before setting up later reads. An old
+registered write may finish on a reset edge but cannot regain valid ownership.
+
 ## Time, arithmetic and lifecycle contracts
 
 - PHC time is seconds48/nanoseconds32/fraction32. Captures retain Q16 fraction,

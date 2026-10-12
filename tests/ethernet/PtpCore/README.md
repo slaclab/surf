@@ -142,6 +142,14 @@ reporting the previous full-suite result as validation of a later edit.
   Added checks cover registered result/sample validity during cancellation and
   ledger occupancy alignment with allocation, wire completion and MAC reset.
   Execution outcomes are tracked in the acceptance record linked above.
+  Ledger storage checks additionally cover full capture/response payloads,
+  depths one/three/four, inferred distributed/block settings, reordered/simultaneous
+  arrivals, consecutive records with valid held high, concurrent row writes/reads,
+  output stalls and row reuse, and cancellation at every scan phase. Narrow-key
+  exhaustion checks sequence collisions and stored identities across configuration
+  changes. A duplicate arriving after scan start must retire the waiting sample
+  before publication. Counter cases check swept timeout/rejection multiplicity and distinguish
+  logical/MAC reset from system reset.
   Ledger capacity and response acceptance now have between-edge stability
   checks; response completion must pulse for the submitted response.
 - `ptp_endpoint_reference.py`, `test_ptp_endpoint_reference.py`: rational

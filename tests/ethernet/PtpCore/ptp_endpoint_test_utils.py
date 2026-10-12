@@ -239,7 +239,8 @@ class Bench:
                 assert frame[14:18] == b"\x01\x12\x00\x2c"
                 assert frame[20:30] == bytes(10)
                 assert frame[34:44] == LOCAL
-                assert frame[46:58] == b"\x01\x7f"+bytes(10)
+                # Configured minor version 1 uses the 2019 Layer-2 control byte.
+                assert frame[46:58] == b"\x00\x7f"+bytes(10)
                 seq = int.from_bytes(frame[44:46], "big")
                 self.tx_count += 1
                 await self.responses.put((seq, capture+self.epoch+self.delay))

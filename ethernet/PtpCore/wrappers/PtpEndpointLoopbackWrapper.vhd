@@ -271,6 +271,7 @@ begin
       signal rxCounters      : PtpRxCountersType;
       signal txMessage       : PtpRxMessageType;
       signal txValid         : sl;
+      signal txMessageReady  : sl;
       signal txAbort         : sl;
       signal txMaster        : AxiStreamMasterType;
       signal txSlave         : AxiStreamSlaveType;
@@ -342,7 +343,7 @@ begin
             gmiiTxEr        => '0',            -- [in]
             completion      => txMessage,      -- [out]
             completionValid => txValid,        -- [out]
-            completionReady => '1',            -- [in]
+            completionReady => txMessageReady,  -- [in]
             completionAbort => txAbort);       -- [out]
 
       U_DUT : entity surf.PtpEndpoint
@@ -370,6 +371,7 @@ begin
             rxCounters      => rxCounters,       -- [in]
             txMessage       => txMessage,        -- [in]
             txValid         => txValid,          -- [in]
+            txMessageReady  => txMessageReady,   -- [out]
             txAbort         => txAbort,          -- [in]
             txMaster        => txMaster,         -- [out]
             txSlave         => txSlave,          -- [in]

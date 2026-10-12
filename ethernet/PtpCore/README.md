@@ -41,6 +41,13 @@ insertion remains outside scope.
   request building and E2E arithmetic. The Python device is also
   `PtpProtocolEngine`, exposed as the endpoint's `ProtocolEngine` child.
   Shared `PtpPort*Type` records retain their existing names and layouts.
+- `PtpTxLedger` stores complete 636-bit entries in synchronous `SimpleDualPortRam`,
+  distributed by default (`MEMORY_TYPE_G="block"` is also supported at the leaf).
+  Only four ownership bits per slot remain in registers. A shared row scan
+  takes `2*DEPTH_G+2` clocks and uses ready/valid on wire completions and responses.
+  Low-level endpoint/engine users must connect the new `txMessageReady` output;
+  MAC/PHY compositions connect it to the TX tap queue internally. See the
+  [ledger storage contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#tx-ledger-storage).
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
   The servo's combinational median uses nine fixed compare/swaps over a copy

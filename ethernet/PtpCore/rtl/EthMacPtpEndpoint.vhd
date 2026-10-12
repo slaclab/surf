@@ -113,6 +113,7 @@ architecture rtl of EthMacPtpEndpoint is
    signal rxCounters      : PtpRxCountersType;
    signal txMessage       : PtpRxMessageType;
    signal txValid         : sl;
+   signal txMessageReady  : sl;
    signal txAbort         : sl;
    signal timeValue       : PtpTimeType;
    signal status          : PtpPhcStatusType;
@@ -275,7 +276,7 @@ begin
          gmiiTxEr        => gmiiError,     -- [in]
          completion      => txMessage,     -- [out]
          completionValid => txValid,       -- [out]
-         completionReady => '1',           -- [in]
+         completionReady => txMessageReady,  -- [in]
          completionAbort => txAbort);      -- [out]
 
    U_Endpoint : entity surf.PtpEndpoint
@@ -308,6 +309,7 @@ begin
          rxCounters      => rxCounters,            -- [in]
          txMessage       => txMessage,             -- [in]
          txValid         => txValid,               -- [in]
+         txMessageReady  => txMessageReady,        -- [out]
          txAbort         => txAbort,               -- [in]
          txMaster        => macBypMaster,          -- [out]
          txSlave         => macBypSlave,           -- [in]

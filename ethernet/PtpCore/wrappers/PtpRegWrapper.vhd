@@ -328,6 +328,7 @@ begin
          rxAbort           => '0',                              -- [in]
          txMessage         => PTP_RX_MESSAGE_INIT_C,            -- [in]
          txValid           => '0',                              -- [in]
+         txMessageReady    => open,                             -- [out]
          txAbort           => '0',                              -- [in]
          txMaster          => open,                             -- [out]
          txSlave           => AXI_STREAM_SLAVE_FORCE_C,         -- [in]
