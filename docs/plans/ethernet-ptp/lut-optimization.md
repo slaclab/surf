@@ -98,8 +98,111 @@ Next step: compare both ledgers in the same Vivado configuration, including
 LUT-as-logic, LUTRAM, FF, carry, BRAM and critical paths. Account for the write
 register, RAM read register and retained sample; 636 bits per slot is a storage
 width, not a promised resource reduction. Confirm actual inferred RAM mapping.
-Subsequent candidates are shared protocol timestamp conversion and the servo's
-local clamp/median logic. Those changes are outside this ledger pass.
+The storage review below identifies the next RAM candidates. Shared protocol
+timestamp conversion and the servo's local clamp/median logic remain separate
+arithmetic follow-ups, outside this ledger pass.
+
+## October 11 remaining RAM and FIFO candidates
+
+Reviewed source: SURF `80aa5fdee396fbe40a96cbb1291fb6fd5d1633fc`, after the ledger
+conversion. This is a source/access-pattern review; none of the changes below
+is implemented or measured. The placed reference above attributes 15,954 LUTs
+and 11,827 FFs to the SFP protocol engine's own logic, excluding its ledger,
+E2E and rate-math children. It does not separate the arrays below, so those
+totals are not an estimate of recoverable area.
+
+| Priority | Storage | Declared payload/state | SURF approach and main tradeoff |
+| --- | --- | --- | --- |
+| First | `PtpProtocolEngine.history` | Four 485-bit Sync samples: 1,940 bits, plus validity/pointer | `SimpleDualPortRam`, synchronous distributed RAM, with a shared nearest-sample scan; introduces lookup latency and writer arbitration |
+| Second | `PtpProtocolEngine.pairs` | Four 682-bit records: 2,728 bits including flags and constant fields | `SimpleDualPortRam` with serial lookup/read-modify-write; keep ownership flags in registers and share expiry/key/replacement comparisons |
+| Conditional | `PtpServo.delays` | Five signed64 samples: 320 bits | Serialize the median comparison work first; RAM requires changing the all-at-once access pattern and may not justify its staging/control cost at depth five |
+| Lower | `PtpRxFrontend.frame.prefix` | 78 bytes: 624 bits per frontend | Banked/byte-enabled RAM plus staged decoding; must support partial beats, eight incoming bytes per clock and an unbackpressured wire input |
+
+These are source widths, not predicted FF savings. Synthesis can discard
+constant and unused fields; RAM read/write registers and retained results must
+be included in comparisons. In particular, each pair's nested 128-bit
+`sample.correction` stays zero: the two wire corrections live in separate
+64-bit fields and are combined only when the pair completes. Excluding that
+constant and the five flags leaves at most 549 payload bits per pair before
+other pruning. Do not count removing the constant member as a new area saving.
+
+### Sync history first
+
+The [protocol engine](../../../ethernet/PtpCore/rtl/PtpProtocolEngine.vhd)
+appends one accepted Sync at a time, but `nearestSync` compares all four rows
+in parallel. Each candidate involves phase-distance and age arithmetic, a
+generation check and nearest-distance selection. One synchronous read port
+and one shared evaluator can replace that parallel structure. Retain the four
+valid bits and ring pointer in registers; consider reusing the existing held
+`e2eSync` record for the winning row instead of adding another wide result copy.
+Follow the [SURF RAM selector guidance](../../../base/ram/README.md): one writer
+and one reader need `SimpleDualPortRam`, with an explicit read latency.
+Distributed RAM is the first configuration to compare at this shallow depth;
+block RAM remains an area/timing tradeoff to measure.
+
+History needs nondestructive access: the closest eligible Sync can precede or
+follow the actual Delay_Req capture. Preserve first-physical-slot tie breaking,
+generation, age and maximum-separation checks. A FIFO pop or selecting only
+the latest Sync would change the association policy.
+
+Define the lookup admission edge and hold its time, ratio/configuration inputs
+and eligible history stable across the scan. Currently selection reads
+`r.history`, so a same-edge append through `v.history` is not visible to that
+lookup. RAM conversion must explicitly preserve that boundary and avoid
+depending on a same-address read/write collision. Arbitrate pending history
+writes and pair completion; blocking new RX messages alone does not stop an
+already completed pair from appending. Use the ledger's existing held-sample
+handshake for lookup backpressure, and cancel an unfinished scan on the same
+restart/generation/abort events as the current association path.
+
+### Pair table second
+
+`findPair`, the per-clock expiry loop and variable-index wide updates make
+this a second storage-and-search opportunity. Serialize the work using one
+RAM read and one write port, retaining a small ownership/validity vector for
+immediate invalidation. The existing RX ready/valid boundary can hold the input
+while the table is searched and updated; account for the frontend's finite
+queue capacity when bounding the service time.
+
+Preserve both arrival orders, one-step/two-step collisions, duplicate and
+overflow retirement, expiry before allocation, existing-key preference,
+first-free choice and oldest-completed replacement. Completed or rejected
+keys remain useful for suppressing replay; they cannot simply be popped from
+a FIFO. Completion currently sees a pair updated on the same evaluation, so
+the serialized design must define that ordering and retain cancellation and
+held-measurement behavior.
+
+### Existing FIFOs and lower-priority storage
+
+Both RX and TX observation already instantiate the frontend's synchronous
+distributed `surf.Fifo`. The SFP placed reference reports 454 LUTs for the RX
+queue (440 LUTRAM, 14 logic) and 231 for the TX queue (216 LUTRAM, 15 logic).
+The enclosing validators' own logic is 3,348 and 2,375 LUTs respectively;
+another FIFO substitution would not address most of that logic. The portable
+FIFO allocates at least 16 physical locations while logical capacities are
+four RX and two TX records. Review physical allocation and retained pipeline
+copies if measurements warrant it, preserving the documented capacity,
+overflow/flush and output-stability contract. Shallower allocation alone does
+not establish a LUTRAM reduction.
+
+The servo median reads all five samples through nine compare/swaps. Its next
+likely improvement is sharing that comparator work, even if the 320-bit history
+initially stays in registers. The RX prefix similarly feeds simultaneous field
+decoding and same-beat completion; a RAM design needs input banking and overlap
+between decoding the old frame and receiving the next. Neither is a direct
+array-to-RAM substitution. Configuration candidate/active banks and coherent
+snapshots also have distinct lifetimes and simultaneous consumers; do not
+merge them merely because their record types match.
+
+Before implementing history, extend direct protocol coverage for nearest
+selection on either side of the TX capture, equal-distance ties, history wrap,
+age/generation exclusion, concurrent append and cancellation during lookup.
+Use the affected exchange fixture for ledger/result handshakes. Pair conversion
+additionally needs the collision, capacity, chronology and cancellation cases
+in `test_ptp_port_samples.py`, correction-overflow cases in
+`test_ptp_exchange.py`, and an affected PHY case for queue pressure. These are
+proposed checks, not new validation results. This review changes documentation
+only; the current RTL remains the ledger revision under synthesis.
 
 ## Evidence and remaining acceptance
 
