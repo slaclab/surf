@@ -24,7 +24,13 @@ entity GigEthGthUltraScalePhy is
       -- False: fabric reference on sysClk125. True: dedicated reference on the
       -- gtRefClk port. One checkpoint serves both; this selects CPLLREFCLKSEL
       -- rather than choosing between separate checkpoints.
-      USE_GTREFCLK_G : boolean := false);
+      USE_GTREFCLK_G   : boolean               := false;
+      -- With USE_GTREFCLK_G, which dedicated channel input gtRefClk arrives
+      -- on: 0 for GTREFCLK0, 1 for GTREFCLK1. The quad's MGTREFCLK0 and
+      -- MGTREFCLK1 pin pairs feed these two inputs respectively and no route
+      -- connects them, so this must match the pin the board reference lands
+      -- on. Ignored when USE_GTREFCLK_G is false.
+      GTREFCLK_INDEX_G : natural range 0 to 1 := 0);
    port (
       -- Existing checkpoint clock contract: related 125/62.5 MHz fabric clocks.
       sysClk125  : in  sl;
@@ -100,12 +106,15 @@ architecture rtl of GigEthGthUltraScalePhy is
          gt0_txpolarity_in      : in  std_logic;
          gt0_rxpolarity_in      : in  std_logic;
          -- GT reference selection. The checkpoint no longer ties CPLLREFCLKSEL
-         -- internally, so one core serves both reference paths: high takes the
-         -- fabric clock on gt0_gtgrefclk_in, low the dedicated reference on
-         -- gtrefclk. A .dcp carries no VHDL defaults, so both are driven
-         -- explicitly below.
+         -- internally, so one core serves every reference path: high takes the
+         -- fabric clock on gt0_gtgrefclk_in, low a dedicated reference.
+         -- gt0_userefclk1_in then names the dedicated input, gtrefclk on
+         -- GTREFCLK0 or gt0_gtrefclk1_in on GTREFCLK1. A .dcp carries no VHDL
+         -- defaults, so all four are driven explicitly below.
          gt0_usegtgrefclk_in    : in  std_logic;
          gt0_gtgrefclk_in       : in  std_logic;
+         gt0_userefclk1_in      : in  std_logic;
+         gt0_gtrefclk1_in       : in  std_logic;
          status_vector          : out std_logic_vector(15 downto 0);  -- Core status.
          reset                  : in  std_logic;  -- Asynchronous reset for entire core.
          signal_detect          : in  std_logic);  -- Input from PMD to indicate presence of optical input.
@@ -113,18 +122,21 @@ architecture rtl of GigEthGthUltraScalePhy is
 
 begin
 
-   -- One checkpoint serves both reference paths: it no longer ties
+   -- One checkpoint serves every reference path: it no longer ties
    -- CPLLREFCLKSEL internally, so the selection below is what routes the GT.
-   -- Both modes require related 125/62.5 MHz user clocks and a stretched reset.
-   -- gtrefclk feeds the GT's dedicated reference input and gt0_gtgrefclk_in the
-   -- fabric input; both are always connected and the select chooses between
-   -- them, so neither GT input is left floating in either mode.
+   -- Every mode requires related 125/62.5 MHz user clocks and a stretched reset.
+   -- The dedicated clock drives only the channel input GTREFCLK_INDEX_G
+   -- selects: routing one net to both MGTREFCLK inputs of a quad is not
+   -- possible, so the unselected dedicated input is tied low instead. The
+   -- fabric input is always connected, so the selected source is a real clock
+   -- and no GT input is left floating.
    U_GigEthGthUltraScaleCore : GigEthGthUltraScaleCore
       port map (
          -- Clocks and Resets
-         -- Dedicated reference when USE_GTREFCLK_G, else the fabric clock, so
-         -- this input is driven by a real clock in both modes.
-         gtrefclk               => ite(USE_GTREFCLK_G, gtRefClk, sysClk125),
+         -- Dedicated reference on GTREFCLK0 when selected, else the fabric
+         -- clock, so this input is driven by a real clock in every mode.
+         gtrefclk               => ite(USE_GTREFCLK_G and GTREFCLK_INDEX_G = 0,
+                                       gtRefClk, sysClk125),
          independent_clock_bufg => sysClk62,                      -- [in]
          txoutclk               => open,                          -- [out]
          rxoutclk               => open,                          -- [out]
@@ -139,11 +151,14 @@ begin
          mmcm_reset             => open,                          -- [out]
          cplllock               => open,                          -- [out]
          -- GT reference selection: the fabric 125 MHz clock, or the dedicated
-         -- GT buffer output when USE_GTREFCLK_G is set. The dedicated path
-         -- arrives on gtrefclk below, so only the fabric clock needs its own
-         -- port here.
+         -- GT buffer output when USE_GTREFCLK_G is set. GTREFCLK_INDEX_G then
+         -- picks the dedicated channel input, matching the MGTREFCLK pin pair
+         -- the board reference physically arrives on.
          gt0_usegtgrefclk_in    => ite(USE_GTREFCLK_G, '0', '1'),
          gt0_gtgrefclk_in       => sysClk125,                     -- [in]
+         gt0_userefclk1_in      => ite(GTREFCLK_INDEX_G = 1, '1', '0'),
+         gt0_gtrefclk1_in       => ite(USE_GTREFCLK_G and GTREFCLK_INDEX_G = 1,
+                                       gtRefClk, '0'),
          -- PHY Interface
          gmii_txd               => gmiiTxd,                       -- [in]
          gmii_tx_en             => gmiiTxEn,                      -- [in]
