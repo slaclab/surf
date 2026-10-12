@@ -34,7 +34,10 @@ entity GigEthGthUltraScalePtp is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       -- Select dedicated gtRefClk instead of the legacy sysClk125 reference.
-      USE_GTREFCLK_G    : boolean := false);
+      USE_GTREFCLK_G    : boolean              := false;
+      -- Dedicated channel input gtRefClk arrives on: 0 for GTREFCLK0, 1 for
+      -- GTREFCLK1. Must match the quad MGTREFCLK pin pair the board drives.
+      GTREFCLK_INDEX_G  : natural range 0 to 1 := 0);
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -134,7 +137,8 @@ begin
 
    U_Phy : entity surf.GigEthGthUltraScalePhy
       generic map (
-         USE_GTREFCLK_G => USE_GTREFCLK_G)
+         USE_GTREFCLK_G   => USE_GTREFCLK_G,
+         GTREFCLK_INDEX_G => GTREFCLK_INDEX_G)
       port map (
          gtRefClk     => gtRefClk,      -- [in]
          sysClk125    => sysClk125,     -- [in]
