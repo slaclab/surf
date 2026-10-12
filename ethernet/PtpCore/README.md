@@ -41,6 +41,12 @@ insertion remains outside scope.
   request building and E2E arithmetic. The Python device is also
   `PtpProtocolEngine`, exposed as the endpoint's `ProtocolEngine` child.
   Shared `PtpPort*Type` records retain their existing names and layouts.
+- `PtpProtocolEngine` keeps four 485-bit Sync history rows and four 549-bit
+  pairing payloads in synchronous `SimpleDualPortRam`. Shared scans replace
+  parallel nearest-Sync, expiry, key and replacement searches. Ownership flags
+  remain in registers; RX holds pair records through acknowledgement and E2E
+  lookup holds history stable. See the [association storage contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#protocol-association-storage)
+  for latency, expiry, cancellation and optional block-RAM settings.
 - `PtpTxLedger` stores complete 636-bit entries in synchronous `SimpleDualPortRam`,
   distributed by default (`MEMORY_TYPE_G="block"` is also supported at the leaf).
   Only four ownership bits per slot remain in registers. A shared row scan

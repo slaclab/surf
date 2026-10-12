@@ -6,8 +6,10 @@ high LUT use relative to registers; synthesis reports are on another machine.
 Optimization baseline: SURF `6db41ad53ed5d17491fcfddfcff30325755d244f`. Subsequent
 FIFO validation uses `2bb198b10efc964f1d861ebc34a33d214052afd7` plus the local
 optimization patch. Independent protocol/specification changes are outside
-this optimization. The October 11 placed reports below now provide an area
-reference; no before/after resource reduction has been measured yet.
+this optimization. The October 11 placed reports provide the area reference.
+The October 12 review of the later synthesis reports below confirms ledger
+LUTRAM use and substantially smaller ledger counts; a controlled comparison
+at the same implementation stage and timing acceptance remain outstanding.
 
 ## Implemented changes
 
@@ -97,24 +99,86 @@ modified entities and the reused RAM selector; no source-list change is needed.
 Next step: compare both ledgers in the same Vivado configuration, including
 LUT-as-logic, LUTRAM, FF, carry, BRAM and critical paths. Account for the write
 register, RAM read register and retained sample; 636 bits per slot is a storage
-width, not a promised resource reduction. Confirm actual inferred RAM mapping.
+width, not a promised resource reduction. The later synthesis evidence below
+confirms LUTRAM use; placement and timing remain to be compared.
 The storage review below identifies the next RAM candidates. Shared protocol
 timestamp conversion and the servo's local clamp/median logic remain separate
 arithmetic follow-ups, outside this ledger pass.
 
+## October 12 synthesis report review
+
+`ptp-dev` commit `5061265` adds the October 11 23:42 synthesis summary and
+23:44 hierarchy under
+`docs/reference/ptpkcu105-utilization-2026-10-11/synth-gtrefclk1/`.
+The report-bearing commit pins SURF `69c9e59f8a8bd456d831f6bb24fc875683bd5f5e`,
+which includes the ledger conversion `80aa5fdee`. This is repository provenance;
+the reports themselves do not embed the exact build revision/local patch.
+The run uses the same Vivado 2025.2 and KU040 part as the earlier reports, but
+also changes the GT reference selection/checkpoint and uses a clean project.
+
+The whole-design totals can be compared at synthesis in both runs:
+
+| Resource | Earlier synthesis | Later synthesis | Difference |
+| --- | ---: | ---: | ---: |
+| Total CLB LUTs | 133,016 | 121,455 | -11,561 (-8.69%) |
+| Logic LUTs | 129,605 | 117,316 | -12,289 |
+| Distributed RAM LUTs | 2,930 | 3,658 | +728 |
+| Registers | 110,435 | 105,799 | -4,636 (-4.20%) |
+| CARRY8 | 5,801 | 5,313 | -488 |
+| Block RAM tiles | 32 | 32 | 0 |
+| DSPs | 101 | 101 | 0 |
+
+Both ledgers now contain 364 LUTRAMs and no BRAM. Their combined 728 LUTRAMs
+match the design-wide distributed-RAM increase. The retained earlier hierarchy
+is **placed**, while the new hierarchy is **synthesized**; the following ledger
+comparison is therefore an observed difference across stages, not an isolated
+measurement of the refactor:
+
+| Ledger | Earlier placed LUTs / FFs | Later synthesis LUTs / FFs | LUT difference |
+| --- | ---: | ---: | ---: |
+| SFP | 6,959 / 3,566 | 1,804 / 1,853 | -5,155 (-74.08%) |
+| Copper | 6,931 / 3,566 | 1,801 / 1,853 | -5,130 (-74.02%) |
+
+Each ledger has 1,713 fewer reported FFs (-48.04%). The later LUT totals already
+include RAM: SFP is 1,440 logic plus 364 LUTRAM; copper is 1,437 plus 364.
+This supports the RAM/shared-scan architecture, but do not subtract the mixed
+stage ledger difference from the synthesis-only design difference to attribute
+the remainder. Neither report pair isolates the reference-clock, project-state
+and RTL changes. Both synthesis summaries also retain three PHY/core black
+boxes, so these totals are not a fully linked implementation result. No later
+placement, routing or timing result is supplied.
+
+The remaining targets are clearer in the new hierarchy:
+
+| Later synthesis block | SFP LUTs / FFs | Copper LUTs / FFs |
+| --- | ---: | ---: |
+| Protocol engine, own logic only | 15,281 / 11,272 | 15,852 / 11,282 |
+| Servo, own logic only | 7,868 / 3,935 | 7,865 / 3,935 |
+| E2E, including its math child | 4,094 / 2,106 | 4,067 / 2,106 |
+| RX timestamp tap, including validator/FIFO | 3,911 / 3,656 | 3,868 / 3,656 |
+
+The protocol engine's own logic excludes ledger, E2E and rate math; the servo's
+own logic excludes its math child. The two protocol engines and two servos'
+exclusive logic together use 46,866 LUTs, 38.59% of the synthesis design total.
+Both complete PTP lanes use 97,937 LUTs, 80.64% of that total. The ledger is no
+longer a leading hotspot. Keep the next storage work ordered as Sync history,
+then Sync/Follow_Up pairing; the servo remains a separate arithmetic-sharing
+candidate. The following implementation section records the subsequent conversion;
+these supplied reports predate it.
+
 ## October 11 remaining RAM and FIFO candidates
 
 Reviewed source: SURF `80aa5fdee396fbe40a96cbb1291fb6fd5d1633fc`, after the ledger
-conversion. This is a source/access-pattern review; none of the changes below
-is implemented or measured. The placed reference above attributes 15,954 LUTs
+conversion. This source/access-pattern review selected the first two changes
+implemented on October 12 below; neither has vendor area/timing evidence yet. The placed reference above attributes 15,954 LUTs
 and 11,827 FFs to the SFP protocol engine's own logic, excluding its ledger,
 E2E and rate-math children. It does not separate the arrays below, so those
 totals are not an estimate of recoverable area.
 
-| Priority | Storage | Declared payload/state | SURF approach and main tradeoff |
+| Status | Storage | Original declared payload/state | SURF approach and main tradeoff |
 | --- | --- | --- | --- |
-| First | `PtpProtocolEngine.history` | Four 485-bit Sync samples: 1,940 bits, plus validity/pointer | `SimpleDualPortRam`, synchronous distributed RAM, with a shared nearest-sample scan; introduces lookup latency and writer arbitration |
-| Second | `PtpProtocolEngine.pairs` | Four 682-bit records: 2,728 bits including flags and constant fields | `SimpleDualPortRam` with serial lookup/read-modify-write; keep ownership flags in registers and share expiry/key/replacement comparisons |
+| Implemented October 12 | `PtpProtocolEngine.history` | Four 485-bit Sync samples: 1,940 bits, plus validity/pointer | `SimpleDualPortRam`, synchronous distributed RAM, with a shared nearest-sample scan; introduces lookup latency and writer arbitration |
+| Implemented October 12 | `PtpProtocolEngine.pairs` | Four 682-bit records: 2,728 bits including flags and constant fields | `SimpleDualPortRam` with serial lookup/read-modify-write; keep ownership flags in registers and share expiry/key/replacement comparisons |
 | Conditional | `PtpServo.delays` | Five signed64 samples: 320 bits | Serialize the median comparison work first; RAM requires changing the all-at-once access pattern and may not justify its staging/control cost at depth five |
 | Lower | `PtpRxFrontend.frame.prefix` | 78 bytes: 624 bits per frontend | Banked/byte-enabled RAM plus staged decoding; must support partial beats, eight incoming bytes per clock and an unbackpressured wire input |
 
@@ -125,52 +189,6 @@ be included in comparisons. In particular, each pair's nested 128-bit
 64-bit fields and are combined only when the pair completes. Excluding that
 constant and the five flags leaves at most 549 payload bits per pair before
 other pruning. Do not count removing the constant member as a new area saving.
-
-### Sync history first
-
-The [protocol engine](../../../ethernet/PtpCore/rtl/PtpProtocolEngine.vhd)
-appends one accepted Sync at a time, but `nearestSync` compares all four rows
-in parallel. Each candidate involves phase-distance and age arithmetic, a
-generation check and nearest-distance selection. One synchronous read port
-and one shared evaluator can replace that parallel structure. Retain the four
-valid bits and ring pointer in registers; consider reusing the existing held
-`e2eSync` record for the winning row instead of adding another wide result copy.
-Follow the [SURF RAM selector guidance](../../../base/ram/README.md): one writer
-and one reader need `SimpleDualPortRam`, with an explicit read latency.
-Distributed RAM is the first configuration to compare at this shallow depth;
-block RAM remains an area/timing tradeoff to measure.
-
-History needs nondestructive access: the closest eligible Sync can precede or
-follow the actual Delay_Req capture. Preserve first-physical-slot tie breaking,
-generation, age and maximum-separation checks. A FIFO pop or selecting only
-the latest Sync would change the association policy.
-
-Define the lookup admission edge and hold its time, ratio/configuration inputs
-and eligible history stable across the scan. Currently selection reads
-`r.history`, so a same-edge append through `v.history` is not visible to that
-lookup. RAM conversion must explicitly preserve that boundary and avoid
-depending on a same-address read/write collision. Arbitrate pending history
-writes and pair completion; blocking new RX messages alone does not stop an
-already completed pair from appending. Use the ledger's existing held-sample
-handshake for lookup backpressure, and cancel an unfinished scan on the same
-restart/generation/abort events as the current association path.
-
-### Pair table second
-
-`findPair`, the per-clock expiry loop and variable-index wide updates make
-this a second storage-and-search opportunity. Serialize the work using one
-RAM read and one write port, retaining a small ownership/validity vector for
-immediate invalidation. The existing RX ready/valid boundary can hold the input
-while the table is searched and updated; account for the frontend's finite
-queue capacity when bounding the service time.
-
-Preserve both arrival orders, one-step/two-step collisions, duplicate and
-overflow retirement, expiry before allocation, existing-key preference,
-first-free choice and oldest-completed replacement. Completed or rejected
-keys remain useful for suppressing replay; they cannot simply be popped from
-a FIFO. Completion currently sees a pair updated on the same evaluation, so
-the serialized design must define that ordering and retain cancellation and
-held-measurement behavior.
 
 ### Existing FIFOs and lower-priority storage
 
@@ -194,15 +212,39 @@ array-to-RAM substitution. Configuration candidate/active banks and coherent
 snapshots also have distinct lifetimes and simultaneous consumers; do not
 merge them merely because their record types match.
 
-Before implementing history, extend direct protocol coverage for nearest
-selection on either side of the TX capture, equal-distance ties, history wrap,
-age/generation exclusion, concurrent append and cancellation during lookup.
-Use the affected exchange fixture for ledger/result handshakes. Pair conversion
-additionally needs the collision, capacity, chronology and cancellation cases
-in `test_ptp_port_samples.py`, correction-overflow cases in
-`test_ptp_exchange.py`, and an affected PHY case for queue pressure. These are
-proposed checks, not new validation results. This review changes documentation
-only; the current RTL remains the ledger revision under synthesis.
+## October 12 protocol table conversion
+
+Working-tree implementation based on SURF
+`3f5b468ff3c0e99b33fa36c80850658d77c2e341`. `PtpProtocolEngine` now uses two
+synchronous `SimpleDualPortRam` instances: 485 bits by four rows for completed
+Sync history and 549 bits by four rows for pairing payloads. Both default to
+distributed memory, with block selectable through engine generics. The history
+array, pair array and parallel lookup/expiry/replacement functions are removed.
+Only history validity/pointer and pair ownership/mode flags remain parallel.
+
+Each shared evaluator processes one row every two clocks. Pairing acknowledges
+RX after lookup, applies the existing collision/retirement policy to one row,
+and writes the whole row. History reuses the existing held E2E sample for the
+winner, while the last accepted Sync drives the history write port. Thus neither
+conversion adds a second input payload queue. The
+[association storage contract](autonomous-endpoint.md#protocol-association-storage)
+owns the precise acknowledgement, append arbitration, scan-time expiry and
+cancellation behavior. Public ports, register ABI and arithmetic precision stay
+unchanged; optional memory generics are added at the engine and direct fixture.
+
+The direct wrapper exposes raw capture phase for boundary verification. Existing
+ruckus directory imports already contain both changed VHDL files; no new HDL
+source or manifest entry is needed. The
+[verification record](rtl-review.md#october-12-protocol-table-checks) records
+focused checks and their limits. GHDL synthesis recognizes the two RAMs and the
+existing 636-bit ledger RAM; ignored vendor attributes mean this is structural
+evidence, not a Vivado utilization or timing result.
+
+Next step: synthesize against the retained ledger-only baseline with the same
+part, clocks, project state, strategy and flow stage. Compare protocol-engine
+total and exclusive logic, both new RAM children, FFs, carry and critical paths.
+Include write/read registers and E2E operand storage. Keep servo and parser
+follow-ups separate so the table savings can be attributed.
 
 ## Evidence and remaining acceptance
 

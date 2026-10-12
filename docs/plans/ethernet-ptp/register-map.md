@@ -71,9 +71,10 @@ optional configuration bypass are not retained.
 `PtpProtocolEngine` in `_PtpProtocolEngine.py` is exported from
 `surf.ethernet.ptp` and instantiated as `PtpEndpoint.ProtocolEngine`, replacing
 `PtpEndpoint.Port`. The composite device remains `PtpEndpoint`; root registers
-map to `PtpEndpointControl`. Register offsets/fields, package `PtpPort*Type`
-records and the `PtpPortWrapper` test entry point are unchanged. Historical
-checks retain their original entity names. Hardware-backed models describe
+map to `PtpEndpointControl`. Register offsets/fields and package `PtpPort*Type`
+records are unchanged. The direct test entry point is `PtpProtocolEngineWrapper`
+(formerly `PtpPortWrapper`). Historical checks retain their original entity
+names. Hardware-backed models describe
 registers; application orchestration belongs outside these devices.
 
 ## Transactions and reset

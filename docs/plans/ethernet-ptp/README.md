@@ -57,8 +57,9 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
 - `PtpEndpointControl` owns global coordination, registered restart/RX flush and
   IRQ events; `PtpEndpoint` is structural. Functional cores retain local banks.
 - `PtpProtocolEngine` replaces the RTL name `PtpPort`. Python exposes
-  `PtpEndpoint.ProtocolEngine` in place of `PtpEndpoint.Port`; offsets/fields,
-  `PtpPort*Type` records and the `PtpPortWrapper` fixture name are unchanged.
+  `PtpEndpoint.ProtocolEngine` in place of `PtpEndpoint.Port`; offsets/fields
+  and `PtpPort*Type` records are unchanged. The direct fixture is
+  `PtpProtocolEngineWrapper`, matching the production entity name.
   See [software naming](register-map.md#software-naming).
 - One-step receive selects origin/correction per Sync without a mode register.
   Its association rules are part of the [endpoint contract](autonomous-endpoint.md#port-policy-and-numerical-envelope),
@@ -81,9 +82,18 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
 - The October 11 [ledger optimization](lut-optimization.md#october-11-ledger-storage-and-counter-pass)
   stores complete entries in synchronous RAM and shares row processing across
   a ten-clock scan at depth four. Completion/response paths honor backpressure;
-  the software ABI is unchanged. Supplied KCU105 placed
-  reports provide the reference; before/after savings remain unmeasured. See the
+  the software ABI is unchanged. The later
+  [synthesis report review](lut-optimization.md#october-12-synthesis-report-review)
+  confirms 364 LUTRAMs and about 1,800 total LUTs per ledger, down from about
+  6,950 in the earlier placed hierarchy. A controlled comparison at the same
+  stage and timing acceptance remain open. See the
   [focused acceptance record](rtl-review.md#october-11-ledger-optimization-checks).
+
+- The October 12 [protocol table conversion](lut-optimization.md#october-12-protocol-table-conversion)
+  replaces Sync history and Sync/Follow_Up payload arrays with synchronous RAM
+  and shared scans. The [storage contract](autonomous-endpoint.md#protocol-association-storage)
+  defines the added latency and scan-time expiry boundary. Resource and timing
+  improvement for these two tables remains to be measured.
 
 ## PHY composition implementation
 

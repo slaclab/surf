@@ -93,6 +93,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
 
@@ -172,12 +173,19 @@ reporting the previous full-suite result as validation of a later edit.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
-- `test_ptp_port_samples.py` / `PtpPortWrapper`: direct production `PtpProtocolEngine` with
+- `test_ptp_port_samples.py` / `PtpProtocolEngineWrapper`: direct production `PtpProtocolEngine` with
   exact independent Q16 forward expectations, one-/two-step correction equivalence,
   signed64 boundaries/widened sums, upper seconds bits, timestamp/flag rejection,
   mixed-mode collisions, capacity/expiry/sequence wrap, rate qualification,
   measurement stalls and lifecycle cancellation. The thin wrapper adds observation
   and backpressure at the port boundary; it contains no alternate protocol model.
+  Distributed and block RAM settings exercise the same pairing/history contract.
+- `test_ptp_protocol_ram.py`: both table RAM settings, nearest selection on either
+  side of TX capture, wrapped-slot ties, RX/TX fractional phases, history age and
+  separation rejection, concurrent append, cancellation throughout both scans,
+  generation recovery, E2E publication during continuous rejected RX traffic
+  and pairing expiry at the scan-start boundary. Exact
+  public measurements and snapshots are checked independently of RAM contents.
 - `test_ptp_port.py`: GMII/XGMII reordered/conflicting/foreign messages, bounded
   association replacement, timeout, grandmaster change and Announce metadata,
   plus one-step mode transitions and malformed/FCS-bad/truncated wire traffic.

@@ -340,7 +340,7 @@ def test_ptp_specification_rx():
 
 def test_ptp_specification_protocol():
     run_surf_vhdl_test(
-        test_file=__file__, toplevel='surf.ptpportwrapper',
+        test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
         extra_env=cocotb_filtered_env({}, cocotb_test_filter('interpreted_two_step_correction')),
     )
 
@@ -358,6 +358,6 @@ def test_ptp_specification_rx_rules(scenario):
 @pytest.mark.parametrize('scenario', ['receive_control', 'reserved_flags', 'delay_request_headers'])
 def test_ptp_specification_protocol_rules(scenario):
     run_surf_vhdl_test(
-        test_file=__file__, toplevel='surf.ptpportwrapper',
+        test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
         extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)),
     )

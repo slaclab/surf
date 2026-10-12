@@ -97,7 +97,8 @@ Implemented October 6, 2026 in the tree based on
 `fc75fe24ab1dfb3da77164843c71783ab1aa3ba8`. The original planning baseline was
 `aa6b2c4084aafbea77761a5ff96b9605fbb952f9`; their comparison found no intervening
 PTP RTL/fixture changes. The RTL was then named `PtpPort`; current naming is
-`PtpProtocolEngine`, with the `PtpPortWrapper` fixture retained.
+`PtpProtocolEngine`; its fixture is now `PtpProtocolEngineWrapper` (renamed
+October 12). Historical checks below retain the original `PtpPortWrapper` name.
 
 The following records the implementation-time checks, not new checks of today’s
 source. Source review covered both arrival orders/collision directions, full-table
@@ -611,6 +612,80 @@ retirement and reset precedence; they do not force live 32-bit counters near
 saturation. No full PTP suite, every-depth/reset-generic sweep, long servo
 settling, Vivado implementation/timing or hardware check is claimed. Inferred
 block/distributed simulations check the shared RAM timing interface only.
+
+The October 12 [synthesis report review](lut-optimization.md#october-12-synthesis-report-review)
+adds vendor mapping evidence: both ledgers contain 364 LUTRAMs, about 1,800 total
+LUTs and 1,853 FFs. The earlier hierarchical reference is placed, so the observed
+area reduction is not a controlled comparison at the same stage. The later
+run supplies no placement/timing or additional behavioral evidence.
+
+## October 12 protocol table checks
+
+Working-tree checks based on SURF
+`3f5b468ff3c0e99b33fa36c80850658d77c2e341` cover the
+[protocol table conversion](lut-optimization.md#october-12-protocol-table-conversion).
+The [storage contract](autonomous-endpoint.md#protocol-association-storage)
+records synchronous read timing, RX acknowledgement, history arbitration,
+scan-start expiry and cancellation. The implementation follows
+[SURF VHDL conventions](../../vhdl-conventions.md); RAM controls are registered,
+payload reset is replaced by ownership invalidation, and the raw-tick/Q3 limit
+conversion uses named intermediate values without narrowing the arithmetic.
+
+The focused selection exercises pairing and nearest-Sync behavior directly,
+then their E2E, PHY and real-MAC consumers. It uses Python 3.13.2 from the existing
+SURF virtual environment, cocotb 2.1.0 and GHDL 6.0.0 with four pytest workers.
+The initial direct protocol run used the distributed default before adding its
+explicit memory parameter. Both memory settings use production
+`SimpleDualPortRam`, not a fixture-specific storage model.
+
+| Selection | Result | Evidence |
+| --- | --- | --- |
+| Direct protocol sample suite, distributed default; ordinary 2019 one-step master | 2 passed in 30.47 s | `/tmp/ptp-tables-first.{log,xml}` |
+| New nearest-history and pair cancellation/expiry scenarios, distributed | 2 passed in 44.99 s | `/tmp/ptp-tables-directed-first.{log,xml}` |
+| Remaining history/pair cases in both memory settings, direct block-memory sample suite, three exchange rejection cases, ordinary 2019 two-step master, GMII/XGMII port, real-MAC GMII two-step | 12 passed in 1031.79 s | `/tmp/ptp-tables-consumers.{log,xml}` |
+| Final publication-priority and nearest-history scenarios, both memory settings | 4 passed in 59.17 s | `/tmp/ptp-tables-priority-final.{log,xml}` |
+
+These batches contain 20 successful configuration runs across 18 distinct
+configurations, with no skips. The final batch repeats the two nearest-history
+configurations after the publication-priority fix described below.
+
+The new RAM fixture independently checks nearest samples on both sides of TX
+capture, physical-slot ties after ring wrap, RX/TX fractional phases, age and
+separation limits, concurrent append, exact t1/t2/t3/t4 and correction snapshots,
+held measurements, scan-phase cancellation and recovery with high generation
+bits. Pair checks target cancellation through the occupied-row reread and the
+inclusive expiry boundary while raw time advances during a scan. Existing
+sample tests retain finite correction bounds, upper timestamp seconds,
+reordering, duplicate/mode collisions, table capacity, sequence wrap and
+measurement backpressure coverage.
+
+Final review identified starvation when continuous rejected Syncs repeatedly
+reserved pairing scans ahead of a completed E2E result. The new
+`history_publication_priority` case reproduces the failure without the guard
+(`/tmp/ptp-tables-priority-before.log`). A pending result now takes priority over
+starting another pairing scan. The final four-case row checks that guard;
+the earlier consumer runs compiled before it and are not claimed as validation
+of that last change.
+
+GHDL synthesis of the final engine succeeds and recognizes four-row RAMs of
+width 485, 549 and 636 bits (history, pairing and existing ledger respectively).
+The emitted netlist includes the final E2E admission guard. Diagnostics and
+netlist are in `/tmp/ptp-tables-synthesis/`. GHDL ignores vendor RAM attributes;
+this verifies structure, not physical memory placement, area or timing.
+
+Both edited VHDL files pass VSG (689 rules each, zero violations). The three
+changed Python files pass flake8 and the compliance audit with zero findings.
+Added relative links/anchors and diff whitespace pass.
+No full PTP suite, all reset/generic combinations, real-MAC XGMII case, long
+servo settling, Vivado implementation/timing or hardware validation was run
+for this conversion. The latest supplied utilization report predates it.
+
+The direct fixture was subsequently renamed to `PtpProtocolEngineWrapper`,
+including its filename, entity and all pytest top-level references. A fresh
+ruckus/GHDL import and `test_ptp_specification_protocol` pass (1 case, 21.27 s;
+`/tmp/ptp-wrapper-rename{.xml,-test.log}`). The renamed wrapper passes VSG and
+the four updated Python test files pass flake8. This naming-only follow-up does
+not rerun the table/integration selection above.
 
 ## Compile/link procedure
 

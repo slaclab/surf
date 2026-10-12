@@ -28,7 +28,10 @@ use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
 
-entity PtpPortWrapper is
+entity PtpProtocolEngineWrapper is
+   generic (
+      HISTORY_MEMORY_TYPE_G : string := "distributed";
+      PAIR_MEMORY_TYPE_G    : string := "distributed");
    port (
       clk                   : in  sl;
       rst                   : in  sl;
@@ -37,7 +40,7 @@ entity PtpPortWrapper is
       prepare               : in  sl;
       applyConfig           : in  sl;
       configValid           : out sl;
-      snapshotCapture       : in  sl                := '0';
+      snapshotCapture       : in  sl                                    := '0';
       ticks                 : in  slv(63 downto 0);
       generation            : in  slv(31 downto 0);
       rxAbort               : in  sl;
@@ -52,10 +55,11 @@ entity PtpPortWrapper is
       rxSource              : in  slv(79 downto 0);
       rxTimestamp           : in  slv(79 downto 0);
       rxCorrection          : in  slv(63 downto 0);
-      rxLogInterval         : in  slv(7 downto 0)   := x"7F";
-      rxBodyTail            : in  slv(159 downto 0) := (others => '0');
+      rxLogInterval         : in  slv(7 downto 0)                       := x"7F";
+      rxBodyTail            : in  slv(159 downto 0)                     := (others => '0');
       captureTime           : in  slv(95 downto 0);
       captureTicks          : in  slv(63 downto 0);
+      capturePhase          : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0) := (others => '0');
       captureGeneration     : in  slv(31 downto 0);
       measurementReady      : in  sl;
       measurementValid      : out sl;
@@ -72,14 +76,15 @@ entity PtpPortWrapper is
       delayCount            : out slv(31 downto 0);
       ledgerStatus          : out slv(31 downto 0);
       wireReady             : out sl;
-      wireValid             : in  sl                := '0';
-      wireSequence          : in  slv(15 downto 0)  := (others => '0');
-      wireTime              : in  slv(95 downto 0)  := (others => '0');
-      wireTicks             : in  slv(63 downto 0)  := (others => '0');
-      wireGeneration        : in  slv(31 downto 0)  := (others => '0');
+      wireValid             : in  sl                                    := '0';
+      wireSequence          : in  slv(15 downto 0)                      := (others => '0');
+      wireTime              : in  slv(95 downto 0)                      := (others => '0');
+      wireTicks             : in  slv(63 downto 0)                      := (others => '0');
+      wirePhase             : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0) := (others => '0');
+      wireGeneration        : in  slv(31 downto 0)                      := (others => '0');
       syncCount             : out slv(31 downto 0);
       rejectedCount         : out slv(31 downto 0);
-      txReady               : in  sl                := '1';
+      txReady               : in  sl                                    := '1';
       txValid               : out sl;
       txData                : out slv(63 downto 0);
       txKeep                : out slv(7 downto 0);
@@ -103,9 +108,9 @@ entity PtpPortWrapper is
       axil_rresp            : out slv(1 downto 0);
       axil_rvalid           : out sl;
       axil_rready           : in  sl);
-end entity PtpPortWrapper;
+end entity PtpProtocolEngineWrapper;
 
-architecture rtl of PtpPortWrapper is
+architecture rtl of PtpProtocolEngineWrapper is
 
    signal readMaster  : AxiLiteReadMasterType;
    signal readSlave   : AxiLiteReadSlaveType;
@@ -181,6 +186,7 @@ begin
    rxMessage.correction                  <= rxCorrection;
    rxMessage.capture.timestamp           <= captureTime;
    rxMessage.capture.ticks               <= captureTicks;
+   rxMessage.capture.tickPhase            <= capturePhase;
    rxMessage.capture.generation          <= captureGeneration;
    rxMessage.capture.increment           <= ptpNominalIncrement(125000000);
    take.ready                            <= measurementReady;
@@ -212,13 +218,16 @@ begin
    wireMessage.sequenceId                <= wireSequence;
    wireMessage.capture.timestamp         <= wireTime;
    wireMessage.capture.ticks             <= wireTicks;
+   wireMessage.capture.tickPhase          <= wirePhase;
    wireMessage.capture.generation        <= wireGeneration;
    wireMessage.capture.increment         <= ptpNominalIncrement(125000000);
 
    U_DUT : entity surf.PtpProtocolEngine
       generic map (
-         CLK_FREQ_G        => 125000000,
-         PACKET_LIFETIME_G => 5000)
+         HISTORY_MEMORY_TYPE_G => HISTORY_MEMORY_TYPE_G,
+         PAIR_MEMORY_TYPE_G    => PAIR_MEMORY_TYPE_G,
+         CLK_FREQ_G            => 125000000,
+         PACKET_LIFETIME_G     => 5000)
       port map (
          clk               => clk,                       -- [in]
          rst               => rst,                       -- [in]

@@ -9,6 +9,9 @@
 -- in either arrival order and reject conflicting associations. Sync history
 -- supplies the sample nearest a Delay_Req TX capture; Announce metadata and raw-tick
 -- receipt timers qualify the current source session.
+-- Both four-row payload tables use synchronous SURF RAM. Pairing holds the
+-- RX producer through a serial lookup; history reserves E2E capacity and blocks
+-- appends through a nearest-sample scan. Reset/abort clears ownership, not RAM.
 --
 -- Estimates master time per raw local cycle from corrected Sync intervals,
 -- independently of PHC validity or steering. Qualified intervals establish and
@@ -69,13 +72,16 @@ use surf.PtpPkg.all;
 
 entity PtpProtocolEngine is
    generic (
-      TPD_G             : time             := 1 ns;
-      RST_POLARITY_G    : sl               := '1';
-      RST_ASYNC_G       : boolean          := false;
-      CLK_FREQ_G        : positive         := 156250000;
-      PACKET_LIFETIME_G : positive         := 156250000;
-      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      TPD_G                 : time             := 1 ns;
+      RST_POLARITY_G        : sl               := '1';
+      RST_ASYNC_G           : boolean          := false;
+      CLK_FREQ_G            : positive         := 156250000;
+      PACKET_LIFETIME_G     : positive         := 156250000;
+      INGRESS_LATENCY_G     : slv(63 downto 0) := (others => '0');
+      EGRESS_LATENCY_G      : slv(63 downto 0) := (others => '0');
+      -- Supported inferred RAM implementations: "distributed" or "block".
+      HISTORY_MEMORY_TYPE_G : string           := "distributed";
+      PAIR_MEMORY_TYPE_G    : string           := "distributed");
    port (
       -- Shared endpoint clock domain.
       clk                 : in  sl;
@@ -235,7 +241,78 @@ architecture rtl of PtpProtocolEngine is
       followCorrection => (others => '0'),
       sample           => PTP_SYNC_SAMPLE_INIT_C);
 
-   type PairArray is array (0 to PAIR_DEPTH_C-1) of PairType;
+   -- Combined correction, sequence, remote time, then the complete capture.
+   constant SYNC_WIDTH_C       : positive := 128+16+80+96+64+PTP_TICK_PHASE_BITS_C+32+64+2;
+   constant PAIR_WIDTH_C       : positive := 3*64+SYNC_WIDTH_C-128;
+   constant TABLE_ADDR_WIDTH_C : positive := 2;
+
+   subtype SyncPayloadType is slv(SYNC_WIDTH_C-1 downto 0);
+   subtype PairPayloadType is slv(PAIR_WIDTH_C-1 downto 0);
+
+   function packSync (sample : PtpSyncSampleType) return SyncPayloadType is
+   begin
+      return sample.correction & sample.sequenceId & sample.remoteTime &
+         sample.capture.timestamp & sample.capture.ticks & sample.capture.tickPhase &
+         sample.capture.generation & sample.capture.increment & sample.capture.timeValid & sample.capture.error;
+   end function;
+
+   function unpackSync (payload : SyncPayloadType) return PtpSyncSampleType is
+      variable sample : PtpSyncSampleType;
+      variable index  : natural := SYNC_WIDTH_C;
+
+      procedure take (variable field : out slv) is
+      begin
+         field := payload(index-1 downto index-field'length);
+         index := index-field'length;
+      end procedure;
+
+   begin
+      take(sample.correction);
+      take(sample.sequenceId);
+      take(sample.remoteTime);
+      take(sample.capture.timestamp);
+      take(sample.capture.ticks);
+      take(sample.capture.tickPhase);
+      take(sample.capture.generation);
+      take(sample.capture.increment);
+      sample.capture.timeValid := payload(1);
+      sample.capture.error     := payload(0);
+      return sample;
+   end function;
+
+   -- The combined correction exists only after completion. Pair RAM stores
+   -- the two wire corrections, omitting the otherwise constant 128-bit field.
+   function packPair (item : PairType) return PairPayloadType is
+      variable sample : SyncPayloadType;
+   begin
+      sample := packSync(item.sample);
+      return item.born & item.syncCorrection & item.followCorrection & sample(SYNC_WIDTH_C-129 downto 0);
+   end function;
+
+   function unpackPair (payload : PairPayloadType) return PairType is
+      variable item : PairType := PAIR_INIT_C;
+   begin
+      item.born             := payload(PAIR_WIDTH_C-1 downto PAIR_WIDTH_C-64);
+      item.syncCorrection   := payload(PAIR_WIDTH_C-65 downto PAIR_WIDTH_C-128);
+      item.followCorrection := payload(PAIR_WIDTH_C-129 downto PAIR_WIDTH_C-192);
+      item.sample           := unpackSync(slv'(127 downto 0 => '0') & payload(SYNC_WIDTH_C-129 downto 0));
+      return item;
+   end function;
+
+   type PairStateType is (
+      PAIR_IDLE_S,
+      PAIR_READ_S,
+      PAIR_CHECK_S,
+      PAIR_SELECT_S,
+      PAIR_LOAD_S,
+      PAIR_APPLY_S);
+
+   type HistoryStateType is (
+      HISTORY_IDLE_S,
+      HISTORY_READ_S,
+      HISTORY_CHECK_S,
+      HISTORY_DONE_S);
+
    type StateType is (
       IDLE_S,
       RATE_ISSUE_S,
@@ -264,12 +341,39 @@ architecture rtl of PtpProtocolEngine is
       snapFlags           : slv(15 downto 0);
       snapUtc             : slv(15 downto 0);
       snapCounters        : Slv32Array(0 to 6);
-      pairs               : PairArray;
-      history             : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
+      -- Payload tables use synchronous RAM; only ownership is reset in bulk.
+      pairState           : PairStateType;
+      pairUsed            : slv(PAIR_DEPTH_C-1 downto 0);
+      pairSyncSeen        : slv(PAIR_DEPTH_C-1 downto 0);
+      pairTwoStep         : slv(PAIR_DEPTH_C-1 downto 0);
+      pairFollowSeen      : slv(PAIR_DEPTH_C-1 downto 0);
+      pairComplete        : slv(PAIR_DEPTH_C-1 downto 0);
+      pairIndex           : natural range 0 to PAIR_DEPTH_C-1;
+      pairSlot            : integer range -1 to PAIR_DEPTH_C-1;
+      pairMatch           : integer range -1 to PAIR_DEPTH_C-1;
+      pairFree            : integer range -1 to PAIR_DEPTH_C-1;
+      pairOldest          : integer range -1 to PAIR_DEPTH_C-1;
+      pairOldestBorn       : slv(63 downto 0);
+      pairTicks           : slv(63 downto 0);
+      pairReadEnable      : sl;
+      pairReadAddress     : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      pairWriteEnable     : sl;
+      pairWriteAddress    : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      pairWriteData       : PairPayloadType;
+      historyState        : HistoryStateType;
+      historyIndex        : natural range 0 to HISTORY_DEPTH_C-1;
+      historyTicks        : slv(63 downto 0);
+      historyFound        : sl;
+      historyQualified    : sl;
+      historyDistance     : signed(127 downto 0);
+      historyReadEnable   : sl;
+      historyReadAddress  : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      historyWriteEnable  : sl;
+      historyWriteAddress : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
       historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
       historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
       generation          : slv(31 downto 0);
-      -- Last accepted sample retained for waveform diagnostics.
+      -- Last accepted sample also drives the registered history RAM write.
       lastSync            : PtpSyncSampleType;
       lastRemote          : signed(127 downto 0);
       syncLimit           : slv(63 downto 0);
@@ -291,9 +395,9 @@ architecture rtl of PtpProtocolEngine is
       response            : PtpRxMessageType;
       responseValid       : sl;
       responseLog         : slv(7 downto 0);
-      e2eInput            : sl;
-      e2eBusy             : sl;
-      e2eSync             : PtpSyncSampleType;
+      e2eInput             : sl;
+      e2eBusy              : sl;
+      e2eSync              : PtpSyncSampleType;
       e2eDelay            : PtpDelaySampleType;
       e2eRatio            : slv(63 downto 0);
       e2eMaximum          : slv(63 downto 0);
@@ -329,8 +433,34 @@ architecture rtl of PtpProtocolEngine is
       snapFlags           => (others => '0'),
       snapUtc             => (others => '0'),
       snapCounters        => (others => (others => '0')),
-      pairs               => (others => PAIR_INIT_C),
-      history             => (others => PTP_SYNC_SAMPLE_INIT_C),
+      pairState           => PAIR_IDLE_S,
+      pairUsed            => (others => '0'),
+      pairSyncSeen        => (others => '0'),
+      pairTwoStep         => (others => '0'),
+      pairFollowSeen      => (others => '0'),
+      pairComplete        => (others => '0'),
+      pairIndex           => 0,
+      pairSlot            => -1,
+      pairMatch           => -1,
+      pairFree            => -1,
+      pairOldest          => -1,
+      pairOldestBorn      => (others => '0'),
+      pairTicks           => (others => '0'),
+      pairReadEnable      => '0',
+      pairReadAddress     => (others => '0'),
+      pairWriteEnable     => '0',
+      pairWriteAddress    => (others => '0'),
+      pairWriteData       => (others => '0'),
+      historyState        => HISTORY_IDLE_S,
+      historyIndex        => 0,
+      historyTicks        => (others => '0'),
+      historyFound        => '0',
+      historyQualified    => '0',
+      historyDistance     => (others => '0'),
+      historyReadEnable   => '0',
+      historyReadAddress  => (others => '0'),
+      historyWriteEnable  => '0',
+      historyWriteAddress => (others => '0'),
       historyValid        => (others => '0'),
       historyPtr          => 0,
       generation          => (others => '0'),
@@ -399,80 +529,9 @@ architecture rtl of PtpProtocolEngine is
    signal e2eTake          : sl;
    signal e2eError         : sl;
 
-   -- Prefer an existing sequence association, then an unused slot, then the
-   -- oldest completed slot. The caller retires expired entries before searching.
-   function findPair (
-      pairs      : PairArray;
-      sequenceId : slv(15 downto 0)) return integer is
-      variable matched  : integer range -1 to PAIR_DEPTH_C-1;
-      variable reusable : integer range -1 to PAIR_DEPTH_C-1;
-   begin
-      matched  := -1;
-      reusable := -1;
-      for i in pairs'range loop
-         if pairs(i).used = '0' and reusable = -1 then
-            reusable := i;
-         elsif pairs(i).used = '1' and pairs(i).sample.sequenceId = sequenceId then
-            matched := i;
-         end if;
-      end loop;
-      if matched /= -1 then
-         return matched;
-      end if;
-      if reusable = -1 then
-         for i in pairs'range loop
-            if pairs(i).complete = '1' then
-               if reusable = -1 then
-                  reusable := i;
-               elsif unsigned(pairs(i).born) < unsigned(pairs(reusable).born) then
-                  reusable := i;
-               end if;
-            end if;
-         end loop;
-      end if;
-      return reusable;
-   end function;
-
-   -- Select the first unretired association ready for sample processing:
-   -- one-step needs only Sync; two-step also needs Follow_Up. Return -1 if none.
-   function completedPair (pairs : PairArray) return integer is
-   begin
-      for i in pairs'range loop
-         if pairs(i).used = '1' and pairs(i).syncSeen = '1' and pairs(i).complete = '0' and
-            (pairs(i).twoStep = '0' or pairs(i).followSeen = '1') then
-            return i;
-         end if;
-      end loop;
-      return -1;
-   end function;
-
-   -- Select by capture phase, not delivery time. Equal distances retain the
-   -- first history entry; a Sync just after the TX capture is also eligible.
-   function nearestSync (
-      history      : PtpSyncSampleArray(0 to HISTORY_DEPTH_C-1);
-      historyValid : slv(HISTORY_DEPTH_C-1 downto 0);
-      sample       : PtpDelaySampleType;
-      ticks        : slv(63 downto 0);
-      cfg          : PtpPortConfigType) return integer is
-      variable selected : integer range -1 to HISTORY_DEPTH_C-1;
-      variable distance : signed(127 downto 0);
-      variable nearest  : signed(127 downto 0);
-   begin
-      selected     := -1;
-      nearest      := (others => '1');
-      nearest(127) := '0';
-      for i in history'range loop
-         distance := abs(ptpTickPhase(sample.capture)-ptpTickPhase(history(i).capture));
-         if historyValid(i) = '1' and distance < nearest and
-            history(i).capture.generation = sample.generation and
-            distance <= shift_left(signed(resize(unsigned(cfg.maxExchange), 128)), PTP_TICK_PHASE_BITS_C) and
-            unsigned(ticks)-unsigned(history(i).capture.ticks) <= unsigned(cfg.associationTimeout) then
-            selected := i;
-            nearest  := distance;
-         end if;
-      end loop;
-      return selected;
-   end function;
+   signal historyReadData  : SyncPayloadType;
+   signal historyWriteData : SyncPayloadType;
+   signal pairReadData     : PairPayloadType;
 
    -- Supported log2(seconds) range; 0x7F means unspecified on the wire.
    function validLogInterval (logInterval : slv(7 downto 0)) return boolean is
@@ -588,6 +647,61 @@ architecture rtl of PtpProtocolEngine is
 
 begin
 
+   assert HISTORY_MEMORY_TYPE_G = "distributed" or HISTORY_MEMORY_TYPE_G = "block"
+      report "PtpProtocolEngine history memory must be distributed or block" severity failure;
+   assert PAIR_MEMORY_TYPE_G = "distributed" or PAIR_MEMORY_TYPE_G = "block"
+      report "PtpProtocolEngine pair memory must be distributed or block" severity failure;
+
+   historyWriteData <= packSync(r.lastSync);
+
+   U_HistoryRam : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MEMORY_TYPE_G  => HISTORY_MEMORY_TYPE_G,
+         DATA_WIDTH_G   => SYNC_WIDTH_C,
+         BYTE_WR_EN_G   => false,
+         BYTE_WIDTH_G   => SYNC_WIDTH_C,
+         ADDR_WIDTH_G   => TABLE_ADDR_WIDTH_C,
+         SYNTH_MODE_G   => "inferred",
+         COMMON_CLK_G   => true,
+         READ_LATENCY_G => 1)
+      port map (
+         clka  => clk,                    -- [in]
+         wea   => r.historyWriteEnable,   -- [in]
+         addra => r.historyWriteAddress,  -- [in]
+         dina  => historyWriteData,       -- [in]
+         clkb  => clk,                    -- [in]
+         enb   => r.historyReadEnable,    -- [in]
+         rstb  => rst,                    -- [in]
+         addrb => r.historyReadAddress,   -- [in]
+         doutb => historyReadData);       -- [out]
+
+   U_PairRam : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MEMORY_TYPE_G  => PAIR_MEMORY_TYPE_G,
+         DATA_WIDTH_G   => PAIR_WIDTH_C,
+         BYTE_WR_EN_G   => false,
+         BYTE_WIDTH_G   => PAIR_WIDTH_C,
+         ADDR_WIDTH_G   => TABLE_ADDR_WIDTH_C,
+         SYNTH_MODE_G   => "inferred",
+         COMMON_CLK_G   => true,
+         READ_LATENCY_G => 1)
+      port map (
+         clka  => clk,                 -- [in]
+         wea   => r.pairWriteEnable,   -- [in]
+         addra => r.pairWriteAddress,  -- [in]
+         dina  => r.pairWriteData,     -- [in]
+         clkb  => clk,                 -- [in]
+         enb   => r.pairReadEnable,    -- [in]
+         rstb  => rst,                 -- [in]
+         addrb => r.pairReadAddress,   -- [in]
+         doutb => pairReadData);       -- [out]
+
    U_Ledger : entity surf.PtpTxLedger
       generic map (
          TPD_G             => TPD_G,
@@ -667,7 +781,7 @@ begin
                    rxValid, rxQueueOverflow, rxAbort, txAbort, txSlave, measurementSlave,
                    responseAccepted, responseReady, allocateReady, allocateSequence, delaySample, delayValid,
                    rateReady, rateResultValid, rateResult, rateError, e2eReady, e2eResult, e2eValid,
-                   e2eError, ledgerStatus, timeoutCount) is
+                   e2eError, ledgerStatus, timeoutCount, historyReadData, pairReadData) is
       variable v  : RegType;
       variable ep : AxiLiteEndpointType;
 
@@ -682,15 +796,25 @@ begin
       variable policyFlags    : slv(15 downto 0);
 
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
-      variable slot          : integer range -1 to PAIR_DEPTH_C-1;
-      variable completed     : integer range -1 to PAIR_DEPTH_C-1;
-      variable selected      : integer range -1 to HISTORY_DEPTH_C-1;
-      variable remoteTime    : signed(127 downto 0);
-      variable rateSpan      : signed(127 downto 0);
-      variable completedSync : PtpSyncSampleType;
+      variable slot              : integer range -1 to PAIR_DEPTH_C-1;
+      variable pair              : PairType;
+      variable pairUpdated       : boolean;
+      variable historySample     : PtpSyncSampleType;
+      variable distance          : signed(127 downto 0);
+      variable maximumSeparation : signed(127 downto 0);
+      variable historyAge        : unsigned(63 downto 0);
+      variable remoteTime        : signed(127 downto 0);
+      variable rateSpan          : signed(127 downto 0);
+      variable completedSync     : PtpSyncSampleType;
    begin
-      v := r;
-      policyFlags := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
+      v                    := r;
+      pair                 := PAIR_INIT_C;
+      pairUpdated          := false;
+      v.pairReadEnable     := '0';
+      v.pairWriteEnable    := '0';
+      v.historyReadEnable  := '0';
+      v.historyWriteEnable := '0';
+      policyFlags          := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
 
       -- Requests retain their complete payload until the child accepts them.
       -- The RAM ledger scans the held response before accepting it. Retain
@@ -780,11 +904,196 @@ begin
          unsigned(phcStatus.ticks)-unsigned(r.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
       end if;
+
+      -------------------------------------------------------------------------
+      -- History lookup owns a stable table and admission-time arithmetic inputs.
+      -------------------------------------------------------------------------
+      case r.historyState is
+         when HISTORY_IDLE_S =>
+            -- Drain a registered append before starting the first RAM read.
+            if delayValid = '1' and r.e2eBusy = '0' and r.historyWriteEnable = '0' and abortPort = '0' then
+               v.delayReady         := '1';
+               v.e2eBusy            := '1';
+               v.e2eDelay           := delaySample;
+               v.e2eRatio           := r.ratio;
+               v.e2eMaximum         := r.activeConfig.maxPathDelay;
+               v.historyTicks       := phcStatus.ticks;
+               v.historyQualified   := qualifiedRatio;
+               v.historyFound       := '0';
+               v.historyIndex       := 0;
+               v.historyReadAddress := (others => '0');
+               v.historyReadEnable  := '1';
+               v.historyState       := HISTORY_READ_S;
+            end if;
+
+         when HISTORY_READ_S =>
+            v.historyState := HISTORY_CHECK_S;
+
+         when HISTORY_CHECK_S =>
+            -- Never interpret uninitialized or invalid RAM rows.
+            if r.historyValid(r.historyIndex) = '1' then
+               historySample := unpackSync(historyReadData);
+               distance      := abs(ptpTickPhase(r.e2eDelay.capture)-ptpTickPhase(historySample.capture));
+
+               -- Convert the unsigned whole-cycle limit to signed Q3 cycles.
+               -- Widen before scaling so neither the sign nor upper bits wrap.
+               maximumSeparation := signed(resize(unsigned(r.activeConfig.maxExchange), distance'length));
+               maximumSeparation := shift_left(maximumSeparation, PTP_TICK_PHASE_BITS_C);
+               historyAge        := unsigned(r.historyTicks)-unsigned(historySample.capture.ticks);
+
+               if historySample.capture.generation = r.e2eDelay.generation and
+                  distance <= maximumSeparation and historyAge <= unsigned(r.activeConfig.associationTimeout) then
+                  -- Strict comparison retains the first physical slot on ties.
+                  if r.historyFound = '0' or distance < r.historyDistance then
+                     v.historyFound    := '1';
+                     v.historyDistance := distance;
+                     v.e2eSync         := historySample;
+                  end if;
+               end if;
+            end if;
+
+            if r.historyIndex = HISTORY_DEPTH_C-1 then
+               v.historyState := HISTORY_DONE_S;
+            else
+               v.historyIndex       := r.historyIndex+1;
+               v.historyReadAddress := toSlv(v.historyIndex, TABLE_ADDR_WIDTH_C);
+               v.historyReadEnable  := '1';
+               v.historyState       := HISTORY_READ_S;
+            end if;
+
+         when HISTORY_DONE_S =>
+            v.historyState := HISTORY_IDLE_S;
+
+            if r.historyFound = '1' and r.historyQualified = '1' then
+               v.e2eInput                        := '1';
+               v.pendingExchange.t1              := r.e2eSync.remoteTime;
+               v.pendingExchange.t2              := r.e2eSync.capture.timestamp;
+               v.pendingExchange.t3              := r.e2eDelay.capture.timestamp;
+               v.pendingExchange.t4              := r.e2eDelay.remoteTime;
+               v.pendingExchange.syncCorrection  := r.e2eSync.correction;
+               v.pendingExchange.delayCorrection := r.e2eDelay.correction;
+               v.pendingExchange.generation      := r.e2eDelay.generation;
+               v.pendingExchange.syncSequence    := r.e2eSync.sequenceId;
+               v.pendingExchange.delaySequence   := r.e2eDelay.sequenceId;
+            else
+               v.e2eBusy                  := '0';
+               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+            end if;
+      end case;
+
+      -------------------------------------------------------------------------
+      -- RX holds a pair transaction through its shared expiry/key search.
+      -------------------------------------------------------------------------
+      case r.pairState is
+         when PAIR_IDLE_S =>
+            -- Retire a pending E2E result before reserving publication again.
+            -- Rejected RX rows have no write bubble; continuous rejected
+            -- traffic must not starve the result by starting another scan.
+            if rxValid = '1' and (rxMessage.messageType = PTP_MSG_SYNC_C or rxMessage.messageType = PTP_MSG_FOLLOW_UP_C) and
+               r.state = IDLE_S and r.measurementMaster.valid = '0' and
+               r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
+               r.pairWriteEnable = '0' and e2eValid = '0' and abortPort = '0' then
+               v.pairTicks       := phcStatus.ticks;
+               v.pairIndex       := 0;
+               v.pairMatch       := -1;
+               v.pairFree        := -1;
+               v.pairOldest      := -1;
+               v.pairReadAddress := (others => '0');
+               v.pairReadEnable  := '1';
+               v.pairState       := PAIR_READ_S;
+            end if;
+
+         when PAIR_READ_S =>
+            v.pairState := PAIR_CHECK_S;
+
+         when PAIR_CHECK_S =>
+            if r.pairUsed(r.pairIndex) = '1' then
+               pair := unpackPair(pairReadData);
+
+               if unsigned(r.pairTicks)-unsigned(pair.born) > unsigned(r.activeConfig.associationTimeout) then
+                  v.pairUsed(r.pairIndex) := '0';
+               end if;
+            end if;
+
+            if v.pairUsed(r.pairIndex) = '0' then
+               if r.pairFree = -1 then
+                  v.pairFree := r.pairIndex;
+               end if;
+            else
+               if pair.sample.sequenceId = rxMessage.sequenceId then
+                  v.pairMatch := r.pairIndex;
+               end if;
+
+               if r.pairComplete(r.pairIndex) = '1' then
+                  if r.pairOldest = -1 or unsigned(pair.born) < unsigned(r.pairOldestBorn) then
+                     v.pairOldest     := r.pairIndex;
+                     v.pairOldestBorn := pair.born;
+                  end if;
+               end if;
+            end if;
+
+            if r.pairIndex = PAIR_DEPTH_C-1 then
+               v.pairState := PAIR_SELECT_S;
+            else
+               v.pairIndex       := r.pairIndex+1;
+               v.pairReadAddress := toSlv(v.pairIndex, TABLE_ADDR_WIDTH_C);
+               v.pairReadEnable  := '1';
+               v.pairState       := PAIR_READ_S;
+            end if;
+
+         when PAIR_SELECT_S =>
+            v.pairSlot := r.pairMatch;
+
+            if r.pairMatch = -1 then
+               v.pairSlot := r.pairFree;
+
+               if r.pairFree = -1 then
+                  v.pairSlot := r.pairOldest;
+               end if;
+            end if;
+
+            v.pairState := PAIR_APPLY_S;
+
+            if v.pairSlot /= -1 then
+               if r.pairUsed(v.pairSlot) = '1' then
+                  v.pairReadAddress := toSlv(v.pairSlot, TABLE_ADDR_WIDTH_C);
+                  v.pairReadEnable  := '1';
+                  v.pairState       := PAIR_LOAD_S;
+               end if;
+            end if;
+
+         when PAIR_LOAD_S =>
+            v.pairState := PAIR_APPLY_S;
+
+         when PAIR_APPLY_S =>
+            if r.pairSlot /= -1 then
+               if r.pairUsed(r.pairSlot) = '1' then
+                  pair            := unpackPair(pairReadData);
+                  pair.used       := '1';
+                  pair.syncSeen   := r.pairSyncSeen(r.pairSlot);
+                  pair.twoStep    := r.pairTwoStep(r.pairSlot);
+                  pair.followSeen := r.pairFollowSeen(r.pairSlot);
+                  pair.complete   := r.pairComplete(r.pairSlot);
+               end if;
+            end if;
+      end case;
+
       v.rxReady := '0';
+
+      -- A pair's producer is the input holding register throughout the scan.
+      -- Acknowledge only when its selected row and publication capacity are
+      -- available; registering ready here would require another payload slot.
       if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' and
+         r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
          (r.responseValid = '0' or responseReady = '1') then
-         v.rxReady := '1';
+         if r.pairState = PAIR_APPLY_S then
+            v.rxReady := '1';
+         elsif r.pairState = PAIR_IDLE_S and
+            rxMessage.messageType /= PTP_MSG_SYNC_C and rxMessage.messageType /= PTP_MSG_FOLLOW_UP_C then
+            v.rxReady := '1';
+         end if;
       end if;
+
       validResponse := '0';
       if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and policyFlags = x"0000" and
          unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
@@ -866,17 +1175,13 @@ begin
       -------------------------------------------------------------------------
       -- RX association and message dispatch
       -------------------------------------------------------------------------
-      -- Retire expired partial associations before accepting this cycle's RX record.
-      for i in r.pairs'range loop
-         if r.pairs(i).used = '1' and
-            unsigned(phcStatus.ticks)-unsigned(r.pairs(i).born) > unsigned(r.activeConfig.associationTimeout) then
-            v.pairs(i) := PAIR_INIT_C;
-         end if;
-      end loop;
-
+      -- Expiry is evaluated at scan admission, before selecting a key. RX
+      -- payload stays at its producer until this acknowledgement edge.
       -- Consume one message: reject policy failures, otherwise dispatch by type.
       malformed := false;
       if v.rxReady = '1' and rxValid = '1' then
+         v.pairState := PAIR_IDLE_S;
+
          if policyValid = '0' then
             malformed := true;
          else
@@ -903,63 +1208,70 @@ begin
                   end if;
 
                   if not malformed then
-                     slot := findPair(v.pairs, rxMessage.sequenceId);
+                     slot := r.pairSlot;
+
                      if slot /= -1 then
-                        if v.pairs(slot).used = '0' or v.pairs(slot).sample.sequenceId /= rxMessage.sequenceId then
-                           v.pairs(slot)                   := PAIR_INIT_C;
-                           v.pairs(slot).used              := '1';
-                           v.pairs(slot).born              := phcStatus.ticks;
-                           v.pairs(slot).sample.sequenceId := rxMessage.sequenceId;
+                        pairUpdated := true;
+
+                        if pair.used = '0' or pair.sample.sequenceId /= rxMessage.sequenceId then
+                           pair                   := PAIR_INIT_C;
+                           pair.used              := '1';
+                           pair.born              := r.pairTicks;
+                           pair.sample.sequenceId := rxMessage.sequenceId;
                         end if;
                      end if;
+
                      if slot = -1 then
                         malformed := true;
                      elsif rxMessage.correction = PTP_CORRECTION_OVERFLOW_C then
                         -- Retain a completed key even when this is the first
                         -- half received. Neither arrival order nor a later
                         -- finite duplicate may revive an overflowed exchange.
-                        v.pairs(slot).complete := '1';
-                        malformed              := true;
+                        pair.complete := '1';
+                        malformed     := true;
                      elsif rxMessage.messageType = PTP_MSG_SYNC_C then
-                        if v.pairs(slot).syncSeen = '1' or
-                           (policyFlags = PTP_ONE_STEP_FLAGS_C and v.pairs(slot).followSeen = '1') then
+                        if pair.syncSeen = '1' or
+                           (policyFlags = PTP_ONE_STEP_FLAGS_C and pair.followSeen = '1') then
                            -- Duplicate Sync is ambiguous even if its headers match:
                            -- the physical capture is a different wire event.
                            -- One-step cannot inherit an earlier Follow_Up either.
-                           v.pairs(slot).complete := '1';
-                           malformed              := true;
+                           pair.complete := '1';
+                           malformed     := true;
                         else
-                           v.pairs(slot).syncSeen       := '1';
-                           v.pairs(slot).sample.capture := rxMessage.capture;
-                           v.pairs(slot).syncCorrection := rxMessage.correction;
-                           v.pairs(slot).twoStep        := '0';
+                           pair.syncSeen       := '1';
+                           pair.sample.capture := rxMessage.capture;
+                           pair.syncCorrection := rxMessage.correction;
+                           pair.twoStep        := '0';
+
                            if policyFlags = PTP_TWO_STEP_FLAGS_C then
-                              v.pairs(slot).twoStep := '1';
+                              pair.twoStep := '1';
                            else
-                              v.pairs(slot).sample.remoteTime := ptpMessageTimestamp(rxMessage);
-                              v.pairs(slot).followCorrection  := (others => '0');
+                              pair.sample.remoteTime := ptpMessageTimestamp(rxMessage);
+                              pair.followCorrection  := (others => '0');
                            end if;
-                           v.syncLimit                  := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
+
+                           v.syncLimit := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
+
                            if not validLogInterval(rxMessage.logInterval) and
                               rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
                               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                            end if;
                         end if;
                      else
-                        if v.pairs(slot).syncSeen = '1' and v.pairs(slot).twoStep = '0' then
+                        if pair.syncSeen = '1' and pair.twoStep = '0' then
                            -- Count inconsistent Follow_Up without changing any
                            -- part of the one-step association, even after use.
                            malformed := true;
-                        elsif v.pairs(slot).followSeen = '1' then
-                           if v.pairs(slot).sample.remoteTime /= ptpMessageTimestamp(rxMessage) or
-                              v.pairs(slot).followCorrection /= rxMessage.correction then
-                              v.pairs(slot).complete := '1';
-                              malformed              := true;
+                        elsif pair.followSeen = '1' then
+                           if pair.sample.remoteTime /= ptpMessageTimestamp(rxMessage) or
+                              pair.followCorrection /= rxMessage.correction then
+                              pair.complete := '1';
+                              malformed     := true;
                            end if;
                         else
-                           v.pairs(slot).followSeen        := '1';
-                           v.pairs(slot).sample.remoteTime := ptpMessageTimestamp(rxMessage);
-                           v.pairs(slot).followCorrection  := rxMessage.correction;
+                           pair.followSeen        := '1';
+                           pair.sample.remoteTime := ptpMessageTimestamp(rxMessage);
+                           pair.followCorrection  := rxMessage.correction;
                         end if;
                      end if;
                   end if;
@@ -993,6 +1305,7 @@ begin
             end case;
          end if;
       end if;
+
       if malformed then
          v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
       end if;
@@ -1000,37 +1313,43 @@ begin
       -------------------------------------------------------------------------
       -- Rate estimation and forward-measurement publication
       -------------------------------------------------------------------------
-      -- One rate-engine state owns each step. IDLE can complete a pair inserted
-      -- above on this same evaluation; capture chronology still gates acceptance.
+      -- RX is admitted only with publication capacity. Thus only the row
+      -- just updated can become newly complete; no parallel ready-row search
+      -- or second wide table read is needed. Chronology still gates acceptance.
       case r.state is
          when IDLE_S =>
             if r.measurementMaster.valid = '0' then
-               completed := completedPair(v.pairs);
-               if completed /= -1 then
-                  v.pairs(completed).complete := '1';
-                  completedSync               := v.pairs(completed).sample;
-                  completedSync.correction    := slv(resize(signed(v.pairs(completed).syncCorrection), 128));
-                  if v.pairs(completed).twoStep = '1' then
+               if pairUpdated and pair.used = '1' and pair.syncSeen = '1' and pair.complete = '0' and
+                  (pair.twoStep = '0' or pair.followSeen = '1') then
+                  pair.complete            := '1';
+                  completedSync            := pair.sample;
+                  completedSync.correction := slv(resize(signed(pair.syncCorrection), 128));
+
+                  if pair.twoStep = '1' then
                      completedSync.correction := slv(signed(completedSync.correction)+
-                                                     resize(signed(v.pairs(completed).followCorrection), 128));
+                                                     resize(signed(pair.followCorrection), 128));
                   end if;
+
                   remoteTime := ptpWireTimeQ16(completedSync.remoteTime)+signed(completedSync.correction);
+
                   if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) or
                      (r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(completedSync.capture.ticks) <= unsigned(r.lastTicks))) then
                      v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                   else
-                     v.portStatus.active                     := '1';
-                     v.lastSync                              := completedSync;
-                     v.lastRemote                            := remoteTime;
-                     v.lastTicks                             := completedSync.capture.ticks;
-                     v.history(r.historyPtr)                 := completedSync;
-                     v.historyValid(r.historyPtr)            := '1';
-                     v.historyPtr                            := (r.historyPtr+1) mod HISTORY_DEPTH_C;
-                     v.portStatus.syncCount                  := ptpSatInc(v.portStatus.syncCount);
-                     v.measurementMaster.data                := forwardMeasurement(completedSync);
-                     v.measurementMaster.data.ratio          := r.ratio;
-                     v.measurementMaster.data.ratioValid     := qualifiedRatio;
-                     v.measurementMaster.valid               := '1';
+                     v.portStatus.active                 := '1';
+                     v.lastSync                          := completedSync;
+                     v.lastRemote                        := remoteTime;
+                     v.lastTicks                         := completedSync.capture.ticks;
+                     v.historyWriteEnable                := '1';
+                     v.historyWriteAddress               := toSlv(r.historyPtr, TABLE_ADDR_WIDTH_C);
+                     v.historyValid(r.historyPtr)        := '1';
+                     v.historyPtr                        := (r.historyPtr+1) mod HISTORY_DEPTH_C;
+                     v.portStatus.syncCount              := ptpSatInc(v.portStatus.syncCount);
+                     v.measurementMaster.data            := forwardMeasurement(completedSync);
+                     v.measurementMaster.data.ratio      := r.ratio;
+                     v.measurementMaster.data.ratioValid := qualifiedRatio;
+                     v.measurementMaster.valid           := '1';
+
                      if r.anchorValid = '0' then
                         v.anchor      := completedSync;
                         v.anchorValid := '1';
@@ -1087,33 +1406,8 @@ begin
       -------------------------------------------------------------------------
       -- Result valid is registered; the shared abort takes priority at this
       -- receiver as well as at the arithmetic/ledger producers.
-      -- Select the retained Sync nearest the actual TX capture, not nearest to
-      -- the delayed wire-completion/Delay_Resp delivery. Signed separation also
-      -- supports a Sync arriving just after the Delay_Req left the wire.
-      if delayValid = '1' and r.e2eBusy = '0' and abortPort = '0' then
-         selected     := nearestSync(r.history, r.historyValid, delaySample, phcStatus.ticks, r.activeConfig);
-         v.delayReady := '1';
-         if selected /= -1 and qualifiedRatio = '1' then
-            v.e2eSync                         := r.history(selected);
-            v.e2eDelay                        := delaySample;
-            v.e2eRatio                        := r.ratio;
-            v.e2eMaximum                      := r.activeConfig.maxPathDelay;
-            v.e2eInput                        := '1';
-            v.e2eBusy                         := '1';
-            v.pendingExchange.t1              := r.history(selected).remoteTime;
-            v.pendingExchange.t2              := r.history(selected).capture.timestamp;
-            v.pendingExchange.t3              := delaySample.capture.timestamp;
-            v.pendingExchange.t4              := delaySample.remoteTime;
-            v.pendingExchange.syncCorrection  := r.history(selected).correction;
-            v.pendingExchange.delayCorrection := delaySample.correction;
-            v.pendingExchange.generation      := delaySample.generation;
-            v.pendingExchange.syncSequence    := r.history(selected).sequenceId;
-            v.pendingExchange.delaySequence   := delaySample.sequenceId;
-         else
-            v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
-         end if;
-      end if;
-      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and v.measurementMaster.valid = '0' then
+      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and
+         r.pairState = PAIR_IDLE_S and v.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' then
          v.e2eTake := '1';
          v.e2eBusy := '0';
          if e2eError = '0' and qualifiedRatio = '1' then
@@ -1126,6 +1420,18 @@ begin
          end if;
       end if;
 
+      -- One whole-row update; RAM contents are never cleared by reset/abort.
+      if pairUpdated then
+         v.pairUsed(r.pairSlot)       := pair.used;
+         v.pairSyncSeen(r.pairSlot)   := pair.syncSeen;
+         v.pairTwoStep(r.pairSlot)    := pair.twoStep;
+         v.pairFollowSeen(r.pairSlot) := pair.followSeen;
+         v.pairComplete(r.pairSlot)   := pair.complete;
+         v.pairWriteEnable           := '1';
+         v.pairWriteAddress          := toSlv(r.pairSlot, TABLE_ADDR_WIDTH_C);
+         v.pairWriteData             := packPair(pair);
+      end if;
+
       -------------------------------------------------------------------------
       -- Final cancellation priority
       -------------------------------------------------------------------------
@@ -1134,18 +1440,25 @@ begin
       if abortPort = '1' then
          -- Keep the TX frame/beat and diagnostic counters. Ledger retirement is
          -- independent and receives the registered abort on the following edge.
-         v.pairs                    := (others => PAIR_INIT_C);
-         v.historyValid             := (others => '0');
-         v.portStatus.active        := '0';
-         v.syncLimit                := r.activeConfig.syncTimeout;
-         v.announceLimit            := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
-         v.anchorValid              := '0';
-         v.ratioCount               := 0;
-         v.state                    := IDLE_S;
-         v.measurementMaster.valid  := '0';
-         v.requestStarted           := '0';
-         v.minimumInterval          := (others => '0');
-         v.announceSeen             := '0';
+         v.pairUsed                := (others => '0');
+         v.pairState               := PAIR_IDLE_S;
+         v.pairReadEnable          := '0';
+         v.pairWriteEnable         := '0';
+         v.historyState            := HISTORY_IDLE_S;
+         v.historyReadEnable       := '0';
+         v.historyWriteEnable      := '0';
+         v.historyFound            := '0';
+         v.historyValid            := (others => '0');
+         v.portStatus.active       := '0';
+         v.syncLimit               := r.activeConfig.syncTimeout;
+         v.announceLimit           := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
+         v.anchorValid             := '0';
+         v.ratioCount              := 0;
+         v.state                   := IDLE_S;
+         v.measurementMaster.valid := '0';
+         v.requestStarted          := '0';
+         v.minimumInterval         := (others => '0');
+         v.announceSeen            := '0';
          if announceChange = '1' then
             v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
          end if;
@@ -1328,6 +1641,7 @@ begin
       sharedConfig.syncTimeout        <= r.activeConfig.syncTimeout;
       sharedConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;
    end process comb;
+
    seq : process (clk, rst) is
    begin
       if RST_ASYNC_G and rst = RST_POLARITY_G then

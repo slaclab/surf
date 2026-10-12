@@ -19,6 +19,7 @@
 #   overflow and configuration application cancel pending work. No PHY model here.
 
 import cocotb
+import pytest
 from cocotb.clock import Clock
 from cocotb.triggers import RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
@@ -416,5 +417,7 @@ async def capacity_chronology_and_cancellation(d):
         b.stop()
 
 
-def test_ptp_port_samples():
-    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpportwrapper')
+@pytest.mark.parametrize('memory', ['distributed', 'block'])
+def test_ptp_port_samples(memory):
+    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+                      parameters={'HISTORY_MEMORY_TYPE_G': memory, 'PAIR_MEMORY_TYPE_G': memory})

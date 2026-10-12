@@ -175,11 +175,12 @@ class ExchangeBench(Bench):
         assert packet[46:] == bytes((1 if self.minor == 0 else 0, 127))+bytes(10)
         return int.from_bytes(packet[44:46], 'big')
 
-    async def wire(self, seq, ticks):
+    async def wire(self, seq, ticks, phase=0):
         self.wire_ticks[seq] = ticks
         self.d.wireSequence.value = seq
         self.d.wireTicks.value = ticks
-        self.d.wireTime.value = capture_time(ticks*8*Q16+3260416)
+        self.d.wirePhase.value = phase
+        self.d.wireTime.value = capture_time((ticks*8+phase)*Q16+3260416)
         self.d.wireGeneration.value = self.generation
         self.now = max(self.now, ticks)
         self.d.ticks.value = self.now
@@ -394,12 +395,12 @@ def test_master_headers():
 @pytest.mark.parametrize('minor', [0, 1], ids=['2008', '2019'])
 @pytest.mark.parametrize('two_step', [False, True], ids=['one-step', 'two-step'])
 def test_ordinary_master(minor, two_step):
-    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpportwrapper',
+    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
                       extra_env=cocotb_filtered_env({'MINOR': minor, 'TWO_STEP': int(two_step)},
                                                    cocotb_test_filter('ordinary_master')))
 
 
 @pytest.mark.parametrize('scenario', ['sync_overflow', 'response_overflow', 'response_association'])
 def test_exchange_rejection(scenario):
-    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpportwrapper',
+    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
                       extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)))

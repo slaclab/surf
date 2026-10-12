@@ -276,6 +276,55 @@ registered write may finish on a reset edge but cannot regain valid ownership.
   `regRst` cancels AXI responses only: configuration, accepted manual commands,
   PHC time and physical TX reservations survive.
 
+## Protocol association storage
+
+`PtpProtocolEngine` stores four completed Sync samples in a 485-bit-wide
+`SimpleDualPortRam` and four Sync/Follow_Up payloads in a second, 549-bit-wide
+RAM. `HISTORY_MEMORY_TYPE_G` and `PAIR_MEMORY_TYPE_G` select `"distributed"`
+(default) or `"block"` at the engine. Both use inferred synchronous reads with
+latency one and registered addresses/enables. Four history-valid bits and five
+pair ownership/mode bits per slot stay in registers. Reset and protocol abort
+invalidate ownership and cancel scans without clearing the RAM contents.
+
+The pairing scan starts when a Sync/Follow_Up is offered and processing capacity
+is available. The RX producer holds its complete record until acknowledgement;
+the engine does not add a second wide input holding register. A single evaluator
+checks one row every two clocks, expiring rows using the raw tick sampled at
+scan start. Expiry is strictly `age > associationTimeout`: a row at the inclusive
+limit remains eligible for this transaction even if time advances during the
+scan. New rows use that same tick for their birth time. Packet policy and final
+capture-age/chronology checks still apply at the acknowledgement edge.
+
+Selection prefers an existing sequence, then the first unused/expired slot,
+then the oldest completed slot, retaining first-physical-slot order on equal
+birth ticks. From scan-start edge N, acknowledgement occurs at N+10 for an
+unused slot or full-table rejection, or N+11 after rereading an occupied slot;
+history ownership and downstream stalls can postpone it. A successful update
+writes the complete row on the following edge. New pairing scans wait for that
+write to drain. The newly updated row can complete on the acknowledgement edge;
+RX admission reserves publication capacity, so no other ready row is bypassed.
+Duplicate/overflow retirement retains the key until replacement or expiry.
+
+History lookup accepts a held ledger sample into the existing E2E operand
+registers. It freezes lookup ticks, rate ratio/qualification and maximum path
+delay, while configuration changes cancel the operation. Pair acknowledgement
+and history appends wait throughout the lookup, including its admission edge;
+a previously registered append drains before lookup starts. This preserves
+selection from pre-append history and avoids same-address RAM collisions.
+The scan compares raw tick/phase distance, generation, association age and
+maximum separation. A Sync on either side of the TX capture can win; equal
+distances retain the first physical slot. Selection is nondestructive.
+
+With admission at N, the four read/check pairs finish at N+8 and the registered
+E2E request (or no-match rejection) publishes at N+9. The child accepts that
+request on a subsequent ready/valid edge. The existing `e2eSync` register holds
+the best row; the last accepted Sync register drives the history write port.
+E2E result publication waits for an active pairing transaction to acknowledge,
+then takes priority over starting another scan so continuous rejected RX
+traffic cannot starve it. It retains the existing fresh-ratio and cancellation
+checks. No software map,
+public stream payload or numerical precision changes accompany these latencies.
+
 ## Port policy and numerical envelope
 
 The fixed source accepts multicast destination `01:1B:19:00:00:00`, configured
@@ -310,7 +359,7 @@ preserves it. Distinct sequence IDs can alternate modes without reconfiguration.
 `followSeen` indicates an actual Follow_Up. Completion requires an unretired Sync
 and either one-step mode or its Follow_Up; the unused one-step Follow_Up correction
 is zero. Masked flags and canonical one-step nanoseconds are checked before slot
-lookup/update, so malformed traffic cannot contaminate a retained association.
+allocation/update, so malformed traffic cannot contaminate a retained association.
 These collision rules are conservative implementation policy, not a claim that
 IEEE 1588 mandates this exact handling. Completion follows full frame validation
 and available processing capacity; RX waits while rate processing or a measurement
