@@ -108,11 +108,16 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   ticks from the committed PHC increment and bounds its phase-divider remainder.
   [E2E sequencing](autonomous-endpoint.md#e2e-arithmetic-sequencing) and
   [PHC/math contracts](autonomous-endpoint.md#phc-increment-and-phase-normalization)
-  preserve numeric widths and ownership. The latest
-  [synthesis screenshot](lut-optimization.md#october-12-arithmetic-synthesis-screenshot)
-  shows copper `PtpEndpoint` down 11.27% to 27,181 LUTs; E2E, Servo and PHC fall
-  29.26%, 19.47% and 6.82%, respectively. Full reports, controlled attribution
-  and timing remain outstanding.
+  preserve numeric widths and ownership. The
+  [October 12 full-report comparison](lut-optimization.md#october-12-arithmetic-synthesis-comparison)
+  shows each E2E dropping 12 DSPs, Servo own logic falling about 1,730 LUTs,
+  and phase math falling 234 LUTs against the October 11 baseline. Rate and
+  Servo math children each save 64 LUTs. Complete endpoints fall 26.03%/26.99%,
+  including the intervening protocol-table work. This differs from the later
+  [screenshot-to-screenshot comparison](lut-optimization.md#october-12-arithmetic-synthesis-screenshot),
+  which shows an 11.27% copper endpoint reduction for the arithmetic pass.
+  Vivado versions differ between the retained reports, so exact causal savings,
+  placement and timing remain outstanding.
 
 ## PHY composition implementation
 

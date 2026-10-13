@@ -805,9 +805,12 @@ present in baseline `test_ptp_phc.py`; it finds no new violations.
 The full PTP suite, other endpoint PHY/receive/MAC combinations, all generic
 settings, local Vivado synthesis/implementation and hardware validation remain
 unrun. Vivado/VCS are unavailable on this host. The subsequently supplied
-[synthesis screenshot](lut-optimization.md#october-12-arithmetic-synthesis-screenshot)
-reports area reductions after these changes; it adds no timing or hardware
-acceptance and does not identify the exact build configuration.
+[screenshot](lut-optimization.md#october-12-arithmetic-synthesis-screenshot) and
+[full reports](lut-optimization.md#october-12-arithmetic-synthesis-comparison)
+show area reductions after these changes. The reports provide recorded build
+provenance and both lanes, but use a different tool version from their baseline
+and differ from the screenshot's whole-design totals. Neither adds timing or
+hardware acceptance or isolates exact per-patch savings.
 
 ## Compile/link procedure
 

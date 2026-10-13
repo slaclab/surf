@@ -65,7 +65,7 @@ insertion remains outside scope.
   Its median publishes after nine comparison clocks with input backpressure,
   preserving populated-only lower-median semantics. See the
   [servo sequencing contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing).
-  The [synthesis comparison](../../docs/plans/ethernet-ptp/lut-optimization.md#october-12-arithmetic-synthesis-screenshot)
+  The [synthesis comparison](../../docs/plans/ethernet-ptp/lut-optimization.md#october-12-arithmetic-synthesis-comparison)
   records area reductions; controlled attribution and timing remain open.
 - The PHC ticks with its committed increment and bounds its constant phase
   divider's remainder to 46 bits. `PtpMath` shares the divide trial subtraction
