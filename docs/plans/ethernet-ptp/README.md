@@ -23,6 +23,14 @@ acceptance remain open.
 
 ## Current validation
 
+The [arithmetic-guided timing follow-up](rtl-review.md#october-13-arithmetic-guided-timing-follow-up)
+uses native arithmetic, parallel TLV validation and shorter protocol admission
+logic. The isolated KCU105 SFP-only R4 build meets its existing setup, hold and
+pulse-width constraints: WNS +0.182 ns and zero failing endpoints. Fifteen
+initial focused configurations, four final admission configurations and an extra
+TLV stress scenario pass; final endpoint/MAC integration and hardware acceptance
+remain unrun. See the linked record for source provenance and constraint/CDC limits.
+
 The October 13 [critical-path implementation](rtl-review.md#october-13-critical-path-implementation)
 addresses the routed KCU105 setup failures in both wire validators, protocol
 rejection diagnostics, PHC normalization and servo age checks. Focused behavioral

@@ -1387,3 +1387,71 @@ with the existing capture, cancellation and overflow contracts preserved.
 `ptpAddFast` uses fabric arithmetic; DSP inference has not been implemented or
 benchmarked. Constraint/CDC/DRC review, copper-enabled implementation, external
 interoperability and hardware acceptance remain open.
+
+
+## October 13 arithmetic-guided timing follow-up
+
+The matched KU040 arithmetic experiment favors native add/subtract over the
+handwritten carry-select adder at 48/64/66/67 bits. The native modulo-age
+predicate uses 96 LUTs versus 184 for the carry-save form at essentially the same
+isolated delay. DSP variants reduce LUTs but lengthen these wide operators, so
+this critical-path pass retains native inference. `ptpAddFast` remains as a
+compatible native implementation; PHC expressions use ordinary signed arithmetic.
+The historical alternatives are frozen in the project benchmark for reproducibility.
+
+The complete R2 inventory contains 3,587 failing setup endpoints: RX 1,735,
+TX 73, protocol 1,663 and PHC 116. Of those, 2,878 launch in compute arbitration
+and pass through protocol control, including 1,457 ending in RX. The RX/TX TLV
+walk also has a serial variable-byte-select/length/next-header chain.
+
+This follow-up implements parallel fixed-lane TLV length checks, compares old
+and newly admitted Announce ages before selecting status, and expresses idle
+history admission directly. E2E publication omits redundant next-state tests:
+E2E valid blocks a new pair search, and an idle pair cannot start rate processing.
+These are combinational restructurings; capture, queue overflow, cancellation,
+expiry and command-commit edges are unchanged. No timing exceptions are added.
+
+Two isolated SFP-only runs distinguish the arithmetic/TLV/Announce changes (R3)
+from the subsequent admission simplification (R4), based on project `500cdd6`
+and SURF `8bb158b9a` plus recorded three-file RTL patches. Both `make bit` runs
+exit zero. R4 is the retained source; its patch SHA-256 is
+`1312628e093f514e3a1f123938af04c1138fcc89660c1a9c50a8266727acbbeb`.
+
+| Routed metric | R2 | R3 | R4 retained |
+| --- | ---: | ---: | ---: |
+| Setup WNS (ns) | -2.829 | +0.092 | +0.182 |
+| Setup TNS (ns) | -3123.079 | 0 | 0 |
+| Failing setup endpoints | 3587 | 0 | 0 |
+| CLB LUTs | 52066 | 52104 | 51478 |
+| Registers | 58844 | 58935 | 58919 |
+| BRAM tiles / DSPs | 33.5 / 9 | 33.5 / 9 | 33.5 / 9 |
+
+Independent checkpoint analysis agrees with the native timing reports. R4 has
+hold slack +0.030 ns and pulse-width slack +0.243 ns, with zero failing endpoints
+in either check. All 96,295 routable nets are fully routed and no black boxes
+remain. The current critical path is RX frame-base bit 5 through TLV/admission
+logic into FIFO-write-data bit 6's clock enable: 19 logic levels, 7.700 ns data
+delay and +0.182 ns slack at the 8 ns clock. Protocol now has +0.691 ns worst
+slack, PHC +1.152 ns, TX +0.424 ns and servo +1.087 ns. Margin is modest;
+this establishes the selected SFP-only build under its existing constraints.
+
+Verification uses Python 3.12.7 and GHDL 6.0.0. Ten arithmetic/PHC/RX
+configurations pass (73.89 s), plus five TX-storage/interval/servo/protocol
+boundary configurations (906.11 s). The new TLV stress scenario passes (5.51 s),
+checking every beat width, zero/two-length lookahead, split 254/256-byte lengths,
+payload skipping and malformed second headers against the stream oracle.
+Four final block-memory protocol configurations pass (308.10 s):
+history/publication priority, overlapping scans, pair expiry/cancellation and
+port samples. Changed production/wrapper VHDL passes VSG. The nine frozen FAST
+benchmark configurations also pass (25.05 s). The full PTP suite and final
+endpoint/MAC integration were not run; the earlier endpoint simulation uses
+older RTL and is not evidence for this source.
+
+Raw reports/manifests are retained under the project's ignored
+`.planning/remote-builds/20261013-timing-fixes-r{3,4}/` and matching
+`/u1/bareese/agent-builds/ptp-dev/` directories on rdsrv419. R4 checkpoint SHA-256:
+`257b724e1cd5375f3712ab285ff088730b1e1427c45a9a22b74e2c1acd960aaa`.
+Source hashes match the local RTL. Bitstreams remain remote and were not
+programmed. Existing TIMING-36, overridden CDC max-delay constraints, unused
+GT reference/CFGBVS findings, CDC review, copper and hardware acceptance remain
+open; no constraints were relaxed to obtain this result.
