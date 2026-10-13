@@ -3,7 +3,8 @@
 ## Proposed architecture for substantial LUT reduction
 
 October 12 design proposal, implemented October 13, 2026.
-**Connected implementation and behavioral checks are complete; integrated area remains unmeasured.**
+**Connected implementation and behavioral checks are complete; the first synthesis
+screenshot is recorded below. A matched comparison and timing remain outstanding.**
 The architecture changes how the endpoint computes and stores its state.
 The maintainer clarified that **halving LUT usage is motivation, not a hard
 requirement**. Implement the shared processor and word-storage design, then
@@ -41,8 +42,10 @@ and word-addressed working/configuration/snapshot storage. Rate, E2E, servo and
 PHC command preparation have migrated, together with protocol tables, the ledger,
 compact RX and the dedicated TX observer. The
 [service derivation](rtl-readability.md#shared-service-bound) replaces the old
-association floor with 70,347,776 raw ticks. Mapped area and hardware timing
-remain unverified.
+association floor with 70,347,776 raw ticks. The
+[October 13 synthesis screenshot](#october-13-connected-implementation-synthesis)
+shows the connected copper hierarchy; full reports, matched attribution and
+hardware timing remain outstanding.
 
 The maintainer proposed a **10 Hz maximum sustained Sync rate**. Use that as
 the working deployment envelope, with **8 Hz (`logSyncInterval = -3`)** as the
@@ -257,6 +260,193 @@ The focused servo regression passed all three clock configurations (six cocotb
 scenarios) in 213.43 s. VSG and Python lint pass; see the
 [divisor-bound review and evidence](rtl-review.md#october-12-servo-divisor-bound).
 No mapped-area or full endpoint result is claimed for this increment.
+
+### Feedback rate estimator study: October 13
+
+**Decision: deferred at the maintainer's request, October 13.** Retain the
+current quotient-based rate estimator and shared divider. The inquiry and
+reproducible study below are preserved for possible future work, not an active
+implementation task. LUT savings are unproven and may be small: other clients
+still require the divider, while feedback adds state, admission and gain control.
+It would change acquisition/convergence, noise filtering, transient response and
+rate-valid qualification, with consequences for E2E error. That tradeoff is not
+justified by the current area evidence. Revisit if resource measurements show
+meaningful net savings or a separately motivated estimator-performance need;
+define the behavioral requirements and validation before adopting a replacement.
+
+Exploration against production `52dfa266f`; no estimator RTL or register
+behavior changed. The question is whether to estimate master nanoseconds per
+raw cycle without explicitly forming each timestamp-difference quotient.
+Keep this independent of numerical PHC steering: feeding the steered PHC offset
+directly into this estimator would mix oscillator error with our own actuator
+commands. The existing servo remains a separate consumer of the rate estimate.
+
+The smallest candidate retains the same observations and output units. For
+accepted timestamp differences `D = delta master ns` and `H = delta raw cycles`,
+predict `Dhat = Rhat*H`, then update:
+
+```text
+e = D - Rhat*H
+Rhat_next = Rhat + e / 2**s
+```
+
+Here the gain has units of inverse raw cycles. For constant true rate and no
+packet-delay variation, rate error contracts by `1 - H/2**s`. A fixed shift is
+stable only for `0 < H/2**s < 2`; a sufficiently long packet gap breaks that
+condition. Choose `s = ceil(log2(H)) + g` instead. The effective gain is then
+between `2**(-g-1)` (exclusive) and `2**(-g)` (inclusive). With `g=2` it is
+between 1/8 and 1/4; with `g=0` acquisition is monotonic with gain above 1/2
+and at most one. This is a gain approximation, not an approximation to a single
+quotient: in the constant/noiseless case the fixed point is still the true rate,
+subject to fixed-point rounding. Gains change at power-of-two span boundaries.
+
+For our actual fixed-point formats, implement the candidate as:
+
+```text
+S = delta raw tick-phase units                  # cycles times 8
+q = retained Rhat in Q48
+A = delta corrected master timestamp Q16 << 35
+E = A - q*S                                    # signed, scaled by 2**51
+m = ceil(log2(S))
+q_next = q + round_ties_away(E >> (m + g))
+```
+
+This needs the existing multiplier, subtract/add, shift/round and span-exponent
+selection. It does not require a variable-denominator quotient. Avoid a new
+wide parallel leading-zero detector if a word scan can supply the exponent.
+Prove the signed intermediate widths before RTL integration; Python integers
+in the exploration do not model overflow. Preserve timestamp validation,
+anchor advancement, range rejection, freshness and generation handling.
+
+Range checking need not reintroduce division. For positive `A,S`, the condition
+`L <= round_ties_away(A/S) <= U` is exactly:
+
+```text
+(2*L - 1)*S <= 2*A < (2*U + 1)*S
+```
+
+The different inclusive/exclusive limits preserve rounding ties. This introduces
+cross products and comparisons whose control and service costs must also be
+counted. A small correction to `q` is not evidence that the incoming interval
+was valid; merely clamping the updated estimate would hide bad observations.
+
+Another candidate is a phase-and-rate observer. Predict master time from the
+previous prediction and `Rhat*H`; apply `alpha*e` to predicted phase and
+`beta*e/2**ceil(log2(H))` to rate. Dyadic alpha/beta avoid arbitrary gain
+division. Retain phase as a residual relative to the last timestamp so a full
+epoch need not be shifted into Q51. For constant span, its error-transition
+matrix has trace `2-alpha-beta_eff` and determinant `1-alpha`, where
+`beta_eff = beta*H/2**ceil(log2(H))`. The constant-span stability conditions
+include `0 < alpha < 2` and `0 < beta_eff < 4-2*alpha`. These conditions alone
+are not a proof for arbitrarily switching spans, gaps or nonlinear rejection.
+This observer adds state and another loop to tune; lower noise can accompany
+much slower response to actual oscillator drift.
+
+#### Reproducible numerical comparison
+
+[rate_feedback_study.py](../../../tests/ethernet/PtpCore/rate_feedback_study.py)
+runs five integer models on the same intervals admitted by the existing
+independent `RateEstimator`. It also checks equivalent quotient-free range
+admission against that oracle. The direct model performs its current first-slope
+bootstrap followed by quarter-error filtering. The residual candidates use
+`g=2`, or `g=0` for the first 18 observations followed by `g=2`. Eighteen fast
+observations bound the ideal contraction from the configured rate envelope;
+they are not a validated qualification rule under noise. Phase observer settings
+are alpha/beta = 1/4,1/64 (slow) and 1/2,1/8 (faster).
+
+Run from the SURF root with the existing Python environment:
+
+```sh
+python -m tests.ethernet.PtpCore.rate_feedback_study --csv /tmp/ptp-rate-feedback.csv > /tmp/ptp-rate-feedback.json
+```
+
+The study uses exact rational raw-clock integration, Q3 captures and Q16 master
+timestamps at 8 Hz, a 0.5 nominal-second minimum observation span, a 50 us base
+path delay, and +/-100 ppm clean startup. Noise is seeded Gaussian delay jitter
+with 100 ns standard deviation, rounded to integer ns. Separate scenarios add
+a 10 us delay step, 50 ns/s delay ramp, +100 to -50 ppm oscillator change and
+a six-second packet gap spanning that oscillator change. Step/gap events occur
+after 240 seconds of warmup; steady statistics use seconds 480 through 720.
+These are illustrative synthetic inputs, not an assumed deployment noise budget.
+
+Representative results at 125 MHz and initial +100 ppm:
+
+| Estimator | Clean startup to a 10 ppb error band | Rate jitter standard deviation | Oscillator-step settling to 10 ppb | Peak rate error from delay step |
+| --- | ---: | ---: | ---: | ---: |
+| Direct quotient, existing filter | 0.5 s | 51.76 ppb | 21.25 s | 5,000 ppb |
+| Residual, tracking gain throughout | 17.5 s | 48.02 ppb | 38.75 s | 4,657 ppb |
+| Residual, fast acquisition | 2.0 s | 48.02 ppb | 38.75 s | 4,657 ppb |
+| Phase observer, slow | 60.0 s | 4.47 ppb | 143.125 s | 887 ppb |
+| Phase observer, faster | 13.0 s | 28.06 ppb | 30.0 s | 3,293 ppb |
+
+Settling means the error stays within the band for the remainder of that clean
+scenario, evaluated at accepted observations. It is not the time that production
+`ratioValid` would assert. That flag currently requires two qualified intervals;
+the direct model's first accurate slope at 0.5 s precedes its validity at 1 s.
+The candidate models deliberately do not implement validity, stale recovery,
+clipping or full endpoint control. The 10 ppb band is a comparison metric, not
+a new timing requirement.
+
+At 156.25 MHz, fast residual acquisition takes 5.5 s, tracking jitter is
+29.44 ppb, and the frequency-step response takes 30.0 s. The faster observer
+gives 23.0 s / 17.44 ppb / 18.125 s respectively. The slow observer's clean
+-100 ppm startup takes 137.5 s. Raw-span admission near the 0.5-second threshold
+and the exponent bins change effective gains, even between these nominal clock
+settings. These gains are illustrative and are not bandwidth-matched; the lower
+noise numbers do not establish a superior estimator without its transient cost.
+
+All five models converge to about -50 ppb rate bias under the 50 ns/s delay
+ramp. A growing path delay is indistinguishable from a clock-rate change in
+these one-way observations. This limitation applies to the direct ratio too.
+It requires a noise/path model or additional observations, not another arithmetic
+implementation of the same two timestamps.
+
+#### Consequences for E2E and LUT optimization
+
+For zero calibration, a relative rate error `epsilon` produces approximately
+`epsilon * exchange_separation / 2` of E2E mean-delay error. For a one-second
+separation, 1 ppb corresponds to 0.5 ns, and 100 ppm corresponds to 50 us.
+Consequently the old two-interval validity count cannot automatically qualify
+a nominal-start feedback estimate. Define acquisition confidence, expiry,
+outlier rejection and acceptable rate error before allowing it to steer the
+endpoint; retain capture-specific calibration and PHC-rate-change behavior.
+
+Removing the protocol divide alone does not remove divider hardware from the
+connected design. Servo bootstrap/interval/actuator conversion, acquisition and
+manual phase normalization still issue divides; nonzero E2E calibration divides
+by each capture's increment. Constants could eventually use exact specialized
+conversions, but nonzero calibration remains a separate variable-denominator
+problem. New filtering/admission control can offset any saved decode/state logic.
+The [October 13 screenshot](#october-13-connected-implementation-synthesis)
+attributes 2,223 LUTs to the entire shared `PtpCompute`, not its divider alone;
+it does not supply a divider-only area estimate.
+
+As a separate option, exact division at acquisition followed by feedback tracking
+preserves a quick bootstrap but retains the divider. LinuxPTP's
+[PI implementation](https://raw.githubusercontent.com/richardcochran/linuxptp/master/pi.c)
+similarly uses an offset/time slope during initialization and PI feedback during
+tracking (source inspected October 13). It controls a different clock coordinate;
+this is an example of separating acquisition and tracking, not a drop-in model
+for our raw-clock estimator or evidence of lower FPGA area.
+
+If this inquiry is reopened, the first candidate to study is the residual update with separate
+acquisition/tracking gains: it preserves the rate/E2E interface and has a simple
+scalar convergence bound. The phase observer is a broader filtering option,
+requiring interval-dependent stability/noise analysis. Choose rate-error and
+acquisition/holdover requirements, compare realistic correlated PDV and oscillator
+drift, and validate the complete endpoint before replacing RTL. Retain the
+shared divider until every remaining caller is accounted for; saving cycles is
+not itself a LUT optimization.
+
+The October 13 run completed **70 synthetic scenario/parameter comparisons**,
+with signed shift/tie checks, range-admission boundary checks, clean convergence
+and the delay-ramp bias check. Python flake8 passed. Numerical traces/summary
+are reproducible from the script; the local run wrote
+`/private/tmp/ptp-rate-feedback-20261013/traces.csv` and
+`/private/tmp/ptp-rate-feedback-20261013-summary.json`. No RTL simulation,
+synthesis, physical-clock model or closed-loop endpoint comparison was run for
+this exploration. The production estimator and its independent reference remain
+unchanged.
 
 ### Baseline and accounting
 
@@ -553,6 +743,321 @@ control muxes. Fixed ROM-based sequencing is an option if measured control cost
 dominates. Preserve diagnostics, numerical range and lifecycle ownership when
 considering any subsequent optimization. Hardware timing, calibrated accuracy
 and independent-master results remain separate from simulation.
+
+## October 13 connected implementation synthesis
+
+First synthesis screenshot supplied by the maintainer for the connected design.
+The maintainer identifies **Vivado 2025.2** and SURF's remote `ethernet-ptp` head;
+`git ls-remote origin refs/heads/ethernet-ptp` resolved that head on October 13
+to **`52dfa266fe22be4b466960cece1e4aeab34317f5`**, matching this checkout.
+This is maintainer-supplied build provenance plus an independent branch lookup;
+no new report header, build manifest or checkpoint was supplied. The original
+image is in the October 13 conversation; the visible values are transcribed here.
+The image expands the copper hierarchy, not the SFP lane. PHY/core black-box
+status, exact target configuration and timing are not established by this image.
+
+### Visible hierarchy
+
+Counts include children. Indentation in the screenshot establishes the hierarchy;
+rows from different levels must not be added as independent costs.
+
+| Scope/module | CLB LUTs | Registers | CARRY8 | BRAM tiles | DSPs |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Whole `PtpKcu105` | 86,581 | 85,516 | 2,319 | 33 | 13 |
+| Copper wrapper `U_Copper` | 30,776 | 24,877 | 949 | 2.5 | 4 |
+| Copper `GigEthPtp` | 30,188 | 24,101 | 936 | 2.5 | 4 |
+| Copper `EthMacPtpEndpoint` | 28,964 | 22,872 | 896 | 2.5 | 4 |
+| Copper `PtpEndpoint` | 18,483 | 13,618 | 608 | 0.5 | 4 |
+| `PtpProtocolEngine` | 10,728 | 7,891 | 345 | 0 | 0 |
+| `PtpServo` | 2,794 | 2,487 | 124 | 0 | 0 |
+| `PtpCompute` | 2,223 | 826 | 10 | 0.5 | 4 |
+| `PtpPhc` | 2,073 | 1,751 | 121 | 0 | 0 |
+| Endpoint `U_Xbar` | 384 | 331 | 0 | 0 | 0 |
+| `PtpEndpointControl` | 206 | 193 | 8 | 0 | 0 |
+| Endpoint TX resize | 75 | 139 | 0 | 0 | 0 |
+| MAC `EthMacTop` | 4,164 | 5,604 | 92 | 2 | 0 |
+| `PtpRxTimestampTap` | 3,674 | 2,128 | 108 | 0 | 0 |
+| `PtpTxTimestampTap` | 2,642 | 1,521 | 88 | 0 | 0 |
+| `GigEthReg` | 700 | 560 | 40 | 0 | 0 |
+| `AxiLiteAsync` | 289 | 463 | 0 | 0 | 0 |
+
+The seven direct endpoint children sum exactly to 18,483 LUTs and 13,618
+registers. In particular, the new processor's cost is included once in those
+totals. All four copper-endpoint DSPs and its half BRAM tile reside in
+`PtpCompute`; the other displayed local banks have zero BRAM tiles.
+
+The visible protocol children are:
+
+| Child | LUTs | Registers | CARRY8 |
+| --- | ---: | ---: | ---: |
+| `U_Ledger` | 1,905 | 1,021 | 70 |
+| `U_E2e` | 805 | 510 | 11 |
+| `U_Config` | 360 | 261 | 0 |
+| `U_Publication` | 318 | 153 | 1 |
+| `U_Snapshot` | 119 | 343 | 0 |
+| `U_PairRam` | 98 | 32 | 0 |
+| `U_HistoryRam` | 98 | 32 | 0 |
+| Protocol residual after subtracting these children | 7,025 | 5,539 | 263 |
+
+The residual is a hierarchy subtraction, not a cell-level attribution to the
+FSM. It includes remaining protocol state, timers, comparisons, payload selection,
+publication and sequencing. Protocol including children is **58.04%** of endpoint
+LUTs; its residual is **38.01%**, and shared compute is **12.03%**.
+
+### Observed change from the latest retained report
+
+The [October 12 full report](#october-12-arithmetic-synthesis-comparison) is the
+latest retained numerical reference: Vivado **2025.1**, with source provenance
+pointing to SURF `cb5184623`. It predates additional changes before this rewrite's
+immediate baseline `75a49f427`. The new screenshot uses **2025.2**. These are
+observed differences across that interval, not isolated savings from the final
+rewrite or a matched baseline/current experiment.
+
+| Scope/module | Oct 12 LUTs | Oct 13 LUTs | LUT change | Registers, Oct 12 -> Oct 13 |
+| --- | ---: | ---: | ---: | ---: |
+| Whole design | 102,977 | 86,581 | -16,396 (-15.92%) | 104,553 -> 85,516 |
+| Copper wrapper | 39,615 | 30,776 | -8,839 (-22.31%) | 35,913 -> 24,877 |
+| Copper `EthMacPtpEndpoint` | 38,297 | 28,964 | -9,333 (-24.37%) | 34,511 -> 22,872 |
+| Copper `PtpEndpoint` | 27,181 | 18,483 | -8,698 (-32.00%) | 23,283 -> 13,618 |
+| `PtpProtocolEngine`, including children | 15,500 | 10,728 | -4,772 (-30.79%) | 15,185 -> 7,891 |
+| `PtpServo` | 8,033 | 2,794 | -5,239 (-65.22%) | 5,109 -> 2,487 |
+| `PtpE2e` | 2,940 | 805 | -2,135 (-72.62%) | 2,115 -> 510 |
+| `PtpPhc` | 2,993 | 2,073 | -920 (-30.74%) | 2,328 -> 1,751 |
+| `PtpTxLedger` | 1,801 | 1,905 | +104 (+5.77%) | 1,853 -> 1,021 |
+| RX tap | 3,886 | 3,674 | -212 (-5.46%) | 3,658 -> 2,128 |
+| TX tap | 2,685 | 2,642 | -43 (-1.60%) | 1,965 -> 1,521 |
+
+The endpoint loses 9,665 registers (**41.51%**), while DSPs change from 36 to
+4 and BRAM tiles from zero to 0.5. Whole-design DSPs change from 77 to 13 and
+BRAM tiles from 32 to 33. The client reductions include arithmetic moved into
+the new 2,223-LUT compute child; they cannot be summed without including that
+cost or treating E2E as already part of protocol.
+
+The MAC is an explicit comparison confound: 4,544 -> 4,164 LUTs with unchanged
+5,604 registers. Its new LUT count matches the older October 11 Vivado 2025.2
+report. This is consistent with tool/configuration-dependent mapping; it does
+not independently prove the cause. Of the 9,333-LUT reduction inside
+`EthMacPtpEndpoint`, 8,698 is in the pure endpoint, 255 in the two taps and 380
+in the MAC. The copper wrapper above `GigEthPtp` grows from 94 to 588 LUTs;
+its exact linkage/configuration needs the new full reports. Do not extrapolate
+the copper reduction to the unexpanded SFP lane or attribute the whole-design
+delta solely to PTP changes.
+
+For longer-term context, the October 11 **2025.2** report has 37,227 LUTs for
+the copper endpoint versus 18,483 now, a 50.35% reduction across all intervening
+optimizations. Matching the tool version does not make that a comparison of
+this rewrite alone; it also includes the earlier table and arithmetic work,
+with current PHY linkage still unspecified.
+
+### What this result changes
+
+- The shared processor maps to a modest part of the endpoint and carries all
+  its remaining DSP use. Further arithmetic sharing is not the largest visible
+  opportunity; the protocol residual warrants cell-level inspection first.
+- Word storage substantially reduces registers. Pair/history RAM children
+  fall from 316/280 LUTs and 549/483 registers to 98 LUTs and 32 registers each.
+  The ledger instead trades 832 fewer registers for 104 more LUTs, and the
+  compact taps show much larger register reductions than LUT reductions.
+  Storage serialization did not produce uniform LUT savings.
+- The endpoint's configuration/publication/scalar-snapshot blocks remain small
+  individually. Zero BRAM in these children is consistent with their explicit
+  distributed-memory source settings; this screenshot does not separate LUTRAM
+  from logic. It is not evidence that their word memories failed to infer.
+- A CPU or ROM sequencer would have to reduce control/state handling enough to
+  offset its complete system cost. The 2,223-LUT compute figure alone is not a
+  CPU replacement budget. The screenshot does not identify a ROM-convertible FSM
+  as the cause of the protocol residual.
+
+Next evidence: retain flat and hierarchical reports (including logic/LUTRAM/SRL
+and black boxes), timing reports, target settings and source/build provenance
+for both lanes. Reproduce the immediate baseline with the same Vivado version,
+part, linked IP, constraints, generics, strategy and flow stage. Use cell-level
+attribution within `PtpProtocolEngine` before selecting another RTL optimization.
+This update records synthesis evidence only; it changes no RTL and launches no
+new simulation or build. Timing closure and hardware acceptance remain open.
+
+### October 13 validator netlist probe
+
+The maintainer's follow-up probe reports that the copper GMII datapath collapses
+to one byte across the `PtpRxTimestampAdapter` / `PtpRxFrontend` boundary, even
+with `-flatten_hierarchy none`. The reported constant upper data lanes and
+`tKeep(7 downto 1)` constrain `byteCount` to zero or one; parsing iterations for
+lanes 1 through 7 and CRC selections for two through eight bytes are unreachable.
+Explicit GMII width specialization is therefore deprioritized as an area
+experiment for this build. The wide AXI record declaration alone is not evidence
+of wide surviving logic. TX uses the same adapter with `PtpDelayReqObserver`.
+
+The supplied pin excerpt shows `tData[0]` connected and sampled upper bits such
+as `[10]` and `[100]` grounded. Describe the result as **one active byte**:
+the GMII RTL assigns `tData(7 downto 0)`, and the excerpt does not show bits
+1 through 7. A literal finding of only one live data bit would require a separate
+connectivity check. Retain the complete pin query and output with the checkpoint
+to make the reported pruning reproducible.
+
+The maintainer reports these leaf-cell counts; the probe script, checkpoint and
+full report are not retained here:
+
+| Scope | Leaf cells | LUT cells | FF cells | Carry cells |
+| --- | ---: | ---: | ---: | ---: |
+| RX `U_Validator` (`PtpRxFrontend`) | 6,025 | 4,009 | 1,818 | 87 |
+| TX `U_Validator` (`PtpDelayReqObserver`) | 4,228 | 2,812 | 1,243 | 69 |
+| RX `U_Adapter` (`PtpRxTimestampAdapter`) | 533 | 199 | 310 | 21 |
+
+Keep these counts separate from the screenshot's CLB utilization. In particular,
+the reported validator LUT counts exceed the earlier whole-tap LUT counts
+(3,674 RX and 2,642 TX). Reconcile cell filters, LUT packing/accounting, hierarchy,
+flow stage and checkpoint before comparing or summing the two sources.
+
+Each CRC accumulator retains exactly 32 FFs. A transitive combinational fan-in
+walk reached **413 LUTs on RX and 439 on TX**. These are indicative cone counts,
+not isolated CRC arithmetic costs or evidence that wide CRC variants survived.
+The walk did not separate data transforms from upstream control; two earlier
+zero results were traced to Tcl regex escaping and superseded by the glob query.
+Membership in the same VHDL record does not itself create a logic dependency.
+The next attribution step is to trace CRC-flop D inputs to sequential boundaries,
+account for enable/reset cones separately, and identify shared control and data
+selection before considering a CRC rewrite. The informal 32–60-LUT estimate for
+a byte CRC step is not a measured baseline for this implementation.
+
+## Next optimization candidates
+
+October 13, 2026. This is the consolidated exploration list for the connected
+implementation, updated with the validator probe above. Priorities indicate an
+initial experiment order, not promised savings. Candidates 1–4 now have source
+implementations: the initial pass is committed as `0d27ddbba`, followed by the
+[protocol scan word arithmetic](#protocol-scan-word-arithmetic) below. Ledger
+live-age checks retain their original edges. Area/timing measurement remains
+open. Shared MAC changes and reuse of MAC FCS status
+remain deferred; the CRC candidate concerns the validators' existing independent
+Ethernet FCS calculation, not a separate PTP CRC.
+
+| Priority | Optimization and modules | Experiment, rationale and limits |
+| --- | --- | --- |
+| **1** | **Consolidate protocol counter updates** — `PtpProtocolEngine` | **Implemented, unmeasured:** nine rejection sites feed a bounded event count and one 33-bit saturating addition. Same-edge multiplicity and reset precedence are preserved; logical restart and AXI reset retain diagnostics. |
+| **2** | **Move selected word memories from LUTRAM to BRAM** — pair/history stores, `PtpTxLedger`, `PtpConfigBank`, `PtpPublicationBank` | **Implemented, unmeasured:** select block RAM for pair/history, ledger, protocol/servo configuration and protocol publication (six 128×32 or 256×32 stores per endpoint). Keep one-cycle reads and ownership; retain distributed mapping for the smaller banks. Measure LUTRAM against BRAM use and timing. |
+| **3** | **Share table-scan arithmetic** — `PtpProtocolEngine`, `PtpTxLedger` | **Implemented, unmeasured:** protocol pair/history checks share a 32-bit word ALU with round-robin row arbitration; preserve admission-time ages, full Q3 distance and strict first-slot ties. Ledger association age, response chronology and wire age share one 65-bit subtract/compare at their original live check edges. The added protocol scan cycles fit the existing service allowance; measure mux/control cost and timing. |
+| **4** | **Consolidate interval decoding and preparation** — `PtpProtocolEngine` | **Implemented, unmeasured:** elaborate the 33 supported periods and three-period timeouts; share RX decoding/capping across Sync and Announce. Keep a separate held-response lookup for concurrent Delay_Resp completion. Existing single-site jitter preparation is retained. Preserve rounding, invalid/unspecified fallback and caps. |
+| **5** | **Simplify compact-store byte routing** — `PtpRxFrontend`, then assess `PtpDelayReqObserver` | Replace gap-removing `compactIndex` routing through `compact mod 8` with a sparse, lane-aligned field layout where it reduces muxing. At the default RX depth, five physical banks need 45 groups for the current 65-byte record or 50 for a 78-byte address space; both round to 64-deep lane RAMs. Store only required fields and recheck all supported depths, byte order, decoder/refill latency and minimum-frame-spacing throughput. The RX rounding result is not automatically a TX saving. |
+| **6** | **Further specialize TX observer control** — `PtpDelayReqObserver` | Exploit the fixed 44-byte base Delay_Req message and 13 stored field bytes to simplify length/TLV/decoder control where constants have not already been removed. Preserve legal TLVs, malformed-frame/FCS checks, logical queue capacity, post-MAC physical completion and late completion across logical restart or PHC generation changes. |
+| **7** | **Process TLV payload runs in chunks** — both validators, primarily XGMII | Consume a run of payload bytes with one subtraction, reserving detailed byte transitions for TLV headers. Preserve split headers, zero-length TLVs, multiple transitions per beat, all 16 received length bits before narrowing, truncation rejection and legal partial beats. GMII already processes at most one byte, so removing an eight-byte update chain is an XGMII opportunity. |
+| **8** | **Factor XGMII CRC alternatives** — both validators | After separating arithmetic from control in the CRC cones, investigate shared intermediates or a prefix network for the one- through eight-byte transforms. Measure XOR depth and timing as well as LUTs; sustain eight bytes per clock and preserve partial/zero-byte termination behavior and CRC residue checks. The GMII cone counts do not establish this opportunity, and no MAC interface change is included. |
+| **Deprioritized** | **Explicit one-byte GMII specialization** — timestamp adapter / validator interfaces | The reported netlist probe resolves the original concern: constant propagation already restricts the copper datapath to one byte despite the wide RTL interface. Revisit only if a different build shows surviving multi-byte logic or there is a separately justified interface-maintenance benefit. |
+
+Measure one candidate at a time with matched source/build provenance, tool
+version, constraints, generics and flow stage. Retain logic/LUTRAM/SRL, FF, carry,
+BRAM and timing results for the affected hierarchy and complete lanes, using the
+same counting method. Select focused behavioral tests for each change using the
+[PTP test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
+preserve existing numerical, packet-validation, queue and cancellation contracts.
+Retain reproducible cell attribution with each experiment. Routed timing and
+hardware acceptance remain separate work.
+
+### October 13 candidate implementation
+
+The initial pass used SURF `52dfa266f` and was subsequently committed as
+`0d27ddbba` at the maintainer's request. That pass retains register addresses, numerical precision, packet admission,
+registered outputs and all scan/service latencies. They change no MAC or PHY.
+Focused outcomes are in the [acceptance record](rtl-review.md#october-13-optimization-candidates-1-4).
+
+**Counter consolidation.** Each of the nine former increment sites adds one to a
+combinational `0..9` event count. A 33-bit sum can represent the largest possible
+32-bit count plus nine without overflow; its carry selects `0xffffffff`.
+Thus `min(old + events, 0xffffffff)` equals repeated saturating increments,
+including at saturation and with no events. This is a source-level range proof;
+the RTL test covers simultaneous RX/E2E rejection and reset precedence, without
+simulating billions of increments to reach saturation. There is no counter-clear
+command in this block. Logical cancellation retains counts; system reset wins.
+
+**Memory mapping.** Pair/history and ledger default to `block` while preserving
+their existing mapping generics. `PtpConfigBank` and `PtpPublicationBank` gain an
+appended `MEMORY_TYPE_G`, defaulting to `distributed`; their protocol configuration,
+servo configuration and protocol publication instances explicitly select `block`.
+These six memories retain `READ_LATENCY_G=1`, registered enables/addresses and
+existing reset/ownership handling. Configuration copying and host transactions
+are serialized; publication pins readers and writes a separate version bank.
+No reliance on a new read/write collision mode is introduced. The small PHC
+operand bank, servo publication/median and scalar snapshots remain distributed.
+Simulation checks the inferred interface; Vivado must confirm primitive mapping
+and collision behavior. No LUT reduction or BRAM count is measured for this patch.
+
+**Scan arithmetic decision.** Ledger field 6 (association age), field 10
+(response-minus-wire chronology) and row finish (current wire age) are mutually
+exclusive. Selecting their operands and limit before one subtract/compare keeps
+the live check edge and `45*depth+2` scan bound. Association/wire ages still use
+modulo-64 subtraction; response chronology also tests the widened borrow bit.
+Pending-input protection, duplicate handling, quarantine, restart and the
+independent reset-lifetime check retain their original priority.
+
+A common word engine for protocol pair/history scans is not a drop-in change.
+History may start while an already admitted pair scan runs; only *new* pair
+admission requires idle history. Sharing would require arbitration, cancellation
+ownership and revised service bounds, while history still needs full 68-bit
+absolute distance and stable first-slot tie selection. Likewise, ledger expiry
+samples live ticks, so moving word operations across clocks needs an explicit
+snapshot/final-check policy. The protocol portion is implemented in the follow-up below. Ledger expiry
+remains at its original live check edges; serializing those checks is a separate
+experiment requiring a snapshot/final-check policy.
+
+**Interval preparation.** The constant table covers exponents -10 through 22.
+It rounds the single period down before multiplying by three, preserving the
+original negative-exponent behavior. Unsupported values retain the configured
+receipt cap; `0x7f` remains unspecified without a rejection increment. Sync and
+Announce share the RX lookup and cap comparison; the accepted response's held
+log byte has its own lookup because it can complete concurrently with RX. The
+existing max(configured, advertised) and three-point jitter logic already has one
+update site and is unchanged. This does not serialize message handling.
+
+For a build-host comparison, local ignored evidence is under
+`.planning/lut-candidates-2026-10-13/` in SURF. Apply `01-counters.patch`,
+`02-bram.patch`, `03-ledger-age.patch` and `04-intervals.patch` in that order to
+baseline `52dfa266f`, capturing each intermediate build. `source-manifest.json`
+records exact baseline, patch hashes and final source hashes; applying all four
+was checked to reconstruct the five edited RTL files exactly. Retain these local
+artifacts with the build evidence before switching workspaces. They contain RTL
+only; the maintained tests and contracts are in `0d27ddbba`.
+Compare protocol exclusive logic/counter cone, each selected RAM, ledger age
+logic and interval cones, then complete endpoints and lanes. Keep source patches,
+part, linked IP/black boxes, tool version, constraints, generics, strategy and
+flow stage matched. Report logic/LUTRAM/SRL, FF, carry, BRAM, DSP and timing.
+No Vivado or VCS run is available on `PC100431`. Protocol serialization is the
+follow-up below; candidates 5–8 remain outside these passes.
+
+### Protocol scan word arithmetic
+
+October 13 follow-up, based on `0d27ddbba`. `PtpProtocolEngine` now shares one
+32-bit carry/borrow ALU between pairing and history row checks. The input mux
+selects held row fields, limits and admission-time ticks; one 68-bit scratch
+holds modulo age or signed Q3 distance. The distance path optionally negates
+three words before comparing the nonnegative magnitude. Best-distance and
+oldest-born comparisons use the same ALU and retain strict ordering; age and
+maximum-separation limits remain inclusive. No timestamp precision is removed.
+
+The independent RAM scanners wait at explicit row-check states. Round-robin
+arbitration grants one whole row at a time and a DONE tag identifies its owner.
+History can still start during an admitted pair scan. New pairing admission
+still waits for idle history, and history pins its table against appends until
+the selected record has been copied. Cancellation clears both waiters and the
+ALU state with final priority, so partial carries/results cannot survive into
+a new session. Held RX payload, diagnostic counters and physical ledger
+ownership retain their existing contracts.
+
+Pair jobs take eight clocks; history jobs take at most eighteen. One competing
+row bounds waiting, so each row fits twenty-six clocks including service.
+The [service calculation](rtl-readability.md#shared-service-bound) reserves 256
+local clocks per table transaction, including the longer scans and local
+publication/fetch work. This fits the existing local allowance without changing
+`MinimumAssociationTicks`. Ledger live expiry remains on its original edge with
+the shared 65-bit datapath from the first pass.
+
+The [verification record](rtl-review.md#october-13-protocol-scan-word-arithmetic)
+tracks focused boundary, overlap, cancellation and consuming-interface checks.
+This follow-up is an area experiment: a narrower arithmetic cone adds operand
+muxes, scratch registers and control. A matched Vivado build must establish the
+net LUT/FF/carry/timing effect; no resource saving is inferred from source size.
+Use `0d27ddbba` as the matched comparison baseline for this increment. Local
+ignored `.planning/lut-scan-2026-10-13/05-protocol-scan.patch` reproduces this RTL
+change; `source-manifest.json` records the baseline and patch/RTL/test hashes.
+Applying the patch to the baseline was verified byte-for-byte.
 
 ## Earlier implementation and evidence
 

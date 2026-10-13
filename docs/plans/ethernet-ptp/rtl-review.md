@@ -916,8 +916,8 @@ still outstanding; the following implementation replaces those private engines.
 
 ## October 13 connected compute and word storage
 
-The [implementation record](lut-implementation.md) describes the completed working
-tree against clean SURF baseline `75a49f427`. No files are staged or committed.
+The [implementation record](lut-implementation.md) describes the completed change
+against clean SURF baseline `75a49f427`, now recorded in SURF `52dfa266f`.
 The preceding prototype and private-engine results are historical; the evidence
 in this section applies to the connected production architecture.
 
@@ -1002,13 +1002,135 @@ their affected cases rerun. The latest collection is
 `/tmp/ptp-e2e-normalized-vsg.log`); flake8 passes all 19 changed Python files.
 Changed Markdown links/anchors and diff whitespace also pass.
 
-Vivado/VCS are unavailable on this host. The matched baseline/current resource
-and timing comparison explicitly awaits the build host; reproduce part, linked
-IP, constraints, generics, tool version, strategy and flow stage, and retain the
-baseline revision plus working-tree patch. No LUT reduction, mapped RAM/DSP
-inference, routed timing, calibrated accuracy or external-master conformance is
-claimed from GHDL results. Existing hardware and standards acceptance below
-remains separate.
+Vivado/VCS are unavailable on this host. The maintainer subsequently supplied the
+first [synthesis screenshot](lut-optimization.md#october-13-connected-implementation-synthesis)
+and identified Vivado 2025.2 / SURF remote `ethernet-ptp` head, independently
+resolved to `52dfa266f`. The copper endpoint shows 18,483 LUTs, 13,618 registers,
+0.5 BRAM tile and four DSPs; the shared compute child accounts for 2,223 LUTs,
+826 registers and all that endpoint's BRAM/DSP use. This is synthesis evidence,
+separate from the GHDL results above. Full reports and PHY linkage are not yet
+supplied; the latest retained comparison uses Vivado 2025.1 and an earlier source
+revision. A matched resource comparison and timing evidence remain outstanding.
+Reproduce part, linked IP, constraints, generics, tool version, strategy and flow
+stage, retaining source/build provenance. Existing hardware accuracy, timing and
+standards acceptance below remains separate.
+
+## October 13 optimization candidates 1-4
+
+The initial pass against SURF `52dfa266f`, now committed as `0d27ddbba`, implements counter consolidation,
+six deeper block-RAM selections per endpoint and constant interval decoding.
+Candidate 3 is deliberately limited to the ledger's mutually exclusive age
+checks; protocol pair/history word serialization is covered by the follow-up
+below. The [implementation decisions and build comparison](lut-optimization.md#october-13-candidate-implementation)
+record what changed, why further serialization was deferred and the four retained
+RTL increments. No register ABI, scan latency, service bound, clock domain or
+physical packet path changes in this pass.
+
+The RTL checklist review traced every rejection update/reset override, RAM
+read/enables and version ownership, all three ledger operand selections,
+modulo-age versus response-borrow handling, negative exponent rounding and
+concurrent RX/held-response completion. Counter saturation has a 33-bit range
+proof; the new RTL test checks two events on one edge and reset retention, but
+does not force a near-saturated diagnostic register. The full 68-bit history
+comparison and existing three-point jitter algorithm remain unchanged.
+
+Tools: GHDL 6.0.0, Python 3.13.2, pytest 9.0.2 and cocotb 2.1.0 from the existing
+`/Users/bareese/surf/.venv`, without modifying that environment. An initial
+collection with the checkout's Python 3.9 environment failed on existing union
+annotations before simulation. Subsequent batches use the established 3.13
+runtime; final batches set `MallocNanoZone=1` per process. All runs use production
+RTL through the existing fixtures, with at most four simulator workers total.
+
+Evidence is local and ignored under `.planning/lut-candidates-2026-10-13/` in
+SURF. All **20 distinct final configurations passed** across the selections
+below; overlapping runs are counted once. Final selections are:
+
+| Selection | Result / evidence |
+| --- | --- |
+| Ledger lifecycle, counters, cancellation, slot reuse, keys and deferred duplicate | 7 passed in `03-ledger.log`. |
+| Ledger storage at depths 1/3/4 and both RAM mappings; new full-width age cases in both mappings | 6 passed in `03-age-rerun.log` (17.91 s). Age cases cover 32-/63-bit boundaries, near-maximum ticks, response-before-wire, zero, inclusive lifetime and lifetime+1, and eventual reclamation. |
+| Concurrent malformed RX plus rejected E2E, and four-entry block ledger storage | 2 passed in `03-smoke.log` (35.72 s); ledger storage overlaps the preceding row. The concurrent case requires an exact +2 on one edge, retention across restart/AXI reset/RX abort, and reset priority. |
+| All 256 Announce interval encodings under two caps, selected Sync bounds, and register bank at base 0 | 2 passed in `04-interval-banks.log` (124.41 s). Timers are checked at the inclusive deadline and deadline+1; register checks cover configuration byte writes/freeze/apply and coherent snapshots. Interval sweep uses 125 MHz. |
+| Direct protocol collisions, capacity/chronology/cancellation and Announce snapshots in both table mappings | 2 configurations passed in `05-protocol-consumers.log` (90.18 s), with all three selected cocotb scenarios confirmed in each XML result. |
+| Nearest-history selection with block RAM; delayed-response association | Both passed in `05-association.log` (457.56 s); response association covers fourteen requester/source/domain/generation mismatches and recovery, including held log-interval metadata. |
+
+The first counter-only direct protocol run also passed both memory configurations
+(all five cocotb scenarios), before later candidates were applied. Its log
+`01-pytest.log` includes a subsequent compile failure in the queued concurrent
+case: the new ledger concatenation needed an explicit `slv` qualification. That
+was corrected before `03-smoke.log`. The initial two age cases failed at time
+zero because the new fixture sampled unresolved outputs before reset; moving its
+large-time jump after reset fixed the fixture, and both reruns passed. These
+failures are superseded, not counted as passes. An accidental `-k age` selection
+also selected the four `storage` nodes; all six executed and passed.
+
+VSG passes all five edited VHDL files (689 rules each), using `vsg.log` for the
+three bank/servo files and `vsg-final.log` for protocol/ledger after declaration
+alignment and concatenation fixes. The three edited/new Python tests pass flake8
+and the compliance audit. All seven changed Markdown files pass local link/anchor checks, and diff
+whitespace passes. Source patch hashes and final file hashes are retained in
+`source-manifest.json`; applying the four patches in order reconstructs the final
+five RTL files exactly before the checkpoint commit.
+
+No full PTP, endpoint/PHY, routed timing, physical CDC or hardware regression is
+claimed. Vivado/VCS are unavailable on this host. GHDL checks do not demonstrate
+BRAM inference, cell-level LUT savings or timing improvement. The matched build
+comparison is still required before crediting any area reduction; protocol
+scan serialization and candidates 5–8 remain outside this pass.
+
+## October 13 protocol scan word arithmetic
+
+Follow-up to `0d27ddbba`: `PtpProtocolEngine` replaces its full-width pair/history
+age, distance and ordering arithmetic with one local 32-bit word ALU. Two row
+owners arbitrate round-robin; the table readers retain independent RAM ports and
+held admission-time inputs. The [implementation notes](lut-optimization.md#protocol-scan-word-arithmetic)
+and [service bound](rtl-readability.md#shared-service-bound) describe cancellation,
+68-bit signed distance, strict tie handling and the additional local cycles.
+The ledger's live expiry checks and public register ABI are unchanged.
+
+The RTL checklist review traced grant/DONE ownership, both RAM scanners waiting
+without overwriting operands, inverse-borrow propagation, modulo age truncation,
+three-word negation, inclusive limits, first-slot ties and abort priority over
+result consumption. Valid RAM rows remain pinned throughout history selection.
+Each new grant initializes scratch/carry/zero state; cancellation makes old
+scratch unreachable. At most one competing row can delay either owner. The
+256-clock local table allowance fits the existing 4,096-clock reserve, preserving
+the 70,347,776-tick floor. This is a source-derived service bound.
+
+Focused simulation uses GHDL 6.0.0 and the existing Python 3.13.2 / pytest 9.0.2 /
+cocotb 2.1.0 environment at `/Users/bareese/surf/.venv`, with per-process
+`MallocNanoZone=1` and at most four simulator workers. Local ignored evidence is
+under `.planning/lut-scan-2026-10-13/` in SURF. All **nine distinct final
+configurations passed** (eight protocol configurations and one GMII consumer);
+overlapping runs are counted once.
+
+| Selection | Result / evidence |
+| --- | --- |
+| Existing nearest-history selection and pair expiry/cancellation, block RAM | 2 passed in `01-smoke.log` (178.99 s). |
+| Concurrent pair/history completion and full-width pair ages/oldest replacement, block RAM | 2 passed in `05-boundary-rerun.log` (28.71 s); overlap is also included in the extended restart check below. |
+| History word boundaries in both RAM mappings | 2 passed in `06-history-boundaries.log` (136.27 s). Covers fractional ties across Q3/tick-word carries, unsigned bit 63, near-maximum ticks, and inclusive `2^61`-tick separation versus separation+1. |
+| History cancellation during reads and new arithmetic stages, block RAM | 1 passed in `03-cancellation.log` (512.86 s), covering 16 cancellation offsets through reads, grant, age, limit, distance, negation, nearest comparison and DONE, plus generation recovery. |
+| GMII adversarial port consumer | 1 passed in `04-gmii.log` (1,012.01 s); XML confirms only `adversarial_port` was selected. Covers conflicts, completed-row reuse, receipt expiry, Announce cancellation and held TX across restart. |
+| Concurrent scan restart/recovery and E2E publication under continuous rejected RX, block RAM | 2 passed in `07-overlap-priority.log` (70.43 s); overlap is counted once across its initial and extended runs. |
+
+The initial boundary batch `02-boundaries.log` exposed three fixture mistakes:
+a RAM-enable hierarchy path, constant master timestamps rejected by the existing
+chronology guard, and configured timeouts outside the documented `<2^62` range.
+The fixtures were corrected; no behavioral RTL change was needed. Initial
+failures are retained and superseded by the corresponding reruns above.
+
+VSG passes all 689 rules for `PtpProtocolEngine` (`vsg-final.log`). The edited
+Python test passes flake8 and the test compliance audit. Documentation link and
+diff-whitespace checks pass (six changed Markdown files). No new HDL source or
+manifest change is required. `05-protocol-scan.patch` and `source-manifest.json`
+retain the exact baseline and source hashes; patch reconstruction against the
+baseline was checked byte-for-byte. The follow-up remains unstaged for review.
+
+No full PTP suite, XGMII or real-MAC endpoint regression, Vivado/VCS, routed timing,
+physical CDC or hardware measurement is claimed. The GMII test uses the production
+validator and endpoint with its existing direct PHY fixture. The narrower ALU
+adds mux/control/scratch state; matched synthesis against `0d27ddbba` is required
+to establish any net LUT/FF/carry or timing improvement.
 
 ## Outstanding acceptance
 

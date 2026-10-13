@@ -11,7 +11,8 @@
 -- receipt timers qualify the current source session.
 -- Both four-row payload tables use synchronous SURF RAM. Pairing holds the
 -- RX producer through a serial lookup; history reserves E2E capacity and blocks
--- appends through a nearest-sample scan. Reset/abort clears ownership, not RAM.
+-- appends through a nearest-sample scan. A shared 32-bit word ALU arbitrates
+-- age, distance and ordering checks per row. Reset/abort clears ownership, not RAM.
 --
 -- Estimates master time per raw local cycle from corrected Sync intervals,
 -- independently of PHC validity or steering. Qualified intervals establish and
@@ -80,8 +81,8 @@ entity PtpProtocolEngine is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       -- Supported inferred RAM implementations: "distributed" or "block".
-      HISTORY_MEMORY_TYPE_G : string           := "distributed";
-      PAIR_MEMORY_TYPE_G    : string           := "distributed");
+      HISTORY_MEMORY_TYPE_G : string           := "block";
+      PAIR_MEMORY_TYPE_G    : string           := "block");
    port (
       -- Shared endpoint clock domain.
       clk : in  sl;
@@ -400,6 +401,8 @@ architecture rtl of PtpProtocolEngine is
       PAIR_IDLE_S,
       PAIR_READ_S,
       PAIR_CHECK_S,
+      PAIR_SCAN_S,
+      PAIR_NEXT_S,
       PAIR_SELECT_S,
       PAIR_COMPARE_READ_S,
       PAIR_COMPARE_S,
@@ -414,10 +417,24 @@ architecture rtl of PtpProtocolEngine is
       HISTORY_IDLE_S,
       HISTORY_READ_S,
       HISTORY_CHECK_S,
+      HISTORY_SCAN_S,
+      HISTORY_NEXT_S,
       HISTORY_SELECT_S,
       HISTORY_FETCH_S,
       HISTORY_CAPTURE_S,
       HISTORY_DONE_S);
+
+   -- Pair and history scans may overlap. One row owns the word ALU until
+   -- DONE; round-robin arbitration bounds either wait by one competing row.
+   type ScanStateType is (
+      SCAN_IDLE_S,
+      SCAN_AGE_S,
+      SCAN_AGE_LIMIT_S,
+      SCAN_DISTANCE_S,
+      SCAN_ABS_S,
+      SCAN_LIMIT_S,
+      SCAN_BEST_S,
+      SCAN_DONE_S);
 
    type StateType is (
       IDLE_S,
@@ -478,7 +495,7 @@ architecture rtl of PtpProtocolEngine is
       historyTicks        : slv(63 downto 0);
       historyFound        : sl;
       historyQualified    : sl;
-      historyDistance     : signed(67 downto 0);
+      historyDistance     : slv(67 downto 0);
       historyReadEnable   : sl;
       historyReadAddress  : slv(HISTORY_ADDR_WIDTH_C-1 downto 0);
       historyWriteEnable  : sl;
@@ -486,6 +503,17 @@ architecture rtl of PtpProtocolEngine is
       historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
       historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
       generation          : slv(31 downto 0);
+      -- Shared scan scratch, never a second copy of a table row. Clients hold
+      -- their captured row and admission ticks until the matching DONE edge.
+      scanState   : ScanStateType;
+      scanHistory : sl;
+      scanTurn    : sl;
+      scanWord    : natural range 0 to 2;
+      scanValue   : slv(67 downto 0);
+      scanCarry   : sl;
+      scanZero    : sl;
+      scanExpired : sl;
+      scanBetter  : sl;
       -- Per-clock receipt policy and rate qualification remain local.
       syncLimit     : slv(63 downto 0);
       announceLimit : slv(63 downto 0);
@@ -598,6 +626,15 @@ architecture rtl of PtpProtocolEngine is
       historyFound        => '0',
       historyQualified    => '0',
       historyDistance     => (others => '0'),
+      scanState           => SCAN_IDLE_S,
+      scanHistory         => '0',
+      scanTurn            => '1',
+      scanWord            => 0,
+      scanValue           => (others => '0'),
+      scanCarry           => '1',
+      scanZero            => '1',
+      scanExpired         => '0',
+      scanBetter          => '0',
       historyReadEnable   => '0',
       historyReadAddress  => (others => '0'),
       historyWriteEnable  => '0',
@@ -673,10 +710,46 @@ architecture rtl of PtpProtocolEngine is
    signal e2eError         : sl;
    signal historyReadData  : slv(31 downto 0);
    signal pairReadData     : slv(31 downto 0);
-   -- Supported log2(seconds) range; 0x7F means unspecified on the wire.
-   function validLogInterval (logInterval : slv(7 downto 0)) return boolean is
+   -- Elaborate the accepted exponent range once. Negative exponents first
+   -- round down to whole ticks, then receipt timeouts multiply those ticks by
+   -- three, matching the wire policy. No runtime shifter or multiplier is used.
+   type IntervalType is record
+      valid   : boolean;
+      ticks   : unsigned(63 downto 0);
+      receipt : unsigned(63 downto 0);
+   end record;
+
+   type IntervalArray is array (MIN_LOG_INTERVAL_C to MAX_LOG_INTERVAL_C) of IntervalType;
+
+   function intervalTable return IntervalArray is
+      variable values : IntervalArray;
+      variable ticks  : unsigned(63 downto 0);
    begin
-      return signed(logInterval) >= MIN_LOG_INTERVAL_C and signed(logInterval) <= MAX_LOG_INTERVAL_C;
+      for exponent in values'range loop
+         ticks := to_unsigned(CLK_FREQ_G, 64);
+         if exponent < 0 then
+            ticks := shift_right(ticks, -exponent);
+         else
+            ticks := shift_left(ticks, exponent);
+         end if;
+         values(exponent).valid := true;
+         values(exponent).ticks := ticks;
+         values(exponent).receipt := resize(ticks*RECEIPT_INTERVALS_C, 64);
+      end loop;
+      return values;
+   end function;
+
+   constant INTERVAL_TABLE_C : IntervalArray := intervalTable;
+
+   function decodeInterval(logInterval : slv(7 downto 0)) return IntervalType is
+      variable value : IntervalType := (false, (others => '0'), (others => '0'));
+   begin
+      for exponent in INTERVAL_TABLE_C'range loop
+         if logInterval = slv(to_signed(exponent, 8)) then
+            value := INTERVAL_TABLE_C(exponent);
+         end if;
+      end loop;
+      return value;
    end function;
 
    -- IEEE 1588-2019 13.2 and Table 37: reserved flags are ignored on receipt.
@@ -688,44 +761,6 @@ architecture rtl of PtpProtocolEngine is
    begin
       return (message.flags and PTP_LEAP_FLAGS_MASK_C) /= PTP_LEAP_FLAGS_MASK_C and
          (message.flags and PTP_GENERAL_RESERVED_C and not RESERVED_FLAGS_MASK_C) = x"0000";
-   end function;
-
-   function intervalTicks (
-      logInterval : slv(7 downto 0);
-      fallback    : slv(63 downto 0)) return unsigned is
-      variable exponent : integer range -128 to 127;
-      variable value    : unsigned(63 downto 0);
-   begin
-      exponent := to_integer(signed(logInterval));
-      value    := to_unsigned(CLK_FREQ_G, 64);
-
-      if exponent < MIN_LOG_INTERVAL_C or exponent > MAX_LOG_INTERVAL_C then
-         return unsigned(fallback);
-      elsif exponent < 0 then
-         return shift_right(value, -exponent);
-      end if;
-
-      return shift_left(value, exponent);
-   end function;
-
-   -- Three advertised intervals, capped by the configured raw-tick timeout.
-   -- Invalid/unspecified intervals use the cap; rejection accounting stays at
-   -- the message handler because an invalid interval need not reject its data.
-   function receiptTimeout (
-      logInterval : slv(7 downto 0);
-      limit       : slv(63 downto 0)) return slv is
-      variable ticks : unsigned(63 downto 0);
-   begin
-
-      if validLogInterval(logInterval) then
-         ticks := intervalTicks(logInterval, limit);
-         ticks := resize(ticks*RECEIPT_INTERVALS_C, ticks'length);
-         if ticks < unsigned(limit) then
-            return slv(ticks);
-         end if;
-      end if;
-
-      return limit;
    end function;
 
    function buildRequest (
@@ -847,7 +882,8 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         RECORD_WORDS_G => IntegerArray'(12,20))
+         RECORD_WORDS_G => IntegerArray'(12,20),
+         MEMORY_TYPE_G  => "block")
       port map (
          clk         => clk,
          rst         => rst,
@@ -879,7 +915,8 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEFAULTS_G     => initialWords)
+         DEFAULTS_G     => initialWords,
+         MEMORY_TYPE_G  => "block")
       port map (
          clk       => clk,
          rst       => rst,
@@ -1021,29 +1058,39 @@ begin
       variable snapshotIndex    : integer range -1 to 31;
       variable snapshotAddress  : natural range 0 to 1023;
       -- Same-edge admission/cancellation decisions.
-      variable announceChange : sl;
-      variable externalAbort  : sl;
-      variable abortPort      : sl;
-      variable policyValid    : sl;
-      variable qualifiedRatio : sl;
-      variable validResponse  : sl;
-      variable malformed      : boolean;
-      variable policyFlags    : slv(15 downto 0);
+      variable announceChange   : sl;
+      variable externalAbort    : sl;
+      variable abortPort        : sl;
+      variable policyValid      : sl;
+      variable qualifiedRatio   : sl;
+      variable validResponse    : sl;
+      variable malformed        : boolean;
+      variable rejectedEvents   : natural range 0 to 9;
+      variable rejectedSum      : unsigned(32 downto 0);
+      variable policyFlags      : slv(15 downto 0);
+      variable rxInterval       : IntervalType;
+      variable responseInterval : IntervalType;
+      variable rxReceiptLimit   : unsigned(63 downto 0);
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
-      variable slot              : integer range -1 to PAIR_DEPTH_C-1;
-      variable pair              : PairType;
-      variable pairUpdated       : boolean;
-      variable distance          : signed(67 downto 0);
-      variable maximumSeparation : signed(67 downto 0);
-      variable historyAge        : unsigned(63 downto 0);
-      variable rateData          : slv(127 downto 0);
-      variable rateJob           : PtpComputeJobType;
-      variable rateAddress       : natural range 0 to 63;
-      variable pairWord          : slv(31 downto 0);
-      variable remoteTime        : slv(95 downto 0);
-      variable inputSample       : PtpSyncSampleType;
+      variable slot        : integer range -1 to PAIR_DEPTH_C-1;
+      variable pair        : PairType;
+      variable pairUpdated : boolean;
+      variable scanA       : slv(95 downto 0);
+      variable scanB       : slv(95 downto 0);
+      variable scanLeft    : unsigned(31 downto 0);
+      variable scanRight   : unsigned(31 downto 0);
+      variable scanCarryIn : unsigned(32 downto 0);
+      variable scanAlu     : unsigned(32 downto 0);
+      variable scanLast    : natural range 1 to 2;
+      variable rateData    : slv(127 downto 0);
+      variable rateJob     : PtpComputeJobType;
+      variable rateAddress : natural range 0 to 63;
+      variable pairWord    : slv(31 downto 0);
+      variable remoteTime  : slv(95 downto 0);
+      variable inputSample : PtpSyncSampleType;
    begin
       v := r;
+      rejectedEvents := 0;
       v.publicationPort.write := '0';
       v.publicationPort.commit := '0';
       pair        := PAIR_INIT_C;
@@ -1059,6 +1106,19 @@ begin
       v.historyReadEnable  := '0';
       v.historyWriteEnable := '0';
       policyFlags := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
+      -- Sync and Announce share one decoder and capped receipt preparation.
+      -- A previously submitted Delay_Resp may complete on this same edge, so
+      -- its held log interval needs an independent lookup (no added latency).
+      rxInterval := decodeInterval(rxMessage.logInterval);
+      responseInterval := decodeInterval(r.responseLog);
+      rxReceiptLimit := unsigned(r.activeConfig.syncTimeout);
+      if rxMessage.messageType = PTP_MSG_ANNOUNCE_C then
+         rxReceiptLimit := resize(rxReceiptLimit*ANNOUNCE_CAP_FACTOR_C, 64);
+      end if;
+      if rxInterval.valid and rxInterval.receipt < rxReceiptLimit then
+         rxReceiptLimit := rxInterval.receipt;
+      end if;
+
       v.compute.resultReady := '0';
       v.compute.readReady := '0';
       v.compute.cancel := '0';
@@ -1205,6 +1265,131 @@ begin
       end if;
 
       -------------------------------------------------------------------------
+      -- Shared 32-bit scan arithmetic. Subtraction uses complemented B and
+      -- carry=1; carry out is inverse borrow. Age discards the final borrow
+      -- (modulo 64), while Q3 distance keeps all 68 signed bits before ABS.
+      -------------------------------------------------------------------------
+      scanA := (others => '0');
+      scanB := (others => '0');
+      scanLast := 1;
+      case r.scanState is
+         when SCAN_AGE_S =>
+            scanA(63 downto 0) := r.pairTicks;
+            scanB(63 downto 0) := r.pairBorn;
+            if r.scanHistory = '1' then
+               scanA(63 downto 0) := r.historyTicks;
+               scanB(63 downto 0) := r.historySampleTicks;
+            end if;
+         when SCAN_AGE_LIMIT_S =>
+            scanA(63 downto 0) := r.scanValue(63 downto 0);
+            scanB(63 downto 0) := r.activeConfig.associationTimeout;
+         when SCAN_DISTANCE_S =>
+            scanA(66 downto 0) := r.e2eDelay.capture.ticks & r.e2eDelay.capture.tickPhase;
+            scanB(66 downto 0) := r.historySampleTicks & r.historyPhase;
+            scanLast := 2;
+         when SCAN_ABS_S =>
+            scanB(67 downto 0) := r.scanValue;
+            scanLast := 2;
+         when SCAN_LIMIT_S =>
+            scanA(67 downto 0) := r.scanValue;
+            scanB(66 downto 0) := r.activeConfig.maxExchange & toSlv(0,PTP_TICK_PHASE_BITS_C);
+            scanLast := 2;
+         when SCAN_BEST_S =>
+            scanA(63 downto 0) := r.pairBorn;
+            scanB(63 downto 0) := r.pairOldestBorn;
+            if r.scanHistory = '1' then
+               scanA(67 downto 0) := r.scanValue;
+               scanB(67 downto 0) := r.historyDistance;
+               scanLast := 2;
+            end if;
+         when others =>
+            null;
+      end case;
+
+      -- Static word slices avoid a variable shift. There is one word ALU for
+      -- subtraction, negation and comparison across both table owners.
+      scanLeft := (others => '0');
+      scanRight := (others => '0');
+      for i in 0 to 2 loop
+         if r.scanWord = i then
+            scanLeft := unsigned(scanA(32*i+31 downto 32*i));
+            scanRight := unsigned(scanB(32*i+31 downto 32*i));
+         end if;
+      end loop;
+      scanCarryIn := (others => '0');
+      scanCarryIn(0) := r.scanCarry;
+      scanAlu := ('0' & scanLeft) + ('0' & not scanRight) + scanCarryIn;
+
+      case r.scanState is
+         when SCAN_IDLE_S =>
+
+            if r.pairState = PAIR_SCAN_S or r.historyState = HISTORY_SCAN_S then
+               v.scanHistory := '0';
+               if r.historyState = HISTORY_SCAN_S and
+                  (r.pairState /= PAIR_SCAN_S or r.scanTurn = '1') then
+                  v.scanHistory := '1';
+               end if;
+               v.scanTurn := not v.scanHistory;
+               v.scanState := SCAN_AGE_S;
+               v.scanWord := 0;
+               v.scanCarry := '1';
+               v.scanZero := '1';
+               v.scanValue := (others => '0');
+               v.scanExpired := '0';
+            end if;
+
+         when SCAN_DONE_S =>
+            v.scanState := SCAN_IDLE_S;
+
+         when others =>
+            v.scanCarry := scanAlu(32);
+            v.scanZero := r.scanZero and toSl(scanAlu(31 downto 0) = 0);
+            if r.scanState = SCAN_AGE_S or r.scanState = SCAN_DISTANCE_S or r.scanState = SCAN_ABS_S then
+               case r.scanWord is
+                  when 0 =>
+                     v.scanValue(31 downto 0) := slv(scanAlu(31 downto 0));
+                  when 1 =>
+                     v.scanValue(63 downto 32) := slv(scanAlu(31 downto 0));
+                  when 2 =>
+                     v.scanValue(67 downto 64) := slv(scanAlu(3 downto 0));
+               end case;
+            end if;
+
+            if r.scanWord /= scanLast then
+               v.scanWord := r.scanWord+1;
+            else
+               case r.scanState is
+                  when SCAN_AGE_S =>
+                     v.scanState := SCAN_AGE_LIMIT_S;
+                  when SCAN_AGE_LIMIT_S =>
+                     v.scanExpired := scanAlu(32) and not v.scanZero;
+                     v.scanState := SCAN_BEST_S;
+                     if r.scanHistory = '1' then
+                        v.scanState := SCAN_DISTANCE_S;
+                     end if;
+                  when SCAN_DISTANCE_S =>
+                     v.scanState := SCAN_LIMIT_S;
+                     if scanAlu(32) = '0' then
+                        v.scanState := SCAN_ABS_S;
+                     end if;
+                  when SCAN_ABS_S =>
+                     v.scanState := SCAN_LIMIT_S;
+                  when SCAN_LIMIT_S =>
+                     v.scanExpired := r.scanExpired or (scanAlu(32) and not v.scanZero);
+                     v.scanState := SCAN_BEST_S;
+                  when SCAN_BEST_S =>
+                     v.scanBetter := not scanAlu(32);
+                     v.scanState := SCAN_DONE_S;
+                  when others =>
+                     null;
+               end case;
+               v.scanWord := 0;
+               v.scanCarry := '1';
+               v.scanZero := '1';
+            end if;
+      end case;
+
+      -------------------------------------------------------------------------
       -- History lookup owns a stable table and admission-time arithmetic inputs.
       -------------------------------------------------------------------------
       -- Appends reuse the rate producer's held sample. A lookup pins the
@@ -1246,19 +1431,11 @@ begin
                when 2 =>
                   v.historyPhase := historyReadData(PTP_TICK_PHASE_BITS_C-1 downto 0);
                when others =>
+                  v.historyState := HISTORY_NEXT_S;
 
                   if r.historyValid(r.historyIndex) = '1' then
-                     distance          := abs(resize(ptpTickPhase(r.e2eDelay.capture),68)-signed(resize(unsigned(slv'(r.historySampleTicks & r.historyPhase)), 68)));
-                     maximumSeparation := shift_left(signed(resize(unsigned(r.activeConfig.maxExchange), 68)), PTP_TICK_PHASE_BITS_C);
-                     historyAge        := unsigned(r.historyTicks)-unsigned(r.historySampleTicks);
-                     if historyReadData = r.e2eDelay.generation and distance <= maximumSeparation and
-                        historyAge <= unsigned(r.activeConfig.associationTimeout) then
-                        -- Strict comparison retains the first physical slot on ties.
-                        if r.historyFound = '0' or distance < r.historyDistance then
-                           v.historyFound := '1';
-                           v.historyDistance := distance;
-                           v.historyBest := r.historyIndex;
-                        end if;
+                     if historyReadData = r.e2eDelay.generation then
+                        v.historyState := HISTORY_SCAN_S;
                      end if;
                   end if;
 
@@ -1269,7 +1446,23 @@ begin
                v.historyReadAddress := toSlv(HISTORY_WORDS_C*r.historyIndex+r.historyWord+1, HISTORY_ADDR_WIDTH_C);
                v.historyReadEnable := '1';
                v.historyState := HISTORY_READ_S;
-            elsif r.historyIndex = HISTORY_DEPTH_C-1 then
+            end if;
+
+         when HISTORY_SCAN_S =>
+
+            if r.scanState = SCAN_DONE_S and r.scanHistory = '1' then
+               if r.scanExpired = '0' and (r.historyFound = '0' or r.scanBetter = '1') then
+                  -- Strict comparison retains the first physical slot on ties.
+                  v.historyFound := '1';
+                  v.historyDistance := r.scanValue;
+                  v.historyBest := r.historyIndex;
+               end if;
+               v.historyState := HISTORY_NEXT_S;
+            end if;
+
+         when HISTORY_NEXT_S =>
+
+            if r.historyIndex = HISTORY_DEPTH_C-1 then
                v.historyState := HISTORY_SELECT_S;
             else
                v.historyIndex := r.historyIndex+1;
@@ -1322,7 +1515,7 @@ begin
                v.exchangeWord := 0;
             else
                v.e2eBusy := '0';
-               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+               rejectedEvents := rejectedEvents+1;
             end if;
 
       end case;
@@ -1384,33 +1577,43 @@ begin
                v.pairReadEnable := '1';
                v.pairState := PAIR_READ_S;
             else
-               if r.pairUsed(r.pairIndex) = '1' and
-                  unsigned(r.pairTicks)-unsigned(v.pairBorn) > unsigned(r.activeConfig.associationTimeout) then
-                  v.pairUsed(r.pairIndex) := '0';
+               v.pairState := PAIR_NEXT_S;
+               if r.pairUsed(r.pairIndex) = '1' then
+                  v.pairState := PAIR_SCAN_S;
                end if;
-               if v.pairUsed(r.pairIndex) = '0' then
-                  if r.pairFree = -1 then
-                     v.pairFree := r.pairIndex;
-                  end if;
+            end if;
+
+         when PAIR_SCAN_S =>
+
+            if r.scanState = SCAN_DONE_S and r.scanHistory = '0' then
+               if r.scanExpired = '1' then
+                  v.pairUsed(r.pairIndex) := '0';
                else
                   if r.pairKey = rxMessage.sequenceId then
                      v.pairMatch := r.pairIndex;
                   end if;
                   if r.pairComplete(r.pairIndex) = '1' and
-                     (r.pairOldest = -1 or unsigned(v.pairBorn) < unsigned(r.pairOldestBorn)) then
+                     (r.pairOldest = -1 or r.scanBetter = '1') then
                      v.pairOldest := r.pairIndex;
-                     v.pairOldestBorn := v.pairBorn;
+                     v.pairOldestBorn := r.pairBorn;
                   end if;
                end if;
-               if r.pairIndex = PAIR_DEPTH_C-1 then
-                  v.pairState := PAIR_SELECT_S;
-               else
-                  v.pairIndex := r.pairIndex+1;
-                  v.pairWord := 0;
-                  v.pairReadAddress := toSlv(PAIR_WORDS_C*(r.pairIndex+1), PAIR_ADDR_WIDTH_C);
-                  v.pairReadEnable := '1';
-                  v.pairState := PAIR_READ_S;
-               end if;
+               v.pairState := PAIR_NEXT_S;
+            end if;
+
+         when PAIR_NEXT_S =>
+
+            if r.pairUsed(r.pairIndex) = '0' and r.pairFree = -1 then
+               v.pairFree := r.pairIndex;
+            end if;
+            if r.pairIndex = PAIR_DEPTH_C-1 then
+               v.pairState := PAIR_SELECT_S;
+            else
+               v.pairIndex := r.pairIndex+1;
+               v.pairWord := 0;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*(r.pairIndex+1), PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_READ_S;
             end if;
 
          when PAIR_SELECT_S =>
@@ -1617,8 +1820,8 @@ begin
          v.responseValid := '1';
       end if;
 
-      if responseAccepted = '1' and abortPort = '0' and validLogInterval(r.responseLog) then
-         v.minimumInterval := intervalTicks(r.responseLog, r.activeConfig.delayInterval);
+      if responseAccepted = '1' and abortPort = '0' and responseInterval.valid then
+         v.minimumInterval := responseInterval.ticks;
       end if;
 
       -------------------------------------------------------------------------
@@ -1756,10 +1959,10 @@ begin
                            else
                               v.pairWriteFollow := '1';
                            end if;
-                           v.syncLimit := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
-                           if not validLogInterval(rxMessage.logInterval) and
+                           v.syncLimit := slv(rxReceiptLimit);
+                           if not rxInterval.valid and
                               rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
-                              v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                              rejectedEvents := rejectedEvents+1;
                            end if;
                         end if;
                      else
@@ -1795,11 +1998,10 @@ begin
                      v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
                      v.portStatus.announceFlags       := rxMessage.flags;
                      v.portStatus.utcOffset           := ptpUtcOffset(rxMessage);
-                     v.announceLimit                  := receiptTimeout(rxMessage.logInterval,
-                        slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64)));
-                     if not validLogInterval(rxMessage.logInterval) and
+                     v.announceLimit                  := slv(rxReceiptLimit);
+                     if not rxInterval.valid and
                         rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
-                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        rejectedEvents := rejectedEvents+1;
                      end if;
                   end if;
                when others =>
@@ -1810,7 +2012,7 @@ begin
       end if;
 
       if malformed then
-         v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+         rejectedEvents := rejectedEvents+1;
       end if;
 
       -------------------------------------------------------------------------
@@ -1826,7 +2028,7 @@ begin
                v.pairState := PAIR_IDLE_S;
                if r.pairPublish = '1' then
                   if unsigned(phcStatus.ticks)-unsigned(r.pendingSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
-                     v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                     rejectedEvents := rejectedEvents+1;
                   else
                      v.rateWord := 0;
                      v.rateStep := 0;
@@ -1969,7 +2171,7 @@ begin
                      if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' or
                         computeSlaves(PTP_COMPUTE_RATE_C).resultEqual = '1' or
                         unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks) then
-                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        rejectedEvents := rejectedEvents+1;
                         v.state := IDLE_S;
                      end if;
                   when 7 =>
@@ -1992,12 +2194,12 @@ begin
                      end if;
                   when 16 =>
                      if computeSlaves(PTP_COMPUTE_RATE_C).resultError = '1' then
-                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        rejectedEvents := rejectedEvents+1;
                         v.rateStep := 22;
                      end if;
                   when 17 | 18 =>
                      if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' then
-                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        rejectedEvents := rejectedEvents+1;
                         v.rateStep := 22;
                      elsif r.rateStep = 18 then
                         v.rateUpdated := '1';
@@ -2155,7 +2357,7 @@ begin
             v.measurementMaster.valid          := '1';
             v.portStatus.delayCount            := ptpSatInc(v.portStatus.delayCount);
          else
-            v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+            rejectedEvents := rejectedEvents+1;
          end if;
       end if;
 
@@ -2190,6 +2392,8 @@ begin
          v.pairReadEnable          := '0';
          v.pairWriteEnable         := '0';
          v.historyState            := HISTORY_IDLE_S;
+         v.scanState               := SCAN_IDLE_S;
+         v.scanTurn                := '1';
          v.normalizedValid         := '0';
          v.exchangeWriting := '0';
          v.announceWord := 0;
@@ -2232,6 +2436,15 @@ begin
       -------------------------------------------------------------------------
       -- Sample derived diagnostic summaries after all protocol updates and
       -- cancellation. Counters, metadata and exchange already live in portStatus.
+      -- Count every same-edge rejection with one full-width saturating add.
+      -- Logical cancellation preserves diagnostics; system reset below wins.
+      rejectedSum := resize(unsigned(r.portStatus.rejectedCount), rejectedSum'length) +
+                     to_unsigned(rejectedEvents, rejectedSum'length);
+      v.portStatus.rejectedCount := slv(rejectedSum(31 downto 0));
+      if rejectedSum(32) = '1' then
+         v.portStatus.rejectedCount := (others => '1');
+      end if;
+
       v.portStatus.ratioValid := '0';
 
       if v.ratioCount = RATIO_QUALIFY_COUNT_C and

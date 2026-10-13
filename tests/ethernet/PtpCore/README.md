@@ -94,6 +94,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Standalone shared word processor | `test_ptp_compute.py` block/distributed configurations. | Add rate/E2E and endpoint fixtures when production clients migrate; standalone arithmetic is not endpoint equivalence. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
@@ -166,11 +167,17 @@ reporting the previous full-suite result as validation of a later edit.
   exhaustion checks sequence collisions and stored identities across configuration
   changes. A duplicate arriving after scan start must retire the waiting sample
   before publication. Counter cases check swept timeout/rejection multiplicity and distinguish
-  logical/MAC reset from system reset.
+  logical/MAC reset from system reset. Age cases also check full-width unsigned
+  timestamps, response-before-wire and inclusive packet-lifetime boundaries.
   Ledger capacity and response acceptance now have between-edge stability
   checks; response completion must pulse for the submitted response.
 - `ptp_endpoint_reference.py`, `test_ptp_endpoint_reference.py`: rational
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
+- `rate_feedback_study.py`: deferred standalone integer exploration of residual and
+  phase/rate feedback estimators against the current ratio oracle. Run with
+  `python -m tests.ethernet.PtpCore.rate_feedback_study`; optional `--csv` saves
+  traces. This is not a production oracle or RTL regression. Assumptions and
+  results are in the [feedback study](../../../docs/plans/ethernet-ptp/lut-optimization.md#feedback-rate-estimator-study-october-13).
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
   Clock parameters cover 125 MHz, 156.25 MHz and a standalone 31.25 kHz
@@ -214,8 +221,17 @@ reporting the previous full-suite result as validation of a later edit.
   side of TX capture, wrapped-slot ties, RX/TX fractional phases, history age and
   separation rejection, concurrent append, cancellation throughout both scans,
   generation recovery, E2E publication during continuous rejected RX traffic
-  and pairing expiry at the scan-start boundary. Exact
-  public measurements and snapshots are checked independently of RAM contents.
+  and pairing expiry at the scan-start boundary. Concurrent RX/E2E rejection
+  must increment twice on one edge; restart/AXI reset retain counts and system
+  reset clears them. Word-arithmetic cases check Q3/tick carries, unsigned MSBs,
+  modulo age across tick wrap, inclusive separation above 64 Q3 bits, oldest-row
+  replacement, concurrent pair/history ownership and cancellation in ALU stages.
+  RAM enables are observed only to establish overlapping stimulus. Exact public
+  measurements and snapshots are checked independently of RAM contents.
+- `test_ptp_intervals.py`: all 256 Announce log-interval encodings with large
+  and small receipt caps, plus selected Sync boundaries at 125 MHz. Python integer
+  periods check inclusive deadlines, negative-exponent rounding, invalid fallback
+  and unspecified `0x7f` without rejection.
 - `test_ptp_port.py`: GMII/XGMII reordered/conflicting/foreign messages, bounded
   association replacement, timeout, grandmaster change and Announce metadata,
   plus one-step mode transitions and malformed/FCS-bad/truncated wire traffic.

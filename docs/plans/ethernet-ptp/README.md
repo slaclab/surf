@@ -17,6 +17,7 @@ acceptance remain open.
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
 | What did the compute/storage redesign implement? | [Implementation record and storage inventory](lut-implementation.md) |
 | Why this area architecture, and what savings are already measured? | [Architecture, planning allocations and earlier evidence](lut-optimization.md#proposed-architecture-for-substantial-lut-reduction) |
+| Which LUT optimizations should be explored next? | [Prioritized candidates and probe findings](lut-optimization.md#next-optimization-candidates) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
@@ -27,8 +28,20 @@ regression configurations across focused batches, including both PHYs and both
 receive modes in the endpoint and real-MAC lifecycle fixtures, and raw/normalized
 E2E calibration cases. See the
 [current implementation review](rtl-review.md#october-13-connected-compute-and-word-storage)
-for tool settings, reruns and evidence. Matched Vivado resource/timing evidence
-awaits the build host; hardware and standards acceptance remains separate.
+for tool settings, reruns and evidence. The first
+[Vivado 2025.2 screenshot](lut-optimization.md#october-13-connected-implementation-synthesis)
+for SURF `52dfa266f` shows 18,483 LUTs and 13,618 registers in the copper endpoint.
+Full reports, matched resource attribution and timing remain outstanding;
+hardware and standards acceptance remains separate.
+
+The subsequent [candidates 1–4 pass](rtl-review.md#october-13-optimization-candidates-1-4)
+consolidates rejection counting, selects six deeper block-RAM stores, shares
+ledger age arithmetic and replaces runtime interval shifts with constants.
+That pass is committed as `0d27ddbba`; all 20 focused final configurations pass.
+The subsequent [protocol scan follow-up](rtl-review.md#october-13-protocol-scan-word-arithmetic)
+shares a word ALU across pair/history checks with bounded arbitration and
+cancellation; all nine selected configurations pass. These changes are separate from the screenshot above; focused
+results and remaining build-host measurement are tracked in the review records.
 
 **The maintainer authorized resuming behavioral verification on October 9,
 2026.** The prior simulation/pytest pause is lifted. The resumed run and its
@@ -90,8 +103,10 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   [protocol table report](lut-optimization.md#october-12-protocol-table-conversion)
   and [arithmetic report comparison](lut-optimization.md#october-12-arithmetic-synthesis-comparison),
   describes the prior architecture. Those figures are not measurements of the
-  connected word-storage implementation. A matched Vivado comparison and timing
-  qualification remain outstanding.
+  connected word-storage implementation. Its first
+  [October 13 synthesis result](lut-optimization.md#october-13-connected-implementation-synthesis)
+  is now recorded separately; matched attribution and timing qualification remain
+  outstanding.
 
 ## PHY composition implementation
 
@@ -137,6 +152,9 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
    report the measured result with complete lane accounting. The working Sync
    envelope is 10 Hz, initially encoded at 8 Hz. Shared Ethernet MAC/checksum
    changes remain deferred.
+   The [feedback rate-estimator study](lut-optimization.md#feedback-rate-estimator-study-october-13)
+   is also deferred: LUT savings are unproven, while convergence, filtering and
+   rate qualification would change. Retain the current quotient-based estimator.
    Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.

@@ -29,7 +29,9 @@ entity PtpPublicationBank is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false;
-      RECORD_WORDS_G : IntegerArray);
+      RECORD_WORDS_G : IntegerArray;
+      -- One-cycle inferred RAM; supported values: "distributed" or "block".
+      MEMORY_TYPE_G  : string := "distributed");
    port (
       clk         : in sl;
       rst         : in sl;
@@ -110,6 +112,9 @@ architecture rtl of PtpPublicationBank is
 
 begin
 
+   assert MEMORY_TYPE_G = "distributed" or MEMORY_TYPE_G = "block"
+      report "Invalid PTP bank memory type" severity failure;
+
    assert RECORD_WORDS_G'low = 0 and RECORD_WORDS_G'length <= 16 and WORDS_C <= 256
       report "Invalid PTP publication layout" severity failure;
 
@@ -123,7 +128,7 @@ begin
          BYTE_WIDTH_G   => 32,
          ADDR_WIDTH_G   => ADDR_BITS_C,
          COMMON_CLK_G   => true,
-         MEMORY_TYPE_G  => "distributed",
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
          READ_LATENCY_G => 1)
       port map (
          clka  => clk,

@@ -14,7 +14,8 @@
 #   simultaneous inputs, stalls, raw-time expiry, duplicate/mutated records,
 #   logical restart and physical/system reset at every scan phase.
 # - Checks: Exact capture/response provenance, registered controls, bounded
-#   handshakes, single-count retirement, unresolved ownership and safe reuse.
+#   handshakes, single-count retirement, unresolved ownership and safe reuse;
+#   unsigned age/chronology across 32-/63-bit boundaries and lifetime endpoints.
 # - Timing: Manually driven 6.4 ns clock, checks after TPD. RAM rows are visited
 #   every two clocks; one scan is 45*depth+2 clocks. Event sources hold their
 #   complete records through ready. Raw time jumps accelerate quarantine only.
@@ -447,6 +448,35 @@ def test_ptp_tx_ledger():
                       extra_env=cocotb_filtered_env({}, cocotb_test_filter('lifecycle')))
 
 
+@cocotb.test()
+async def age_boundaries(d):
+    for base in ((1 << 32)-20000, 1 << 63, (1 << 64)-100000):
+        for delta in (-1, 0, 10000, 10001):
+            tb = LedgerBench(d)
+            await tb.start()
+            tb.now = base
+            await tb.mac_reset()
+            seq = await tb.allocate()
+            tick = tb.now
+            before = int(d.rejectedCount.value)
+            assert await tb.submit(wire=dict(wireSequence=seq, wireTicks=tick),
+                                   response=dict(responseSequence=seq, responseTicks=tick+delta))
+            await tb.idle()
+            valid = 0 <= delta <= tb.lifetime
+            assert bool(int(d.sampleValid.value)) == valid, (base, delta)
+            assert int(d.rejectedCount.value) == before+int(not valid), (base, delta)
+            if valid:
+                assert int(d.sampleTicks.value) == tick
+                assert int(d.sampleResponseTicks.value) == tick+delta
+            # A scan after the packet-age deadline reclaims the retired key.
+            # The response-before-wire case above must reject unsigned underflow.
+            await tb.edge(sampleReady=1)
+            await tb.edge(sampleReady=0)
+            tb.now = tick+tb.lifetime+1
+            await tb.idle()
+            assert tb.occupancy() == (0, 0)
+
+
 @pytest.mark.parametrize('depth', [1, 4], ids=['one', 'four'])
 def test_ptp_tx_ledger_counters(depth):
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3}
@@ -484,3 +514,10 @@ def test_ptp_tx_ledger_deferred_duplicate():
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('deferred_duplicate')))
+
+
+@pytest.mark.parametrize('memory_type', ['distributed', 'block'])
+def test_ptp_tx_ledger_age(memory_type):
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 1, 'SEQUENCE_BITS_G': 3, 'MEMORY_TYPE_G': memory_type}
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+                      extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('age_boundaries')))
