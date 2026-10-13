@@ -223,8 +223,11 @@ reporting the previous full-suite result as validation of a later edit.
   generation recovery, E2E publication during continuous rejected RX traffic
   and pairing expiry at the scan-start boundary. Concurrent RX/E2E rejection
   must increment twice on one edge; restart/AXI reset retain counts and system
-  reset clears them. Exact
-  public measurements and snapshots are checked independently of RAM contents.
+  reset clears them. Word-arithmetic cases check Q3/tick carries, unsigned MSBs,
+  modulo age across tick wrap, inclusive separation above 64 Q3 bits, oldest-row
+  replacement, concurrent pair/history ownership and cancellation in ALU stages.
+  RAM enables are observed only to establish overlapping stimulus. Exact public
+  measurements and snapshots are checked independently of RAM contents.
 - `test_ptp_intervals.py`: all 256 Announce log-interval encodings with large
   and small receipt caps, plus selected Sync boundaries at 125 MHz. Python integer
   periods check inclusive deadlines, negative-exponent rounding, invalid fallback

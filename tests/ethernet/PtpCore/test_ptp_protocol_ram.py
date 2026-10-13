@@ -16,9 +16,11 @@
 #   snapshots and 150 ns forward / 100.25 ns delay; no stale publication after
 #   abort; acknowledgement only after search and whole-row replacement;
 #   completed E2E publication cannot be starved by continuous rejected traffic;
-#   concurrent RX/E2E rejections count twice and only system reset clears them.
+#   concurrent RX/E2E rejections count twice and only system reset clears them;
+#   word carries/borrows, modulo age, strict ties, and inclusive distance limits;
+#   overlapping pair/history scans preserve both owners and bounded progress.
 # - Timing: Raw ticks advance between events while ordinary pipeline clocks
-#   continue. Internal ledger ready is observed only to target cancellation and
+#   continue. Internal ledger ready and RAM enable target cancellation and
 #   concurrent traffic at lookup admission; payload/result oracles use public
 #   interfaces. No alternate RTL, physical timing or resource-use claim.
 
@@ -36,36 +38,45 @@ from tests.ethernet.PtpCore.test_ptp_port_samples import Bench, NS, capture_time
 
 
 @asynccontextmanager
-async def history_bench(d, *, timeout=None, maximum=None, path_limit=None):
+async def history_bench(d, *, timeout=None, maximum=None, path_limit=None, first_tick=None, long_timers=False):
     b = ExchangeBench(d)
     d.capturePhase.value = 0
     d.wirePhase.value = 0
     try:
         await b.setup()
-        if timeout is not None or maximum is not None or path_limit is not None:
+        if timeout is not None or maximum is not None or path_limit is not None or long_timers:
             if timeout is not None:
                 await b.write(0x090, timeout)
             if maximum is not None:
                 await b.write(0x098, maximum)
             if path_limit is not None:
                 await b.write(0x0B8, path_limit)
+            if long_timers:
+                await b.write(0x088, (1 << 62)-1)
+                await b.write(0x0A8, (1 << 62)-1)
             d.prepare.value = 1
             await b.wait()
             d.prepare.value = 0
             await b.wait_config()
             assert int(d.configValid.value)
             await b.pulse('applyConfig')
-        await b.qualify()
+        if first_tick is None:
+            await b.qualify()
+        else:
+            for seq in range(3):
+                await b.sync(seq, first_tick+seq*125000000)
+            assert b.payload()[4:] == (8 << 48, 1)
+            assert b.counts() == (3, 0)
         yield b
     finally:
         if b.clock is not None:
             await cancel_and_join_tasks([b.clock])
 
 
-async def phase_sync(b, seq, ticks, phase=0):
+async def phase_sync(b, seq, ticks, phase=0, interval=None):
     b.d.capturePhase.value = phase
     remote = ticks*8+phase-101
-    await b.packet(master_frame(0, seq, remote, 49152, minor=b.minor, two_step=False),
+    await b.packet(master_frame(0, seq, remote, 49152, minor=b.minor, two_step=False, interval=interval),
                    ticks=ticks, local=(ticks*8+phase)*Q16+3260416)
     await b.result(seq, 150*Q16, ticks)
     await b.drain()
@@ -159,9 +170,13 @@ async def history_selection(d):
 
 @cocotb.test(timeout_time=5, timeout_unit='ms')
 async def history_cancellation(d):
-    # Admission, all four read/check pairs, and the final publication boundary.
-    for phase in range(9):
+    # Initial reads, shared-ALU admission/word boundaries, ABS and retirement.
+    # Wrap the ring for ALU cases so its first physical row lies after TX.
+    for phase in (*range(9), 9, 11, 13, 16, 19, 22, 25):
         async with history_bench(d) as b:
+            if phase >= 9:
+                await phase_sync(b, 3, b.last_sync_tick+200)
+                await phase_sync(b, 4, b.last_sync_tick+300)
             request = await b.request()
             tick = b.last_sync_tick+100
             await b.wire(request, tick)
@@ -315,9 +330,137 @@ async def pair_cancellation_and_expiry(d):
         await cancel_and_join_tasks(tasks)
 
 
+@cocotb.test(timeout_time=5, timeout_unit='ms')
+async def scan_word_boundaries(d):
+    # Borrow across Q3 word 0, tick word 0 and the unsigned timestamp MSB.
+    # Physical slot 0 is one eighth-tick after TX, slot 3 one eighth before:
+    # the tie must select slot 0 even though its signed difference is negative.
+    for base in ((1 << 29)-100, (1 << 32)-100, (1 << 63)-100, (1 << 64)-1000):
+        async with history_bench(d, maximum=1, first_tick=base-250000000) as b:
+            await phase_sync(b, 3, base+99, 7)
+            await phase_sync(b, 4, base+100, 1)
+            request = await b.request()
+            await b.wire(request, base+100)
+            await b.packet(b.response(request, base+100), ticks=b.now+10)
+            await selected_exchange(b, request, (4, base+100, 1), base+100)
+
+    # Keep a very old qualified history under explicitly enlarged timers. This
+    # exercises the high Q3 word and an exact maximum-separation boundary; the
+    # TX completion itself is current and within the normal ledger lifetime.
+    separation = 1 << 61
+    for extra in (0, 1):
+        async with history_bench(d, timeout=(1 << 62)-1, maximum=separation, long_timers=True) as b:
+            tick = b.last_sync_tick+100
+            await phase_sync(b, 3, tick, interval=127)
+            request = await b.request()
+            wire_tick = tick+separation+extra
+            await b.wire(request, wire_tick)
+            await b.packet(b.response(request, wire_tick), ticks=b.now+10)
+            before = b.counts()
+            if extra:
+                await b.no_delay()
+                assert b.counts() == (before[0], before[1]+1)
+            else:
+                await selected_exchange(b, request, (3, tick, 0), wire_tick)
+
+
+@cocotb.test(timeout_time=5, timeout_unit='ms')
+async def pair_word_boundaries(d):
+    b = Bench(d)
+    d.capturePhase.value = 0
+    d.wirePhase.value = 0
+    try:
+        await b.start()
+        for base in ((1 << 32)-100, (1 << 63)-100, (1 << 64)-100):
+            await b.pulse('restart')
+            b.now = base
+            d.ticks.value = b.now
+            await b.send(8, 200, NS)
+            born = b.now
+            # The third case crosses tick wrap. Ages remain modulo 64, whereas
+            # oldest-row ordering is the existing ordinary unsigned ordering.
+            b.now = (born+MIN_ASSOCIATION_TICKS-10) % (1 << 64)
+            before = b.counts()
+            await b.send(0, 200, NS)
+            await b.no_result()
+            assert b.counts() == (before[0], before[1]+1)
+            await b.send(0, 200, NS)
+            await b.result(200, 123*Q16+7)
+            await b.drain()
+
+        # Fill complete rows across a 32-bit carry, then require the oldest
+        # complete row to be reclaimed, preserving all three newer keys.
+        await b.pulse('restart')
+        b.now = (1 << 32)-25
+        d.ticks.value = b.now
+        for seq in range(4):
+            await b.send(0, seq, NS+80*seq)
+            await b.result(seq, 123*Q16+7)
+            await b.drain()
+        await b.send(0, 4, NS+320)
+        await b.result(4, 123*Q16+7)
+        await b.drain()
+        for seq in (1, 2, 3, 4):
+            before = b.counts()
+            await b.send(0, seq, NS+80*seq)
+            await b.no_result()
+            assert b.counts() == (before[0], before[1]+1)
+        await b.send(0, 0, NS+400)
+        await b.result(0, 123*Q16+7)
+        await b.drain()
+    finally:
+        await cancel_and_join_tasks([b.clock])
+
+
+@cocotb.test(timeout_time=5, timeout_unit='ms')
+async def scan_overlap(d):
+    for cancel in (False, True):
+        async with history_bench(d) as b:
+            request = await b.request()
+            tick = b.last_sync_tick+100
+            await b.wire(request, tick)
+            await b.packet(b.response(request, tick), ticks=b.now+10)
+            # Start a pair lookup before the ledger publishes its joined sample.
+            # Observe read enables only to prove that this stimulus exercised two
+            # admitted scans; expected results still come from public interfaces.
+            remote = b.now*8+1000
+            pending = cocotb.start_soon(b.send(8, 123, remote))
+            seen_pair_read = False
+            try:
+                for _ in range(2*(4*45+22+8)):
+                    await RisingEdge(d.clk)
+                    admitted = int(d.u_dut.delayready.value)
+                    seen_pair_read |= bool(int(d.u_dut.u_pairram.enb.value))
+                    await Timer(1.1, unit='ns')
+                    if admitted:
+                        assert seen_pair_read and not pending.done(), 'fixture missed concurrent scans'
+                        break
+                else:
+                    assert False, 'history did not enter during pair scan'
+                if cancel:
+                    await b.wait(10)
+                    assert not pending.done(), 'pair finished before the overlap cancellation'
+                    await cancel_and_join_tasks([pending])
+                    d.rxValid.value = 0
+                    await b.pulse('restart')
+                    await b.no_delay()
+                else:
+                    await pending
+            finally:
+                await cancel_and_join_tasks([pending])
+            if not cancel:
+                await selected_exchange(b, request, (2, b.last_sync_tick, 0), tick)
+            # Normal completion retains Follow_Up. Restart clears it, allowing a
+            # fresh one-step Sync with the same key instead of a mode conflict.
+            await b.send(0, 123, remote, two_step=not cancel)
+            await b.result(123, 123*Q16+7)
+            await b.drain()
+
+
 @pytest.mark.parametrize('memory', ['distributed', 'block'])
 @pytest.mark.parametrize('scenario', ['history_selection', 'history_cancellation', 'history_publication_priority',
-                                    'pair_cancellation_and_expiry', 'concurrent_rejections'])
+                                    'pair_cancellation_and_expiry', 'concurrent_rejections',
+                                    'scan_word_boundaries', 'pair_word_boundaries', 'scan_overlap'])
 def test_protocol_ram(memory, scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',

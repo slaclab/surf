@@ -11,7 +11,8 @@
 -- receipt timers qualify the current source session.
 -- Both four-row payload tables use synchronous SURF RAM. Pairing holds the
 -- RX producer through a serial lookup; history reserves E2E capacity and blocks
--- appends through a nearest-sample scan. Reset/abort clears ownership, not RAM.
+-- appends through a nearest-sample scan. A shared 32-bit word ALU arbitrates
+-- age, distance and ordering checks per row. Reset/abort clears ownership, not RAM.
 --
 -- Estimates master time per raw local cycle from corrected Sync intervals,
 -- independently of PHC validity or steering. Qualified intervals establish and
@@ -400,6 +401,8 @@ architecture rtl of PtpProtocolEngine is
       PAIR_IDLE_S,
       PAIR_READ_S,
       PAIR_CHECK_S,
+      PAIR_SCAN_S,
+      PAIR_NEXT_S,
       PAIR_SELECT_S,
       PAIR_COMPARE_READ_S,
       PAIR_COMPARE_S,
@@ -414,10 +417,24 @@ architecture rtl of PtpProtocolEngine is
       HISTORY_IDLE_S,
       HISTORY_READ_S,
       HISTORY_CHECK_S,
+      HISTORY_SCAN_S,
+      HISTORY_NEXT_S,
       HISTORY_SELECT_S,
       HISTORY_FETCH_S,
       HISTORY_CAPTURE_S,
       HISTORY_DONE_S);
+
+   -- Pair and history scans may overlap. One row owns the word ALU until
+   -- DONE; round-robin arbitration bounds either wait by one competing row.
+   type ScanStateType is (
+      SCAN_IDLE_S,
+      SCAN_AGE_S,
+      SCAN_AGE_LIMIT_S,
+      SCAN_DISTANCE_S,
+      SCAN_ABS_S,
+      SCAN_LIMIT_S,
+      SCAN_BEST_S,
+      SCAN_DONE_S);
 
    type StateType is (
       IDLE_S,
@@ -478,7 +495,7 @@ architecture rtl of PtpProtocolEngine is
       historyTicks        : slv(63 downto 0);
       historyFound        : sl;
       historyQualified    : sl;
-      historyDistance     : signed(67 downto 0);
+      historyDistance     : slv(67 downto 0);
       historyReadEnable   : sl;
       historyReadAddress  : slv(HISTORY_ADDR_WIDTH_C-1 downto 0);
       historyWriteEnable  : sl;
@@ -486,6 +503,17 @@ architecture rtl of PtpProtocolEngine is
       historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
       historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
       generation          : slv(31 downto 0);
+      -- Shared scan scratch, never a second copy of a table row. Clients hold
+      -- their captured row and admission ticks until the matching DONE edge.
+      scanState   : ScanStateType;
+      scanHistory : sl;
+      scanTurn    : sl;
+      scanWord    : natural range 0 to 2;
+      scanValue   : slv(67 downto 0);
+      scanCarry   : sl;
+      scanZero    : sl;
+      scanExpired : sl;
+      scanBetter  : sl;
       -- Per-clock receipt policy and rate qualification remain local.
       syncLimit     : slv(63 downto 0);
       announceLimit : slv(63 downto 0);
@@ -598,6 +626,15 @@ architecture rtl of PtpProtocolEngine is
       historyFound        => '0',
       historyQualified    => '0',
       historyDistance     => (others => '0'),
+      scanState           => SCAN_IDLE_S,
+      scanHistory         => '0',
+      scanTurn            => '1',
+      scanWord            => 0,
+      scanValue           => (others => '0'),
+      scanCarry           => '1',
+      scanZero            => '1',
+      scanExpired         => '0',
+      scanBetter          => '0',
       historyReadEnable   => '0',
       historyReadAddress  => (others => '0'),
       historyWriteEnable  => '0',
@@ -1035,18 +1072,22 @@ begin
       variable responseInterval : IntervalType;
       variable rxReceiptLimit   : unsigned(63 downto 0);
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
-      variable slot              : integer range -1 to PAIR_DEPTH_C-1;
-      variable pair              : PairType;
-      variable pairUpdated       : boolean;
-      variable distance          : signed(67 downto 0);
-      variable maximumSeparation : signed(67 downto 0);
-      variable historyAge        : unsigned(63 downto 0);
-      variable rateData          : slv(127 downto 0);
-      variable rateJob           : PtpComputeJobType;
-      variable rateAddress       : natural range 0 to 63;
-      variable pairWord          : slv(31 downto 0);
-      variable remoteTime        : slv(95 downto 0);
-      variable inputSample       : PtpSyncSampleType;
+      variable slot        : integer range -1 to PAIR_DEPTH_C-1;
+      variable pair        : PairType;
+      variable pairUpdated : boolean;
+      variable scanA       : slv(95 downto 0);
+      variable scanB       : slv(95 downto 0);
+      variable scanLeft    : unsigned(31 downto 0);
+      variable scanRight   : unsigned(31 downto 0);
+      variable scanCarryIn : unsigned(32 downto 0);
+      variable scanAlu     : unsigned(32 downto 0);
+      variable scanLast    : natural range 1 to 2;
+      variable rateData    : slv(127 downto 0);
+      variable rateJob     : PtpComputeJobType;
+      variable rateAddress : natural range 0 to 63;
+      variable pairWord    : slv(31 downto 0);
+      variable remoteTime  : slv(95 downto 0);
+      variable inputSample : PtpSyncSampleType;
    begin
       v := r;
       rejectedEvents := 0;
@@ -1224,6 +1265,131 @@ begin
       end if;
 
       -------------------------------------------------------------------------
+      -- Shared 32-bit scan arithmetic. Subtraction uses complemented B and
+      -- carry=1; carry out is inverse borrow. Age discards the final borrow
+      -- (modulo 64), while Q3 distance keeps all 68 signed bits before ABS.
+      -------------------------------------------------------------------------
+      scanA := (others => '0');
+      scanB := (others => '0');
+      scanLast := 1;
+      case r.scanState is
+         when SCAN_AGE_S =>
+            scanA(63 downto 0) := r.pairTicks;
+            scanB(63 downto 0) := r.pairBorn;
+            if r.scanHistory = '1' then
+               scanA(63 downto 0) := r.historyTicks;
+               scanB(63 downto 0) := r.historySampleTicks;
+            end if;
+         when SCAN_AGE_LIMIT_S =>
+            scanA(63 downto 0) := r.scanValue(63 downto 0);
+            scanB(63 downto 0) := r.activeConfig.associationTimeout;
+         when SCAN_DISTANCE_S =>
+            scanA(66 downto 0) := r.e2eDelay.capture.ticks & r.e2eDelay.capture.tickPhase;
+            scanB(66 downto 0) := r.historySampleTicks & r.historyPhase;
+            scanLast := 2;
+         when SCAN_ABS_S =>
+            scanB(67 downto 0) := r.scanValue;
+            scanLast := 2;
+         when SCAN_LIMIT_S =>
+            scanA(67 downto 0) := r.scanValue;
+            scanB(66 downto 0) := r.activeConfig.maxExchange & toSlv(0,PTP_TICK_PHASE_BITS_C);
+            scanLast := 2;
+         when SCAN_BEST_S =>
+            scanA(63 downto 0) := r.pairBorn;
+            scanB(63 downto 0) := r.pairOldestBorn;
+            if r.scanHistory = '1' then
+               scanA(67 downto 0) := r.scanValue;
+               scanB(67 downto 0) := r.historyDistance;
+               scanLast := 2;
+            end if;
+         when others =>
+            null;
+      end case;
+
+      -- Static word slices avoid a variable shift. There is one word ALU for
+      -- subtraction, negation and comparison across both table owners.
+      scanLeft := (others => '0');
+      scanRight := (others => '0');
+      for i in 0 to 2 loop
+         if r.scanWord = i then
+            scanLeft := unsigned(scanA(32*i+31 downto 32*i));
+            scanRight := unsigned(scanB(32*i+31 downto 32*i));
+         end if;
+      end loop;
+      scanCarryIn := (others => '0');
+      scanCarryIn(0) := r.scanCarry;
+      scanAlu := ('0' & scanLeft) + ('0' & not scanRight) + scanCarryIn;
+
+      case r.scanState is
+         when SCAN_IDLE_S =>
+
+            if r.pairState = PAIR_SCAN_S or r.historyState = HISTORY_SCAN_S then
+               v.scanHistory := '0';
+               if r.historyState = HISTORY_SCAN_S and
+                  (r.pairState /= PAIR_SCAN_S or r.scanTurn = '1') then
+                  v.scanHistory := '1';
+               end if;
+               v.scanTurn := not v.scanHistory;
+               v.scanState := SCAN_AGE_S;
+               v.scanWord := 0;
+               v.scanCarry := '1';
+               v.scanZero := '1';
+               v.scanValue := (others => '0');
+               v.scanExpired := '0';
+            end if;
+
+         when SCAN_DONE_S =>
+            v.scanState := SCAN_IDLE_S;
+
+         when others =>
+            v.scanCarry := scanAlu(32);
+            v.scanZero := r.scanZero and toSl(scanAlu(31 downto 0) = 0);
+            if r.scanState = SCAN_AGE_S or r.scanState = SCAN_DISTANCE_S or r.scanState = SCAN_ABS_S then
+               case r.scanWord is
+                  when 0 =>
+                     v.scanValue(31 downto 0) := slv(scanAlu(31 downto 0));
+                  when 1 =>
+                     v.scanValue(63 downto 32) := slv(scanAlu(31 downto 0));
+                  when 2 =>
+                     v.scanValue(67 downto 64) := slv(scanAlu(3 downto 0));
+               end case;
+            end if;
+
+            if r.scanWord /= scanLast then
+               v.scanWord := r.scanWord+1;
+            else
+               case r.scanState is
+                  when SCAN_AGE_S =>
+                     v.scanState := SCAN_AGE_LIMIT_S;
+                  when SCAN_AGE_LIMIT_S =>
+                     v.scanExpired := scanAlu(32) and not v.scanZero;
+                     v.scanState := SCAN_BEST_S;
+                     if r.scanHistory = '1' then
+                        v.scanState := SCAN_DISTANCE_S;
+                     end if;
+                  when SCAN_DISTANCE_S =>
+                     v.scanState := SCAN_LIMIT_S;
+                     if scanAlu(32) = '0' then
+                        v.scanState := SCAN_ABS_S;
+                     end if;
+                  when SCAN_ABS_S =>
+                     v.scanState := SCAN_LIMIT_S;
+                  when SCAN_LIMIT_S =>
+                     v.scanExpired := r.scanExpired or (scanAlu(32) and not v.scanZero);
+                     v.scanState := SCAN_BEST_S;
+                  when SCAN_BEST_S =>
+                     v.scanBetter := not scanAlu(32);
+                     v.scanState := SCAN_DONE_S;
+                  when others =>
+                     null;
+               end case;
+               v.scanWord := 0;
+               v.scanCarry := '1';
+               v.scanZero := '1';
+            end if;
+      end case;
+
+      -------------------------------------------------------------------------
       -- History lookup owns a stable table and admission-time arithmetic inputs.
       -------------------------------------------------------------------------
       -- Appends reuse the rate producer's held sample. A lookup pins the
@@ -1265,19 +1431,11 @@ begin
                when 2 =>
                   v.historyPhase := historyReadData(PTP_TICK_PHASE_BITS_C-1 downto 0);
                when others =>
+                  v.historyState := HISTORY_NEXT_S;
 
                   if r.historyValid(r.historyIndex) = '1' then
-                     distance          := abs(resize(ptpTickPhase(r.e2eDelay.capture),68)-signed(resize(unsigned(slv'(r.historySampleTicks & r.historyPhase)), 68)));
-                     maximumSeparation := shift_left(signed(resize(unsigned(r.activeConfig.maxExchange), 68)), PTP_TICK_PHASE_BITS_C);
-                     historyAge        := unsigned(r.historyTicks)-unsigned(r.historySampleTicks);
-                     if historyReadData = r.e2eDelay.generation and distance <= maximumSeparation and
-                        historyAge <= unsigned(r.activeConfig.associationTimeout) then
-                        -- Strict comparison retains the first physical slot on ties.
-                        if r.historyFound = '0' or distance < r.historyDistance then
-                           v.historyFound := '1';
-                           v.historyDistance := distance;
-                           v.historyBest := r.historyIndex;
-                        end if;
+                     if historyReadData = r.e2eDelay.generation then
+                        v.historyState := HISTORY_SCAN_S;
                      end if;
                   end if;
 
@@ -1288,7 +1446,23 @@ begin
                v.historyReadAddress := toSlv(HISTORY_WORDS_C*r.historyIndex+r.historyWord+1, HISTORY_ADDR_WIDTH_C);
                v.historyReadEnable := '1';
                v.historyState := HISTORY_READ_S;
-            elsif r.historyIndex = HISTORY_DEPTH_C-1 then
+            end if;
+
+         when HISTORY_SCAN_S =>
+
+            if r.scanState = SCAN_DONE_S and r.scanHistory = '1' then
+               if r.scanExpired = '0' and (r.historyFound = '0' or r.scanBetter = '1') then
+                  -- Strict comparison retains the first physical slot on ties.
+                  v.historyFound := '1';
+                  v.historyDistance := r.scanValue;
+                  v.historyBest := r.historyIndex;
+               end if;
+               v.historyState := HISTORY_NEXT_S;
+            end if;
+
+         when HISTORY_NEXT_S =>
+
+            if r.historyIndex = HISTORY_DEPTH_C-1 then
                v.historyState := HISTORY_SELECT_S;
             else
                v.historyIndex := r.historyIndex+1;
@@ -1403,33 +1577,43 @@ begin
                v.pairReadEnable := '1';
                v.pairState := PAIR_READ_S;
             else
-               if r.pairUsed(r.pairIndex) = '1' and
-                  unsigned(r.pairTicks)-unsigned(v.pairBorn) > unsigned(r.activeConfig.associationTimeout) then
-                  v.pairUsed(r.pairIndex) := '0';
+               v.pairState := PAIR_NEXT_S;
+               if r.pairUsed(r.pairIndex) = '1' then
+                  v.pairState := PAIR_SCAN_S;
                end if;
-               if v.pairUsed(r.pairIndex) = '0' then
-                  if r.pairFree = -1 then
-                     v.pairFree := r.pairIndex;
-                  end if;
+            end if;
+
+         when PAIR_SCAN_S =>
+
+            if r.scanState = SCAN_DONE_S and r.scanHistory = '0' then
+               if r.scanExpired = '1' then
+                  v.pairUsed(r.pairIndex) := '0';
                else
                   if r.pairKey = rxMessage.sequenceId then
                      v.pairMatch := r.pairIndex;
                   end if;
                   if r.pairComplete(r.pairIndex) = '1' and
-                     (r.pairOldest = -1 or unsigned(v.pairBorn) < unsigned(r.pairOldestBorn)) then
+                     (r.pairOldest = -1 or r.scanBetter = '1') then
                      v.pairOldest := r.pairIndex;
-                     v.pairOldestBorn := v.pairBorn;
+                     v.pairOldestBorn := r.pairBorn;
                   end if;
                end if;
-               if r.pairIndex = PAIR_DEPTH_C-1 then
-                  v.pairState := PAIR_SELECT_S;
-               else
-                  v.pairIndex := r.pairIndex+1;
-                  v.pairWord := 0;
-                  v.pairReadAddress := toSlv(PAIR_WORDS_C*(r.pairIndex+1), PAIR_ADDR_WIDTH_C);
-                  v.pairReadEnable := '1';
-                  v.pairState := PAIR_READ_S;
-               end if;
+               v.pairState := PAIR_NEXT_S;
+            end if;
+
+         when PAIR_NEXT_S =>
+
+            if r.pairUsed(r.pairIndex) = '0' and r.pairFree = -1 then
+               v.pairFree := r.pairIndex;
+            end if;
+            if r.pairIndex = PAIR_DEPTH_C-1 then
+               v.pairState := PAIR_SELECT_S;
+            else
+               v.pairIndex := r.pairIndex+1;
+               v.pairWord := 0;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*(r.pairIndex+1), PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_READ_S;
             end if;
 
          when PAIR_SELECT_S =>
@@ -2208,6 +2392,8 @@ begin
          v.pairReadEnable          := '0';
          v.pairWriteEnable         := '0';
          v.historyState            := HISTORY_IDLE_S;
+         v.scanState               := SCAN_IDLE_S;
+         v.scanTurn                := '1';
          v.normalizedValid         := '0';
          v.exchangeWriting := '0';
          v.announceWord := 0;

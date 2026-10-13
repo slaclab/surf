@@ -44,6 +44,9 @@ insertion remains outside scope.
   values. Ledger entries use 22x32 words. These three stores default to block RAM.
   Scans retain only selected fields,
   ages and ownership; complete rows are never copied into scan registers.
+  Pair/history age, Q3 distance and ordering share a 32-bit word ALU with
+  round-robin row arbitration and admission-time ticks. Cancellation invalidates
+  the active job immediately; table reads keep their one-cycle RAM interface.
 - One endpoint-owned `PtpCompute` serves rate, E2E, servo and PHC preparation.
   Persistent addressed workspaces chain results through a 32-bit ALU,
   partial-product multiplier and exact iterative divider. Separate held

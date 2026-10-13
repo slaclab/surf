@@ -218,9 +218,19 @@ parent's transaction and excludes results.
 The ledger shares one widened subtract/compare across its mutually exclusive
 association-age, response-chronology and wire-age checks. Modulo-64 age handling
 and the response's nonnegative chronology check remain distinct; every check
-uses the same edge as before. Protocol pair/history scans remain independent
-and can overlap after pair admission. No extra scan stages or shared-compute jobs
-are introduced by the [candidate pass](lut-optimization.md#october-13-candidate-implementation).
+uses the same edge as before. Its live expiry checks remain local and are not
+serialized across clocks.
+
+Protocol pair/history scans can overlap after pair admission. Their row checks
+share a separate 32-bit word ALU with round-robin arbitration at row boundaries.
+Each client holds its row fields and admission-time ticks through the matching
+DONE edge. Age subtraction discards the final borrow (modulo 64); history Q3
+distance retains all 68 signed bits before optional word-wise negation. Limit
+comparisons are inclusive, while best/oldest comparisons are strict to retain
+the first physical slot on ties. Invalid rows skip the ALU. Cancellation clears
+both clients and ALU ownership on the same edge, with final priority over DONE;
+stale scratch cannot publish after a restart. There are no additional
+`PtpCompute` jobs. See the [implementation record](lut-optimization.md#protocol-scan-word-arithmetic).
 
 ## Configuration and snapshots
 
@@ -312,6 +322,20 @@ floor is **70,347,776 raw ticks**:
 ```text
 (4*608 + 4*192 + 608)*18,464 + 9*4,096 = 70,347,776
 ```
+
+The protocol scan ALU adds bounded local work within that allowance. A pair row
+uses 2 age, 2 limit and 2 oldest-comparison clocks plus grant and DONE: **8**.
+A history row uses 2 age, 2 age-limit, 3 distance, at most 3 negation, 3
+separation-limit and 3 nearest-comparison clocks plus grant and DONE: **18**.
+Only two owners exist, so an eligible row waits for at most one competing row;
+its combined wait/service fits **26 clocks**. Four rows plus RAM reads and row
+advances take at most `4*(6+26+1)=132` pairing clocks or
+`4*(8+26+1)=140` history clocks. Allow **256 local clocks per table transaction**
+including pair duplicate reads/update/publication or the history fetch. Any
+normalized-history transfer stalls are charged to E2E's existing shared-compute
+quanta above. These local costs fit the existing 4,096-clock reserve; the floor
+and register ABI are unchanged. This is a source-derived ceiling, not a measured
+latency or timing-closure result.
 
 `MinimumAssociationTicks` advertises this floor at protocol offset 0x0F8;
 validation rejects smaller candidates. The two-second default remains valid at

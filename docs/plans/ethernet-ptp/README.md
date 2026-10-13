@@ -37,9 +37,11 @@ hardware and standards acceptance remains separate.
 The subsequent [candidates 1–4 pass](rtl-review.md#october-13-optimization-candidates-1-4)
 consolidates rejection counting, selects six deeper block-RAM stores, shares
 ledger age arithmetic and replaces runtime interval shifts with constants.
-Protocol pair/history word serialization remains open. All 20 focused final
-configurations pass. These local changes are separate from the screenshot above;
-results and remaining build-host measurement are tracked in that review record.
+That pass is committed as `0d27ddbba`; all 20 focused final configurations pass.
+The subsequent [protocol scan follow-up](rtl-review.md#october-13-protocol-scan-word-arithmetic)
+shares a word ALU across pair/history checks with bounded arbitration and
+cancellation; all nine selected configurations pass. These changes are separate from the screenshot above; focused
+results and remaining build-host measurement are tracked in the review records.
 
 **The maintainer authorized resuming behavioral verification on October 9,
 2026.** The prior simulation/pytest pause is lifted. The resumed run and its

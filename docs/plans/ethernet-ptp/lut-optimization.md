@@ -923,10 +923,11 @@ a byte CRC step is not a measured baseline for this implementation.
 
 October 13, 2026. This is the consolidated exploration list for the connected
 implementation, updated with the validator probe above. Priorities indicate an
-initial experiment order, not promised savings. Candidates 1, 2 and 4, plus
-the ledger portion of 3, are now implemented in the local working tree; the
-[implementation notes below](#october-13-candidate-implementation) distinguish
-completed source changes from deferred serialization. Shared MAC changes and reuse of MAC FCS status
+initial experiment order, not promised savings. Candidates 1–4 now have source
+implementations: the initial pass is committed as `0d27ddbba`, followed by the
+[protocol scan word arithmetic](#protocol-scan-word-arithmetic) below. Ledger
+live-age checks retain their original edges. Area/timing measurement remains
+open. Shared MAC changes and reuse of MAC FCS status
 remain deferred; the CRC candidate concerns the validators' existing independent
 Ethernet FCS calculation, not a separate PTP CRC.
 
@@ -934,7 +935,7 @@ Ethernet FCS calculation, not a separate PTP CRC.
 | --- | --- | --- |
 | **1** | **Consolidate protocol counter updates** — `PtpProtocolEngine` | **Implemented, unmeasured:** nine rejection sites feed a bounded event count and one 33-bit saturating addition. Same-edge multiplicity and reset precedence are preserved; logical restart and AXI reset retain diagnostics. |
 | **2** | **Move selected word memories from LUTRAM to BRAM** — pair/history stores, `PtpTxLedger`, `PtpConfigBank`, `PtpPublicationBank` | **Implemented, unmeasured:** select block RAM for pair/history, ledger, protocol/servo configuration and protocol publication (six 128×32 or 256×32 stores per endpoint). Keep one-cycle reads and ownership; retain distributed mapping for the smaller banks. Measure LUTRAM against BRAM use and timing. |
-| **3** | **Share table-scan arithmetic** — `PtpProtocolEngine`, `PtpTxLedger` | **Partial implementation:** ledger association age, response chronology and wire age now select one 65-bit subtract/compare datapath at their existing check edges. Pair/history arithmetic and word serialization remain deferred: scans can overlap, and live ledger expiry must not use stale timestamps. Measure this latency-preserving increment before adding arbitration or scan stages. |
+| **3** | **Share table-scan arithmetic** — `PtpProtocolEngine`, `PtpTxLedger` | **Implemented, unmeasured:** protocol pair/history checks share a 32-bit word ALU with round-robin row arbitration; preserve admission-time ages, full Q3 distance and strict first-slot ties. Ledger association age, response chronology and wire age share one 65-bit subtract/compare at their original live check edges. The added protocol scan cycles fit the existing service allowance; measure mux/control cost and timing. |
 | **4** | **Consolidate interval decoding and preparation** — `PtpProtocolEngine` | **Implemented, unmeasured:** elaborate the 33 supported periods and three-period timeouts; share RX decoding/capping across Sync and Announce. Keep a separate held-response lookup for concurrent Delay_Resp completion. Existing single-site jitter preparation is retained. Preserve rounding, invalid/unspecified fallback and caps. |
 | **5** | **Simplify compact-store byte routing** — `PtpRxFrontend`, then assess `PtpDelayReqObserver` | Replace gap-removing `compactIndex` routing through `compact mod 8` with a sparse, lane-aligned field layout where it reduces muxing. At the default RX depth, five physical banks need 45 groups for the current 65-byte record or 50 for a 78-byte address space; both round to 64-deep lane RAMs. Store only required fields and recheck all supported depths, byte order, decoder/refill latency and minimum-frame-spacing throughput. The RX rounding result is not automatically a TX saving. |
 | **6** | **Further specialize TX observer control** — `PtpDelayReqObserver` | Exploit the fixed 44-byte base Delay_Req message and 13 stored field bytes to simplify length/TLV/decoder control where constants have not already been removed. Preserve legal TLVs, malformed-frame/FCS checks, logical queue capacity, post-MAC physical completion and late completion across logical restart or PHC generation changes. |
@@ -953,8 +954,8 @@ hardware acceptance remain separate work.
 
 ### October 13 candidate implementation
 
-Source baseline is SURF `52dfa266f`; no staging or commit was performed. These
-changes retain register addresses, numerical precision, packet admission,
+The initial pass used SURF `52dfa266f` and was subsequently committed as
+`0d27ddbba` at the maintainer's request. That pass retains register addresses, numerical precision, packet admission,
 registered outputs and all scan/service latencies. They change no MAC or PHY.
 Focused outcomes are in the [acceptance record](rtl-review.md#october-13-optimization-candidates-1-4).
 
@@ -993,8 +994,9 @@ admission requires idle history. Sharing would require arbitration, cancellation
 ownership and revised service bounds, while history still needs full 68-bit
 absolute distance and stable first-slot tie selection. Likewise, ledger expiry
 samples live ticks, so moving word operations across clocks needs an explicit
-snapshot/final-check policy. These parts of candidate 3 remain open. Measure
-ledger mux cost and remaining protocol cones before choosing that larger change.
+snapshot/final-check policy. The protocol portion is implemented in the follow-up below. Ledger expiry
+remains at its original live check edges; serializing those checks is a separate
+experiment requiring a snapshot/final-check policy.
 
 **Interval preparation.** The constant table covers exponents -10 through 22.
 It rounds the single period down before multiplying by three, preserving the
@@ -1012,13 +1014,50 @@ baseline `52dfa266f`, capturing each intermediate build. `source-manifest.json`
 records exact baseline, patch hashes and final source hashes; applying all four
 was checked to reconstruct the five edited RTL files exactly. Retain these local
 artifacts with the build evidence before switching workspaces. They contain RTL
-only; the maintained tests and contracts are in the working tree.
+only; the maintained tests and contracts are in `0d27ddbba`.
 Compare protocol exclusive logic/counter cone, each selected RAM, ledger age
 logic and interval cones, then complete endpoints and lanes. Keep source patches,
 part, linked IP/black boxes, tool version, constraints, generics, strategy and
 flow stage matched. Report logic/LUTRAM/SRL, FF, carry, BRAM, DSP and timing.
-No Vivado or VCS run is available on `PC100431`; candidate 3's remaining work and
-candidates 5–8 are not part of this implementation pass.
+No Vivado or VCS run is available on `PC100431`. Protocol serialization is the
+follow-up below; candidates 5–8 remain outside these passes.
+
+### Protocol scan word arithmetic
+
+October 13 follow-up, based on `0d27ddbba`. `PtpProtocolEngine` now shares one
+32-bit carry/borrow ALU between pairing and history row checks. The input mux
+selects held row fields, limits and admission-time ticks; one 68-bit scratch
+holds modulo age or signed Q3 distance. The distance path optionally negates
+three words before comparing the nonnegative magnitude. Best-distance and
+oldest-born comparisons use the same ALU and retain strict ordering; age and
+maximum-separation limits remain inclusive. No timestamp precision is removed.
+
+The independent RAM scanners wait at explicit row-check states. Round-robin
+arbitration grants one whole row at a time and a DONE tag identifies its owner.
+History can still start during an admitted pair scan. New pairing admission
+still waits for idle history, and history pins its table against appends until
+the selected record has been copied. Cancellation clears both waiters and the
+ALU state with final priority, so partial carries/results cannot survive into
+a new session. Held RX payload, diagnostic counters and physical ledger
+ownership retain their existing contracts.
+
+Pair jobs take eight clocks; history jobs take at most eighteen. One competing
+row bounds waiting, so each row fits twenty-six clocks including service.
+The [service calculation](rtl-readability.md#shared-service-bound) reserves 256
+local clocks per table transaction, including the longer scans and local
+publication/fetch work. This fits the existing local allowance without changing
+`MinimumAssociationTicks`. Ledger live expiry remains on its original edge with
+the shared 65-bit datapath from the first pass.
+
+The [verification record](rtl-review.md#october-13-protocol-scan-word-arithmetic)
+tracks focused boundary, overlap, cancellation and consuming-interface checks.
+This follow-up is an area experiment: a narrower arithmetic cone adds operand
+muxes, scratch registers and control. A matched Vivado build must establish the
+net LUT/FF/carry/timing effect; no resource saving is inferred from source size.
+Use `0d27ddbba` as the matched comparison baseline for this increment. Local
+ignored `.planning/lut-scan-2026-10-13/05-protocol-scan.patch` reproduces this RTL
+change; `source-manifest.json` records the baseline and patch/RTL/test hashes.
+Applying the patch to the baseline was verified byte-for-byte.
 
 ## Earlier implementation and evidence
 
