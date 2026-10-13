@@ -1065,6 +1065,7 @@ begin
       variable abortPort        : sl;
       variable policyValid      : sl;
       variable qualifiedRatio   : sl;
+      variable historyStarting  : boolean;
       variable validResponse    : sl;
       variable malformed        : boolean;
       variable rejectedEvents   : natural range 0 to 9;
@@ -1092,6 +1093,13 @@ begin
       variable inputSample : PtpSyncSampleType;
    begin
       v := r;
+      -- Compare the retained Announce deadline before admission/cancellation
+      -- selects the next state. A new Announce selects its own comparison;
+      -- final cancellation clears validity without feeding another age ALU.
+      v.portStatus.announceValid := '0';
+      if not ptpAgeExpired(phcStatus.ticks, r.announceTicks, r.announceLimit) then
+         v.portStatus.announceValid := r.announceSeen;
+      end if;
       rejectedEvents := 0;
       v.publicationPort.write := '0';
       v.publicationPort.commit := '0';
@@ -1403,11 +1411,15 @@ begin
          v.historyWriteWord := r.historyWriteWord+1;
       end if;
 
+      -- Only this admission can leave an idle history machine. Reuse its
+      -- predicate below instead of decoding the complete combinational next
+      -- state, which also contains the compute memory-ready return path.
+      historyStarting := delayValid = '1' and r.e2eBusy = '0' and r.historyWriteBusy = '0' and
+                         r.historyWriteEnable = '0' and abortPort = '0';
       case r.historyState is
          when HISTORY_IDLE_S =>
 
-            if delayValid = '1' and r.e2eBusy = '0' and r.historyWriteBusy = '0' and
-               r.historyWriteEnable = '0' and abortPort = '0' then
+            if historyStarting then
                v.delayReady := '1';
                v.e2eBusy := '1';
                v.e2eDelay := delaySample;
@@ -1546,7 +1558,7 @@ begin
 
             if rxValid = '1' and (rxMessage.messageType = PTP_MSG_SYNC_C or rxMessage.messageType = PTP_MSG_FOLLOW_UP_C) and
                r.state = IDLE_S and r.measurementMaster.valid = '0' and
-               r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
+               r.historyState = HISTORY_IDLE_S and not historyStarting and
                r.pairWriteEnable = '0' and r.historyWriteBusy = '0' and e2eValid = '0' and abortPort = '0' then
                v.pairTicks := phcStatus.ticks;
                v.pairIndex := 0;
@@ -1765,7 +1777,7 @@ begin
       -- Acknowledge only when its selected row and publication capacity are
       -- available; registering ready here would require another payload slot.
       if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' and
-         r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
+         r.historyState = HISTORY_IDLE_S and not historyStarting and
          (r.responseValid = '0' or responseReady = '1') then
          if r.pairState = PAIR_ACK_S then
             v.rxReady := '1';
@@ -1991,8 +2003,11 @@ begin
                   if not validAnnounce(rxMessage) then
                      malformed := true;
                      v.announceSeen := '0';
+                     v.portStatus.announceValid := '0';
                   else
                      v.announceSeen                   := '1';
+                     v.portStatus.announceValid := toSl(not ptpAgeExpired(
+                        phcStatus.ticks, rxMessage.capture.ticks, slv(rxReceiptLimit)));
                      v.publicationPort.commit := '1';
                      v.publicationPort.commitRecord := x"0";
                      v.portStatus.announceBody        := rxMessage.messageBody;
@@ -2346,8 +2361,11 @@ begin
       -------------------------------------------------------------------------
       -- Result valid is registered; the shared abort takes priority at this
       -- receiver as well as at the arithmetic/ledger producers.
-      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and
-         r.pairState = PAIR_IDLE_S and v.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' and
+      -- E2E valid blocks a new pair search. With the pair already idle, the
+      -- rate machine cannot start (it requires PAIR_ACK_S), so both next-state
+      -- idle tests are redundant. Keep compute ready out of publication enables.
+      if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and
+         r.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' and
          r.exchangeWriting = '0' and v.publicationPort.commit = '0' then
          v.e2eTake := '1';
          v.e2eBusy := '0';
@@ -2419,6 +2437,7 @@ begin
          v.requestStarted          := '0';
          v.minimumInterval         := (others => '0');
          v.announceSeen            := '0';
+         v.portStatus.announceValid := '0';
          if announceChange = '1' then
             v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
          end if;
@@ -2456,11 +2475,6 @@ begin
          v.portStatus.ratioValid := '1';
       end if;
 
-      v.portStatus.announceValid := '0';
-
-      if not ptpAgeExpired(phcStatus.ticks, v.announceTicks, v.announceLimit) then
-         v.portStatus.announceValid := v.announceSeen;
-      end if;
 
       v.portStatus.ledgerStatus := ledgerStatus;
       v.portStatus.timeoutCount := timeoutCount;
