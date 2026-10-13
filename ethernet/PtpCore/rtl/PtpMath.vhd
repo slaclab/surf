@@ -5,7 +5,10 @@
 --
 -- Accepts one operand pair and operation on inputValid/inputReady.
 -- Multiplication uses unsigned magnitudes, a 128-bit shift/add accumulator
--- and sticky overflow bits; division uses restoring division with a widened remainder.
+-- and sticky overflow bits; division uses restoring division with a widened trial
+-- subtraction. DIVISOR_WIDTH_G bounds the unsigned divisor magnitude and sizes
+-- the retained remainder. A zero or out-of-bound divisor returns zero quotient
+-- and remainder with resultError; multiplication always keeps its full width.
 -- Both iterative paths consume 128 steps, then restore the result sign and
 -- check that the answer fits in signed 128 bits. Divide by zero terminates
 -- with resultError.
@@ -38,9 +41,10 @@ use surf.StdRtlPkg.all;
 
 entity PtpMath is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';
-      RST_ASYNC_G    : boolean := false);
+      TPD_G           : time                          := 1 ns;
+      RST_POLARITY_G  : sl                            := '1';
+      RST_ASYNC_G     : boolean                       := false;
+      DIVISOR_WIDTH_G : positive range 1 to 128       := 128);
    port (
       clk             : in  sl;
       rst             : in  sl;
@@ -84,7 +88,7 @@ architecture rtl of PtpMath is
       productOverflow : sl;
       multiplicand    : unsigned(127 downto 0);
       shiftOverflow   : sl;
-      remainderValue  : unsigned(128 downto 0);
+      remainderValue  : unsigned(DIVISOR_WIDTH_G-1 downto 0);
       resultValid     : sl;
       resultValue     : slv(127 downto 0);
       resultRemainder : slv(127 downto 0);
@@ -120,8 +124,10 @@ begin
       variable v : RegType;
 
       -- Calculations used only during this evaluation.
-      variable magnitude  : unsigned(128 downto 0);
-      variable limitValue : unsigned(128 downto 0);
+      variable magnitude        : unsigned(128 downto 0);
+      variable limitValue       : unsigned(128 downto 0);
+      variable shiftedRemainder : unsigned(DIVISOR_WIDTH_G downto 0);
+      variable trialRemainder   : unsigned(DIVISOR_WIDTH_G+1 downto 0);
    begin
       v := r;
 
@@ -131,6 +137,7 @@ begin
       if r.negative = '0' then
          limitValue := limitValue - 1;
       end if;
+
       -- Accept immutable operands, consume one arithmetic bit per cycle, then
       -- hold the signed result until the consumer takes it.
       case r.state is
@@ -148,16 +155,19 @@ begin
                if operandA(127) = '1' then
                   v.a := unsigned(-signed(operandA));
                end if;
+
                v.b := unsigned(operandB);
                if operandB(127) = '1' then
                   v.b := unsigned(-signed(operandB));
                end if;
+
                v.multiplicand := v.b;
-               if divide = '1' and v.b = 0 then
+               if divide = '1' and (v.b = 0 or shift_right(v.b, DIVISOR_WIDTH_G) /= 0) then
                   v.error := '1';
                   v.state := DONE_S;
                end if;
             end if;
+
             -- Ready describes this edge's admission, even when accepting the
             -- operands above starts work. Set it after the transaction reset.
             if cancel = '0' and rst /= RST_POLARITY_G then
@@ -166,15 +176,23 @@ begin
          when RUN_S =>
             if r.divide = '1' then
                -- Restoring division consumes the dividend MSB first and shifts
-               -- each quotient bit into the same register. Remainder is widened
-               -- before the trial subtraction, including a 128-bit divisor.
-               v.remainderValue    := shift_left(r.remainderValue, 1);
-               v.remainderValue(0) := r.a(127);
-               v.a                 := shift_left(r.a, 1);
-               if v.remainderValue >= resize(r.b, 129) then
-                  v.remainderValue := v.remainderValue - resize(r.b, 129);
+               -- each quotient bit into the same register. The retained
+               -- remainder is less than the divisor, so it fits the configured
+               -- width. Widen before shifting and add one more subtraction bit
+               -- for borrow; this selects the quotient without another compare.
+               shiftedRemainder    := shift_left(resize(r.remainderValue, DIVISOR_WIDTH_G+1), 1);
+               shiftedRemainder(0) := r.a(127);
+
+               trialRemainder := resize(shiftedRemainder, DIVISOR_WIDTH_G+2) -
+                                 resize(r.b(DIVISOR_WIDTH_G-1 downto 0), DIVISOR_WIDTH_G+2);
+
+               v.a              := shift_left(r.a, 1);
+               v.remainderValue := shiftedRemainder(DIVISOR_WIDTH_G-1 downto 0);
+               if trialRemainder(DIVISOR_WIDTH_G+1) = '0' then
+                  v.remainderValue := trialRemainder(DIVISOR_WIDTH_G-1 downto 0);
                   v.a(0)           := '1';
                end if;
+
                magnitude := resize(v.a, 129);
             else
                -- Keep the exact low 128 product bits plus whether any higher
@@ -185,6 +203,7 @@ begin
                   v.product         := magnitude(127 downto 0);
                   v.productOverflow := r.productOverflow or r.shiftOverflow or magnitude(128);
                end if;
+
                -- A shifted-out bit matters only if this multiplicand is later
                -- selected. Shifting after the last set bit of a must not turn
                -- a small or zero product into an overflow error.
@@ -193,26 +212,33 @@ begin
                v.shiftOverflow := r.shiftOverflow or r.multiplicand(127);
                magnitude       := resize(v.product, 129);
             end if;
+
             -- Only the final bit triggers rounding, range checking and sign restoration.
             if r.count = 127 then
                if r.divide = '1' then
-                  if r.rounding = '1' and shift_left(v.remainderValue, 1) >= resize(r.b, 129) then
+                  if r.rounding = '1' and
+                     shift_left(resize(v.remainderValue, DIVISOR_WIDTH_G+1), 1) >=
+                     resize(r.b(DIVISOR_WIDTH_G-1 downto 0), DIVISOR_WIDTH_G+1) then
                      magnitude := magnitude + 1;
                   end if;
+
                   -- Remainder always describes truncation toward zero, even
                   -- when the separately returned quotient is rounded nearest.
-                  v.resultRemainder := slv(v.remainderValue(127 downto 0));
+                  v.resultRemainder := slv(resize(v.remainderValue, 128));
                   if r.negativeA = '1' then
                      v.resultRemainder := slv(-signed(v.resultRemainder));
                   end if;
                end if;
+
                if magnitude > limitValue or (r.divide = '0' and v.productOverflow = '1') then
                   v.error := '1';
                end if;
+
                v.resultValue := slv(magnitude(127 downto 0));
                if r.negative = '1' then
                   v.resultValue := slv(-signed(v.resultValue));
                end if;
+
                v.state := DONE_S;
             else
                v.count := r.count + 1;
@@ -222,15 +248,18 @@ begin
                v.state := IDLE_S;
             end if;
       end case;
+
       -- A generation/port abort cancels both active arithmetic and a stalled
       -- result before transfer. The caller owns the associated provenance.
       v.resultValid := '0';
       if v.state = DONE_S then
          v.resultValid := '1';
       end if;
+
       if cancel = '1' or (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
+
       rin             <= v;
       inputReady      <= v.inputReady;
       resultValid     <= r.resultValid;

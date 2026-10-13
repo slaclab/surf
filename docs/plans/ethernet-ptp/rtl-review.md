@@ -739,6 +739,74 @@ one-step and real-MAC endpoint variants, vendor synthesis/implementation and
 hardware tests are outside this selection. Vivado/VCS are unavailable on this
 host; measured LUT/FF/carry changes and timing acceptance remain outstanding.
 
+## October 12 E2E, PHC and math checks
+
+Source baseline: SURF `26453ccedaa3968a7c6e08d3b56ffaa442f2ce1b` plus the
+[E2E/PHC/math implementation](lut-optimization.md#october-12-e2e-phc-and-math-implementation)
+working changes. Production ports and software ABI are unchanged. The E2E
+wrapper adds generation, sequence and result-provenance ports for verification;
+existing ruckus directory imports load all edited HDL.
+
+The selection covers changed arithmetic at the leaves, PHC software submission
+and affected consumers. Runs use the existing `/Users/bareese/surf/.venv`
+Python 3.13.2/cocotb 2.1.0 environment and GHDL 6.0.0 on `PC100431`.
+
+| Selection | Result | Temporary evidence |
+| --- | --- | --- |
+| Math default divisor width 128, bounded 46 and minimum 1 | 3 passed in 18.00 s | `/private/tmp/ptp-math-20261012-results.xml` |
+| PHC at 125/156.25 MHz with both reset styles; register banks at zero/nonzero bases | 4 passed in 92.37 s with two workers | `/private/tmp/ptp-phc-20261012.xml` |
+| E2E both-zero, each-single-zero and both-nonzero calibration | 4 passed in 51.25 s with two workers | `/private/tmp/ptp-e2e-20261012.xml` |
+| E2E both-zero after explicit constant divide tie-off | 1 passed in 12.37 s | `/private/tmp/ptp-e2e-zero-final-20261012.xml` |
+| Final combined Servo, distributed-memory direct protocol and two-step GMII endpoint | 3 passed in 571.85 s with two workers | `/private/tmp/ptp-arithmetic-20261012/final-consumers.xml` |
+
+These completed batches cover 14 distinct pytest configurations and one
+targeted repeat, with no failures or skips. The final consumer run compiled
+the explicit E2E divide tie-off. It checks the Servo PI/median cases, protocol
+correction/provenance and rate-estimator cases, and endpoint acquisition,
+independent phase/delay, link loss, holdover and reacquisition. An earlier
+consumer batch was interrupted to compile the final tie-off; it is not counted
+as completed validation.
+
+Math vectors check signed extrema, low result bits on overflow, nearest and
+truncated quotients, signed truncation remainders, divisor-bound errors,
+immutable operands, complete stalled outputs and cancellation through the final
+iteration. Normal operations still require exactly 128 work clocks; invalid
+divisors still terminate at admission with zero result/remainder and an error.
+
+The PHC cycle oracle checks the smallest/largest accepted increments and zero,
+negative and at-least-one-second rejection. It checks both the old-increment
+commit-edge time and newly published increment. Manual PHASE vectors cover
+signed fractional remainders, large epochs, frozen operands across AXI reset
+and rewritten shadows, signed128 extrema, and the distinction between a
+preparation quotient-fit error and a fitting signed64 quotient that faults at
+the PHC epoch boundary. Fatal cases reset independently so earlier faults
+cannot hide later behavior.
+
+E2E vectors retain full epochs and signed128 correction extremes, modulo
+arithmetic, half ties, exact path-delay bounds, reverse capture order and
+independent capture increments. Tests assert successful latency of 136/396/656
+clocks, immediate admission errors with calibration bypassed, elapsed-product
+overflow, held payload/provenance and cancellation/reset at every added stage.
+The final divide tie-off makes the both-zero specialization explicit at the
+math child boundary; its focused rerun covers the changed branch.
+
+GHDL structural synthesis succeeds for the edited arithmetic. E2E contains one
+timestamp multiplier and one selected 129-bit addition encoding the signed128
+sum/subtract carry; its both-zero child divide control is constant zero. PHC's
+math specialization retains 46 remainder bits, a 47-bit shifted trial and one
+48-bit subtraction with borrow. Its ordinary tick uses the stored increment;
+nominal-plus-rate remains only in command processing. These are generic
+structural observations, not mapped LUT/DSP/carry savings or timing evidence.
+VSG, Python flake8 and diff whitespace checks pass for the edited files.
+All 159 local links/anchors in the six changed guides pass. The changed-test
+compliance audit reports the same two snapshot sampling-annotation findings
+present in baseline `test_ptp_phc.py`; it finds no new violations.
+
+The full PTP suite, other endpoint PHY/receive/MAC combinations, all generic
+settings, Vivado synthesis/implementation and hardware validation remain unrun.
+Vivado/VCS are unavailable on this host. The existing utilization screenshot
+predates these changes and cannot establish their savings.
+
 ## Compile/link procedure
 
 Inspect the current [runner conventions](../../../tests/common/README.md),

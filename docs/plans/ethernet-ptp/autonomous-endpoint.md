@@ -476,6 +476,60 @@ Bootstrap therefore estimates rate independently of already-valid path delay.
 Do not constrain the individual cross-clock differences to a network-delay
 range before their potentially large epoch offsets cancel.
 
+### E2E arithmetic sequencing
+
+`PtpE2e` selects remote Sync, local Sync capture and remote Delay_Resp into
+one seconds-to-Q16 converter. A shared signed128 add/subtract path forms the
+capture separation, adds calibration displacements, retains the corrected
+Sync time and accumulates the final forward/path-delay equations. Epochs and
+corrections retain their full widths. Regrouping the timestamp subtractions
+preserves modulo-128 arithmetic before the existing signed rounding and delay
+range check; it does not assume nearby epochs or small corrections.
+
+Each zero-valued ingress/egress calibration generic removes its multiply/divide
+pair from the sequence. Both zero therefore require only elapsed scaling and
+hold the math engine's divide input at zero. A nonzero plane still uses its
+own capture increment, with the original multiplication check and division
+rounding. Zero capture increments, zero ratio and generation mismatch remain
+errors even when calibration is zero.
+
+Six local clocks follow the last arithmetic result to form and publish the
+timestamp equations. Successful admission-to-valid latency is 136, 396 or 656
+clocks for zero, one or two nonzero calibration planes, respectively. Each math
+operation accounts for 130 clocks including its request/result handshakes.
+Input ready remains low until the held result is consumed;
+reset/cancel overrides every added state and prevents a result transfer on that
+edge. All exchange operands and result provenance remain frozen at admission.
+Account for this local latency alongside ledger/history scans and downstream
+stalls when selecting association timeouts; the unchanged 2,048-tick admission
+floor is not an end-to-end timing guarantee.
+
+### PHC increment and phase normalization
+
+The ordinary PHC tick uses the registered `status.increment`, initialized to
+nominal and replaced only by a valid RATE command. RATE admission still
+precedes commit by one edge. The commit edge advances with the old increment
+and publishes the new increment beside that timestamp for subsequent intervals.
+Rejected commands preserve the active increment. SET/PHASE, rollover, capture
+inhibition, validity and PPS ordering are unchanged.
+
+Manual PHASE normalization instantiates `PtpMath` with `DIVISOR_WIDTH_G=46` for
+the fixed divisor `1_000_000_000 * 2^16`. The remainder is smaller than this
+divisor, so 46 stored bits, 47 shifted trial bits and a 48-bit subtraction
+including borrow suffice. The signed128 software operand, 128-bit quotient
+and 128 work iterations are retained. Division truncates toward zero and
+returns a remainder with the dividend's sign; the PHC still rejects quotients
+that do not fit signed64 before command admission. Accepted manual work keeps
+its frozen operands across register-only reset and later shadow writes.
+
+`PtpMath` defaults to `DIVISOR_WIDTH_G=128`. The generic bounds the unsigned
+divisor magnitude; division by zero or a magnitude requiring more bits returns
+an error with zero quotient/remainder at admission. It does not narrow or
+restrict multiplication. One widened trial subtraction supplies both the
+division borrow decision and candidate remainder. Normal operations retain
+128 work iterations, optional nearest/ties-away quotient rounding, the
+truncation remainder and existing signed overflow/result-bit behavior.
+
 ### Servo arithmetic and filter sequencing
 
 `PtpServo` shares one selected-operand add/clamp path for bootstrap frequency,
@@ -548,8 +602,9 @@ only when a subsequent multiplier bit selects that partial product. Because
 the engine multiplies unsigned magnitudes, all partial products are nonnegative:
 discarded high bits cannot cancel later. The final sign-dependent range check
 still distinguishes `-2^127` from the overflowing positive `+2^127`, and the low
-result bits on overflow are preserved. Division retains its widened remainder,
-nearest-rounding option and truncation remainder semantics.
+result bits on overflow are preserved. Division uses the
+[bounded remainder and trial subtraction](#phc-increment-and-phase-normalization),
+retaining its nearest-rounding option and truncation remainder semantics.
 
 These changes remove 405 declared state bits from the servo and 254 from each
 multiply-capable math instance before synthesis optimization. These are source

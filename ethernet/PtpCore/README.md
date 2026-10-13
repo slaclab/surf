@@ -41,6 +41,10 @@ insertion remains outside scope.
   request building and E2E arithmetic. The Python device is also
   `PtpProtocolEngine`, exposed as the endpoint's `ProtocolEngine` child.
   Shared `PtpPort*Type` records retain their existing names and layouts.
+- `PtpE2e` shares one timestamp converter and one wide add/subtract path.
+  Zero calibration planes skip their arithmetic; both-zero builds need only
+  elapsed scaling. Full epoch/correction precision and input rejection remain
+  unchanged. See [E2E sequencing](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#e2e-arithmetic-sequencing).
 - `PtpProtocolEngine` keeps four 485-bit Sync history rows and four 549-bit
   pairing payloads in synchronous `SimpleDualPortRam`. Shared scans replace
   parallel nearest-Sync, expiry, key and replacement searches. Ownership flags
@@ -62,6 +66,10 @@ insertion remains outside scope.
   preserving populated-only lower-median semantics. See the
   [servo sequencing contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing).
   FPGA area/timing improvements need synthesis.
+- The PHC ticks with its committed increment and bounds its constant phase
+  divider's remainder to 46 bits. `PtpMath` shares the divide trial subtraction
+  and borrow decision; full-width operands and the 128-iteration schedule remain.
+  See [PHC/math arithmetic](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#phc-increment-and-phase-normalization).
 - `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
   configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
   Servo command payload, valid, cancellation and expiry are registered. The

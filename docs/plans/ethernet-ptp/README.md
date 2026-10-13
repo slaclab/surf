@@ -102,8 +102,13 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   led to the [servo sharing implementation](lut-optimization.md#october-12-servo-arithmetic-and-median-implementation):
   a shared clamp/rounding path and one median comparator over nine clocks.
   The [sequencing contract](autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing)
-  defines added latency and backpressure. Measured FPGA savings remain pending;
-  E2E timestamp conversion and bounded PHC arithmetic remain next candidates.
+  defines added latency and backpressure. The subsequent
+  [E2E/PHC/math implementation](lut-optimization.md#october-12-e2e-phc-and-math-implementation)
+  shares timestamp conversion and accumulation, skips zero calibration work,
+  ticks from the committed PHC increment and bounds its phase-divider remainder.
+  [E2E sequencing](autonomous-endpoint.md#e2e-arithmetic-sequencing) and
+  [PHC/math contracts](autonomous-endpoint.md#phc-increment-and-phase-normalization)
+  preserve numeric widths and ownership. Measured FPGA savings remain pending.
 
 ## PHY composition implementation
 

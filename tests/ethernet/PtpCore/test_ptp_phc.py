@@ -16,6 +16,8 @@
 # - Checks: Every PHC cycle against the split-integer model; snapshot time/ticks
 #   are coherent, old sessions cancel, and read reset preserves the PHC.
 #   Cancellation after admission rejects commit; expiry overrides VALID commands.
+#   RATE commits use the old increment on the commit edge and publish the new
+#   value for following edges, including accepted/rejected increment limits.
 #   Ready/completion/capture inhibition cannot respond combinationally to inputs.
 # - Timing: Acceptance precedes commit by one edge; capture abort is inspected
 #   before commit and registered time/ack after TPD. Read clock is asynchronous.
@@ -177,6 +179,16 @@ async def phc_commands(d):
     await b.command("pps", 1)
     await b.command("phase", -(NS+3)*Q16-7)
     await b.command("phase", (2*NS+17)*Q16+13)
+    # Alternate the smallest and largest legal increments with rejected values
+    # on each boundary. The cycle oracle sees both commit-edge time and the
+    # simultaneously published increment, catching an early or delayed switch.
+    for increment in (1, NS*Q32-1, b.model.nominal+Q32//3, 1, b.model.nominal):
+        await b.command("rate", increment-b.model.nominal)
+        for _ in range(3):
+            await b.step()
+        for invalid in (0, -1, NS*Q32, NS*Q32+1):
+            await b.command("rate", invalid-b.model.nominal, rejected=True)
+            await b.step()
     rng = random.Random(1588)
     for index in range(100):
         if index % 3 == 0:

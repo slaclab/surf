@@ -334,8 +334,9 @@ need concurrent access and distinct lifetimes.
 
 ### Recommended implementation order
 
-The subsequent servo implementation below addresses rows 1 and 2. The E2E,
-PHC and common-math candidates remain unimplemented.
+The subsequent servo implementation below addresses rows 1 and 2. The
+[E2E, PHC and common-math implementation](#october-12-e2e-phc-and-math-implementation)
+addresses rows 3 through 7.
 
 | Order | Candidate | Concrete change and main constraint |
 | --- | --- | --- |
@@ -533,6 +534,45 @@ patch's savings. For separate comparisons, temporary baseline, arithmetic-only
 and final RTL/patch artifacts are retained under
 `/private/tmp/ptp-servo-20261012/` in the development workspace.
 
+## October 12 E2E, PHC and math implementation
+
+Source baseline: SURF `26453ccedaa3968a7c6e08d3b56ffaa442f2ce1b`, which includes
+the preceding Servo work. Three coordinated module changes implement the
+remaining concrete arithmetic candidates:
+
+- `PtpE2e` selects three timestamp operands into one seconds-to-Q16 converter
+  and shares a signed128 add/subtract path for capture separation, calibration
+  accumulation and final equations. Retained corrected Sync and delay
+  intermediates replace parallel timestamp subtraction chains. Six final clocks
+  preserve full epoch/correction precision, rounding and registered results.
+  Each generic-zero calibration plane skips its multiply/divide pair; with both
+  zero, the math instance's divide input is statically zero. Invalid ratio,
+  increment and generation checks remain active for every generic combination.
+- `PtpPhc` advances with its committed increment, calculating nominal plus rate
+  only for a RATE command. The commit edge still advances with the old value.
+  Its manual phase instance selects the new math divisor-width generic at 46
+  bits, derived from the constant billion-nanosecond divisor and Q16 scale.
+- `PtpMath` uses one widened trial subtraction and its borrow bit for restoring
+  division. `DIVISOR_WIDTH_G` defaults to 128 and bounds only divisor magnitude
+  and remainder arithmetic; zero or out-of-range divisors return an error
+  instead of being truncated. Multiplication stays full width. PHC uses a
+  46-bit remainder, 47-bit shifted trial and 48-bit subtraction, with the full
+  signed128 dividend/quotient and unchanged 128 work iterations.
+
+The [E2E sequencing](autonomous-endpoint.md#e2e-arithmetic-sequencing) and
+[PHC/math contracts](autonomous-endpoint.md#phc-increment-and-phase-normalization)
+own the lasting timing and numeric rules. Production ports and software fields
+are unchanged; the E2E wrapper exposes additional provenance for tests. Existing
+directory manifests load all edited HDL, with no added source files.
+
+The [verification record](rtl-review.md#october-12-e2e-phc-and-math-checks)
+records 14 passing leaf/register/consumer configurations, including the final
+Servo, protocol and GMII endpoint batch (571.85 s with two workers). Measure E2E's additional state and
+operand muxes along with the shared converter, and compare PHC own logic
+separately from `U_Phase`. A generic structural netlist cannot establish mapped
+LUT/carry/DSP savings or timing. Same-configuration Vivado synthesis and timing
+remain outstanding for all three changes.
+
 ## Evidence and remaining acceptance
 
 The [acceptance record](rtl-review.md#october-9-lut-optimization-checks) owns
@@ -581,8 +621,9 @@ of that configuration. XGMII must continue accepting eight bytes every cycle.
 These remain conditional on measured attribution rather than part of the
 current RTL change:
 
-- Follow the [E2E, servo and PHC arithmetic audit](#october-12-e2e-servo-and-phc-arithmetic-audit)
-  for the next local sharing/width changes and their behavioral constraints.
+- Measure the implemented local sharing/width changes against the
+  [arithmetic audit](#october-12-e2e-servo-and-phc-arithmetic-audit) before
+  selecting further resource changes.
 - Consider sharing math between clients or a DSP-based multiplier after local
   datapath changes have been measured. Arbitration must preserve independent
   cancellation/ownership and account for losing per-instance constant pruning.

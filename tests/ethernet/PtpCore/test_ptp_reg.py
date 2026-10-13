@@ -18,6 +18,7 @@
 #   aliases and field strobes, active versus shadow state,
 #   local snapshot sequence/edge agreement, registered request stability,
 #   full phase operand latching, accepted commit survival across AXI reset,
+#   signed phase remainder/epoch boundaries and full-width quotient rejection,
 #   busy/ack/error ownership, IRQ W1C and build constants.
 # - Timing: Clock edges are stepped explicitly; bus and command waits are bounded.
 
@@ -105,11 +106,11 @@ async def register_contract(d):
             value |= (await read(address+4*index)) << (32*index)
         return value
 
-    async def finish():
+    async def finish(error=0):
         for _ in range(100):
             value = await read(0x1024)
             if not value & 1:
-                assert value == 2
+                assert value == 2+4*error
                 return
         assert False, 'command acknowledgement timeout'
 
@@ -361,6 +362,62 @@ async def register_contract(d):
     for bank_sequence in (0x13FC, 0x23FC, 0x33FC):
         assert await read(bank_sequence) == sequence+1
     assert await read_wide(0x1060, 2) == snapshots[-1]
+
+    # Exercise the manual fixed-divisor path with a safe epoch in the middle
+    # of its range. The independent integer oracle retains every Q16 bit;
+    # negative sub-second residues must truncate toward zero before conversion.
+    divisor = NS*Q16
+    deltas = (0, 1, -1, divisor-1, 1-divisor, divisor, -divisor,
+              divisor+1, -divisor-1, (1 << 40)*divisor+17,
+              -(1 << 40)*divisor-17)
+    for delta in deltas:
+        await edge(rst=1)
+        await edge(rst=0)
+        await write_wide(0x1028, 1 << 46, 2)
+        await write(0x1020, 0x80)
+        await finish()
+        await write_wide(0x1038, delta, 4)
+        before_ticks = int(d.timeTicks.value)
+        before_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
+        before_generation = int(d.timeGeneration.value)
+        await write(0x1020, 0x81)
+        # Change all shadow words and reset AXI while each signed division is
+        # in flight. Accepted arithmetic continues with the original operand.
+        await write_wide(0x1038, ~delta, 4)
+        await edge(regRst=1)
+        await edge(regRst=0)
+        await finish()
+        elapsed = int(d.timeTicks.value)-before_ticks
+        after_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
+        assert after_time-before_time == elapsed*8*Q32+delta*Q16, delta
+        assert int(d.timeGeneration.value) == before_generation+1
+        assert not await read(0x1068)
+
+    # Overflow in phase preparation cannot reach the PHC command slot. In
+    # contrast, a fitting signed64 quotient is accepted by preparation and
+    # then faults at the PHC's 48-bit epoch boundary. Reset after each fatal
+    # case so a prior fault cannot hide a later quotient-fit error.
+    limits = (
+        ((1 << 127)-1, False), (-(1 << 127), False),
+        ((1 << 63)*divisor, False), (-((1 << 63)+1)*divisor, False),
+        ((1 << 63)*divisor-1, True), (-((1 << 63)+1)*divisor+1, True),
+    )
+    for delta, reaches_clock in limits:
+        await edge(rst=1)
+        await edge(rst=0)
+        await write_wide(0x1038, delta, 4)
+        before_ticks = int(d.timeTicks.value)
+        before_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
+        await write(0x1020, 0x81)
+        await finish(error=1)
+        elapsed = int(d.timeTicks.value)-before_ticks
+        after_time = (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
+        assert int(d.timeGeneration.value) == int(reaches_clock), delta
+        assert await read(0x1068) == int(reaches_clock), delta
+        if reaches_clock:
+            assert before_time <= after_time < before_time+elapsed*8*Q32
+        else:
+            assert after_time-before_time == elapsed*8*Q32, delta
 
 
 @pytest.mark.parametrize('base', [0, 0xA5804000])

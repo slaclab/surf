@@ -5,10 +5,11 @@
 -- target.
 --
 -- Maintains 48-bit seconds, 32-bit nanoseconds and a 32-bit fractional
--- nanosecond accumulator. Each clock adds the nominal Q32
--- nanoseconds-per-cycle increment plus the signed rate adjustment, normalizing
--- seconds rollover. A separate 64-bit unsteered cycle counter provides
--- protocol timers and rate-estimation intervals independent of clock steering.
+-- nanosecond accumulator. Each clock adds the committed Q32
+-- nanoseconds-per-cycle increment, normalizing seconds rollover. RATE commands
+-- form that increment from nominal plus the signed adjustment. A separate
+-- 64-bit unsteered cycle counter provides protocol timers and rate-estimation
+-- intervals independent of clock steering.
 --
 -- This disciplines a numerical time coordinate, not the physical clk input.
 -- At 125 MHz the nominal increment is 8 ns; a +10 ppm numerical correction
@@ -35,8 +36,10 @@
 -- Its local AXI-Lite bank owns monotonic-policy shadows, manual SET/PHASE/RATE
 -- operands, command completion and coherent time/rate/tick snapshots. PHASE
 -- uses a serialized PtpMath divide to normalize signed Q16 nanoseconds into
--- whole seconds and a signed Q32 remainder. Submission copies the operands,
--- so later register writes cannot alter a command already being prepared.
+-- whole seconds and a signed Q32 remainder. The fixed 46-bit divisor bounds
+-- remainder arithmetic while the dividend and quotient retain all 128 bits.
+-- Submission copies operands, so later register writes cannot alter a command
+-- already being prepared.
 -- Manual preparation progresses through issue, math completion, target request
 -- and acknowledgement states; ordinary commands skip the math states.
 -- Manual and servo requests share the same command slot; ownership is retained
@@ -128,6 +131,9 @@ architecture rtl of PtpPhc is
 
    constant SECOND_Q16_C : slv(127 downto 0) := slv(shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
 
+   -- One billion needs 30 bits; Q16 encoding gives a 46-bit divisor magnitude.
+   constant PHASE_DIVISOR_WIDTH_C : positive := bitSize(PTP_NANOSECONDS_PER_SECOND_C)+PTP_TIME_FRAC_BITS_C;
+
    -- Q32 ns: the encoded value is ns * 2**32. The signed status.rate uses the
    -- same scale, so adding it changes ns/tick directly, without a ppb conversion.
    constant NOMINAL_C : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
@@ -216,9 +222,10 @@ begin
 
    U_Phase : entity surf.PtpMath
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
+         TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
+         DIVISOR_WIDTH_G => PHASE_DIVISOR_WIDTH_C)
       port map (
          clk             => clk,             -- [in]
          rst             => rst,             -- [in]
@@ -253,7 +260,6 @@ begin
       -- Preserve carry/sign bits until normalization and range checks finish.
       variable nextNanoseconds : signed(66 downto 0);
       variable nextSeconds     : signed(65 downto 0);
-      variable tickIncrement   : signed(64 downto 0);
       variable nextIncrement   : signed(64 downto 0);
    begin
       -- r is pre-edge state. v collects the state to register next; ordinary
@@ -415,18 +421,18 @@ begin
       -------------------------------------------------------------------------
       -- Clock algorithm: ordinary tick, pending command, then final priority.
       -------------------------------------------------------------------------
-      -- Advance once with the pre-edge rate. Keep widened signed intermediates
-      -- until all command arithmetic and epoch bounds have been checked.
+      -- Advance once with the committed pre-edge increment. Keep widened signed
+      -- intermediates until command arithmetic and epoch bounds are checked.
       -- Concatenating nanoseconds and fraction forms one Q32-ns value. Carry
       -- across bit 31 advances integer ns; SECOND_C handles the decimal second.
-      tickIncrement      := signed('0' & slv(NOMINAL_C)) + resize(signed(r.status.rate), 65);
-      nextNanoseconds    := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67)) + resize(tickIncrement, 67);
-      nextSeconds        := signed(resize(unsigned(r.timeValue.seconds), 66));
-      v.status.increment := slv(tickIncrement(63 downto 0));
+      nextNanoseconds := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67)) +
+                         signed(resize(unsigned(r.status.increment), 67));
+
+      nextSeconds := signed(resize(unsigned(r.timeValue.seconds), 66));
       -- Raw ticks deliberately ignore numerical rate and phase corrections.
       -- They count oscillator edges, not calibrated nanoseconds; physically
       -- steering clk would also change their relationship to real elapsed time.
-      v.status.ticks     := slv(unsigned(r.status.ticks) + 1);
+      v.status.ticks := slv(unsigned(r.status.ticks) + 1);
       if nextNanoseconds >= SECOND_C then
          -- Detect crossing, not equality: an adjusted increment can skip over
          -- exactly zero ns. PPS is one clk cycle on this edge grid (8 ns at
@@ -488,7 +494,7 @@ begin
                      v.status.discontinuity := '1';
                   end if;
                when PTP_CMD_RATE_C =>
-                  -- The commit edge has already advanced with r.status.rate.
+                  -- This commit edge has advanced with r.status.increment.
                   -- Publish the new increment beside the resulting timestamp
                   -- so consumers know the rate for subsequent clock intervals.
                   nextIncrement := signed('0' & slv(NOMINAL_C)) + resize(signed(r.command.rate), 65);

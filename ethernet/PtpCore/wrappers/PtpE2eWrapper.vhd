@@ -10,8 +10,7 @@
 -- increment. Latency generics select the ingress and egress reference-plane
 -- offsets.
 --
--- Unexposed record fields retain package initialization values, including
--- matching default generations. The wrapper performs no arithmetic or packet
+-- Unexposed record fields retain package initialization values. The wrapper performs no arithmetic or packet
 -- association of its own. Cocotb supplies stimulus and independent expected
 -- results, including rate changes between captures, numerical boundaries,
 -- output backpressure and cancellation.
@@ -38,29 +37,40 @@ entity PtpE2eWrapper is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
    port (
-      clk                : in  sl;
-      rst                : in  sl;
-      cancel             : in  sl;
-      inputValid         : in  sl;
-      inputReady         : out sl;
-      syncTime           : in  slv(95 downto 0);
-      syncTicks          : in  slv(63 downto 0);
-      syncPhase          : in  slv(2 downto 0);
-      syncIncrement      : in  slv(63 downto 0);
-      syncRemote         : in  slv(79 downto 0);
-      syncCorrection     : in  slv(127 downto 0);
-      txTicks            : in  slv(63 downto 0);
-      txPhase            : in  slv(2 downto 0);
-      txIncrement        : in  slv(63 downto 0);
-      responseRemote     : in  slv(79 downto 0);
-      responseCorrection : in  slv(63 downto 0);
-      ratio              : in  slv(63 downto 0);
-      maxPathDelay       : in  slv(63 downto 0);
-      forwardValue       : out slv(127 downto 0);
-      delayValue         : out slv(127 downto 0);
-      resultValid        : out sl;
-      resultReady        : in  sl;
-      resultError        : out sl);
+      clk                 : in  sl;
+      rst                 : in  sl;
+      cancel              : in  sl;
+      inputValid          : in  sl;
+      inputReady          : out sl;
+      syncTime            : in  slv(95 downto 0);
+      syncTicks           : in  slv(63 downto 0);
+      syncPhase           : in  slv(2 downto 0);
+      syncIncrement       : in  slv(63 downto 0);
+      syncRemote          : in  slv(79 downto 0);
+      syncCorrection      : in  slv(127 downto 0);
+      txTicks             : in  slv(63 downto 0);
+      txPhase             : in  slv(2 downto 0);
+      txIncrement         : in  slv(63 downto 0);
+      responseRemote      : in  slv(79 downto 0);
+      responseCorrection  : in  slv(63 downto 0);
+      syncGeneration      : in  slv(31 downto 0) := (others => '0');
+      delayGeneration     : in  slv(31 downto 0) := (others => '0');
+      syncSequence        : in  slv(15 downto 0) := (others => '0');
+      delaySequence       : in  slv(15 downto 0) := (others => '0');
+      ratio               : in  slv(63 downto 0);
+      maxPathDelay        : in  slv(63 downto 0);
+      forwardValue        : out slv(127 downto 0);
+      delayValue          : out slv(127 downto 0);
+      resultGeneration    : out slv(31 downto 0);
+      resultSyncSequence  : out slv(15 downto 0);
+      resultDelaySequence : out slv(15 downto 0);
+      resultTicks         : out slv(63 downto 0);
+      resultRatio         : out slv(63 downto 0);
+      resultRatioValid    : out sl;
+      resultIsDelay       : out sl;
+      resultValid         : out sl;
+      resultReady         : in  sl;
+      resultError         : out sl);
 end entity PtpE2eWrapper;
 
 architecture rtl of PtpE2eWrapper is
@@ -75,6 +85,17 @@ begin
    syncSample.capture.ticks      <= syncTicks;
    syncSample.capture.tickPhase  <= syncPhase;
    syncSample.capture.increment  <= syncIncrement;
+   syncSample.capture.generation <= syncGeneration;
+   syncSample.sequenceId         <= syncSequence;
+   delaySample.generation        <= delayGeneration;
+   delaySample.sequenceId        <= delaySequence;
+   resultGeneration              <= measurement.generation;
+   resultSyncSequence            <= measurement.syncSequence;
+   resultDelaySequence           <= measurement.delaySequence;
+   resultTicks                   <= measurement.ticks;
+   resultRatio                   <= measurement.ratio;
+   resultRatioValid              <= measurement.ratioValid;
+   resultIsDelay                 <= measurement.isDelay;
    syncSample.remoteTime         <= syncRemote;
    syncSample.correction         <= syncCorrection;
    delaySample.capture.ticks     <= txTicks;

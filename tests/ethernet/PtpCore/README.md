@@ -137,12 +137,18 @@ reporting the previous full-suite result as validation of a later edit.
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.
   Math cancellation checks also assert that result-valid stays stable before
   the cancellation edge, including when a completed result is stalled.
+  Math covers the default 128-bit divisor magnitude and bounded widths 46/1,
+  exact work-cycle counts and zero/out-of-bound rejection. PHC RATE boundary
+  cases compare commit-edge time and the published increment independently.
 - `test_ptp_e2e.py`, `test_ptp_tx_ledger.py`: independent full-width E2E vectors,
   calibration across PHC steering, keyed response/completion reordering, narrow
   sequence wrap, unknown physical fate and reset/quarantine behavior.
   Added checks cover registered result/sample validity during cancellation and
   ledger occupancy alignment with allocation, wire completion and MAC reset.
   Execution outcomes are tracked in the acceptance record linked above.
+  E2E covers both-zero, each-single-zero and both-nonzero calibration with
+  signed corrections, full epochs and cancellation through the shared timestamp
+  stages. Each nonzero plane uses its own captured PHC increment.
   Ledger storage checks additionally cover full capture/response payloads,
   depths one/three/four, inferred distributed/block settings, reordered/simultaneous
   arrivals, consecutive records with valid held high, concurrent row writes/reads,
