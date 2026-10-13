@@ -498,6 +498,34 @@ async def minimum_spacing(dut):
     assert len(bench.received) == 8
 
 
+@cocotb.test(skip=os.environ.get("PHY_TYPE_G") != "DIRECT")
+async def tlv_lane_lookahead(dut):
+    """Check parallel header reachability against the byte-stream oracle."""
+    bench = Bench(dut)
+    await bench.reset()
+    rng = random.Random(0x1588)
+    # Length zero/two can expose a second completion in the same beat; larger
+    # values must skip header-looking payload. 254/256 exercise both length
+    # bytes across every partial beat width and all three supported base sizes.
+    for width in range(1, 9):
+        for length in (0, 2, 4, 6, 14, 254, 256):
+            for kind in (0, 9, 11):
+                value = bytes(rng.randrange(256) for _ in range(length))
+                tlvs = (b"\x12\x34" + length.to_bytes(2, "big") + value +
+                        bytes.fromhex("567800009abc0002abcddef00000"))
+                before = len(bench.received)
+                await bench.direct(frame(kind=kind, tlvs=tlvs), width=width)
+                await bench.wait()
+                assert len(bench.received) == before+1, (width, length, kind)
+        # Invalid second headers must not be hidden by the first zero-length
+        # header or by an end-of-message boundary inside the normalized beat.
+        for bad in ("56780001ab", "5678ffffabcd", "56780004abcd", "567800"):
+            before = len(bench.received)
+            await bench.direct(frame(tlvs=bytes.fromhex("12340000"+bad)), width=width)
+            await bench.wait()
+            assert len(bench.received) == before, (width, bad)
+
+
 @pytest.mark.parametrize("mode,depth,polarity,async_reset,latency", [
     ("DIRECT", 1, 1, False, 0),
     ("DIRECT", 2, 1, False, 0),

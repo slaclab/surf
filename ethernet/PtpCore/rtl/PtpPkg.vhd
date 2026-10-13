@@ -728,43 +728,81 @@ package body PtpPkg is
       variable length      : inout slv(15 downto 0);
       variable remaining   : inout natural;
       variable bad         : inout sl) is
-      variable count : natural range 0 to 8;
-      variable start : integer range -3 to PTP_ETH_MAX_FRAME_C+8;
-      variable lowByte : integer range 0 to PTP_ETH_MAX_FRAME_C+11;
-      variable value : natural range 0 to 65535;
+      variable count      : natural range 0 to 8;
+      variable start      : integer range -3 to PTP_ETH_MAX_FRAME_C;
+      variable firstLow   : natural range 0 to PTP_ETH_MAX_FRAME_C+11;
+      variable firstAt    : slv(7 downto 0);
+      variable laneLength : Slv16Array(0 to 7);
+      variable reachable  : boolean;
+      variable value      : natural range 0 to 65535;
+      variable left       : natural range 0 to 7;
+      variable partial    : natural range 0 to 11;
    begin
       count := endByte-firstByte;
       start := remaining-integer(headerBytes);
+      firstLow := firstByte+start+3;
+      -- Decode candidate header endings in parallel at fixed physical lanes.
+      -- The only possible second ending is four or six bytes after the first:
+      -- its preceding value must have length zero or two. Avoid a variable
+      -- byte mux -> length sum -> second variable byte mux feedback chain.
+      firstAt := (others => '0');
+      for i in 0 to 7 loop
+         firstAt(i) := toSl(i = firstLow and i >= firstByte and i < endByte);
+         laneLength(i)(7 downto 0) := data(8*i+7 downto 8*i);
+         laneLength(i)(15 downto 8) := length(15 downto 8);
+         if i > 0 and i > firstByte then
+            laneLength(i)(15 downto 8) := data(8*i-1 downto 8*i-8);
+         end if;
+      end loop;
+
+      -- Default for a beat containing only value bytes or a partial header.
+      headerBytes := 0;
       if remaining >= count then
          remaining := remaining-count;
       else
          remaining := 0;
       end if;
-      -- Four header bytes make two length completions the maximum in a beat.
-      -- A third header can only contribute its first three bytes. No per-byte
-      -- decrement/length/bounds feedback chain is needed.
-      for i in 0 to 2 loop
-         lowByte := start+3;
-         if lowByte >= 1 and lowByte-1 < count then
-            length(15 downto 8) := data(8*(firstByte+lowByte-1)+7 downto 8*(firstByte+lowByte-1));
+      if start < count then
+         partial := count-start;
+         if partial < 4 then
+            headerBytes := partial;
+            if partial = 3 and count /= 0 then
+               length(15 downto 8) := data(8*endByte-1 downto 8*endByte-8);
+            end if;
          end if;
-         if i < 2 and lowByte < count then
-            length(7 downto 0) := data(8*(firstByte+lowByte)+7 downto 8*(firstByte+lowByte));
-            value := to_integer(unsigned(length));
-            if length(0) = '1' or value > messageLeft-lowByte-1 then
+      end if;
+
+      for i in 0 to 7 loop
+         reachable := firstAt(i) = '1';
+         if i >= 4 then
+            reachable := reachable or (firstAt(i-4) = '1' and laneLength(i-4) = x"0000");
+         end if;
+         if i >= 6 then
+            reachable := reachable or (firstAt(i-6) = '1' and laneLength(i-6) = x"0002");
+         end if;
+         if reachable and i < endByte then
+            value := to_integer(unsigned(laneLength(i)));
+            length := laneLength(i);
+            headerBytes := 0;
+            remaining := 0;
+            if laneLength(i)(0) = '1' or value > messageLeft-(i-firstByte)-1 then
                bad := '1';
-               -- No subsequent header is reachable after an invalid length.
-               start := PTP_ETH_MAX_FRAME_C+8;
             else
-               start := lowByte+1+value;
-               remaining := 0;
-               if start > count then
-                  remaining := start-count;
+               left := endByte-i-1;
+               if value >= left then
+                  remaining := value-left;
+               else
+                  partial := left-value;
+                  -- Four or more bytes imply another reachable completion,
+                  -- whose later lane overwrites this intermediate state.
+                  if partial < 4 then
+                     headerBytes := partial;
+                     if partial = 3 then
+                        length(15 downto 8) := data(8*endByte-1 downto 8*endByte-8);
+                     end if;
+                  end if;
                end if;
             end if;
-            headerBytes := 0;
-         elsif start < count then
-            headerBytes := count-start;
          end if;
       end loop;
    end procedure;
