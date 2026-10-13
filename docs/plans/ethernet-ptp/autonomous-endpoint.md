@@ -178,27 +178,20 @@ physical producer boundary has no CDC.
 
 ## TX ledger storage
 
-`PtpTxLedger` stores the complete 636-bit entry in SURF `SimpleDualPortRam`:
-sequence, generation, requester identity, domain, allocation/wire ages, response
-metadata and the capture timestamp/increment/phase/validity. Only four ownership
-bits per slot (`used`, `retired`, `wireSeen`, `responseSeen`) remain in registers.
-There is no register array of wide records. `MEMORY_TYPE_G` defaults to
-`"distributed"`; `"block"` selects the same synchronous one-cycle read interface.
-Depths 1–255 retain their logical capacities; address rounding adds no slots.
-The endpoint uses the distributed default. Physical mapping and area improvement
-require the [Vivado comparison](lut-optimization.md#october-11-ledger-storage-and-counter-pass).
+`PtpTxLedger` stores each entry in 22 addressed 32-bit words of synchronous
+`SimpleDualPortRam`. Sequence/domain, generation, identity, creation/wire/response
+ages, remote timestamp/correction and physical capture fields have fixed word
+locations. Four ownership flags per slot remain in registers. Only selected
+scan fields and the final held sample are staged. Distributed and block RAM
+use the same one-cycle synchronous interface; depth remains 1–255, default four.
 
-A shared read/modify/write path scans rows in ascending address order, two
-clocks per row. For the first row, START at N registers the read request, RAM
-reads at N+1, and CHECK at N+2 evaluates that row and registers any write or
-completed sample. Subsequent rows follow every two clocks. The last CHECK
-asserts registered input readiness; ADMIT on the next edge acknowledges inputs
-and can allocate one new row. The next START follows immediately. A scan thus
-repeats every `2*DEPTH_G+2` clocks: ten at the default depth four. Scanning runs
-independently of output readiness, so maintenance and physical completions
-continue during a stalled sample. Timeout/reclamation visibility can lag a raw
-clock threshold by one scan; each row rechecks expiry before attachment or
-publication. Very short lifetime bounds can expire before processing completes.
+A shared word scan reads/updates 22 fields, then retires the row. A pass takes
+`45*DEPTH_G+2` clocks; accepted allocation adds 22 writes. A request arriving
+mid-pass can wait for the following pass. Maintenance continues while a sample
+is held. Expiry is checked against actual ticks when its age words are consumed;
+serialization never refreshes capture or creation time. At publication the
+wire lifetime is checked again. Timeout visibility can lag by one pass, and
+short standalone lifetime settings can expire before processing finishes.
 
 Each scan observes at most one wire record and one response. Both producers
 assert valid independently of ready and retain their entire record through the
@@ -219,7 +212,7 @@ At each row, timeout retirement precedes wire handling, then response handling,
 then sample publication. Duplicate wire observations renew quarantine before
 reclamation and cannot overwrite an already published output. Matching duplicate
 responses compare their original timestamp/correction without refreshing age.
-Samples copy the complete row into a held output register before the row can be
+Selected words assemble directly into the sole held sample before the row can be
 reused. Raw capture ticks and generation are reconstructed from matching entry
 fields, and error is zero because error/generation failures prevent selection.
 No timestamp precision is discarded. Writes are registered; overlapping reads
@@ -278,52 +271,34 @@ registered write may finish on a reset edge but cannot regain valid ownership.
 
 ## Protocol association storage
 
-`PtpProtocolEngine` stores four completed Sync samples in a 485-bit-wide
-`SimpleDualPortRam` and four Sync/Follow_Up payloads in a second, 549-bit-wide
-RAM. `HISTORY_MEMORY_TYPE_G` and `PAIR_MEMORY_TYPE_G` select `"distributed"`
-(default) or `"block"` at the engine. Both use inferred synchronous reads with
-latency one and registered addresses/enables. Four history-valid bits and five
-pair ownership/mode bits per slot stay in registers. Reset and protocol abort
-invalidate ownership and cancel scans without clearing the RAM contents.
+`PtpProtocolEngine` keeps four pairing rows of 20x32 words and four history
+rows of 25x32 words. Both inferred `SimpleDualPortRam` instances support
+`"distributed"` and `"block"` through their existing generics. Ownership/mode
+flags remain in registers; reset/abort invalidate ownership without clearing RAM.
 
-The pairing scan starts when a Sync/Follow_Up is offered and processing capacity
-is available. The RX producer holds its complete record until acknowledgement;
-the engine does not add a second wide input holding register. A single evaluator
-checks one row every two clocks, expiring rows using the raw tick sampled at
-scan start. Expiry is strictly `age > associationTimeout`: a row at the inclusive
-limit remains eligible for this transaction even if time advances during the
-scan. New rows use that same tick for their birth time. Packet policy and final
-capture-age/chronology checks still apply at the acknowledgement edge.
+Pair scans read sequence and creation ticks, retaining the original inclusive
+age limit and first-slot tie rule. Selection prefers the existing key, then
+first free/expired row, then oldest completed row. Only a matching duplicate
+Follow_Up reads its comparison fields. RX holds its record through field writes
+and selected-sample publication. New scans wait until writes drain; duplicate
+and overflow retirement retain keys until replacement or expiry. Scan-start
+ticks govern table expiry; final packet capture-age checks remain live.
 
-Selection prefers an existing sequence, then the first unused/expired slot,
-then the oldest completed slot, retaining first-physical-slot order on equal
-birth ticks. From scan-start edge N, acknowledgement occurs at N+10 for an
-unused slot or full-table rejection, or N+11 after rereading an occupied slot;
-history ownership and downstream stalls can postpone it. A successful update
-writes the complete row on the following edge. New pairing scans wait for that
-write to drain. The newly updated row can complete on the acknowledgement edge;
-RX admission reserves publication capacity, so no other ready row is bypassed.
-Duplicate/overflow retirement retains the key until replacement or expiry.
+History first scans ticks/phase/generation and chooses the nearest eligible
+Sync on either side of TX. Strict distance comparison retains the first physical
+slot on ties. The 68-bit signed distance exactly represents the difference of
+full 64-bit ticks plus three phase bits. Only the chosen sample is fetched into
+the existing held E2E producer record. Eight additional words stream its previously
+computed forward and corrected remote Sync values directly into E2E's private
+workspace. No timestamp reconversion or full-row scan register is required.
 
-History lookup accepts a held ledger sample into the existing E2E operand
-registers. It freezes lookup ticks, rate ratio/qualification and maximum path
-delay, while configuration changes cancel the operation. Pair acknowledgement
-and history appends wait throughout the lookup, including its admission edge;
-a previously registered append drains before lookup starts. This preserves
-selection from pre-append history and avoids same-address RAM collisions.
-The scan compares raw tick/phase distance, generation, association age and
-maximum separation. A Sync on either side of the TX capture can win; equal
-distances retain the first physical slot. Selection is nondestructive.
-
-With admission at N, the four read/check pairs finish at N+8 and the registered
-E2E request (or no-match rejection) publishes at N+9. The child accepts that
-request on a subsequent ready/valid edge. The existing `e2eSync` register holds
-the best row; the last accepted Sync register drives the history write port.
-E2E result publication waits for an active pairing transaction to acknowledge,
-then takes priority over starting another scan so continuous rejected RX
-traffic cannot starve it. It retains the existing fresh-ratio and cancellation
-checks. No software map,
-public stream payload or numerical precision changes accompany these latencies.
+An append writes raw provenance from the held rate producer, then normalized
+words directly from the rate workspace. The row becomes valid only after its
+last registered write drains. Lookup pins the table, excluding append/pair
+admission until the selected words transfer. E2E retains its input ownership
+through result retirement. Completed E2E output takes priority over a new pair
+scan, including under continuing rejected traffic. Local scan and shared-service
+latencies are included in the [service bound](rtl-readability.md#shared-service-bound).
 
 ## Port policy and numerical envelope
 
@@ -424,16 +399,13 @@ unlock is three beyond 1 µs. Qualification counters retain progress in the
 neutral hysteresis band and reset when the opposite threshold is crossed.
 Maximum path delay is 1 ms.
 
-Two existing implementation limits still lack a documented design rationale:
-`PtpProtocolEngine` requires an association timeout of at least 2048 raw clock cycles,
-and `PtpServo` caps the configurable actuator limit at 200,000 ppb. Inspection
-of their introducing commit (`dc18c9ba2`) found no additional justification.
-The association floor needs a complete operation/latency budget; the 128-step
-math engine alone does not establish it. The actuator cap needs an explicit
-control/actuator rationale and qualification. It is separate from both the
-independently documented ±200 ppm oscillator qualification envelope and the
-default 150,000 ppb total correction setting. Naming these limits does not
-establish their sufficiency or hardware suitability.
+The shared word processor requires an association window of at least
+70,347,776 raw ticks, advertised by `MinimumAssociationTicks`. Its
+[finite-burst derivation](rtl-readability.md#shared-service-bound) includes
+movement, arbitration, computation and publication. Original capture ages are
+unchanged. The configurable actuator cap remains 200,000 ppb and still requires
+an explicit control/actuator rationale and qualification, independently of the
+±200 ppm oscillator envelope and default 150,000 ppb total correction limit.
 
 Independent rational PI sweeps cover ±100 ppm, initial ±10 µs, and Sync periods
 1/8, 1/4 and 1 s. For those cases, peak error is below 12 µs and every sampled
@@ -478,31 +450,21 @@ range before their potentially large epoch offsets cancel.
 
 ### E2E arithmetic sequencing
 
-`PtpE2e` selects remote Sync, local Sync capture and remote Delay_Resp into
-one seconds-to-Q16 converter. A shared signed128 add/subtract path forms the
-capture separation, adds calibration displacements, retains the corrected
-Sync time and accumulates the final forward/path-delay equations. Epochs and
-corrections retain their full widths. Regrouping the timestamp subtractions
-preserves modulo-128 arithmetic before the existing signed rounding and delay
-range check; it does not assume nearby epochs or small corrections.
+`PtpE2e` sequences its operations through the endpoint-owned `PtpCompute`.
+Production history supplies normalized corrected Sync and forward words; the
+standalone leaf can normalize a raw Sync through the same service. Remote
+Delay_Resp conversion, elapsed tick/phase scaling, calibration and final equations
+share that processor. Epoch/correction additions preserve modulo signed128;
+products and calibration division retain checked overflow and exact rounding.
+Both calibration planes use their own captured increment; zero planes omit
+their work. Zero ratio/increment and generation mismatch remain errors.
 
-Each zero-valued ingress/egress calibration generic removes its multiply/divide
-pair from the sequence. Both zero therefore require only elapsed scaling and
-hold the math engine's divide input at zero. A nonzero plane still uses its
-own capture increment, with the original multiplication check and division
-rounding. Zero capture increments, zero ratio and generation mismatch remain
-errors even when calibration is zero.
-
-Six local clocks follow the last arithmetic result to form and publish the
-timestamp equations. Successful admission-to-valid latency is 136, 396 or 656
-clocks for zero, one or two nonzero calibration planes, respectively. Each math
-operation accounts for 130 clocks including its request/result handshakes.
-Input ready remains low until the held result is consumed;
-reset/cancel overrides every added state and prevents a result transfer on that
-edge. All exchange operands and result provenance remain frozen at admission.
-Account for this local latency alongside ledger/history scans and downstream
-stalls when selecting association timeouts; the unchanged 2,048-tick admission
-floor is not an end-to-end timing guarantee.
+The producer holds input records until word upload acknowledgement. Intermediate
+values remain in persistent RAM slots and chain without wide result reloads.
+Only the public output record holds the complete result. Cancellation invalidates
+this owner's workspace and output, independently of other clients. Service time
+is variable under arbitration and covered by the common bound; the former
+private-engine 136/396/656-cycle timings no longer apply.
 
 ### PHC increment and phase normalization
 
@@ -513,65 +475,50 @@ and publishes the new increment beside that timestamp for subsequent intervals.
 Rejected commands preserve the active increment. SET/PHASE, rollover, capture
 inhibition, validity and PPS ordering are unchanged.
 
-Manual PHASE normalization instantiates `PtpMath` with `DIVISOR_WIDTH_G=46` for
-the fixed divisor `1_000_000_000 * 2^16`. The remainder is smaller than this
-divisor, so 46 stored bits, 47 shifted trial bits and a 48-bit subtraction
-including borrow suffice. The signed128 software operand, 128-bit quotient
-and 128 work iterations are retained. Division truncates toward zero and
-returns a remainder with the dividend's sign; the PHC still rejects quotients
-that do not fit signed64 before command admission. Accepted manual work keeps
-its frozen operands across register-only reset and later shadow writes.
+Manual PHASE freezes software operand words, then submits exact signed128
+division by `1_000_000_000 * 2^16` to owner three of the shared processor.
+Quotients truncate toward zero, remainders retain the dividend sign, and the
+PHC rejects quotients that do not fit signed64. Later shadow writes and AXI-only
+reset cannot change an accepted command. Automatic phase preparation runs through
+the servo's compute owner before presenting the same normalized PHC command.
+No processor operation predicts a future counter value; commit checks use the
+local PHC state at the defined commit edge.
 
-`PtpMath` defaults to `DIVISOR_WIDTH_G=128`. The generic bounds the unsigned
-divisor magnitude; division by zero or a magnitude requiring more bits returns
-an error with zero quotient/remainder at admission. It does not narrow or
-restrict multiplication. One widened trial subtraction supplies both the
-division borrow decision and candidate remainder. Normal operations retain
-128 work iterations, optional nearest/ties-away quotient rounding, the
-truncation remainder and existing signed overflow/result-bit behavior.
+`PtpMath` remains a separately tested reusable leaf, with its original divisor
+width contract. It is no longer instantiated anywhere in the production PTP
+hierarchy. Its earlier resource figures describe the previous implementation.
 
 ### Servo arithmetic and filter sequencing
 
-`PtpServo` shares one selected-operand add/clamp path for bootstrap frequency,
-integral update, trial/final rate and holdover limiting. Proportional and
-integral corrections share a signed67 rounding/sign-restoration stage. The
-fixed shifts remain 30 and 62 bits, with nearest ties away from zero; checked
-signed128 products are consumed only after `PtpMath` reports success. Selecting
-the floor quotient and a round-up bit before the shared stage avoids a variable
-barrel shifter. Active limit magnitudes use their validated 18-bit range;
-software shadows and coordinated full-width validation remain unchanged.
+`PtpServo` uses shared-service descriptors for bootstrap, proportional and
+integral arithmetic, six possible clamp calls, anti-windup and command conversion.
+Shifts retain nearest ties away from zero at 30 and 62 bits. Overflow rejection,
+unsigned32 gains and signed128 intermediate semantics remain unchanged. Rare
+configuration values load from the active word bank; per-clock policy/timers
+remain cached. Candidate and committed frequency occupy alternating RAM slots;
+only successful PHC acknowledgement switches the committed pointer. ACK waiting
+releases the compute engine so PHC preparation cannot deadlock behind the servo.
 
-Relative to the former same-cycle clamps, bootstrap adds five local clocks,
-tracking adds seven and holdover adds one, excluding input/command stalls.
-The math engine still performs 128 work iterations per operation. Frequency
-and final-rate anti-windup decisions precede command formation, and only a
-successful PHC acknowledgement commits the retained frequency. Generation,
-restart/abort, sample staleness and validity expiry are checked throughout the
-added states; they do not wait for arithmetic to finish.
+Delay history uses five signed64 samples in local word RAM. Twenty workspace
+words hold a padded sorting copy; nine comparisons and at most 27 RAM copies
+implement the same sorting network. Four result words stream into the sole
+publication staging record. Median and population publish atomically, retaining
+lower-median startup, duplicates, signed64 maximum and circular replacement.
+Input backpressure spans sorting; no nine-clock filter interval is claimed.
 
-An admitted delay sample updates circular history and captures a scratch copy,
-padding unpopulated locations with signed64 maximum. One comparator visits the
-existing nine pairs over the following nine clocks. Measurement ready stays
-low throughout those comparisons. The previous published median and population
-stay intact until both update on the ninth comparison edge; input acceptance
-can resume on the next edge, for a ten-clock minimum delay-sample interval.
-Lower median, duplicate/sentinel behavior, all fractional bits and circular
-replacement are preserved. The 320-bit scratch copy is distinct from history;
-this implementation uses registers rather than a new RAM.
-
-The admitted delay refreshes the internal delay-age timestamp immediately and
-supplies the active-work timestamp for association expiry. A forward sample
-cannot use the filter until sorting finishes. Abort, restart, generation change
-or active-work expiry cancels sorting and clears population/replacement state;
-cancellation on the publication edge retains the prior median payload as well.
-System reset clears the complete state. AXI-only reset preserves sorting, and
-a snapshot on the publication edge captures the previous registered median;
-a later snapshot captures the new one.
+Admitted delay refreshes its age timestamp; forward work waits for sorting.
+Abort/restart, generation change and stale work cancel immediately, clearing
+population and replacement ownership while retaining the prior median payload.
+AXI reset preserves active work. Snapshot capture on median publication includes
+the previous pre-edge value; capture on the next edge includes the new value.
+See the [service contract](rtl-readability.md#shared-service-bound) for bounds.
 
 ### Fixed-point width audit
 
-The October 2026 source audit sizes stored values from the accepted configuration
-and interface ranges, including standalone clock-frequency generics. It does not
+The pre-shared-service October 2026 source audit below sized stored values from the accepted configuration
+and interface ranges, including standalone clock-frequency generics. Its named
+registers and declared-bit savings describe that earlier implementation; current
+working values occupy 128-bit RAM slots. The numerical bounds still apply and do not
 assume that every Sync arrives one second apart or that every offset is small.
 The first reduction preserves all fractional bits, register/command formats,
 rounding points, overflow rejection and the 128-iteration arithmetic schedule.
@@ -643,7 +590,7 @@ numerical error, small accumulated corrections, acquisition/holdover behavior,
 FPGA resources and latency. Message-rate computation offers time to serialize
 operations, but does not establish a resource or precision advantage. Existing
 configuration, cancellation and command-acknowledgement contracts must remain
-intact; behavioral evaluation remains subject to the current verification pause.
+intact; behavioral evaluation remains subject to the repository verification policy.
 
 ## AXI-Lite register map
 
@@ -684,47 +631,37 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 
 ## RX queue storage
 
-`PtpRxFrontend` uses SURF `Fifo` with `GEN_SYNC_FIFO_G => true`,
-`FWFT_EN_G => true`, inferred distributed memory and no optional output pipeline.
-`FIFO_DEPTH_G` remains the exact logical capacity, including depth one and
-non-power-of-two depths; RX defaults to four and the TX observer selects two.
-Occupancy counts accepted completions until downstream consumption, including
-the registered write request, FIFO read pipeline and registered output head.
-The portable FIFO allocates at least 16 physical locations and reserves one RAM
-slot; its address width is at least `log2(FIFO_DEPTH_G+1)`. Extra physical
-capacity never increases the frontend's configured logical capacity.
+`PtpRxFrontend` writes 65 compact fixed-field bytes through eight independent
+byte lanes. A beat writes at most one byte per lane, including a row crossing.
+CRC, lengths, TLV progress and small common-header fields stay in the stream
+validator; unused prefix bytes and TLV payload are not retained. Physical SOF
+capture metadata is written once to a separate bank. The store has one extra
+active-frame bank beyond the exact logical queue capacity (default four).
 
-Completion at edge N registers the complete payload and write enable together;
-the FIFO accepts the write at N+1 and presents FWFT data/valid at N+2. The head
-captures that word at N+3, allowing its first downstream transfer at N+4.
-Backpressure can delay delivery further. A primed queue drains one record per
-clock, and the published head holds during stalls. The combinational FWFT read
-acknowledgement consumes exactly the word captured into the head on that edge,
-following the [SURF consumer pattern](../../vhdl-conventions.md#fifo-and-ram-timing-contracts).
-Writes and reset publish directly from `r`; no custom RAM pointers or write
-forwarding remain. Added buffering latency does not change the SOF timestamp.
+A synchronous SURF FWFT FIFO carries bank/length descriptors after complete
+validation. Logical occupancy includes descriptor pipeline, decoder and held
+head; extra primitive locations do not add capacity. The decoder streams eight
+bytes per clock into the sole public record. With G=ceil((35+fixedBodyBytes)/8),
+EOF at N produces registered valid at N+G+4 and first transfer at N+G+5.
+A queued next record takes G+2 clocks after the preceding head transfer. G is
+6 for Sync/Follow_Up, 7 for Delay_Resp and 9 for Announce. These rates fit their
+minimum wire spacing. Dedicated minimum-IFG GMII/XGMII bursts test continuous
+capture and exact capacity with a held prior head.
 
-Reset/flush clear logical occupancy, the head and the next write request;
-a registered active-high FIFO reset clears internal validity on the following
-edge without clearing payload RAM. Capture into the head is inhibited while
-that reset is pending. An already issued write may commit on the invalidation
-edge but is then discarded by the FIFO reset. The selected synchronous backend
-recovers in one clock, before a newly started minimum-length frame can complete
-(at least eight input clocks). Pre-edge-full completion still discards all
-queued work and registers the same overflow/abort event.
-Generation and RX epoch rules, capture/message atomicity and downstream
-stale-record rejection are unchanged. TX still preserves physical completion
-identity across PHC generation changes and when capture arithmetic reports error.
+`PtpDelayReqObserver` is the dedicated TX validator: only 13 key bytes and the
+complete capture are stored, with two logical entries and a two-group decoder.
+It validates actual post-MAC framing, FCS, Delay_Req type and length. PHC generation
+changes and capture arithmetic errors cannot erase physical completion identity;
+physical reset/flush retains its distinct meaning. Logical restart never proves
+an unknown queued TX frame vanished.
 
-`PtpPkg.ptpPackRxMessage`/`ptpUnpackRxMessage` transport all 809 record bits,
-including capture increment/error. They extend the existing 744-bit `toSlv`
-verification layout without changing it. The parser separately aligns each
-input beat for fixed prefix-byte writes, caches validated header bounds before
-the first TLV and checks all 16 received length bits before loading its bounded
-remaining-byte counter. These changes preserve the no-backpressure byte stream.
-See the [LUT workstream](lut-optimization.md) for source provenance and the
-outstanding Vivado resource/timing comparison; simulation is not area evidence.
-
+Reset/flush invalidates ownership and registered FIFO state without clearing RAM.
+Full-before-edge overflow flushes the entire queue and publishes the existing
+abort/epoch event. Invalid frames overwrite only the current uncommitted bank.
+The public message and capture stay atomic and stable under backpressure. The
+809-bit pack/unpack utilities retain their public verification layout but no
+longer define the physical descriptor FIFO width. Resource mapping and timing
+still require matched Vivado evidence; simulation does not measure LUT savings.
 
 Validation history is retained in [historical evidence](history/verification.md);
 all current acceptance and device/interoperability gates belong in the

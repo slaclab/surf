@@ -71,7 +71,7 @@ async def register_contract(d):
 
     async def write(address, value, strobe=15, response=0):
         aw, w = 1, 1
-        for _ in range(100):
+        for _ in range(4*48+32):
             seen = await edge(axil_awvalid=aw, axil_awaddr=base+address, axil_wvalid=w,
                               axil_wdata=value, axil_wstrb=strobe)
             if seen['awready']:
@@ -86,7 +86,7 @@ async def register_contract(d):
 
     async def read(address, response=0):
         ar = 1
-        for _ in range(100):
+        for _ in range(4*48+32):
             seen = await edge(axil_arvalid=ar, axil_araddr=base+address)
             if seen['arready']:
                 ar = 0
@@ -107,7 +107,9 @@ async def register_contract(d):
         return value
 
     async def finish(error=0):
-        for _ in range(100):
+        # Word-serial phase normalization is bounded by 5000 engine clocks;
+        # each complete AXI status read advances several clocks.
+        for _ in range(1000):
             value = await read(0x1024)
             if not value & 1:
                 assert value == 2+4*error
@@ -117,7 +119,9 @@ async def register_contract(d):
     async def commit(error=0):
         before = await read(0x048)
         await write(0x03C, 1)
-        for _ in range(20):
+        # The 48-word port clone takes 196 clocks; each status transaction
+        # advances multiple clocks, including crossbar response stages.
+        for _ in range(100):
             if await read(0x048) != before:
                 assert await read(0x040) == error
                 return
@@ -145,6 +149,21 @@ async def register_contract(d):
     for unused in (0x3F0, 0x13F0, 0x23F0, 0x33F0):
         await read(unused, response=3)
         await write(unused, 0, response=3)
+    # Exercise every moved word-bank address through the real AXI crossbar.
+    # Multiword fields keep their padded final word and all read-only protections.
+    for bank, rw, ro in (
+            (0x1000, [(0x28, 10)], [(0x08, 6), (0x58, 4)]),
+            (0x2000, [(0x04, 2), (0x10, 3), (0x20, 3), (0x80, 12), (0xB0, 1), (0xB8, 2)],
+             [(0x130, 12), (0x160, 3), (0x170, 3), (0x180, 3), (0x190, 3), (0x1A0, 8), (0x200, 7)]),
+            (0x3000, [(0x04, 1), (0x20, 5), (0x38, 8), (0x60, 10)],
+             [(0x94, 2), (0x100, 10), (0x200, 1)])):
+        for fields, writable in ((rw, True), (ro, False)):
+            for start, count in fields:
+                for offset in range(start, start+4*count, 4):
+                    value = await read(bank+offset)
+                    await write(bank+offset, value, response=0 if writable else 3)
+                    assert await read(bank+offset) == value
+
     # SURF register helpers ignore address bits 1:0. All four byte addresses
     # select the same word; write strobes still select eligible field slices.
     for address, mask in ((0x004, 3), (0x1004, 8), (0x2004, 16), (0x3004, 4)):
@@ -237,6 +256,16 @@ async def register_contract(d):
     await write(0x004, 1)
     await write_wide(0x2020, source, 3)
 
+    # The advertised shared-service floor is enforced on the frozen candidate.
+    assert await read(0x20F8) == 70347776
+    previous_timeout = await read_wide(0x2090, 2)
+    await write_wide(0x2090, 70347775, 2)
+    await commit(error=1)
+    await write_wide(0x2090, 70347776, 2)
+    await commit()
+    await write_wide(0x2090, previous_timeout, 2)
+    await commit()
+
     # Isolate the same bank prepare/apply pins used by the coordinator. Hold
     # candidates across multiple bus writes to prove they are immutable.
     await write(0x3020, 0x20000000)
@@ -285,6 +314,9 @@ async def register_contract(d):
         assert False, 'commit preparation was not observed'
     await edge(regRst=1, axil_awvalid=0, axil_wvalid=0)
     await edge(regRst=0)
+    for _ in range(100):
+        if await read(0x048) == sequence+1:
+            break
     assert await read(0x048) == sequence+1
     assert not int(d.activeEnable.value)
     assert await read_wide(0x2070, 3) == source+4
@@ -314,6 +346,10 @@ async def register_contract(d):
 
     # Multiword snapshots remain frozen while the PHC continues ticking.
     await write(0x100, 1)
+    for _ in range(20):
+        if await read(0x108) == 0:
+            break
+    assert await read(0x108) == 0
     assert await read(0x104) == 1
     stamp = await read_wide(0x1008, 4)
     ticks = await read_wide(0x1060, 2)
@@ -328,6 +364,28 @@ async def register_contract(d):
     assert int(d.irq.value)
     await write(0x054, 2)
     assert not int(d.irq.value)
+
+    # A read admitted during copying stays on the previous published bank,
+    # including after the new cohort publishes while its AXI response is held.
+    old_sequence = await read(0x104)
+    old_ticks = ticks
+    await write(0x100, 1)
+    ar = 1
+    for _ in range(40):
+        seen = await edge(axil_arvalid=ar, axil_araddr=base+0x1060, axil_rready=0)
+        if seen['arready']:
+            ar = 0
+        if seen['rvalid']:
+            assert seen['rresp'] == 0 and seen['rdata'] == (old_ticks & 0xffffffff)
+            break
+    else:
+        assert False, 'old snapshot read did not complete during publication'
+    for _ in range(20):
+        seen = await edge(axil_arvalid=0)
+        assert seen['rvalid'] and seen['rdata'] == (old_ticks & 0xffffffff)
+    await edge(axil_rready=1)
+    assert await read(0x104) == old_sequence+1
+    assert await read_wide(0x1060, 2) == snapshots[-1]
 
     # Automatic ownership rejects manual steering; PPS remains a safe command.
     await write(0x004, 3)
@@ -356,8 +414,10 @@ async def register_contract(d):
     await edge(snapshotInhibit=1)
     assert not int(d.snapshotCapture.value), 'snapshot request did not pulse'
     await edge(snapshotInhibit=0)
-    for _ in range(5):
-        await edge()
+    for _ in range(20):
+        if await read(0x108) == 0:
+            break
+    assert await read(0x108) == 0
     assert await read(0x104) == sequence+1
     for bank_sequence in (0x13FC, 0x23FC, 0x33FC):
         assert await read(bank_sequence) == sequence+1

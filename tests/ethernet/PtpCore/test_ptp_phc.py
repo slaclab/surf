@@ -47,7 +47,7 @@ class Bench:
                      "commandKind", "commandGeneration", "commandSeconds",
                      "commandNanoseconds", "commandFraction", "phaseSeconds", "phaseFraction",
                      "commandRate", "commandValue", "readClk", "readRst", "readRequest",
-                     "prepareConfig", "applyConfig"):
+                     "prepareConfig", "applyConfig", "snapshotCapture", "snapshotPublish", "snapshotSequence"):
             getattr(d, name).value = 0
         d.rst.value = 1-self.polarity
         self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst,
@@ -241,6 +241,65 @@ async def registered_command_lifecycle(d):
     await b.step()
     await b.command("valid", 1)
     assert int(d.timeValid.value)
+
+
+@cocotb.test()
+async def register_snapshot_edges(d):
+    # Drive the production bank's private capture/publish handshake explicitly
+    # to land capture on a command commit, validity loss and configuration apply.
+    # Every intervening PHC cycle still runs the independent clock oracle.
+    b = Bench(d)
+    await b.reset()
+    await b.set_monotonic(False)
+    await b.command("set", ((100*NS+123) << 32)+17)
+    await b.command("valid", 1)
+
+    async def read(address, size=4):
+        transaction = cocotb.start_soon(b.axil.read(address, size))
+        for _ in range(100):
+            await b.step()
+            if transaction.done():
+                assert transaction.result().resp == AxiResp.OKAY
+                return int.from_bytes(transaction.result().data, "little")
+        assert False, "PHC register snapshot read timeout"
+
+    events = (("set", (222*NS+7)*Q32+123), ("phase", -NS*Q16+7),
+              ("rate", Q32//3), ("valid", 0), "invalidate", "apply")
+    for sequence, event in enumerate(events, 1):
+        await b.command("valid", 1)
+        await b.step()
+        if isinstance(event, tuple):
+            assert await b.step(event)
+        elif event == "apply":
+            d.prepareConfig.value = 1
+            await b.step()
+            d.prepareConfig.value = 0
+            d.applyConfig.value = 1
+        expected = (b.model.time_q32, b.model.ticks, b.model.generation,
+                    int(b.model.valid), b.model.rate)
+        d.snapshotSequence.value = sequence
+        d.snapshotCapture.value = 1
+        await b.step(clear_valid=event == "invalidate")
+        d.snapshotCapture.value = 0
+        d.applyConfig.value = 0
+        assert not int(d.snapshotPrepared.value)
+        for _ in range(12):
+            await b.step()
+            if int(d.snapshotPrepared.value):
+                break
+        assert int(d.snapshotPrepared.value)
+        assert await read(0x3FC) == sequence-1
+        d.snapshotPublish.value = 1
+        await b.step()
+        d.snapshotPublish.value = 0
+        seconds = await read(0x008, 8)
+        nanoseconds = await read(0x010)
+        fraction = await read(0x014)
+        observed = (((seconds*NS+nanoseconds) << 32)+fraction,
+                    await read(0x060, 8), await read(0x018),
+                    await read(0x01C), await read(0x058, 8))
+        assert observed == expected, (event, observed, expected)
+        assert await read(0x3FC) == sequence
 
 
 @cocotb.test()

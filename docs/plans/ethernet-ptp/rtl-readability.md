@@ -116,8 +116,8 @@ precedence over the initial record-conversion equivalence comparison.
 | Port lifecycle | `PtpPortLifecycleType`: `commandAbort`, `identityRestart`; port produces it. | A cause sampled at N is published after N and consumed at N+1. Command abort excludes the PHC command's own capture invalidation; identity restart enters registered endpoint flush assembly. No handshake. |
 | Port diagnostics | `PtpPortStatusType`: activity/validity summaries, exchange, Announce metadata, ledger state and counters. | Registered output and local live AXI reads share the same state. Protocol-owned values update directly in the record; ratio/Announce validity and ledger observations are sampled each edge. Registered lifecycle controls are separate. Local snapshots retain their pre-edge capture contract. |
 | Servo diagnostics | `PtpServoStatusType`: state, filtered delay, offset, computed rate, filter occupancy and rejection count. | The registered record owns these values; outputs and local reads use the same state. Delay/offset use signed Q16 ns; rate uses signed Q16 ppb, clamped before narrowing to its 64-bit field. The coordinator consumes only state and filter count. |
-| Configuration commit | `PtpConfigControlType`: `prepare`, `apply`, `busy`; coordinator broadcasts it. | Registered from resolved next state without adding commit cycles. Preparation freezes each bank's candidate, independent scalar validation votes qualify apply, and busy inhibits conflicting manual PHC commands. System reset resets the coordinator and every bank. |
-| Register snapshots | `PtpSnapshotControlType`: `capture`, `sequenceId`; coordinator broadcasts it. | Registered capture/sequence issue together. All banks sample pre-edge state on the following edge, when the coordinator also completes. An issued snapshot is not withdrawn by later invalidation. Configuration and snapshots remain separate transactions. |
+| Configuration commit | `PtpConfigControlType`: `prepare`, `apply`, `busy`; coordinator broadcasts it. | Registered from resolved next state. Preparation freezes each bank's candidate; completion handshakes and independent validation votes qualify apply, and busy inhibits conflicting manual PHC commands. System reset resets the coordinator and every bank. |
+| Register snapshots | `PtpSnapshotControlType`: `capture`, `publish`, `sequenceId`; coordinator broadcasts it. | Registered capture/sequence issue together. All banks freeze pre-edge state, then a common publication follows their completion votes. An issued snapshot is not withdrawn by later invalidation. Configuration and snapshots remain separate transactions. |
 | RX diagnostics | `PtpRxCountersType`: `accepted`, `dropped`, `overflow`; frontend produces it. | The registered record owns the saturating counters. Port snapshot/register offsets preserve their order. Counter semantics exclude frames lost before SOF or during flush from `dropped`. |
 | PHC observation at timestamp adapter | Reuse `PtpPhcStatusType`. | Generation, increment, ticks and validity arrive as the existing PHC status record, alongside `PtpTimeType`. No new duplicate clock-status type is needed. |
 
@@ -139,10 +139,10 @@ port status, time/capture and protocol payload records remain in use.
 - RX messages and TX completion messages already have payload records. Their
   queue handshakes and abort signals remain explicit: RX queue
   invalidation and physical TX observation have distinct lifetime rules.
-- Serialized math and ledger services retain their existing point-to-point
-  payload ports. Their result-valid outputs are registered; consumers exclude
-  shared cancel/restart and reset edges from transfers. Payloads and controls could form
-  a later focused cleanup; they are not folded into endpoint-wide records.
+- Shared arithmetic uses the private directional records in `PtpComputePkg`.
+  Ledger payload ports remain point-to-point. Result-valid outputs are registered;
+  consumers exclude cancel/restart and reset edges from transfers. Word storage
+  ownership outlives an individual arithmetic grant or result acknowledgement.
 - The asynchronous PHC reader keeps its explicit request/response pins and CDC
   boundary. Introducing a record would not itself make that crossing safe.
 
@@ -178,8 +178,8 @@ RX overflow/flush detection at N clears the queue and publishes registered
 abort/overflow/epoch after N. A valid old head may transfer at N; consumers give
 the now-visible abort priority at N+1 and discard pending work. The RX queue head
 itself is registered. Its [synchronous FWFT FIFO](autonomous-endpoint.md#rx-queue-storage)
-delivers a new completion to an available head three clocks after EOF. Logical
-occupancy includes the write/read pipeline and head, preserving configured
+delivers descriptors to the compact-store decoder. Decoding latency depends
+on fixed body length. Logical occupancy includes the pipeline/decoder/head, preserving configured
 capacity. Invalidation suppresses head capture while the registered FIFO reset
 clears internal validity on the following edge.
 
@@ -205,7 +205,7 @@ The exact multi-hop boundaries are:
 | Port lifecycle to `PtpEndpointControl` | A cause sampled at N publishes after N; the controller consumes at N+1 and publishes its event for consumption at N+2. MAC-change restart therefore crosses two registered hops. |
 | Delay response to ledger | Port RX stages and holds the response until a complete RAM scan acknowledges it. That handshake at H registers acceptance; the port consumes acceptance and the retained log interval at H+1. |
 | Ledger allocation | Each completed scan can offer one registered capacity pulse. The handshake creates the first TX beat; a reservation already accepted on a cancellation-detection edge is preserved. |
-| Ledger row/sample | Read request at N, synchronous RAM read at N+1, row evaluation and optional registered sample at N+2. A full scan repeats every 2*depth+2 clocks; restart cancels eligibility/output while physical completions continue. |
+| Ledger words/sample | Each synchronous word read takes two clocks. Scanning 22 words and evaluating each row takes 45*depth+2 clocks; allocation adds 22 writes. A request arriving mid-scan can require the next scan. Restart cancels eligibility/output while physical completions continue. |
 | E2E request | Registered valid and frozen Sync/Delay/ratio/limit remain owned through result consumption or cancellation; no replacement request may overwrite the diagnostic exchange tag. |
 
 Ledger samples, sample-valid, occupancy and counters remain registered;
@@ -217,20 +217,108 @@ parent's transaction and excludes results.
 
 ## Configuration and snapshots
 
-Configuration prepare freezes each bank's pre-edge shadow and validation vote
-together. Later AXI writes cannot alter that candidate. A later registered apply
-activates the same candidate in every bank. AXI-only reset cancels bus responses,
-not accepted commands, active configuration or snapshots.
+`PtpConfigBank` has three 32-bit banks. Prepare pins the current shadow as an
+immutable candidate, then clones it to the next shadow before accepting later
+writes. Previously accepted writes drain before the copy. Initialization writes
+three banks in `3*N+1` clocks; preparation, including a prior transaction, is
+bounded by `4*N+8` clocks (N=48 port, 34 servo, 10 PHC manual operands).
+Unfinished preparation is distinct from a negative validation vote. The endpoint
+waits for port and servo `configPrepared`, checks all votes, then broadcasts one
+registered apply. Active pointers and per-clock caches switch on that edge.
 
-A snapshot has separate registered issue and consumption edges. The coordinator
-broadcasts capture and sequence at N; every bank snapshots pre-edge state at
-N+1 and the coordinator reports completion on that edge. An invalidation can
-defer a new issue, but cannot withdraw an issued snapshot. If a command commits
-at N+1, the snapshot still describes coherent pre-command state; if it committed
-at N, the snapshot describes the coherent resulting state. Live and frozen
-state have distinct storage and lifetimes. `PtpEndpointControl` also registers
-configuration control, IRQ and AXI responses; enable outputs are fixed slices
-of active configuration.
+Scalar PHC configuration retains its local candidate. Manual command operands
+use the same word-bank freeze/copy mechanism, independently of global config.
+AXI-only reset cancels responses, preserving accepted writes, commands, copies,
+active settings and coordination. A read/modify/write honors the original field
+strobes; malformed strobes keep their DECERR behavior. Algorithm reads and AXI
+requests arbitrate locally, with separate held responses.
+
+Snapshots use two broadcasts: `capture` pins the common pre-edge cohort, and
+`publish` exposes it after every `snapshotPrepared` reports completion. Result
+records use five version banks per record (live, old snapshot, pending snapshot,
+next result and retiring reader), with word writes and immutable ownership.
+Changing scalars are latched at capture and copied into an inactive word bank.
+Announce body and decoded metadata share one pinned record; only the seven
+protocol counters need scalar latches. The largest scalar bank is the PHC's
+10 words; publication occurs 13 clocks after capture.
+The old snapshot and sequence remain readable while SnapshotBusy is high.
+
+A result's registered publication event describes its already-visible public
+record, so capture includes that event. A result becoming visible on the capture
+edge belongs to the next cohort. Config apply, PHC commit and invalidation obey
+the same pre-edge rule. Invalidation may defer capture but cannot withdraw an
+issued cohort. Reads select the published bank at admission; an already admitted
+read completes against that bank even if publication occurs while it is pending.
+System reset invalidates ownership without clearing payload RAM.
+
+## Shared service bound
+
+Each endpoint owns one `PtpCompute`. Rate, E2E, servo and manual PHC preparation
+use separate workspaces of 64, 64, 64 and 16 little-endian 32-bit words. The 208
+persistent words plus 26 scratch words fit one 256x32 RAM. Descriptors name
+128-bit slots; results chain in RAM across acknowledgements. Word and descriptor
+arbitration each use round-robin selection, alternating when both are eligible.
+A held result/read response excludes only its owner. Waiting for PHC ACK holds
+no arithmetic slot. Full cancellation invalidates the owner's workspace;
+`retain` preserves completed slots but invalidates admitted destinations even
+when cancellation coincides with FINISH. The servo commits its frequency bank
+pointer only on successful PHC ACK.
+
+The following conservative bounds count clocks, not measured simulator latency:
+
+- A division bit costs at most 34 clocks: four five-clock low-word trials,
+  one three-clock high-word trial, five two-clock accepted-remainder copies and
+  one bit-advance clock. All 128 bits plus at most 256 clocks for sign loads,
+  normalization, scratch clearing, quotient-word loads, rounding, restoration
+  and retirement fit **J=4,608**. Other operations are shorter: even a 127-bit
+  format shift takes 508 two-clock word iterations plus bounded setup/restore.
+- An eligible word request or admitted descriptor is served within
+  **W=4*(J+8)=18,464** clocks, including its own retirement. At most four
+  descriptor turns intervene, with at most four three-clock host reads. The
+  extra per-turn clocks cover admission and registered response consumption.
+  A blocked owner's response cannot extend another owner's bound.
+- Count every operand/result word and descriptor as a W-sized service quantum.
+  Conservative sequencer ceilings are rate **128**, E2E **128** (including
+  history streaming and both calibrations), median **64**, servo forward/PI or
+  phase preparation **256**, and manual PHC **32**. Rate uses at most 66 word
+  transfers and 24 descriptors. E2E uses at most 80 word transfers and 27
+  descriptors. Median uses 24 transfers and at most 36 compare/copy descriptors.
+  PI permits 128 transfers and 96 descriptors, including clamp copies and
+  initialization/holdover transitions; the 256-quantum ceiling covers both. PHC uses 16 transfers
+  and one division. Each ceiling exceeds the corresponding actual path.
+
+For a finite admitted burst, charge each of four RX records a complete
+608-quantum chain, each of four ledger records an additional 192-quantum
+E2E/median chain, and all current pipeline work another complete 608-quantum
+chain. This overcounts mutually exclusive work. Reserve 4,096 local clocks for
+each of those nine units for frame completion, pair/history/ledger scans,
+configuration reads/copy, diagnostic writes and command commit. The resulting
+floor is **70,347,776 raw ticks**:
+
+```text
+(4*608 + 4*192 + 608)*18,464 + 9*4,096 = 70,347,776
+```
+
+`MinimumAssociationTicks` advertises this floor at protocol offset 0x0F8;
+validation rejects smaller candidates. The two-second default remains valid at
+125 and 156.25 MHz. For a slower standalone generic, initialization raises only
+the association default to the floor when necessary. Other application timers
+still require a suitable configuration. The floor is approximately 563 ms and 450 ms respectively.
+It bounds processing after required packet inputs arrive; it does not cover
+network delay, waiting for a future Follow_Up/Delay_Resp, an indefinitely paused
+MAC, repeated configuration restarts or stalled external consumers. Age always
+uses the original capture/creation ticks. A packet admitted already near expiry
+can still expire; the floor does not refresh it.
+
+At 10 complete chains per second, even charging every quantum the entire
+single-operation J (including word transfers) consumes at most 28,016,640 clocks
+per second plus local work, below 23% of a 125 MHz endpoint. This is a conservative
+service-demand calculation, not measured latency or hardware performance. The
+initial encoded master interval remains 8 Hz; packet admission imposes no new
+frequency rule. Unlimited traffic/stalls have a bounded storage/overflow and
+cancellation contract, not a promise of successful completion. Full RX overflow
+flushes its cohort; unknown TX fate remains quarantined; rejected RX cannot
+preempt an already completed E2E result indefinitely.
 
 ## CDC mailbox
 

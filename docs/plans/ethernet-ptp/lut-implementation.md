@@ -1,44 +1,23 @@
-# Shared compute and word RAM implementation brief
+# Shared compute and word RAM implementation
 
-October 12, 2026. Execution handoff for the complete PTP area redesign.
-The maintainer wants the architecture below implemented, including its storage
-and packet paths. **Halving LUT usage was motivation, not a hard requirement.**
-Measure the completed design and report the result; do not sacrifice behavior
-or spend time chasing an arbitrary percentage or 19,000-LUT threshold.
-The [optimization analysis](lut-optimization.md) owns the rationale, arithmetic
-audit and historical resource estimates. This brief owns the implementation work.
+October 13, 2026. Implementation record for the October 12 area-redesign brief,
+against clean SURF baseline `75a49f427`. The complete production design is
+connected in the working tree; nothing is staged or committed. The original
+brief is retained at that baseline revision. This record replaces its completed
+execution checklist; enduring interfaces and procedures live in the guides below.
 
-## Start here
+**Halving LUT usage was motivation, not an acceptance threshold.** The result
+must be measured with a matched build. Vivado/VCS are unavailable on `PC100431`,
+so the resource and timing comparison explicitly awaits the build host. GHDL
+results do not establish LUT savings, RAM/DSP mapping or hardware qualification.
 
-Read the repository and nested `AGENTS.md`, [VHDL conventions](../../vhdl-conventions.md),
-[endpoint contract](autonomous-endpoint.md), [timing contracts](rtl-readability.md),
-[register ownership](register-map.md) and [test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests).
-Apply the conventions' RTL review checklist. Use checked-out SURF interfaces,
-registered forward boundaries and the normal ruckus source manifests.
-Do not stage, commit, push, change dependency pins or discard pending work without
-the user's instruction. This handoff does not authorize those actions.
+## Implemented architecture
 
-The starting SURF commit is `8ff8333b0`, plus pending servo divisor-width,
-fixture and documentation changes. Inspect the actual working tree before
-editing and carry those changes forward. The preceding `3f0daa750` shares
-protocol timestamp conversion. `PtpCompute` has standalone arithmetic/ownership
-tests but **no production client**; adding it alongside the old engines does
-not implement this brief. The [review record](rtl-review.md) identifies the
-checks already run and remaining limits.
-
-Implement the whole connected design, making reviewable changes and running
-focused checks as useful. Do not stop at another isolated prototype or a wide
-adapter around the existing clients. Use the dependencies below to organize
-work, without a separate approval or synthesis checkpoint for every module.
-Unavailable Vivado results remain outstanding evidence, not a reason to stop
-independent RTL and simulation work.
-
-## Expected design
-
-Each endpoint has one measurement processor and word-addressed working state.
-Its PHC counter, PPS, physical timestamp capture and wire-rate validation remain
-independent. The two KCU105 endpoints retain separate clocks, processors and PHCs.
-Software remains outside the autonomous timing loop.
+Each endpoint has one shared word processor with persistent rate, E2E, servo
+and PHC-command workspaces. Production private math engines and their duplicate
+wide operand/result staging are removed. PHC counting, PPS and wire capture
+remain independent of shared arithmetic. KCU105 endpoints retain separate clocks,
+processors and PHCs; software remains outside the autonomous timing loop.
 
 ```mermaid
 flowchart LR
@@ -56,218 +35,69 @@ flowchart LR
     Banks --> Compute
 ```
 
-Keep protocol admission, association, wire-fate tracking and configuration
-ownership recognizable in their current modules. Their arithmetic requests
-become narrow descriptors and word accesses. Small sequencers retain control,
-indices and ownership; wide working values reside in RAM. One authoritative
-stored value should feed its consumers, instead of accumulating copies at
-every module boundary. Necessary physical capture and output-holding registers
-are legitimate; include them in the resource accounting.
-
-### Shared arithmetic and storage
-
-- Instantiate one production compute service from `PtpEndpoint`. Use four
-  logical owners: protocol rate, E2E, servo and PHC command preparation. Route
-  the protocol's rate/E2E requests through its hierarchy to that service;
-  do not instantiate an engine inside each client. Standalone fixtures should
-  compose the same service with the real client under test.
-- Start from `PtpCompute`'s 32-bit carry/borrow ALU, RAM scratch and shared
-  partial-product multiplier. Keep exact iterative division. Add only operations
-  needed by the clients, including wordwise comparison, rounding and constant
-  format shifts; avoid parallel arithmetic shortcuts and runtime power-of-two
-  detection. Extra cycles are acceptable within the derived service contract.
-- Define private directional request/response records, named operations and
-  word layouts in a compute package if that clarifies the composition. Carry
-  addresses, owner, operation, rounding and provenance, not separate 128-bit
-  operand/result banks. Keep the public endpoint and software interfaces stable
-  except for a documented, necessary timing-limit change.
-- Extend the prototype's scratch-only layout into persistent client workspaces.
-  Its current interface requires all eight operand words before each job and
-  releases result storage on acknowledgement. Solve result-to-next-operand
-  reuse in RAM: addressed sources/destinations or a word-copy operation with
-  explicit ownership. Do not read an intermediate into four registers merely
-  to write it straight back. Define cancellation and reuse before changing the
-  loaded/completed semantics; test those changes against the existing oracle.
-- Arbitrate the shared word and descriptor ports, including response ownership.
-  Hold grants/payloads correctly across stalls and give eligible clients bounded
-  service. A blocked result consumer must not lock the arithmetic engine or
-  prevent another context from retiring. Define storage lifetime separately
-  from arithmetic-slot lifetime; command ACK waits must release the engine.
-- Use SURF synchronous RAM primitives and registered access strobes. Size depth
-  from the actual layouts, not the prototype's incidental 128-word allocation.
-  Keep valid, busy, generation and bank ownership in registers; invalidate RAM
-  contents through ownership on reset. Separate banks/ports where concurrent
-  wire capture, compute and AXI access require them. No fictitious multiport RAM.
-- Preserve supported reset polarity/asynchronous-reset behavior when connecting
-  the prototype, which currently exposes only its simple active-high reset.
-  AXI-only reset must not cancel compute or accepted coordination. Per-client
-  cancellation must not reset unrelated work. Tags supplement lifecycle checks;
-  they do not replace generation, identity and cancellation ownership.
-
-### Production clients and protocol working state
-
-| Owner | Required replacement |
+| Contract | Maintained source |
 | --- | --- |
-| `PtpProtocolEngine` rate estimator | Remove `U_RateMath`, `rateA`/`rateB` staging and redundant wide intermediates. Keep normalized anchor/current sample values in word storage; form differences, the fixed scale shift and ratio through the shared service. Preserve anchor-update behavior, minimum span, range rejection, ratio filtering/qualification and raw-capture provenance. |
-| `PtpE2e` | Remove its private `U_Math`, duplicate capture/sample copies and wide `elapsed`/`correctedSync`/`delayValue` scratch. Sequence timestamp conversion, elapsed-time product, calibration and final arithmetic through shared storage/compute. Preserve each capture's increment when a RATE change falls between RX and TX. Zero calibration still omits its work. |
-| Pair/history storage in `PtpProtocolEngine` | Replace wide pair/history RAM ports and their full-row write/read staging with addressed fields/words. Keep current logical capacities, nearest-Sync selection and tie rules, expiry boundaries, replacement and pending measurement ownership. Reuse normalized timestamps; do not recreate conversion at each use. |
-| `PtpServo` | Remove the private math engine and wide operand/correction staging that RAM replaces. Store median history/scratch, retained frequency and PI intermediates as words; share comparison and arithmetic. Preserve median results, bootstrap/tracking behavior, intermediate rounding/overflow, clamps, anti-windup, lock hysteresis and stale/holdover cancellation. Commit retained frequency only on the accepted command's successful acknowledgement. |
-| `PtpPhc` command preparation | Remove private phase-normalization math and redundant command preparation copies. Share normalization for both manual and automatic commands. Keep counter increment, rollover, PPS, generation, capture inhibition, command admission and commit checks local and clock-by-clock. Prepare a command against its defined operands, not a stale prediction of future PHC time. |
+| Arithmetic ownership, cancellation, RAM timing, queue service and configuration/snapshot handshakes | [Timing and record contracts](rtl-readability.md) |
+| Protocol, numerical ranges, admission and autonomous behavior | [Endpoint contract](autonomous-endpoint.md) |
+| Register addresses, defaults, byte writes and coherent readback | [Register map and ownership](register-map.md) |
+| Production modules, wrappers, composition and source manifest | [PtpCore guide](../../../ethernet/PtpCore/README.md) |
+| Test selection, independent oracles and fixture procedures | [PTP test guide](../../../tests/ethernet/PtpCore/README.md) |
+| Actual check outcomes and remaining acceptance | [Connected implementation review](rtl-review.md#october-13-connected-compute-and-word-storage) |
+| Design rationale, arithmetic audit and historical area evidence | [Optimization analysis](lut-optimization.md) |
 
-Route timestamp conversion through the same arithmetic resource where its
-wide multiply/add would otherwise remain duplicated. Preserve full seconds and
-fractional range. Follow the [divide/multiply audit](lut-optimization.md#divide-and-multiply-audit-october-12):
-the raw-clock ratio is genuinely variable; constant unit conversions need exact
-quotients/remainders and existing rounding. The general processor reports checked
-overflow, while some existing E2E additions intentionally use modulo signed128
-arithmetic. Classify every operation and preserve its actual contract; blindly
-rejecting every shared-ALU overflow would also change behavior.
+The [shared-service derivation](rtl-readability.md#shared-service-bound) includes
+word movement, arbitration, calibration, computation and publication. It defines
+a 70,347,776-raw-tick minimum association window, validated and exposed through
+`MinimumAssociationTicks` at global address 0x20F8. The two-second endpoint default
+is retained. The working sustained Sync envelope is 10 Hz, initially encoded at
+8 Hz; finite queues retain their documented overflow and cancellation behavior.
+This is a source-derived bound and deployment assumption, not measured hardware
+performance or a new packet-rejection rule.
 
-Use storage handles between producers/consumers where useful, with explicit
-release and invalidation. Preserve any required full-record public boundary with
-one stable publication register, not additional working copies at both ends.
-Do not retain the legacy engines in the production hierarchy after migration.
-Keep an old source revision for comparison; avoid a permanent runtime-selectable
-legacy/compact implementation and its extra control.
+## Implemented storage inventory
 
-### Configuration and coherent snapshots
+This is source geometry, not synthesized utilization. Primitive depth rounds up
+to a power of two; inference and constant pruning require build-host evidence.
 
-Move wide shadow/candidate/active configurations and diagnostic payloads in
-protocol, servo and PHC into local word banks. Cache only fields required every
-clock. Keep the local AXI banks and endpoint coordinator as the owners; this is
-not a new central register block or a software-controlled timing algorithm.
-
-Prepare freezes an immutable candidate. Later shadow writes target the next
-candidate, including preservation of untouched words and byte-strobe behavior.
-Use bank ownership plus a bounded copy or copy-on-write scheme; simply swapping
-to an uninitialized shadow bank loses prior settings. Validate the frozen bank
-sequentially and switch all active banks on the same apply edge. The current
-coordinator samples Boolean validation votes after a fixed prepare interval:
-extend its private completion handshake for sequential preparation/validation,
-so an unfinished bank is not mistaken for an invalid one. Preserve atomicity,
-ConfigBusy/error/sequence behavior and the apply-to-restart register boundary.
-
-Snapshots must still represent the same common **pre-edge** state and sequence
-across all banks. A serial read of live words is not a coherent snapshot. Pin
-immutable result/record banks and latch genuinely changing scalars at capture;
-copy those frozen sources if needed. Retain the old published snapshot until
-the complete new cohort is readable. If publication takes longer, extend the
-coordinator's private completion handshake and document SnapshotBusy/sequence
-timing together. Preserve previous snapshot contents during the copy and verify
-capture coincident with command commit, config apply and invalidation.
-
-Preserve addresses, field widths, access responses, defaults, sequences and
-accepted operations through AXI-only reset. Mirror any necessary externally
-visible timing-limit/capability change in RTL, PyRogue, register documentation
-and tests. Do not reset entire RAM arrays to reproduce register defaults;
-use a bounded initialization/validity scheme with defined bus/startup behavior.
-
-### Ledger and packet paths
-
-- Convert `PtpTxLedger`'s complete 636-bit entry transfers into field/word reads
-  and updates. Retain ownership/key flags and small scan state in registers.
-  Preserve depth support, logical occupancy, simultaneous response/completion
-  handling, timeout multiplicity, duplicate retirement, sequence exhaustion and
-  unknown-wire-fate quarantine. A logical restart never proves a queued frame
-  vanished. Avoid rebuilding a full entry in registers during every scan.
-- Replace `PtpTxTimestampTap`'s use of the full receive parser with a dedicated
-  Delay_Req wire observer. Emit the identity/sequence/domain and complete capture
-  metadata needed by the ledger, retaining actual post-MAC observation, physical
-  timestamp location, FCS/length/framing checks and the two-entry logical queue.
-  Preserve late completion across logical restart/PHC generation changes;
-  physical reset completion retains its separate meaning.
-- Stream RX fields into a compact frame store instead of retaining the complete
-  78-byte prefix and decoded copies. Keep only validation metadata/counters
-  required as bytes arrive; publish a descriptor only after complete validation.
-  Preserve Announce data, one-/two-step bodies, TLVs, correction/flag checks,
-  four-entry logical capacity and the existing overflow/abort accounting.
-- Physical input cannot be backpressured. GMII receives one byte and XGMII up to
-  eight bytes per clock; a single shared 32-bit compute port cannot be their
-  capture sink. Use dedicated streaming write bandwidth/banks and bounded
-  capture staging. Prove service at minimum frame spacing, including writes,
-  registered FIFO heads and frames arriving while prior descriptors are held.
-  A deeper primitive FIFO must not silently increase the published capacity.
-- Keep `EthMacCore`, FCS generation, pause handling and primary-traffic protection
-  intact. The checksum-disable experiment is explicitly deferred. Do not replace
-  passive physical observation with AXI acceptance or introduce MAC frame-token
-  integration as part of this rewrite.
-
-## Scheduling and numerical requirements
-
-Use the proposed 10 Hz sustained Sync envelope for resource planning, with 8 Hz
-as the initial encoded master interval. It is not a new packet rejection rule.
-Account for bursts, reordered Follow_Up/Delay_Resp, TX completions, servo work,
-manual commands and snapshot/configuration traffic. Keep accelerated regression
-traffic supported through an explicit bounded admission/overflow contract.
-
-Derive a worst-case sequence bound including operand movement, queueing,
-calibration, computation, publication and command preparation. Isolated observed
-prototype latency (up to 4,443 clocks for divide) is not a bound on a measurement.
-The existing 2,048-clock association minimum cannot be treated as a guaranteed
-processing window. Derive and document the new supported minimum and change its
-validation/readback/tests consistently when necessary; keep the two-second
-default unless the actual derivation requires otherwise. Preserve the meaning
-of age checks rather than extending capture freshness invisibly.
-
-Under indefinitely stalled consumers, bounded successful completion is impossible:
-specify held ownership, expiry/cancellation and recovery instead. Ensure ongoing
-rejected RX traffic cannot starve E2E publication, and a servo waiting for PHC ACK
-cannot block the PHC compute request needed to produce that ACK. Restart, loss
-of validity and physical abort take effect while arithmetic is busy.
-
-Keep signed128 arithmetic semantics, full epoch/fractional range, exact rounding,
-per-capture calibration and both supported PHY modes. No shortened timestamps,
-restricted gains, changed controller, reduced diagnostics or protocol-mode removal
-is needed to satisfy an area number. Those remain separate possible studies.
-
-## Execute and demonstrate the result
-
-Start by connecting the endpoint-owned service and migrating rate and E2E with
-their actual word-resident state. Carry that same design through servo, PHC
-preparation, configuration/snapshots, ledger and packet storage/observation.
-This is an implementation dependency, not a request to pause after each client.
-Extend internal interfaces and their real production wrappers together. Update
-`ethernet/PtpCore/ruckus.tcl` for new source organization; its directory loading
-already includes RTL and simulation wrappers. Keep public generic order stable.
-
-Use these existing fixtures as independent behavioral references, adapting their
-latency expectations to the derived contract without weakening numerical checks:
-
-| Changed behavior | Focused checks |
+| Owner | Addressed payload storage per endpoint |
 | --- | --- |
-| Compute/storage interfaces | `test_ptp_compute.py`; add mixed-client arbitration, chained results, cancellation at every transfer phase, stalled readers and reset/reuse tests |
-| Rate, E2E, association/history | `test_ptp_port_samples.py`, `test_ptp_e2e.py` (zero/ingress/egress/both), relevant `test_ptp_protocol_ram.py` and exchange cases; retain independent timestamp/rate oracles |
-| Servo and PHC | `test_ptp_servo.py`, `test_ptp_phc.py`, relevant reference cases; verify all supported clock/reset cases, overflow, holdover, command ACK and uninterrupted counter behavior |
-| Configuration and snapshots | `test_ptp_reg.py`, `test_ptp_register_map.py`; add prepare/copy/publication races, concurrent byte writes, common snapshot edge and AXI-only-reset survival |
-| Ledger word storage | `test_ptp_tx_ledger.py` storage/key/reuse/cancellation/counter scenarios, including depths one, three and four and supported RAM settings |
-| RX/TX observers | `test_ptp_rx_rtl.py`, wire/specification fixtures, `test_ptp_rx_mac.py`, `test_ptp_mac_association.py`; both physical widths and malformed/paused/late traffic |
-| Complete integration | `test_ptp_endpoint.py` and `test_ptp_endpoint_mac.py` across affected PHY and one-/two-step cases; add simultaneous-client congestion/deadlock coverage |
+| Shared compute | 208 persistent + 26 scratch words; 256x32 physical RAM. |
+| Protocol pair/history | Four 20-word pair rows and four 25-word history rows; each RAM is 128x32. History includes eight normalized words per sample. |
+| TX ledger | Four 22-word rows; 128x32 RAM. Depth generic retains 1–255 logical slots. |
+| Servo median | Five two-word history samples in 16x32 RAM; padded sorting scratch uses compute slots. |
+| Local configuration | Three banks of 48 protocol, 34 servo and 10 PHC operand words, including address-map holes; physical RAMs are 256x32, 128x32 and 32x32. |
+| Immutable result snapshots | Protocol records have 12 Announce body/metadata and 20 exchange words; servo records have 4 offset, 4 median and 2 rate words. Five versions per record require 256x32 and 64x32 physical RAMs. |
+| Changing-scalar snapshots | Two banks of 7 protocol counter, 10 PHC and 1 servo words; scalar cohorts are latched together before copying. |
+| RX stream | Eight 64x8 lane RAMs at depth four, a separate 8x293 capture RAM and a narrow bank/length descriptor FIFO. Five frame banks include the active physical frame. |
+| Dedicated TX stream | Eight 8x8 lane RAMs, separate 4x293 capture RAM and a narrow descriptor FIFO. Three frame banks preserve two logical completed entries. |
 
-The current E2E fixture explicitly assumes `130*OPERATIONS+6` clocks and some
-association fixtures program 2,048; update those assumptions with their boundary
-assertions. Do not merely raise timeout loops until tests pass. Preserve tests
-of the exact admission/publication/expiry edges that define behavior.
-Run the smallest relevant checks during editing; reserve the full PTP suite for
-the completed integrated rewrite. Run VSG on edited VHDL and appropriate Python
-lint. Record actual selections and outcomes in `rtl-review.md`.
+Necessary full-width state remains visible in the public protocol/servo diagnostic
+records, held measurement/command outputs, physical capture staging, the selected
+E2E producer records and TX packet/beat ownership. Per-clock identity, admission
+and timer caches also remain. Snapshot changing-scalar latches are intentionally
+retained. These are part of the completed-design resource accounting; moving
+working values to RAM does not imply that every wide register disappears.
 
-Measure the final implementation against a reproduced baseline with matching
-FPGA part, Vivado version, linked IP, constraints, generics, strategy and flow
-stage. The retained October 12 reports are historical orientation and include
-three PHY black boxes; do not compare them directly with a newly linked design.
-Preserve source revisions and any dirty patch with the comparison evidence.
-Report total LUTs (including LUTRAM/SRL), FFs, carry, BRAM, DSPs and timing for
-each complete lane, the pure endpoint and the changed hierarchy. Count shared
-compute, arbitration, RAM and boundary staging once, even if hierarchy moves.
-DSP/BRAM are available tradeoffs; lower LUT use is the preference, not faster math.
+## Verification and next step
 
-Completion means the described shared-compute/word-storage design is connected,
-superseded production engines/copies are removed, behavior and scheduling checks
-pass, and the area/timing comparison is reported or explicitly awaiting the build
-host. Report remaining large contributors honestly; no percentage determines
-success. If measured control/mux cost defeats the intended sharing, examine the
-dominant structures, including fixed ROM-based sequencing, without abandoning
-correctness or quietly removing features. Synthesis does not establish routed
-timing, hardware accuracy or standards conformance; keep those acceptance items
-distinct. Fold enduring interfaces into the owning guides and update this brief's
-status so the next agent can resume without reconstructing the chat.
+All 171 regression configurations passed across focused batches, including all
+four endpoint and four real-MAC lifecycle configurations and eight raw/normalized
+E2E calibration configurations. VSG passes for all 25 changed/new VHDL files;
+Python lint, changed links/anchors and diff whitespace pass. The
+[review record](rtl-review.md#october-13-connected-compute-and-word-storage)
+records selections, reruns, tool settings and evidence, including the distinction
+between passing scenarios and deliberately interrupted duplicate runs.
+
+The next implementation-evidence task is a matched baseline/current Vivado
+comparison. Reproduce FPGA part, linked IP, constraints, generics, tool version,
+strategy and flow stage; retain source revisions and the working-tree patch.
+Report total LUTs including LUTRAM/SRL, FFs, carry, BRAM, DSPs and timing for each
+complete lane, the pure endpoint and changed hierarchy. Count compute, arbitration,
+RAM and retained boundary staging once. The October 12 reports contain three PHY
+black boxes and cannot be compared directly with a newly linked design.
+
+Use measured hierarchy costs to decide whether control/mux structures merit
+further work. No percentage or 19,000-LUT threshold determines success. Shared
+Ethernet MAC/checksum changes remain deferred. Routed timing, physical CDC,
+calibrated accuracy and external-master interoperability remain separate
+[acceptance work](rtl-review.md#outstanding-acceptance).

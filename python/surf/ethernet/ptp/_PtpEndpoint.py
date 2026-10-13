@@ -191,7 +191,7 @@ class PtpEndpoint(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'SnapshotBusy',
-            description = 'An accepted snapshot is waiting for a qualified common capture edge.',
+            description = 'An accepted snapshot is awaiting capture, frozen-bank copy or common publication.',
             offset      = 0x108,
             bitOffset   = 0,
             bitSize     = 1,

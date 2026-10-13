@@ -11,12 +11,14 @@
 # Test methodology:
 # - Sweep: Both zero calibration planes, each single zero and both nonzero;
 #   full epochs/corrections, lane phases, per-capture increments and errors.
+#   Each sweep runs with raw timestamps and normalized history words.
 # - Stimulus: Integer timestamps and independent rational elapsed-time model.
 # - Checks: Modulo signed128 forward/path delay, bounds, captured provenance,
 #   immutable accepted operands and complete stalled-result stability.
-# - Timing: 130 clocks per enabled math operation plus six final clocks;
-#   cancel/reset suppress work at every new timestamp/accumulation stage and
-#   a held result. Invalid admission remains immediate with zero calibration.
+# - Timing: The producer holds inputs through the bounded word upload; after
+#   acknowledgement they are perturbed to check immutable RAM ownership.
+#   Data-dependent exact arithmetic has an independently derived upper bound.
+#   Cancellation/reset suppress upload, arithmetic and held publication.
 
 from fractions import Fraction
 import os
@@ -35,8 +37,12 @@ MASK64 = (1 << 64)-1
 MIN128, MAX128 = -(1 << 127), (1 << 127)-1
 INGRESS = int(os.environ.get("PTP_INGRESS", "475136"))
 EGRESS = int(os.environ.get("PTP_EGRESS", "-229376"))
+NORMALIZED = bool(int(os.environ.get("PTP_NORMALIZED", "0")))
 OPERATIONS = 1+2*bool(INGRESS)+2*bool(EGRESS)
-LATENCY = 130*OPERATIONS+6
+# Isolated service bound from 128 division iterations (at most 34 clocks each),
+# setup/restoration, six products, timestamp sums, format shifts and publication.
+# The per-client contention bound is checked separately by the compute fixture.
+LATENCY = 3000+5000*(bool(INGRESS)+bool(EGRESS))
 OUTPUTS = ("delayValue", "forwardValue", "resultError", "resultGeneration",
            "resultSyncSequence", "resultDelaySequence", "resultTicks",
            "resultRatio", "resultRatioValid", "resultIsDelay")
@@ -100,7 +106,7 @@ class TB:
     def __init__(self, dut):
         self.d = dut
 
-    async def edge(self, check_registered=False, **values):
+    async def edge(self, check_registered=False, ready_name="inputReady", **values):
         before = int(self.d.resultValid.value) if check_registered else None
         self.d.clk.value = 0
         for name, value in values.items():
@@ -108,18 +114,39 @@ class TB:
         await Timer(3.2, unit="ns")
         if check_registered:
             assert int(self.d.resultValid.value) == before, "result valid changed between edges"
+        ready = int(getattr(self.d, ready_name).value)
         self.d.clk.value = 1
         await Timer(3.2, unit="ns")
+        return ready
 
     async def reset(self):
-        for name in ("clk", "cancel", "inputValid", "resultReady", *sample()):
+        for name in ("clk", "cancel", "inputValid", "resultReady", "normalizedValid",
+                     "normalizedWord", "normalizedData", *sample()):
             getattr(self.d, name).value = 0
         await self.edge(rst=1)
         await self.edge(rst=0)
 
     async def submit(self, values):
-        assert int(self.d.inputReady.value), "exchange slot is not available"
-        await self.edge(inputValid=1, resultReady=0, **values)
+        if NORMALIZED:
+            # Independent equations for the history stream. The same output
+            # oracle below covers calibration, wraps and per-capture increments.
+            corrected = (unpack(values["syncRemote"])+signed(values["syncCorrection"])) & MASK
+            forward = (unpack(values["syncTime"], True)-corrected) & MASK
+            for word in range(8):
+                value = forward if word < 4 else corrected
+                for _ in range(8):
+                    if await self.edge(ready_name="normalizedReady", inputValid=0,
+                                       normalizedValid=1, normalizedWord=word,
+                                       normalizedData=(value >> (32*(word % 4))) & 0xFFFFFFFF):
+                        break
+                else:
+                    assert False, "normalized history upload did not acknowledge"
+            await self.edge(normalizedValid=0)
+        for _ in range(2*56+4):
+            if await self.edge(inputValid=1, resultReady=0, **values):
+                break
+        else:
+            assert False, "word upload did not acknowledge the held sample"
 
     async def complete(self, values):
         await self.submit(values)
@@ -136,7 +163,7 @@ class TB:
             assert int(self.d.forwardValue.value) == 0
             assert int(self.d.delayValue.value) == 0
         else:
-            assert latency == LATENCY
+            assert 0 < latency <= LATENCY
             delay, forward, error = expected
             assert int(self.d.delayValue.value) == delay
             assert int(self.d.forwardValue.value) == forward
@@ -156,7 +183,6 @@ class TB:
             assert tuple(int(getattr(self.d, name).value) for name in OUTPUTS) == held
         await self.edge(inputValid=0, resultReady=1)
         assert not int(self.d.resultValid.value)
-        assert int(self.d.inputReady.value)
         return latency
 
 
@@ -214,7 +240,7 @@ async def corrected_exchange(d):
         assert await tb.complete(sample(**overrides)) == 0
     # The elapsed product can exceed signed128 before its Q16 rounding.
     for rx, tx in ((0, MASK64), (MASK64, 0)):
-        assert await tb.complete(sample(syncTicks=rx, txTicks=tx, ratio=MASK64)) == 130
+        assert 0 < await tb.complete(sample(syncTicks=rx, txTicks=tx, ratio=MASK64)) < LATENCY
     d._log.info("E2E enabled operations=%d, successful latency=%d clocks", OPERATIONS, LATENCY)
 
 
@@ -226,8 +252,7 @@ async def cancellation_and_reset(d):
     # Reach each math completion, every new finalization state, the publication
     # edge and a held valid. Cancellation/reset wins over simultaneous ready.
     offsets = {0, 1, 50, LATENCY}
-    offsets.update(130*operation-1 for operation in range(1, OPERATIONS+1))
-    offsets.update(range(LATENCY-6, LATENCY))
+    offsets.update((200, 500, 1000, 2000, LATENCY-1))
     for control in ("cancel", "rst"):
         for offset in sorted(offsets):
             await tb.submit(values)
@@ -236,7 +261,6 @@ async def cancellation_and_reset(d):
             await tb.edge(check_registered=True, inputValid=0, resultReady=1, **{control: 1})
             assert not int(d.resultValid.value), (control, offset)
             await tb.edge(**{control: 0})
-            assert int(d.inputReady.value)
             # An old Math response must not revive the canceled exchange.
             for _ in range(140):
                 await tb.edge()
@@ -244,15 +268,17 @@ async def cancellation_and_reset(d):
         await tb.complete(values)
 
 
+@pytest.mark.parametrize("normalized", [False, True], ids=["raw", "normalized"])
 @pytest.mark.parametrize("ingress,egress", [
     pytest.param(0, 0, id="zero"),
     pytest.param(475136, 0, id="ingress"),
     pytest.param(0, -229376, id="egress"),
     pytest.param(475136, -229376, id="both"),
 ])
-def test_ptp_e2e(ingress, egress):
+def test_ptp_e2e(ingress, egress, normalized):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpe2ewrapper", parameters={
         "INGRESS_LATENCY_G": format(ingress & MASK64, "064b"),
-        "EGRESS_LATENCY_G": format(egress & MASK64, "064b")},
-        extra_env={"PTP_INGRESS": ingress, "PTP_EGRESS": egress},
-        sim_build_key=f"tests/sim_build/ethernet/PtpCore/test_ptp_e2e.{ingress}.{egress}")
+        "EGRESS_LATENCY_G": format(egress & MASK64, "064b"),
+        "NORMALIZED_SYNC_G": normalized},
+        extra_env={"PTP_INGRESS": ingress, "PTP_EGRESS": egress, "PTP_NORMALIZED": int(normalized)},
+        sim_build_key=f"tests/sim_build/ethernet/PtpCore/test_ptp_e2e.{ingress}.{egress}.{normalized}")

@@ -6,8 +6,9 @@
 -- Consumes normalized destination-MAC-through-FCS bytes every clk cycle with
 -- rxMaster.tValid; this physical input has no backpressure. Binds the capture
 -- at SOF, streams the CRC and TLV checks, then queues a complete decoded record.
--- A synchronous FWFT FIFO delivers a record to an available head three clocks
--- after completion. Logical capacity includes the write/read pipeline and head.
+-- A synchronous FWFT FIFO carries validated frame descriptors; the decoder
+-- streams compact RAM fields into one held public head. Logical capacity
+-- includes the descriptor pipeline, decoder and head.
 -- The registered queue head remains stable while messageReady is low.
 -- Transfer requires messageValid, messageReady and no rxAbort on the same edge.
 -- A full-queue completion discards queued work and registers an abort event;
@@ -23,11 +24,9 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -44,14 +43,14 @@ entity PtpRxFrontend is
       FIFO_DEPTH_G   : positive                  := 4;
       MAX_FRAME_G    : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
    port (
-      clk           : in  sl;
-      rst           : in  sl;
-      rxFlush       : in  sl;
-      generation    : in  slv(31 downto 0);
+      clk        : in  sl;
+      rst        : in  sl;
+      rxFlush    : in  sl;
+      generation : in  slv(31 downto 0);
       -- Always-consumed normalized bytes: destination MAC through FCS, with
       -- contiguous low-byte TKEEP. The capture sidecar is sampled only at SOF.
-      rxMaster      : in  AxiStreamMasterType;
-      rxCapture     : in  PtpRxCaptureType;
+      rxMaster  : in  AxiStreamMasterType;
+      rxCapture : in  PtpRxCaptureType;
       -- Transfer requires messageValid AND messageReady AND NOT rxAbort.
       -- Abort/overflow are registered with the queue update. Consumers give
       -- the published abort priority on its consumption edge. A transfer on
@@ -70,15 +69,23 @@ end entity PtpRxFrontend;
 
 architecture rtl of PtpRxFrontend is
 
-   constant PREFIX_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_ANNOUNCE_BYTES_C;
+   -- Compact fixed fields omit Ethernet source/reserved octets. Eight lane
+   -- banks accept any normalized physical beat without compute-port arbitration.
+   constant STORE_BYTES_C : positive := 35+PTP_ANNOUNCE_BODY_BYTES_C;
+   constant STORE_GROUPS_C : positive := (STORE_BYTES_C+7)/8;
+   constant BANKS_C : positive := FIFO_DEPTH_G+1;
+   constant BANK_BITS_C : positive := log2(BANKS_C);
+   constant STORE_ADDR_BITS_C : positive := log2(BANKS_C*STORE_GROUPS_C);
+   constant DESCRIPTOR_BITS_C : positive := BANK_BITS_C+7;
+   constant CAPTURE_BITS_C : positive := 96+64+PTP_TICK_PHASE_BITS_C+32+64+2+32;
+   type AddressArray is array (0 to 7) of slv(STORE_ADDR_BITS_C-1 downto 0);
    -- The portable FIFO has a minimum address width of four and reserves one
    -- RAM slot. Logical occupancy below includes every stage, not just RAM.
    constant FIFO_ADDR_BITS_C : positive := maximum(4, log2(FIFO_DEPTH_G+1));
    -- Good Ethernet FCS residue in CrcPkg's register convention.
    constant ETH_CRC_RESIDUE_C : slv(31 downto 0) := x"C704DD7B";
-
-   -- Only one physical frame is being decoded at a time. The 78-byte prefix
-   -- covers Ethernet (14) plus the largest supported fixed PTP message (64).
+   -- One physical frame owns the current capture bank. Fixed fields stream
+   -- into byte lanes; only validation metadata remains in this record.
    -- Longer TLVs are streamed past; count saturates at MAX_FRAME_G+1 so an
    -- unterminated frame cannot wrap the parser back to a plausible short frame.
    -- bad is sticky for this frame and capture never changes after its SOF.
@@ -86,9 +93,11 @@ architecture rtl of PtpRxFrontend is
       active       : sl;
       bad          : sl;
       count        : natural range 0 to MAX_FRAME_G+1;
-      prefix       : Slv8Array(0 to PREFIX_BYTES_C-1);
+      etherType    : slv(15 downto 0);
+      kind         : slv(3 downto 0);
+      version      : slv(3 downto 0);
+      length       : slv(15 downto 0);
       crc          : slv(31 downto 0);
-      capture      : PtpRxCaptureType;
       base         : natural range 0 to PTP_ANNOUNCE_BYTES_C;
       messageEnd   : natural range 0 to MAX_FRAME_G;
       tlvBytes     : natural range 0 to PTP_TLV_HEADER_BYTES_C-1;
@@ -100,74 +109,109 @@ architecture rtl of PtpRxFrontend is
       active       => '0',
       bad          => '0',
       count        => 0,
-      prefix       => (others => (others => '0')),
+      etherType    => (others => '0'),
+      kind         => (others => '0'),
+      version      => (others => '0'),
+      length       => (others => '0'),
       crc          => (others => '1'),
-      capture      => PTP_RX_CAPTURE_INIT_C,
       base         => 0,
       messageEnd   => 0,
       tlvBytes     => 0,
       tlvLength    => (others => '0'),
       tlvRemaining => 0);
 
-   -- The small same-clock queue stores complete records, including captures.
+   -- Frame/capture stores and the descriptor queue retain coherent records.
    -- No separately lossy packet/timestamp streams remain to be joined by key.
    -- generation belongs to the PHC/configuration owner; epoch belongs to this
-   -- RX queue. Logical occupancy includes the registered write, FIFO and head.
+   -- RX queue. Occupancy includes the descriptor write, FIFO, decoder and head.
    type RegType is record
       -- Registered queue boundary and invalidation events.
-      message          : PtpRxMessageType;
-      queueOverflow    : sl;
-      abortNow         : sl;
-
+      message       : PtpRxMessageType;
+      queueOverflow : sl;
+      abortNow      : sl;
       -- Registered FIFO write/reset and recomputed FWFT read acknowledgement.
-      fifoWrite        : sl;
-      fifoWriteData    : PtpRxStorageType;
-      fifoRst          : sl;
-      fifoRead         : sl;
-      counters         : PtpRxCountersType;
-      messageValid     : sl;
-      frame            : FrameType;
-      fill             : natural range 0 to FIFO_DEPTH_G;
-      generation       : slv(31 downto 0);
-      epoch            : unsigned(31 downto 0);
+      fifoWrite          : sl;
+      fifoWriteData      : slv(DESCRIPTOR_BITS_C-1 downto 0);
+      fifoRst            : sl;
+      fifoRead           : sl;
+      counters           : PtpRxCountersType;
+      messageValid       : sl;
+      frame              : FrameType;
+      fill               : natural range 0 to FIFO_DEPTH_G;
+      tail               : natural range 0 to BANKS_C-1;
+      storeWrite         : slv(7 downto 0);
+      storeAddress       : AddressArray;
+      storeData          : Slv8Array(0 to 7);
+      captureWrite       : sl;
+      captureAddress     : slv(BANK_BITS_C-1 downto 0);
+      captureData        : slv(CAPTURE_BITS_C-1 downto 0);
+      decoding           : sl;
+      decodeBank         : natural range 0 to BANKS_C-1;
+      decodeBytes        : natural range 0 to STORE_BYTES_C;
+      issueGroup         : natural range 0 to STORE_GROUPS_C;
+      readEnable         : sl;
+      readAddress        : slv(STORE_ADDR_BITS_C-1 downto 0);
+      captureReadAddress : slv(BANK_BITS_C-1 downto 0);
+      returnValid        : sl;
+      returnGroup        : natural range 0 to STORE_GROUPS_C-1;
+      generation         : slv(31 downto 0);
+      epoch              : unsigned(31 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
-      message          => PTP_RX_MESSAGE_INIT_C,
-      queueOverflow    => '0',
-      abortNow         => '0',
-      fifoWrite        => '0',
-      fifoWriteData    => (others => '0'),
-      fifoRst          => '1',
-      fifoRead         => '0',
-      counters         => PTP_RX_COUNTERS_INIT_C,
-      messageValid     => '0',
-      frame            => FRAME_INIT_C,
-      fill             => 0,
-      generation       => (others => '0'),
-      epoch            => (others => '0'));
+      message            => PTP_RX_MESSAGE_INIT_C,
+      queueOverflow      => '0',
+      abortNow           => '0',
+      fifoWrite          => '0',
+      fifoWriteData      => (others => '0'),
+      fifoRst            => '1',
+      fifoRead           => '0',
+      counters           => PTP_RX_COUNTERS_INIT_C,
+      messageValid       => '0',
+      frame              => FRAME_INIT_C,
+      fill               => 0,
+      tail               => 0,
+      storeWrite         => (others => '0'),
+      storeAddress       => (others => (others => '0')),
+      storeData          => (others => (others => '0')),
+      captureWrite       => '0',
+      captureAddress     => (others => '0'),
+      captureData        => (others => '0'),
+      decoding           => '0',
+      decodeBank         => 0,
+      decodeBytes        => 0,
+      issueGroup         => 0,
+      readEnable         => '0',
+      readAddress        => (others => '0'),
+      captureReadAddress => (others => '0'),
+      returnValid        => '0',
+      returnGroup        => 0,
+      generation         => (others => '0'),
+      epoch              => (others => '0'));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-
    signal fifoWrite     : sl;
-   signal fifoWriteData : PtpRxStorageType;
+   signal fifoWriteData : slv(DESCRIPTOR_BITS_C-1 downto 0);
    signal fifoRst       : sl;
    signal fifoRead      : sl;
-   signal fifoReadData  : PtpRxStorageType;
+   signal fifoReadData  : slv(DESCRIPTOR_BITS_C-1 downto 0);
    signal fifoValid     : sl;
-
+   signal storeReadData : Slv8Array(0 to 7);
+   signal captureReadData : slv(CAPTURE_BITS_C-1 downto 0);
    -- Fixed lengths include the 34-byte PTP header: Sync/Follow_Up (44),
    -- Delay_Resp (54), Announce (64). Delay_Req is TX-only for this receiver.
    -- Zero marks unsupported types, disabling both TLV walking and admission.
    function baseLength (kind : slv(3 downto 0)) return natural is
    begin
+
       if TX_OBSERVE_G then
          if kind = PTP_MSG_DELAY_REQ_C then
             return PTP_TIMESTAMP_MSG_BYTES_C;
          end if;
          return 0;
       end if;
+
       case kind is
          when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
             return PTP_TIMESTAMP_MSG_BYTES_C;
@@ -178,32 +222,125 @@ architecture rtl of PtpRxFrontend is
          when others =>
             return 0;
       end case;
+
    end function;
 
-   -- Prefix offsets count from destination-MAC byte zero. Reassemble wire
-   -- octets into conventional big-endian fields; AXI lane order is unrelated
-   -- to the numerical significance of a multibyte PTP field.
-   function networkField (
-      bytes : Slv8Array;
-      first : natural;
-      count : positive) return slv is
-      variable retVar : slv(8*count-1 downto 0);
+   -- Monotone compaction guarantees at most one write per lane in an
+   -- eight-byte physical group, even when that group straddles a RAM row.
+   function compactIndex(offset : natural) return integer is
    begin
-      for i in 0 to count-1 loop
-         retVar(8*(count-i)-1 downto 8*(count-i-1)) := bytes(first+i);
-      end loop;
-      return retVar;
+
+      case offset is
+         when 0 to 5 =>
+            return offset;
+         when 14 to 18 =>
+            return offset-8;
+         when 20 to 29 =>
+            return offset-9;
+         when 34 to 77 =>
+            return offset-13;
+         when others =>
+            return -1;
+      end case;
+
    end function;
+
+   procedure takeByte(variable item : inout PtpRxMessageType;
+   constant index : natural;
+   constant octet : slv(7 downto 0)) is
+   begin
+
+      case index is
+         when 0 to 5 =>
+            item.destination(47-8*index downto 40-8*index) := octet;
+         when 6 =>
+            item.messageType := octet(3 downto 0);
+            item.transportSpecific := octet(7 downto 4);
+         when 7 =>
+            item.minorVersion := octet(7 downto 4);
+         when 8 to 9 =>
+            item.messageLength(15-8*(index-8) downto 8-8*(index-8)) := octet;
+         when 10 =>
+            item.domainNumber := octet;
+         when 11 to 12 =>
+            item.flags(15-8*(index-11) downto 8-8*(index-11)) := octet;
+         when 13 to 20 =>
+            item.correction(63-8*(index-13) downto 56-8*(index-13)) := octet;
+         when 21 to 30 =>
+            item.sourcePortIdentity(79-8*(index-21) downto 72-8*(index-21)) := octet;
+         when 31 to 32 =>
+            item.sequenceId(15-8*(index-31) downto 8-8*(index-31)) := octet;
+         when 33 =>
+            item.control := octet;
+         when 34 =>
+            item.logInterval := octet;
+         when 35 to 64 =>
+            item.messageBody(239-8*(index-35) downto 232-8*(index-35)) := octet;
+         when others =>
+            null;
+      end case;
+
+   end procedure;
 
 begin
 
-   -- Completion at N registers a write, accepted by the synchronous FIFO at
-   -- N+1. Its FWFT read presents data/valid at N+2 for the head to capture at
-   -- N+3. Logical fill reserves capacity throughout these stages. This backend
-   -- recovers from reset in one clock; parsing a minimum frame takes at least
-   -- eight clocks, so a fresh completion cannot overlap reset recovery.
-   -- Invalidation clears the head immediately and registers fifoRst for the
-   -- following edge. No FIFO data is captured while that reset is pending.
+   -- The extra bank belongs exclusively to the frame in flight. Logical
+   -- queue capacity still includes the decoder and held head. No RAM is reset;
+   -- the descriptor FIFO and scalar ownership invalidate all old contents.
+   GEN_LANE : for i in 0 to 7 generate
+
+      U_Store : entity surf.SimpleDualPortRam
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DATA_WIDTH_G   => 8,
+            BYTE_WR_EN_G   => false,
+            BYTE_WIDTH_G   => 8,
+            ADDR_WIDTH_G   => STORE_ADDR_BITS_C,
+            COMMON_CLK_G   => true,
+            MEMORY_TYPE_G  => "distributed",
+            READ_LATENCY_G => 1)
+         port map (
+            clka  => clk,
+            ena   => r.storeWrite(i),
+            wea   => r.storeWrite(i),
+            addra => r.storeAddress(i),
+            dina  => r.storeData(i),
+            clkb  => clk,
+            rstb  => rst,
+            enb   => r.readEnable,
+            addrb => r.readAddress,
+            doutb => storeReadData(i));
+
+   end generate;
+   -- One physical SOF capture is a necessary parallel boundary. Store it once
+   -- independently of the eight streaming payload ports, then read it with the
+   -- descriptor's first group. There is no decoded-record FIFO/write staging.
+   U_Capture : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => CAPTURE_BITS_C,
+         BYTE_WR_EN_G   => false,
+         BYTE_WIDTH_G   => CAPTURE_BITS_C,
+         ADDR_WIDTH_G   => BANK_BITS_C,
+         COMMON_CLK_G   => true,
+         MEMORY_TYPE_G  => "distributed",
+         READ_LATENCY_G => 1)
+      port map (
+         clka  => clk,
+         ena   => r.captureWrite,
+         wea   => r.captureWrite,
+         addra => r.captureAddress,
+         dina  => r.captureData,
+         clkb  => clk,
+         rstb  => rst,
+         enb   => r.readEnable,
+         addrb => r.captureReadAddress,
+         doutb => captureReadData);
+
    U_Queue : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
@@ -214,7 +351,7 @@ begin
          SYNTH_MODE_G    => "inferred",
          MEMORY_TYPE_G   => "distributed",
          PIPE_STAGES_G   => 0,
-         DATA_WIDTH_G    => PTP_RX_STORAGE_BITS_C,
+         DATA_WIDTH_G    => DESCRIPTOR_BITS_C,
          ADDR_WIDTH_G    => FIFO_ADDR_BITS_C)
       port map (
          rst           => fifoRst,        -- [in]
@@ -238,54 +375,97 @@ begin
          almost_empty  => open,           -- [out]
          empty         => open);          -- [out]
 
-   comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady, fifoReadData, fifoValid) is
-      variable v            : RegType;
-      variable octet        : slv(7 downto 0);
-      variable base         : natural range 0 to PTP_ANNOUNCE_BYTES_C;
-      variable length       : natural range 0 to 65535;
-      variable offset       : natural range 0 to MAX_FRAME_G+1;
-      variable first        : natural range 0 to MAX_FRAME_G+1;
-      variable last         : natural range 0 to MAX_FRAME_G+9;
-      variable alignedBytes : Slv8Array(0 to 7);
-
+   comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady, fifoReadData, fifoValid, storeReadData, captureReadData) is
+      variable v               : RegType;
+      variable octet           : slv(7 downto 0);
+      variable base            : natural range 0 to PTP_ANNOUNCE_BYTES_C;
+      variable length          : natural range 0 to 65535;
+      variable offset          : natural range 0 to MAX_FRAME_G+9;
+      variable first           : natural range 0 to MAX_FRAME_G+1;
+      variable last            : natural range 0 to MAX_FRAME_G+9;
+      variable compact         : integer range -1 to STORE_BYTES_C-1;
+      variable captureIndex    : natural;
+      variable descriptorBank  : natural range 0 to BANKS_C-1;
+      variable descriptorBytes : natural range 0 to STORE_BYTES_C;
       -- Calculations used only during this evaluation.
-      variable completedMessage : PtpRxMessageType;
-      variable frameComplete    : boolean;
-      variable byteCount        : natural range 0 to 8;
-      variable crcData          : slv(63 downto 0);
-      variable keepGap          : boolean;
+      variable frameComplete : boolean;
+      variable byteCount     : natural range 0 to 8;
+      variable crcData       : slv(63 downto 0);
+      variable keepGap       : boolean;
    begin
-      v            := r;
-      octet        := (others => '0');
-      base         := 0;
-      length       := 0;
-      offset       := 0;
-      first        := 0;
-      last         := 0;
-      alignedBytes := (others => (others => '0'));
-
-      completedMessage := PTP_RX_MESSAGE_INIT_C;
-      frameComplete    := false;
+      v               := r;
+      octet           := (others => '0');
+      base            := 0;
+      length          := 0;
+      offset          := 0;
+      first           := 0;
+      last            := 0;
+      compact         := -1;
+      captureIndex    := 0;
+      descriptorBank  := 0;
+      descriptorBytes := 0;
+      frameComplete   := false;
       v.abortNow       := '0';
       v.queueOverflow  := '0';
       v.fifoWrite      := '0';
       v.fifoRead       := '0';
       v.fifoRst        := '0';
-      byteCount        := 0;
-      crcData          := (others => '0');
-      keepGap          := false;
+      byteCount := 0;
+      crcData   := (others => '0');
+      keepGap   := false;
+      v.storeWrite := (others => '0');
+      v.captureWrite := '0';
+      v.readEnable := '0';
+      v.returnValid := r.readEnable;
+      v.returnGroup := to_integer(unsigned(r.readAddress)) mod STORE_GROUPS_C;
 
-      -- Release a consumed head, then capture an available FWFT word. The
-      -- read acknowledgement consumes exactly the word captured on this edge;
-      -- registering it would require another slot for the delayed consumption.
       if r.messageValid = '1' and messageReady = '1' then
          v.messageValid := '0';
-         v.fill         := r.fill-1;
+         v.fill := r.fill-1;
       end if;
-      if v.messageValid = '0' and fifoValid = '1' and r.fifoRst = '0' then
-         v.message      := ptpUnpackRxMessage(fifoReadData);
-         v.messageValid := '1';
-         v.fifoRead     := '1';
+
+      -- Issue one group every clock; the registered request and synchronous
+      -- RAM contribute two edges before a returned group updates the head.
+      if r.decoding = '1' then
+         if r.issueGroup < (r.decodeBytes+7)/8 then
+            v.readEnable := '1';
+            v.readAddress := toSlv(r.decodeBank*STORE_GROUPS_C+r.issueGroup, STORE_ADDR_BITS_C);
+            v.issueGroup := r.issueGroup+1;
+         end if;
+         if r.returnValid = '1' then
+            if r.returnGroup = 0 then
+               captureIndex := 0;
+               assignRecord(captureIndex, captureReadData, v.message.rxEpoch);
+               assignRecord(captureIndex, captureReadData, v.message.capture.error);
+               assignRecord(captureIndex, captureReadData, v.message.capture.timeValid);
+               assignRecord(captureIndex, captureReadData, v.message.capture.increment);
+               assignRecord(captureIndex, captureReadData, v.message.capture.generation);
+               assignRecord(captureIndex, captureReadData, v.message.capture.tickPhase);
+               assignRecord(captureIndex, captureReadData, v.message.capture.ticks);
+               assignRecord(captureIndex, captureReadData, v.message.capture.timestamp);
+            end if;
+            for i in 0 to 7 loop
+               if 8*r.returnGroup+i < r.decodeBytes then
+                  takeByte(v.message, 8*r.returnGroup+i, storeReadData(i));
+               end if;
+            end loop;
+            if 8*(r.returnGroup+1) >= r.decodeBytes then
+               v.messageValid := '1';
+               v.decoding := '0';
+            end if;
+         end if;
+      elsif v.messageValid = '0' and fifoValid = '1' and r.fifoRst = '0' then
+         descriptorBank  := to_integer(unsigned(fifoReadData(BANK_BITS_C-1 downto 0)));
+         descriptorBytes := to_integer(unsigned(fifoReadData(DESCRIPTOR_BITS_C-1 downto BANK_BITS_C)));
+         v.message := PTP_RX_MESSAGE_INIT_C;
+         v.decoding := '1';
+         v.decodeBank := descriptorBank;
+         v.decodeBytes := descriptorBytes;
+         v.issueGroup := 1;
+         v.readEnable := '1';
+         v.readAddress := toSlv(descriptorBank*STORE_GROUPS_C, STORE_ADDR_BITS_C);
+         v.captureReadAddress := toSlv(descriptorBank, BANK_BITS_C);
+         v.fifoRead := '1';
       end if;
 
       if rxMaster.tValid = '1' then
@@ -298,7 +478,10 @@ begin
             v.frame := FRAME_INIT_C;
             if r.frame.active = '0' and (TX_OBSERVE_G or rxCapture.generation = r.generation) then
                v.frame.active  := '1';
-               v.frame.capture := rxCapture;
+               v.captureWrite := '1';
+               v.captureAddress := toSlv(r.tail, BANK_BITS_C);
+               v.captureData := rxCapture.timestamp & rxCapture.ticks & rxCapture.tickPhase &
+                  rxCapture.generation & rxCapture.increment & rxCapture.timeValid & rxCapture.error & slv(r.epoch);
                if not TX_OBSERVE_G then
                   v.frame.bad := rxCapture.error;
                end if;
@@ -329,40 +512,51 @@ begin
                   keepGap := true;
                end if;
             end loop;
-
-            -- Rotate once into frame-byte lanes, then give each prefix byte
-            -- one write enable. Contiguous keeps make frame offsets distinct;
-            -- sparse beats are already bad and can never publish a record.
             first := v.frame.count;
             last  := first+byteCount;
             for i in 0 to 7 loop
-               alignedBytes(i) := rxMaster.tData(8*((i+8-(first mod 8)) mod 8)+7 downto 8*((i+8-(first mod 8)) mod 8));
-            end loop;
-            for i in v.frame.prefix'range loop
-               if first <= i and i < last then
-                  v.frame.prefix(i) := alignedBytes(i mod 8);
+               if i < byteCount then
+                  offset := first+i;
+                  octet  := rxMaster.tData(8*i+7 downto 8*i);
+
+                  case offset is
+                     when 12 =>
+                        v.frame.etherType(15 downto 8) := octet;
+                     when 13 =>
+                        v.frame.etherType(7 downto 0) := octet;
+                     when 14 =>
+                        v.frame.kind := octet(3 downto 0);
+                     when 15 =>
+                        v.frame.version := octet(3 downto 0);
+                     when 16 =>
+                        v.frame.length(15 downto 8) := octet;
+                     when 17 =>
+                        v.frame.length(7 downto 0) := octet;
+                        v.frame.base := baseLength(v.frame.kind);
+                        length := to_integer(unsigned(v.frame.length));
+                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+                           v.frame.bad := '1';
+                        else
+                           v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
+                        end if;
+                     when others =>
+                        null;
+                  end case;
+
+                  compact := compactIndex(offset);
+                  if compact >= 0 and (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+v.frame.base) then
+                     v.storeWrite(compact mod 8) := '1';
+                     v.storeAddress(compact mod 8) := toSlv(r.tail*STORE_GROUPS_C+compact/8, STORE_ADDR_BITS_C);
+                     v.storeData(compact mod 8) := octet;
+                  end if;
                end if;
             end loop;
             if last > MAX_FRAME_G then
                v.frame.count := MAX_FRAME_G+1;
-               v.frame.bad   := '1';
+               v.frame.bad := '1';
             else
                v.frame.count := last;
             end if;
-
-            -- Decode once when the messageLength field is complete. Even an
-            -- eight-byte beat cannot also reach the first TLV (byte 58), so
-            -- these bounds are registered before any TLV needs them.
-            if first < 18 and last >= 18 then
-               v.frame.base := baseLength(v.frame.prefix(14)(3 downto 0));
-               length       := to_integer(unsigned(networkField(v.frame.prefix, 16, 2)));
-               if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
-                  v.frame.bad := '1';
-               else
-                  v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
-               end if;
-            end if;
-
             -- Only TLV header transitions need byte ordering. Prefix writes,
             -- byte counting and header bounds no longer feed an eight-stage
             -- chain. Keep the parser able to finish a value and start another
@@ -420,6 +614,7 @@ begin
                when others =>
                   null;
             end case;
+
             if rxMaster.tLast = '1' then
                -- Decide only after incorporating this beat's bytes and errors.
                -- 18 = 14 Ethernet header bytes + 4 FCS bytes: the length check
@@ -438,12 +633,11 @@ begin
                   frameComplete := false;
                elsif v.frame.crc /= ETH_CRC_RESIDUE_C then
                   frameComplete := false;
-
                -- IEEE 1588-2019 19.2 accepts every minor version when the
                -- major version matches. Preserve the minor value in the record.
-               elsif networkField(v.frame.prefix, 12, 2) /= PTP_ETH_TYPE_C then
+               elsif v.frame.etherType /= PTP_ETH_TYPE_C then
                   frameComplete := false;
-               elsif v.frame.prefix(15)(3 downto 0) /= PTP_MAJOR_VERSION_C then
+               elsif v.frame.version /= PTP_MAJOR_VERSION_C then
                   frameComplete := false;
                -- Require the fixed body and complete TLVs before the FCS.
                elsif base = 0 then
@@ -451,34 +645,7 @@ begin
                elsif v.frame.count < PTP_ETH_FCS_BYTES_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
                   frameComplete := false;
                end if;
-               if frameComplete then
-                  -- Publish decoded common fields and only the fixed body;
-                  -- candidate initialization zeros unused body bytes. Identity,
-                  -- flags, and message-body semantics still need PtpProtocolEngine policy.
-                  -- A duplicate key remains a distinct physical record here.
-                  -- Explicit wire offsets make the field layout visible here,
-                  -- matching the Delay_Req encoder's Ethernet-frame convention.
-                  completedMessage.capture            := v.frame.capture;
-                  completedMessage.rxEpoch            := slv(r.epoch);
-                  completedMessage.destination        := networkField(v.frame.prefix, 0, PTP_ETH_MAC_BYTES_C);
-                  completedMessage.sourcePortIdentity := networkField(v.frame.prefix, 34, PTP_PORT_ID_BYTES_C);
-                  completedMessage.sequenceId         := networkField(v.frame.prefix, 44, 2);
-                  completedMessage.domainNumber       := v.frame.prefix(18);
-                  completedMessage.messageType        := v.frame.prefix(14)(3 downto 0);
-                  completedMessage.minorVersion       := v.frame.prefix(15)(7 downto 4);
-                  completedMessage.transportSpecific  := v.frame.prefix(14)(7 downto 4);
-                  completedMessage.messageLength      := networkField(v.frame.prefix, 16, 2);
-                  completedMessage.flags              := networkField(v.frame.prefix, 20, 2);
-                  completedMessage.correction         := networkField(v.frame.prefix, 22, 8);
-                  completedMessage.control            := v.frame.prefix(46);
-                  completedMessage.logInterval        := v.frame.prefix(47);
-                  -- Fixed body starts at frame byte 48; first octet is bits 239..232.
-                  for i in 0 to PTP_ANNOUNCE_BODY_BYTES_C-1 loop
-                     if i < base-PTP_HEADER_BYTES_C then
-                        completedMessage.messageBody(239-8*i downto 232-8*i) := v.frame.prefix(48+i);
-                     end if;
-                  end loop;
-               else
+               if not frameComplete then
                   v.counters.dropped := ptpSatInc(r.counters.dropped);
                end if;
                v.frame := FRAME_INIT_C;
@@ -497,13 +664,18 @@ begin
          v.messageValid      := '0';
          v.fifoRead          := '0';
          v.fifoRst           := '1';
+         v.tail := 0;
+         v.decoding := '0';
+         v.readEnable := '0';
+         v.returnValid := '0';
          v.epoch             := r.epoch+1;
          v.counters.overflow := ptpSatInc(r.counters.overflow);
          v.queueOverflow     := '1';
          v.abortNow          := '1';
       elsif frameComplete then
          v.fifoWrite         := '1';
-         v.fifoWriteData     := ptpPackRxMessage(completedMessage);
+         v.fifoWriteData := toSlv(35+base-PTP_HEADER_BYTES_C, 7) & toSlv(r.tail, BANK_BITS_C);
+         v.tail := (r.tail+1) mod BANKS_C;
          v.fill              := v.fill+1;
          v.counters.accepted := ptpSatInc(r.counters.accepted);
       end if;
@@ -517,7 +689,6 @@ begin
       -- the FIFO reset discards it before another head can be published.
       if rxFlush = '1' or (not TX_OBSERVE_G and generation /= r.generation) then
          v := r;
-
          v.queueOverflow := '0';
          v.frame         := FRAME_INIT_C;
          v.fill          := 0;
@@ -528,7 +699,14 @@ begin
          v.fifoWrite     := '0';
          v.fifoRead      := '0';
          v.fifoRst       := '1';
+         v.tail := 0;
+         v.decoding := '0';
+         v.readEnable := '0';
+         v.returnValid := '0';
+         v.storeWrite := (others => '0');
+         v.captureWrite := '0';
       end if;
+
       -- Shared system reset excludes transfers. Unlike a logical flush,
       -- it resets epoch/counters; the owner must coordinate reset with consumers
       -- before reusing that epoch space. Async state reset occurs in seq.
@@ -536,17 +714,17 @@ begin
          v.abortNow  := '1';
          v.fifoRead  := '0';
       end if;
+
       -- Apply synchronous reset before publishing next state and outputs.
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
-      rin <= v;
 
+      rin <= v;
       fifoWrite     <= r.fifoWrite;
       fifoWriteData <= r.fifoWriteData;
       fifoRst       <= r.fifoRst;
       fifoRead      <= v.fifoRead;
-
       message       <= r.message;
       queueOverflow <= r.queueOverflow;
       messageValid  <= r.messageValid;
@@ -554,14 +732,15 @@ begin
       rxEpoch       <= slv(r.epoch);
       counters      <= r.counters;
    end process comb;
-
    seq : process (clk, rst) is
    begin
+
       if RST_ASYNC_G and rst = RST_POLARITY_G then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
+
    end process seq;
 
 end architecture rtl;

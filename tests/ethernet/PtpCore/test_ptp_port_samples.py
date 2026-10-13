@@ -26,8 +26,13 @@ from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test, sample_after_tpd
 from tests.ethernet.PtpCore.ptp_reference import NS, Q16
+from tests.ethernet.PtpCore.ptp_master_test_utils import master_frame
 
 SOURCE = int.from_bytes(bytes.fromhex('001122fffe3344550001'), 'big')
+# Isolated rate sequence: upload, two timestamp products, at most one exact
+# division, bounded format shifts, comparisons/filtering and publication.
+RATE_SERVICE_BOUND = 9000
+MIN_ASSOCIATION_TICKS = 70347776
 
 
 def wire_time(ns):
@@ -47,9 +52,9 @@ class Bench:
         self.now = 100
         self.generation = 0
         for name in ('clk', 'rst', 'regRst', 'restart', 'prepare', 'applyConfig',
-                     'ticks', 'generation', 'rxAbort', 'rxOverflow', 'rxValid',
+                     'snapshotCapture', 'snapshotPublish', 'ticks', 'generation', 'rxAbort', 'rxOverflow', 'rxValid',
                      'rxKind', 'rxFlags', 'rxControl', 'rxSequence', 'rxDomain',
-                     'rxSource', 'rxTimestamp', 'rxCorrection', 'captureTime',
+                     'rxSource', 'rxTimestamp', 'rxBodyTail', 'rxLogInterval', 'rxCorrection', 'captureTime',
                      'captureTicks', 'captureGeneration', 'measurementReady'):
             getattr(d, name).value = 0
         self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, 'axil'), d.clk, d.rst)
@@ -62,15 +67,16 @@ class Bench:
         result = await self.axil.write(address, value.to_bytes(width, 'little'))
         assert result.resp == AxiResp.OKAY
 
-    async def configure(self, min_span=1000000, timeout=100000, source=SOURCE):
+    async def configure(self, min_span=1000000, timeout=MIN_ASSOCIATION_TICKS, source=SOURCE):
         await self.write(0x020, source, 12)
-        await self.write(0x088, 10000000)
+        await self.write(0x088, max(10000000, timeout+10000))
         await self.write(0x090, timeout)
         await self.write(0x0A0, min_span)
         await self.write(0x0A8, 1000000)
         self.d.prepare.value = 1
         await self.wait()
         self.d.prepare.value = 0
+        await self.wait_config()
         assert int(self.d.configValid.value)
         await self.pulse('applyConfig')
 
@@ -82,7 +88,18 @@ class Bench:
         await self.wait(3)
         await self.configure()
 
+    async def wait_config(self):
+        # The largest local bank clones 48 words in four clocks per word, then
+        # drains its final write/validation publication. This is a stage bound.
+        for _ in range(200):
+            if int(self.d.configPrepared.value):
+                return
+            await self.wait()
+        assert False, 'configuration bank did not finish preparation'
+
     async def pulse(self, name):
+        if name == 'applyConfig':
+            await self.wait_config()
         # Called after TPD settling. A held measurement and abort must not
         # change during this deliberate between-edge control transition.
         held = (int(self.d.measurementValid.value), int(self.d.measurementAbort.value), self.payload())
@@ -92,6 +109,15 @@ class Bench:
             assert held == (int(self.d.measurementValid.value), int(self.d.measurementAbort.value), self.payload())
         await self.wait()
         getattr(self.d, name).value = 0
+        if name == 'snapshotCapture':
+            for _ in range(14):
+                if int(self.d.snapshotPrepared.value):
+                    break
+                await self.wait()
+            assert int(self.d.snapshotPrepared.value)
+            self.d.snapshotPublish.value = 1
+            await self.wait()
+            self.d.snapshotPublish.value = 0
         await self.wait(3)
 
     def counts(self):
@@ -115,7 +141,7 @@ class Bench:
                       captureTime=capture_time(local), rxValid=1)
         for name, value in inputs.items():
             getattr(self.d, name).value = value
-        for _ in range(400):
+        for _ in range(RATE_SERVICE_BOUND):
             await RisingEdge(self.d.clk)
             accepted = int(self.d.rxReady.value)
             await Timer(1.1, unit='ns')
@@ -130,7 +156,7 @@ class Bench:
                       'measurementGeneration', 'measurementRatio', 'ratioValid'))
 
     async def result(self, seq, expected, ticks=None):
-        for _ in range(300):
+        for _ in range(RATE_SERVICE_BOUND):
             if int(self.d.measurementValid.value):
                 break
             await self.wait()
@@ -143,14 +169,15 @@ class Bench:
         return got
 
     async def drain(self):
+        previous = self.payload(), int(self.d.measurementDelayValid.value)
         self.d.measurementReady.value = 1
         await self.wait()
         self.d.measurementReady.value = 0
         await self.wait()
-        assert not int(self.d.measurementValid.value)
+        assert not int(self.d.measurementValid.value) or (self.payload(), int(self.d.measurementDelayValid.value)) != previous
 
     async def no_result(self):
-        await self.wait(4)
+        await self.wait(512)
         assert not int(self.d.measurementValid.value)
 
     def stop(self):
@@ -327,16 +354,16 @@ async def capacity_chronology_and_cancellation(d):
 
         # Expiry of unmatched Follow_Up removes its mode conflict; a fresh
         # one-step on that key can then complete. Expired captures still fail.
-        await b.configure(timeout=3000)
+        await b.configure(timeout=MIN_ASSOCIATION_TICKS)
         await b.send(8, 20, NS)
-        b.now += 3001
+        b.now += MIN_ASSOCIATION_TICKS+1
         d.ticks.value = b.now
         await b.wait()
         await b.send(0, 20, NS)
         await b.result(20, 123*Q16+7)
         await b.drain()
         before, rejected = b.counts()
-        await b.send(0, 21, 2*NS, ticks=b.now-3001)
+        await b.send(0, 21, 2*NS, ticks=b.now-MIN_ASSOCIATION_TICKS-1)
         assert b.counts() == (before, rejected+1)
 
         # A result stalls RX and retains every published field. A queued
@@ -423,9 +450,9 @@ async def timestamp_conversion_cancellation(d):
     await b.start()
     try:
         # Conversion latency must not move the inclusive completion-age check.
-        await b.configure(timeout=2048)
+        await b.configure(timeout=MIN_ASSOCIATION_TICKS)
         capture = b.now+100
-        b.now = capture+2048-10
+        b.now = capture+MIN_ASSOCIATION_TICKS-10
         await b.send(0, 58, NS, ticks=capture)
         b.now += 1
         d.ticks.value = b.now
@@ -455,6 +482,50 @@ async def timestamp_conversion_cancellation(d):
                 await b.send(0, 61, NS, correction=-19)
                 await b.result(61, 123*Q16+26)
                 await b.drain()
+    finally:
+        b.stop()
+
+
+@cocotb.test()
+async def announce_snapshot_cohorts(d):
+    b = Bench(d)
+    await b.start()
+    try:
+        previous = (0, 0, 0, 0)
+
+        async def observed():
+            values = []
+            for address, size in ((0x130, 8), (0x138, 4), (0x13C, 4), (0x140, 32)):
+                result = await b.axil.read(address, size)
+                assert result.resp == AxiResp.OKAY
+                values.append(int.from_bytes(result.data, 'little'))
+            return tuple(values)
+
+        # Repeated updates reuse every version bank. Capture during an upload
+        # must keep the old body and its decoded metadata together even when
+        # the new Announce commits before the scalar cohort finishes copying.
+        for index in range(8):
+            packet = bytearray(master_frame(11, index))
+            flags = 0x3c if index % 2 == 0 else 0x34
+            grandmaster = 0x0123456789abcdef+index
+            utc = 37+index
+            packet[58:60] = utc.to_bytes(2, 'big')
+            packet[67:75] = grandmaster.to_bytes(8, 'big')
+            d.rxBodyTail.value = int.from_bytes(packet[58:78], 'big')
+            sending = cocotb.start_soon(b.send(11, index, flags=flags, control=0,
+                                              timestamp=int.from_bytes(packet[48:58], 'big')))
+            await b.wait(4)
+            assert not sending.done()
+            await b.pulse('snapshotCapture')
+            await sending
+            assert await observed() == previous
+            previous = (grandmaster, flags, utc, int.from_bytes(packet[48:78], 'big'))
+            await b.pulse('snapshotCapture')
+            assert await observed() == previous
+            d.restart.value = 1
+            await b.pulse('snapshotCapture')
+            d.restart.value = 0
+            assert await observed() == previous
     finally:
         b.stop()
 

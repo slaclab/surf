@@ -23,23 +23,27 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
 
 entity PtpE2eWrapper is
    generic (
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
+      NORMALIZED_SYNC_G : boolean          := false);
    port (
       clk                 : in  sl;
       rst                 : in  sl;
       cancel              : in  sl;
+      normalizedValid     : in  sl               := '0';
+      normalizedReady     : out sl;
+      normalizedWord      : in  slv(2 downto 0)  := (others => '0');
+      normalizedData      : in  slv(31 downto 0) := (others => '0');
       inputValid          : in  sl;
       inputReady          : out sl;
       syncTime            : in  slv(95 downto 0);
@@ -78,8 +82,19 @@ architecture rtl of PtpE2eWrapper is
    signal syncSample  : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
    signal delaySample : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
    signal measurement : PtpMeasurementType;
+   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
+   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
 
 begin
+
+   U_Compute : entity surf.PtpCompute
+      generic map (
+         MEMORY_TYPE_G => "block")
+      port map (
+         clk     => clk,
+         rst     => rst,
+         masters => computeMasters,
+         slaves  => computeSlaves);
 
    syncSample.capture.timestamp  <= syncTime;
    syncSample.capture.ticks      <= syncTicks;
@@ -109,20 +124,27 @@ begin
    U_DUT : entity surf.PtpE2e
       generic map (
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+         NORMALIZED_SYNC_G => NORMALIZED_SYNC_G)
       port map (
-         clk          => clk,           -- [in]
-         rst          => rst,           -- [in]
-         cancel       => cancel,        -- [in]
-         inputValid   => inputValid,    -- [in]
-         inputReady   => inputReady,    -- [out]
-         syncSample   => syncSample,    -- [in]
-         delaySample  => delaySample,   -- [in]
-         ratio        => ratio,         -- [in]
-         maxPathDelay => maxPathDelay,  -- [in]
-         resultValue  => measurement,   -- [out]
-         resultValid  => resultValid,   -- [out]
-         resultReady  => resultReady,   -- [in]
-         resultError  => resultError);  -- [out]
+         normalizedValid => normalizedValid,
+         normalizedReady => normalizedReady,
+         normalizedWord  => normalizedWord,
+         normalizedData  => normalizedData,
+         computeMaster => computeMasters(PTP_COMPUTE_E2E_C),
+         computeSlave  => computeSlaves(PTP_COMPUTE_E2E_C),
+         clk           => clk,           -- [in]
+         rst           => rst,           -- [in]
+         cancel        => cancel,        -- [in]
+         inputValid    => inputValid,    -- [in]
+         inputReady    => inputReady,    -- [out]
+         syncSample    => syncSample,    -- [in]
+         delaySample   => delaySample,   -- [in]
+         ratio         => ratio,         -- [in]
+         maxPathDelay  => maxPathDelay,  -- [in]
+         resultValue   => measurement,   -- [out]
+         resultValid   => resultValid,   -- [out]
+         resultReady   => resultReady,   -- [in]
+         resultError   => resultError);  -- [out]
 
 end architecture rtl;

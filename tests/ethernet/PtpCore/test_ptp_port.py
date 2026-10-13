@@ -35,10 +35,10 @@ async def adversarial_port(d):
     await b.start()
     await b.configure()
     await b.write(0x004, 1)
-    # Keep the configured 10000-cycle receipt timeout during policy checks.
-    # GMII serialization plus the rejected-message sequence exceeds 1000
-    # cycles without a fresh accepted Sync. Expiry would correctly flush the
-    # conflicting association and invalidate this test's retained-key premise.
+    # Up to sixteen policy frames, each with serialization and a 9000-clock
+    # service wait, separate accepted pairs. Keep that interval below receipt
+    # expiry so this section tests retained keys; expiry is exercised below.
+    await b.write(0x2088, 200000, 8)
     await b.commit()
     generation = int(d.timeGeneration.value)
 
@@ -48,7 +48,7 @@ async def adversarial_port(d):
             offset, data = patch
             frame[offset:offset+len(data)] = data
         await b.wire(bytes(frame))
-        await b.wait(160)
+        await b.wait(9000)
 
     async def count():
         await b.snapshot()
@@ -87,14 +87,14 @@ async def adversarial_port(d):
     assert int(d.portActive.value)
     # Test receipt expiry separately. Applying the shorter configuration
     # restarts acquisition, so accept a fresh pair before waiting for expiry.
-    await b.write(0x2088, 1000, 8)
+    await b.write(0x2088, 20000, 8)
     await b.commit()
     assert not int(d.portActive.value)
     await send(0, 18)
     await send(8, 18, 18*NS)
     assert await count() == 11
     assert int(d.portActive.value)
-    await b.wait(1100)
+    await b.wait(21000)
     assert not int(d.portActive.value)
 
     def announce(gm, flags=0x3c):
@@ -105,7 +105,9 @@ async def adversarial_port(d):
         return bytes(frame)
 
     await b.wire(announce(0x1234567890abcdef))
-    await b.wait(20)
+    # Nine decoder groups + four publication stages, twelve immutable words,
+    # acknowledgement and registered control propagation fit 32 clocks.
+    await b.wait(32)
     await b.snapshot()
     assert await b.read(0x044) & (1 << 16)
     assert await b.read(0x2130, 8) == 0x1234567890abcdef
@@ -114,7 +116,7 @@ async def adversarial_port(d):
     await send(8, 100, 100*NS)
     assert int(d.portActive.value)
     await b.wire(announce(0xfedcba0987654321))
-    await b.wait(20)
+    await b.wait(32)
     assert not int(d.portActive.value), 'grandmaster change did not cancel old source state'
     await b.snapshot()
     assert await b.read(0x2130, 8) == 0xfedcba0987654321
@@ -123,11 +125,11 @@ async def adversarial_port(d):
     await send(8, 101, 101*NS)
     assert int(d.portActive.value)
     await b.wire(announce(0xfedcba0987654321, flags=0x34))
-    await b.wait(20)
+    await b.wait(32)
     assert not int(d.portActive.value), 'timescale change retained old acquisition state'
     assert int(d.timeGeneration.value) == generation
     await b.wire(announce(0xfedcba0987654321, flags=3))
-    await b.wait(20)
+    await b.wait(32)
     assert not await b.read(0x044) & (1 << 16)
     assert int(d.timeGeneration.value) == generation
     assert not int(d.timeFault.value)
@@ -135,7 +137,7 @@ async def adversarial_port(d):
     # Qualify the real rate estimator with independent physical timing, then
     # hold the builder's first beat across a logical restart. Bytes already
     # promised to the MAC belong to its physical lifecycle and must still drain.
-    await b.write(0x2088, 10000, 8)
+    await b.write(0x2088, 100000, 8)
     await b.commit()
     d.modelTxReady.value = 0
     await b.source(3, sequence=300)
@@ -199,7 +201,7 @@ async def physical_one_step_policy(d):
                          lane=4*((i//2) % 2) if b.mode == 'XGMII' else 0)
             if two_step:
                 await b.wire(b.frame(8, seq, remote, -17))
-            await b.wait(160)
+            await b.wait(9000)
             accepted += 1
             assert await count() == accepted
 
@@ -220,10 +222,10 @@ async def physical_one_step_policy(d):
                 offset, data = patch
                 frame[offset:offset+len(data)] = data
             await b.wire(bytes(frame[:50] if truncate else frame), corrupt=corrupt)
-            await b.wait(160)
+            await b.wait(9000)
             assert await count() == accepted
             await b.wire(b.frame(0, seq, remote, two_step=False))
-            await b.wait(160)
+            await b.wait(9000)
             accepted += 1
             assert await count() == accepted
         assert not int(d.timeFault.value)

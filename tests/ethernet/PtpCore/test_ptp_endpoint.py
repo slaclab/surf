@@ -94,7 +94,7 @@ async def autonomous_endpoint(d):
     generation = int(d.timeGeneration.value)
     before = int(d.timeTicks.value)
     d.phyReady.value = 0
-    await b.wait(25000)
+    await b.wait(250000)
     assert int(d.timeTicks.value) > before
     assert int(d.timeGeneration.value) == generation
     assert not int(d.timeValid.value)

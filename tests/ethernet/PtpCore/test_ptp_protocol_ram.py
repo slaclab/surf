@@ -31,7 +31,7 @@ from tests.common.regression_utils import (
     cancel_and_join_tasks, cocotb_filtered_env, cocotb_test_filter, run_surf_vhdl_test)
 from tests.ethernet.PtpCore.ptp_master_test_utils import master_frame
 from tests.ethernet.PtpCore.test_ptp_exchange import ExchangeBench, Q16
-from tests.ethernet.PtpCore.test_ptp_port_samples import Bench, NS, capture_time, wire_time
+from tests.ethernet.PtpCore.test_ptp_port_samples import Bench, NS, capture_time, wire_time, MIN_ASSOCIATION_TICKS
 
 
 @asynccontextmanager
@@ -49,6 +49,7 @@ async def history_bench(d, *, timeout=None, maximum=None):
             d.prepare.value = 1
             await b.wait()
             d.prepare.value = 0
+            await b.wait_config()
             assert int(d.configValid.value)
             await b.pulse('applyConfig')
         await b.qualify()
@@ -71,7 +72,7 @@ async def phase_sync(b, seq, ticks, phase=0):
 async def history_admission(b):
     # Observe the real ledger-to-protocol handshake, without deriving expected
     # nearest selection or arithmetic from the implementation.
-    for _ in range(80):
+    for _ in range(2*(4*45+22+8)):
         await RisingEdge(b.d.clk)
         admitted = int(b.d.u_dut.delayready.value)
         await Timer(1.1, unit='ns')
@@ -82,7 +83,7 @@ async def history_admission(b):
 
 async def selected_exchange(b, request, sync, wire_tick, wire_phase=0):
     seq, tick, phase = sync
-    for _ in range(1500):
+    for _ in range(16000):
         if int(b.d.measurementValid.value):
             break
         await b.wait()
@@ -114,7 +115,7 @@ async def history_selection(d):
             ('before', 140, 0), ('after', 160, 0), ('tie', 150, 0),
             ('wrapped_tie', 50, 0), ('rx_phase', 150, 0), ('tx_phase', 50, 7),
             ('age', 50, 0), ('maximum', 150, 0), ('concurrent', 50, 0)):
-        async with history_bench(d, timeout=2048 if scenario == 'age' else None,
+        async with history_bench(d, timeout=MIN_ASSOCIATION_TICKS if scenario == 'age' else None,
                                  maximum=20 if scenario == 'maximum' else None) as b:
             base = b.last_sync_tick
             phase = 7 if scenario == 'rx_phase' else 0
@@ -129,7 +130,7 @@ async def history_selection(d):
             if scenario == 'age':
                 # The oldest Sync is stale, while the later-born ledger key
                 # and the three newer Syncs remain within the inclusive limit.
-                b.now = base+2039
+                b.now = base+MIN_ASSOCIATION_TICKS-9
             response = master_frame(9, request, wire_tick*8+tx_phase+100, -16384, minor=b.minor)
             await b.packet(response, ticks=b.now+10)
             if scenario == 'maximum':
@@ -139,7 +140,7 @@ async def history_selection(d):
                 continue
 
             # Python min is stable, so equal distances retain physical order.
-            eligible = [row for row in rows if scenario != 'age' or b.now-row[1] <= 2048]
+            eligible = [row for row in rows if scenario != 'age' or b.now-row[1] <= MIN_ASSOCIATION_TICKS]
             selected = min(eligible, key=lambda row: abs((row[1]-wire_tick)*8+row[2]-tx_phase))
             if scenario == 'concurrent':
                 await history_admission(b)
@@ -201,7 +202,7 @@ async def history_publication_priority(d):
 
         pending = cocotb.start_soon(rejected_traffic())
         try:
-            for _ in range(1500):
+            for _ in range(16000):
                 if int(d.measurementValid.value):
                     break
                 await b.wait()
@@ -239,10 +240,10 @@ async def pair_cancellation_and_expiry(d):
             await b.result(100, 123*Q16+7)
             await b.drain()
 
-        await b.configure(timeout=2048)
+        await b.configure(timeout=MIN_ASSOCIATION_TICKS)
         await b.send(8, 200, NS)
         born = b.now
-        b.now = born+2048-10
+        b.now = born+MIN_ASSOCIATION_TICKS-10
         pending = cocotb.start_soon(b.send(0, 200, NS))
         await b.wait(4)
         b.now += 1
@@ -269,5 +270,6 @@ async def pair_cancellation_and_expiry(d):
 def test_protocol_ram(memory, scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
-        parameters={'HISTORY_MEMORY_TYPE_G': memory, 'PAIR_MEMORY_TYPE_G': memory},
+        parameters={'HISTORY_MEMORY_TYPE_G': memory, 'PAIR_MEMORY_TYPE_G': memory,
+                    'PACKET_LIFETIME_G': 2*MIN_ASSOCIATION_TICKS},
         extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)))

@@ -15,10 +15,11 @@
 # - Checks: Python integer oracle for wrapped result, signed overflow, nearest
 #   ties away and truncation remainder; word order, tags and slot ownership.
 # - Timing: Manual 6.4 ns clock samples readiness before the transfer edge and
-#   registered responses after TPD. Bound a job to 7000 clocks and a four-job
-#   batch to 28000. No endpoint integration, area or timing-closure claim.
+#   registered responses after TPD. Bound a job to 4608 clocks and a four-job
+#   batch to 18432. No endpoint integration, area or timing-closure claim.
 
 import random
+import os
 
 import cocotb
 import pytest
@@ -30,7 +31,7 @@ MASK = (1 << 128)-1
 WORD_MASK = (1 << 32)-1
 MINIMUM = -(1 << 127)
 MAXIMUM = (1 << 127)-1
-JOB_BOUND = 7000
+JOB_BOUND = 4608
 
 
 def oracle(a, b, operation, rounding):
@@ -41,6 +42,17 @@ def oracle(a, b, operation, rounding):
         value = a-b
     elif operation == 2:
         value = a*b
+    elif operation == 4:
+        value = a
+    elif operation == 5:
+        value = a << b
+    elif operation == 6:
+        magnitude = abs(a) >> b
+        if rounding and b and (abs(a) >> (b-1)) & 1:
+            magnitude += 1
+        value = -magnitude if a < 0 else magnitude
+    elif operation == 7:
+        value = a-b
     elif b == 0:
         return 0, 0, True
     else:
@@ -56,13 +68,14 @@ class Bench:
     def __init__(self, dut):
         self.d = dut
         self.cycles = 0
+        self.polarity = int(os.environ.get('POLARITY', '1'))
 
     async def edge(self, check_registered=False, **inputs):
         d = self.d
         before = (int(d.resultValid.value), int(d.readValid.value)) if check_registered else None
         d.clk.value = 0
         for name, value in inputs.items():
-            getattr(d, name).value = value
+            getattr(d, name).value = (self.polarity if value else 1-self.polarity) if name == 'rst' else value
         await Timer(3.2, unit='ns')
         if check_registered:
             assert before == (int(d.resultValid.value), int(d.readValid.value)), 'valid changed before edge'
@@ -73,10 +86,13 @@ class Bench:
         return accepted
 
     async def reset(self):
-        for name in ('clk', 'rst', 'cancel', 'memValid', 'memWrite', 'memClient',
+        for name in ('clk', 'rst', 'cancel', 'retain', 'memValid', 'memWrite', 'memClient',
                      'memWord', 'memData', 'readReady', 'jobValid', 'jobClient',
                      'jobOperation', 'jobRound', 'jobTag', 'resultReady'):
             getattr(self.d, name).value = 0
+        for name, value in (('jobSourceA', 0), ('jobSourceB', 1), ('jobTarget', 2),
+                            ('jobRemainder', 3), ('jobShift', 0)):
+            getattr(self.d, name).value = value
         await self.edge(rst=1)
         await self.edge(rst=0)
         assert int(self.d.resultValid.value) == 0
@@ -98,10 +114,13 @@ class Bench:
             value = a if word < 4 else b
             await self.access(client, word, (value >> (32*(word % 4))) & WORD_MASK)
 
-    async def issue(self, client, operation, rounding=0, tag=0):
+    async def issue(self, client, operation, rounding=0, tag=0,
+                    source_a=0, source_b=1, target=2, remainder=3, shift=0):
         for _ in range(8):
             _, ready = await self.edge(jobValid=1, jobClient=client,
-                                       jobOperation=operation, jobRound=rounding, jobTag=tag)
+                                       jobOperation=operation, jobRound=rounding, jobTag=tag,
+                                       jobSourceA=source_a, jobSourceB=source_b,
+                                       jobTarget=target, jobRemainder=remainder, jobShift=shift)
             if ready:
                 accepted = self.cycles
                 break
@@ -362,7 +381,112 @@ async def cancellation(d):
     await bench.check(0, oracle(7, 3, 3, 1), 55)
 
 
-@pytest.mark.parametrize('memory_type', ['block', 'distributed'])
-def test_ptp_compute(memory_type):
-    run_surf_vhdl_test(test_file=__file__, toplevel='surf.PtpCompute',
-                      parameters={'MEMORY_TYPE_G': memory_type})
+@cocotb.test()
+async def persistent_workspace(d):
+    bench = Bench(d)
+    await bench.reset()
+    # Copy, compare and both format shifts cover signed minimum and overflow,
+    # cross-word shifts, zero shift and nearest ties away independently.
+    for operation in (4, 5, 6, 7):
+        for a in (MINIMUM, MAXIMUM, -(1 << 96)-3, -3, 0, 3, (1 << 64)+1):
+            for amount in ((0, 1, 16, 30, 32, 35, 62, 127) if operation in (5, 6) else (1,)):
+                b = MAXIMUM if a < 0 else MINIMUM
+                await bench.operands(0, a, b)
+                await bench.issue(0, operation, rounding=1, shift=amount, tag=amount)
+                await bench.wait(1)
+                if operation == 7:
+                    assert bool(int(d.resultLess.value) & 1) == (a < b)
+                    assert bool(int(d.resultEqual.value) & 1) == (a == b)
+                await bench.check(0, oracle(a, amount if operation in (5, 6) else b, operation, 1), amount)
+
+    # Destinations become authoritative sources after acknowledgement. No data
+    # is read back or reloaded between multiply, add, copy and in-place divide.
+    await bench.operands(1, 13, 7)
+    await bench.issue(1, 2, target=12, remainder=15)
+    await bench.wait(2)
+    await bench.edge(resultReady=2)
+    await bench.edge(resultReady=0)
+    await bench.issue(1, 0, source_a=12, source_b=1, target=12, remainder=15)
+    await bench.wait(2)
+    await bench.edge(resultReady=2)
+    await bench.edge(resultReady=0)
+    await bench.issue(1, 4, source_a=12, target=9, remainder=15)
+    await bench.wait(2)
+    await bench.edge(resultReady=2)
+    await bench.edge(resultReady=0)
+    await bench.issue(1, 3, source_a=9, source_b=1, target=9, remainder=15)
+    await bench.wait(2)
+    words = [await bench.word(1, 36+i) for i in range(4)]
+    assert sum(word << (32*i) for i, word in enumerate(words)) == 14
+    await bench.edge(resultReady=2)
+    await bench.edge(resultReady=0)
+    # Persistent data is still readable without a live completion descriptor.
+    assert await bench.word(1, 48) == 98
+    await bench.edge(cancel=2)
+    await bench.edge(cancel=0)
+    _, ready = await bench.edge(jobValid=1, jobClient=1)
+    assert not ready, 'cancellation retained a persistent source'
+    await bench.edge(jobValid=0)
+
+    # A held owner-zero response cannot prevent owner-three word publication.
+    for client in (0, 3):
+        await bench.operands(client, 31+client, 1)
+    await bench.access(0, 0)
+    await bench.edge()
+    await bench.access(3, 0)
+    await bench.edge()
+    assert int(d.readValid.value) and int(d.readData.value) == 31
+    await bench.edge(readReady=1)
+    await bench.edge(readReady=0)
+    assert int(d.readValid.value) and int(d.readClient.value) == 3
+    assert int(d.readData.value) == 34
+    await bench.edge(readReady=1)
+    await bench.edge(readReady=0)
+
+
+@cocotb.test()
+async def retained_cancellation(d):
+    bench = Bench(d)
+    await bench.reset()
+    # Servo's committed frequency is separate from the candidate destination.
+    # Sweep active, finish, held completion and read cancellation; a PHC owner
+    # continues to completion while the servo releases its descriptor.
+    for delay in (0, 1, 12, 22, 23, 24, 25, 26, 27, 50, JOB_BOUND):
+        await bench.operands(2, 123, 456)
+        for word in range(4):
+            await bench.access(2, 40+word, 789 if word == 0 else 0)
+        await bench.operands(3, MAXIMUM, 3)
+        await bench.issue(2, 0, target=11, remainder=15)
+        await bench.issue(3, 3, tag=99)
+        for _ in range(delay):
+            await bench.edge()
+        completed = bool(int(d.resultValid.value) & 4)
+        await bench.edge(cancel=4, retain=4)
+        await bench.edge(cancel=0, retain=0)
+        assert not int(d.resultValid.value) & 4
+        if not completed:
+            for _ in range(3):
+                ready, _ = await bench.edge(memValid=1, memWrite=0, memClient=2, memWord=44)
+                assert not ready, 'partial destination survived retained cancellation'
+            await bench.edge(memValid=0)
+        await bench.wait(8)
+        await bench.check(3, oracle(MAXIMUM, 3, 3, 0), 99)
+        assert await bench.word(2, 40) == 789
+        await bench.issue(2, 4, source_a=10, tag=77)
+        await bench.wait(4)
+        await bench.check(2, (789, 0, False), 77)
+        # Both pending and held reads can be canceled without invalidating the
+        # committed slot, and without delivering their stale responses later.
+        await bench.access(2, 40)
+        await bench.edge(cancel=4, retain=4)
+        await bench.edge(cancel=0, retain=0)
+        assert not int(d.readValid.value)
+        assert await bench.word(2, 40) == 789
+
+
+@pytest.mark.parametrize('memory_type,polarity,async_reset',
+                         [('block', 1, False), ('distributed', 0, True)])
+def test_ptp_compute(memory_type, polarity, async_reset):
+    run_surf_vhdl_test(test_file=__file__, toplevel='surf.PtpComputeWrapper',
+                      parameters={'MEMORY_TYPE_G': memory_type, 'RST_POLARITY_G': f"'{polarity}'",
+                                  'RST_ASYNC_G': async_reset}, extra_env={'POLARITY': polarity})

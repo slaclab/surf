@@ -23,11 +23,9 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -38,10 +36,12 @@ package PtpPkg is
    -- Seconds-to-nanoseconds conversion and exclusive upper bound on the
    -- nanoseconds field of a normalized PTP timestamp.
    constant PTP_NANOSECONDS_PER_SECOND_C : positive := 1000000000;
-
+   -- Conservative finite-burst service envelope for one shared word processor.
+   -- Four RX records, four completed ledger entries and one in-flight chain;
+   -- see docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound.
+   constant PTP_MIN_ASSOCIATION_TICKS_C : positive := (4*608+4*192+608)*18464+9*4096;
    -- Dimensionless parts-per-billion scale, independent of time units.
    constant PTP_PPB_SCALE_C : positive := 1000000000;
-
    -- Shared fixed-point formats. Derive conversions from these bit counts;
    -- Q16 ppb and Q16 nanoseconds have different units despite equal precision.
    -- These describe fixed interface contracts, not tunable precision generics.
@@ -51,12 +51,10 @@ package PtpPkg is
    constant PTP_TICK_PHASE_BITS_C : positive := 3;
    constant PTP_GAIN_FRAC_BITS_C  : positive := 30;
    constant PTP_PPB_FRAC_BITS_C   : positive := 16;
-
    -- Left-shift counts for Q16 time -> Q32 PHC and Q32 PHC -> Q48 ratio.
    -- The reverse conversion drops the same number of low fractional bits.
    constant PTP_TIME_TO_PHC_SHIFT_C  : natural := PTP_PHC_FRAC_BITS_C-PTP_TIME_FRAC_BITS_C;
    constant PTP_PHC_TO_RATIO_SHIFT_C : natural := PTP_RATIO_FRAC_BITS_C-PTP_PHC_FRAC_BITS_C;
-
    -- Untagged Ethernet geometry, including FCS in frame-size limits.
    constant PTP_ETH_MAC_BYTES_C      : positive := 6;
    constant PTP_ETH_HEADER_BYTES_C   : positive := 14; -- Two MAC addresses and EtherType.
@@ -64,14 +62,11 @@ package PtpPkg is
    constant PTP_ETH_OVERHEAD_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_ETH_FCS_BYTES_C;
    constant PTP_ETH_MIN_FRAME_C      : positive := 64;
    constant PTP_ETH_MAX_FRAME_C      : positive := 1518;
-
    -- Network significance versus low-byte-first AXI/MAC lane order.
    constant PTP_ETH_TYPE_C      : slv(15 downto 0) := x"88F7";
    constant PTP_ETH_TYPE_AXIS_C : slv(15 downto 0) := PTP_ETH_TYPE_C(7 downto 0) & PTP_ETH_TYPE_C(15 downto 8);
-
    -- PTP common header and fixed message sizes, before optional TLVs.
    constant PTP_HEADER_BYTES_C          : positive := 34;
-
    constant PTP_TIMESTAMP_BYTES_C     : positive := 10;
    constant PTP_PORT_ID_BYTES_C       : positive := 10;
    constant PTP_TIMESTAMP_MSG_BYTES_C : positive := PTP_HEADER_BYTES_C+PTP_TIMESTAMP_BYTES_C;
@@ -80,12 +75,10 @@ package PtpPkg is
    constant PTP_ANNOUNCE_BYTES_C      : positive := PTP_HEADER_BYTES_C+PTP_ANNOUNCE_BODY_BYTES_C;
    constant PTP_TLV_HEADER_BYTES_C    : positive := 4;
    constant PTP_TLV_LENGTH_OFFSET_C   : natural  := 2;
-
    -- Frontend storage capacity must hold Announce plus Ethernet/FCS, even
    -- though individual accepted Ethernet frames may be shorter than Announce.
    subtype PtpFrameCapacityType is positive range
       PTP_ETH_OVERHEAD_BYTES_C+PTP_ANNOUNCE_BYTES_C to PTP_ETH_MAX_FRAME_C;
-
    -- Supported fixed-source Layer-2 profile. Sync accepts only the complete
    -- one-step or two-step flag words below; these constants are not bit masks.
    -- The general-message upper flag octet is reserved by this implementation.
@@ -98,21 +91,17 @@ package PtpPkg is
    constant PTP_LEAP_FLAGS_MASK_C    : slv(15 downto 0) := x"0003";
    constant PTP_GENERAL_RESERVED_C   : slv(15 downto 0) := x"FF00";
    constant PTP_TIMESCALE_BIT_C      : natural          := 3;
-
    -- Endpoint event positions in the central IRQ status/mask registers.
    constant PTP_IRQ_PHC_FAULT_C     : natural := 0;
    constant PTP_IRQ_DISCONTINUITY_C : natural := 1;
    constant PTP_IRQ_COMMAND_ERROR_C : natural := 2;
    constant PTP_IRQ_SERVO_FAULT_C   : natural := 3;
-
    -- PTP primary Layer-2 multicast MAC: 01:1B:19:00:00:00. Used for receive
    -- filtering and Delay_Req transmission by this E2E endpoint. Network byte
    -- order: the first wire octet (01) occupies bits 47 downto 40.
    constant PTP_PRIMARY_MULTICAST_MAC_C : slv(47 downto 0) := x"011B19000000";
-
    -- Inserted between the two three-octet MAC halves to form clockIdentity.
    constant PTP_CLOCK_ID_INSERT_C : slv(15 downto 0) := x"FFFE";
-
    -- PTPv2 wire messageType nibble and legacy controlField encodings.
    -- Announce uses the OTHER control value.
    constant PTP_MSG_SYNC_C       : slv(3 downto 0) := x"0";
@@ -120,24 +109,19 @@ package PtpPkg is
    constant PTP_MSG_FOLLOW_UP_C  : slv(3 downto 0) := x"8";
    constant PTP_MSG_DELAY_RESP_C : slv(3 downto 0) := x"9";
    constant PTP_MSG_ANNOUNCE_C   : slv(3 downto 0) := x"B";
-
    constant PTP_CONTROL_SYNC_C       : slv(7 downto 0) := x"00";
    constant PTP_CONTROL_DELAY_REQ_C  : slv(7 downto 0) := x"01";
    constant PTP_CONTROL_FOLLOW_UP_C  : slv(7 downto 0) := x"02";
    constant PTP_CONTROL_DELAY_RESP_C : slv(7 downto 0) := x"03";
    constant PTP_CONTROL_OTHER_C      : slv(7 downto 0) := x"05";
-
    constant PTP_LOG_INTERVAL_UNSPECIFIED_C : slv(7 downto 0) := x"7F";
-
    -- IEEE 1588-2019 13.3.2.9: this encoding is not a finite Q16 correction.
    constant PTP_CORRECTION_OVERFLOW_C : slv(63 downto 0) := x"7FFFFFFFFFFFFFFF";
-
    -- Shared wire records and timebase interfaces. All arithmetic units are explicit.
    -- Normalized RX retains destination-MAC-through-FCS bytes in low-byte-first
    -- AXI lanes. SOF and the capture sidecar must share one pipeline; there is
    -- no independent timestamp queue or ready signal at this physical boundary.
    constant PTP_RX_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2**PTP_TICK_PHASE_BITS_C);
-
    -- Canonical PHC input: nanoseconds < 1e9 and fraction in units of 2^-32 ns.
    -- The adapter receives the value corresponding to lane zero of the sampled
    -- physical word, before its own registered output delay.
@@ -161,7 +145,6 @@ package PtpPkg is
    constant PTP_CMD_RATE_C  : slv(2 downto 0) := "010";
    constant PTP_CMD_VALID_C : slv(2 downto 0) := "011";
    constant PTP_CMD_PPS_C   : slv(2 downto 0) := "100";
-
    type PtpPhcCommandType is record
       kind          : slv(2 downto 0);
       generation    : slv(31 downto 0);
@@ -242,7 +225,6 @@ package PtpPkg is
       fault         => '0');
 
    function ptpNominalIncrement (frequency : positive) return slv;
-
    -- timestamp is calibrated PHC time; ticks/tickPhase remain at the raw
    -- MAC/PCS message point. Their reference-plane difference matters when
    -- reconstructing elapsed time for E2E arithmetic. generation invalidates
@@ -311,7 +293,6 @@ package PtpPkg is
       messageBody        => (others => '0'));
 
    type PtpRxMessageArray is array (natural range <>) of PtpRxMessageType;
-
    -- Flattened verification representation: the exact fields serialized by
    -- toSlv below. Capture increment/error are intentionally not transported.
    constant PTP_RX_MESSAGE_BITS_C : positive :=
@@ -324,16 +305,13 @@ package PtpPkg is
       PTP_RX_MESSAGE_INIT_C.messageLength'length + PTP_RX_MESSAGE_INIT_C.flags'length +
       PTP_RX_MESSAGE_INIT_C.correction'length + PTP_RX_MESSAGE_INIT_C.control'length +
       PTP_RX_MESSAGE_INIT_C.logInterval'length + PTP_RX_MESSAGE_INIT_C.messageBody'length;
-
    -- Lossless storage representation extends the unchanged verification layout.
    -- MSBs are toSlv(message); low bits are capture.increment then capture.error.
    constant PTP_RX_STORAGE_BITS_C : positive :=
       PTP_RX_MESSAGE_BITS_C + PTP_RX_CAPTURE_INIT_C.increment'length + 1;
-
    subtype PtpRxStorageType is slv(PTP_RX_STORAGE_BITS_C-1 downto 0);
    function ptpPackRxMessage (message : PtpRxMessageType) return PtpRxStorageType;
    function ptpUnpackRxMessage (value : PtpRxStorageType) return PtpRxMessageType;
-
    -- Message-specific body views, in network significance. Callers first
    -- qualify messageType; these accessors do not perform protocol admission.
    function ptpMessageTimestamp (message : PtpRxMessageType) return slv;
@@ -341,10 +319,9 @@ package PtpPkg is
    function ptpRequestingIdentity (message : PtpRxMessageType) return slv;
    function ptpGrandmasterIdentity (message : PtpRxMessageType) return slv;
    function ptpUtcOffset (message : PtpRxMessageType) return slv;
-
    -- Registered coordinator-to-bank commit transaction in clk. prepare freezes each
-   -- bank's shadows and captures its configValid vote on the same edge;
-   -- the coordinator consumes that vote before issuing a later apply.
+   -- bank's shadow. Sequential preparation raises configPrepared before the
+   -- coordinator consumes configValid and issues a later common apply.
    -- busy spans the transaction and prevents PHC manual command admission.
    -- Banks consume the same record so the candidate and apply edges agree.
    -- System reset must reset the coordinator and all participating banks.
@@ -365,11 +342,13 @@ package PtpPkg is
    -- all banks sample the same edge even if live state changes on that edge.
    -- sequenceId tags the samples; it has no meaning without capture.
    type PtpSnapshotControlType is record
+      publish    : sl;
       capture    : sl;
       sequenceId : slv(31 downto 0);
    end record;
 
    constant PTP_SNAPSHOT_CONTROL_INIT_C : PtpSnapshotControlType := (
+      publish    => '0',
       capture    => '0',
       sequenceId => (others => '0'));
 
@@ -410,12 +389,11 @@ package PtpPkg is
    end record;
 
    constant PTP_PORT_CONFIG_INIT_C : PtpPortConfigType := (
-      identityOverride   => '0',                     -- Derive clock identity from localMac on apply.
-      domainNumber       => x"00",                   -- Default PTP domain 0.
-      minorVersion       => x"1",                    -- Transmit major version 2, minor version 1.
-      localIdentity      => x"001122FFFE3344550001", -- Example MAC 00:11:22:33:44:55 + FFFE, port 1.
-      sourceIdentity     => x"00000000000000000001", -- Placeholder clock identity 0, port 1; configure upstream.
-
+      identityOverride => '0',                     -- Derive clock identity from localMac on apply.
+      domainNumber     => x"00",                   -- Default PTP domain 0.
+      minorVersion     => x"1",                    -- Transmit major version 2, minor version 1.
+      localIdentity    => x"001122FFFE3344550001", -- Example MAC 00:11:22:33:44:55 + FFFE, port 1.
+      sourceIdentity   => x"00000000000000000001", -- Placeholder clock identity 0, port 1; configure upstream.
       -- Raw ticks = seconds * 156250000 here. PtpProtocolEngine.initialConfig recomputes
       -- these timer defaults from CLK_FREQ_G, including at 125 MHz.
       delayInterval      => x"0000000009502F90",     -- 1 s nominal Delay_Req interval before jitter.
@@ -424,10 +402,9 @@ package PtpPkg is
       maxExchange        => x"0000000012A05F20",     -- 2 s maximum E2E exchange span.
       minRateSpan        => x"0000000004A817C8",     -- 0.5 s minimum baseline for rate estimation.
       maxRateAge         => x"000000002540BE40",     -- 4 s maximum age of a rate estimate.
-
       -- Signed Q16 nanoseconds: integer nanoseconds multiplied by 2**16.
-      maxPathDelay       => x"0000000F42400000",     -- 1000000 ns = 1 ms path-delay bound.
-      lfsrSeed           => x"0001");                -- Nonzero seed avoids the Delay_Req jitter LFSR's zero state.
+      maxPathDelay => x"0000000F42400000",     -- 1000000 ns = 1 ms path-delay bound.
+      lfsrSeed     => x"0001");                -- Nonzero seed avoids the Delay_Req jitter LFSR's zero state.
 
    -- PtpServo owns these shadow/candidate/active settings in clk. Timers use
    -- unsteered cycles; delay/offset limits use signed Q16 ns, gains Q2.30,
@@ -455,24 +432,21 @@ package PtpPkg is
    -- their numerical qualification are recorded in
    -- docs/plans/ethernet-ptp/autonomous-endpoint.md (repository-relative).
    constant PTP_SERVO_CONFIG_INIT_C : PtpServoConfigType := (
-      allowStep       => '1',                 -- Permit epoch acquisition while time is invalid.
-
+      allowStep => '1',                 -- Permit epoch acquisition while time is invalid.
       -- Raw ticks = seconds * 156250000 here. PtpServo.initialConfig recomputes
       -- these timer defaults from CLK_FREQ_G, including at 125 MHz.
       maxDelayAge     => x"000000002540BE40", -- 4 s maximum age of a path-delay estimate.
       holdoverTimeout => x"00000002540BE400", -- 64 s maximum holdover before validity expires.
       minSampleTicks  => x"00000000002540BE", -- floor(156250000 / 64): about 1/64 s.
       maxSampleTicks  => x"0000000012A05F20", -- 2 s maximum servo sample interval.
-
       -- Signed Q16 nanoseconds: integer nanoseconds multiplied by 2**16.
       delayAsymmetry  => (others => '0'),     -- No calibrated directional asymmetry correction.
       stepThreshold   => x"000000004E200000", -- 20000 ns = 20 us acquisition-step threshold.
       lockThreshold   => x"0000000000640000", -- 100 ns inner lock threshold.
       unlockThreshold => x"0000000003E80000", -- 1000 ns = 1 us outer hysteresis threshold.
-
       -- Q2.30 gains: physical gain multiplied by 2**30.
-      kp              => x"10000000",         -- 0.25 ppb/ns proportional phase-slew gain.
-      ki              => x"04000000",         -- 0.0625 ppb/(ns*s) integral frequency gain.
+      kp => x"10000000",         -- 0.25 ppb/ns proportional phase-slew gain.
+      ki => x"04000000",         -- 0.0625 ppb/(ns*s) integral frequency gain.
       -- Whole-ppb clamps; the total budget is frequency plus phase slew.
       maxFrequencyPpb => x"000186A0",         -- 100000 ppb = 100 ppm frequency correction.
       maxSlewPpb      => x"0000C350",         -- 50000 ppb = 50 ppm phase slew.
@@ -501,7 +475,6 @@ package PtpPkg is
    constant PTP_SERVO_LOCKED_C    : slv(2 downto 0) := "011";
    constant PTP_SERVO_HOLDOVER_C  : slv(2 downto 0) := "100";
    constant PTP_SERVO_FAULT_C     : slv(2 downto 0) := "101";
-
    -- Live servo diagnostics in clk, without a handshake. These fields report
    -- the same pre-edge state exposed by the local register snapshots. Delay
    -- and offset use signed Q16 nanoseconds; ratePpb is signed Q16 ppb.
@@ -586,7 +559,6 @@ package PtpPkg is
       sequenceId => (others => '0'));
 
    type PtpSyncSampleArray is array (natural range <>) of PtpSyncSampleType;
-
    type PtpDelaySampleType is record
       capture       : PtpRxCaptureType;
       remoteTime    : slv(79 downto 0);
@@ -684,7 +656,6 @@ package PtpPkg is
    function ptpPortIdentity (
       mac        : slv(47 downto 0);
       portNumber : slv(15 downto 0)) return slv;
-
    function ptpTimeQ16 (timestamp : slv(95 downto 0)) return signed;
    function ptpWireTimeQ16 (timestamp : slv(79 downto 0)) return signed;
    function ptpTickPhase (capture : PtpRxCaptureType) return signed;
@@ -692,27 +663,24 @@ package PtpPkg is
       value : signed;
       bits  : natural) return signed;
    function ptpSatInc (value : slv) return slv;
-
    -- Timeout comparisons use unsigned tick differences. Restrict configured
    -- intervals to nonzero values below 2^62 so wrap/ordering stays unambiguous.
    function ptpValidTimeout (value : slv(63 downto 0)) return boolean;
-
    -- Fixed 744-bit representation used by flattened verification interfaces.
    -- Capture arithmetic errors are rejected before enqueue and are not packed.
    function toSlv (message : PtpRxMessageType) return slv;
-
    -- Translate a physical word sample to its first destination-MAC byte.
    -- lane is that byte's position (0..7), not the preceding XGMII /S/ lane.
    -- increment is the active unsigned Q32 ns/cycle PHC addend; ticks names
    -- the sampled cycle. GMII supplies lane zero. ingressLatency is signed
    -- Q16 ns and must be an elaboration-time value at the current call sites.
    function ptpRxCapture (
-      phcTime                 : PtpTimeType;
-      increment               : slv(63 downto 0);
-      lane                    : natural;
-      ticks                   : slv(63 downto 0);
-      generation              : slv(31 downto 0);
-      timeValid               : sl;
+      phcTime    : PtpTimeType;
+      increment  : slv(63 downto 0);
+      lane       : natural;
+      ticks      : slv(63 downto 0);
+      generation : slv(31 downto 0);
+      timeValid  : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType;
 
 end package PtpPkg;
@@ -792,27 +760,32 @@ package body PtpPkg is
    begin
       resultValue := resize(value, value'length+1);
       magnitude   := unsigned(abs(resultValue));
+
       if bits /= 0 then
          magnitude := shift_right(magnitude + shift_left(to_unsigned(1, magnitude'length), bits-1), bits);
       end if;
+
       resultValue := signed(magnitude);
+
       if value(value'high) = '1' then
          resultValue := -resultValue;
       end if;
+
       return resize(resultValue, value'length);
    end function;
 
    function ptpSatInc (value : slv) return slv is
    begin
+
       if unsigned(value) = (value'range => '1') then
          return value;
       end if;
+
       return slv(unsigned(value)+1);
    end function;
 
    function ptpNominalIncrement (frequency : positive) return slv is
       constant NUMERATOR_C : unsigned(63 downto 0) := shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 64), PTP_PHC_FRAC_BITS_C);
-
    begin
       -- Constant elaboration arithmetic, rounded to nearest Q32 ns/cycle.
       return slv((NUMERATOR_C + to_unsigned(frequency/2, 64))/to_unsigned(frequency, 64));
@@ -862,12 +835,12 @@ package body PtpPkg is
    end function;
 
    function ptpRxCapture (
-      phcTime                 : PtpTimeType;
-      increment               : slv(63 downto 0);
-      lane                    : natural;
-      ticks                   : slv(63 downto 0);
-      generation              : slv(31 downto 0);
-      timeValid               : sl;
+      phcTime    : PtpTimeType;
+      increment  : slv(63 downto 0);
+      lane       : natural;
+      ticks      : slv(63 downto 0);
+      generation : slv(31 downto 0);
+      timeValid  : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType is
       -- Split the elaboration-time latency into whole seconds and a signed
       -- remainder smaller than one second. VHDL rem preserves the dividend's
@@ -878,11 +851,10 @@ package body PtpPkg is
       constant SECOND_Q32_C  : signed(66 downto 0) := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
       constant LAT_SECONDS_C : signed(63 downto 0) := signed(ingressLatency) / SECOND_Q16_C;
       constant LAT_REMAIN_C  : signed(63 downto 0) := signed(ingressLatency) rem SECOND_Q16_C;
-
-      variable retVar   : PtpRxCaptureType := PTP_RX_CAPTURE_INIT_C;
-      variable ns       : signed(66 downto 0);
-      variable sec      : signed(64 downto 0);
-      variable subCycle : unsigned(66 downto 0);
+      variable retVar        : PtpRxCaptureType := PTP_RX_CAPTURE_INIT_C;
+      variable ns            : signed(66 downto 0);
+      variable sec           : signed(64 downto 0);
+      variable subCycle      : unsigned(66 downto 0);
    begin
       -- Scale the byte phase with the active PHC rate, rather than assuming a
       -- fixed 0.8 ns XGMII byte. Widen before arithmetic and retain Q32 precision
@@ -900,11 +872,13 @@ package body PtpPkg is
          ns  := ns - SECOND_Q32_C;
          sec := sec + 1;
       end if;
+
       -- Reject an out-of-range epoch or failed normalization. Truncating the
       -- seconds field alone would wrap a negative capture into a distant future.
       if sec < 0 or shift_right(sec, 48) /= 0 or ns < 0 or ns >= SECOND_Q32_C then
          retVar.error := '1';
       end if;
+
       -- Discard the low sixteen fractional bits only after normalization.
       -- Raw tick provenance is intentionally unaffected by ingress latency.
       retVar.timestamp  := slv(sec(47 downto 0)) & slv(ns(63 downto PTP_TIME_TO_PHC_SHIFT_C));

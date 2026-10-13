@@ -27,73 +27,74 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
 
 entity PtpServoWrapper is
    generic (
       CLK_FREQ_G : positive := 125000000);
-
    port (
-      clk                  : in  sl;
-      rst                  : in  sl;
-      regRst               : in  sl               := '0';
-      restart              : in  sl               := '0';
-      generation           : in  slv(31 downto 0) := (others => '0');
-      associationTimeout   : in  slv(63 downto 0) := x"3FFFFFFFFFFFFFFF";
-      snapshotCapture      : in  sl               := '0';
-      snapshotSequence     : in  slv(31 downto 0) := (others => '0');
-      axil_awaddr          : in  slv(31 downto 0);
-      axil_awvalid         : in  sl;
-      axil_awready         : out sl;
-      axil_wdata           : in  slv(31 downto 0);
-      axil_wstrb           : in  slv(3 downto 0);
-      axil_wvalid          : in  sl;
-      axil_wready          : out sl;
-      axil_bresp           : out slv(1 downto 0);
-      axil_bvalid          : out sl;
-      axil_bready          : in  sl;
-      axil_araddr          : in  slv(31 downto 0);
-      axil_arvalid         : in  sl;
-      axil_arready         : out sl;
-      axil_rdata           : out slv(31 downto 0);
-      axil_rresp           : out slv(1 downto 0);
-      axil_rvalid          : out sl;
-      axil_rready          : in  sl;
-      prepareConfig        : in  sl;
-      applyConfig          : in  sl;
-      configValid          : out sl;
-      cancel               : in  sl;
-      ticks                : in  slv(63 downto 0);
-      sampleTicks          : in  slv(63 downto 0);
-      isDelay              : in  sl;
-      forwardValue         : in  slv(127 downto 0);
-      delayValue           : in  slv(127 downto 0);
-      maxPathDelay         : in  slv(63 downto 0) := x"0000000F42400000";
-      ratio                : in  slv(63 downto 0);
-      inputValid           : in  sl;
-      inputReady           : out sl;
-      commandValid         : out sl;
-      commandReady         : in  sl;
-      commandAck           : in  sl;
-      commandError         : in  sl;
-      commandKind          : out slv(2 downto 0);
-      commandRate          : out slv(63 downto 0);
-      cancelCommand        : out sl;
-      expireTime           : out sl;
-      servoState           : out slv(2 downto 0);
-      filteredDelay        : out slv(127 downto 0);
-      offsetValue          : out slv(127 downto 0);
-      ratePpb              : out slv(63 downto 0);
-      filterCount          : out slv(2 downto 0);
-      rejectedCount        : out slv(31 downto 0));
+      clk                : in  sl;
+      rst                : in  sl;
+      regRst             : in  sl               := '0';
+      restart            : in  sl               := '0';
+      generation         : in  slv(31 downto 0) := (others => '0');
+      associationTimeout : in  slv(63 downto 0) := x"3FFFFFFFFFFFFFFF";
+      snapshotPublish    : in sl                := '0';
+      snapshotPrepared   : out sl;
+      snapshotCapture    : in  sl               := '0';
+      snapshotSequence   : in  slv(31 downto 0) := (others => '0');
+      axil_awaddr        : in  slv(31 downto 0);
+      axil_awvalid       : in  sl;
+      axil_awready       : out sl;
+      axil_wdata         : in  slv(31 downto 0);
+      axil_wstrb         : in  slv(3 downto 0);
+      axil_wvalid        : in  sl;
+      axil_wready        : out sl;
+      axil_bresp         : out slv(1 downto 0);
+      axil_bvalid        : out sl;
+      axil_bready        : in  sl;
+      axil_araddr        : in  slv(31 downto 0);
+      axil_arvalid       : in  sl;
+      axil_arready       : out sl;
+      axil_rdata         : out slv(31 downto 0);
+      axil_rresp         : out slv(1 downto 0);
+      axil_rvalid        : out sl;
+      axil_rready        : in  sl;
+      prepareConfig      : in  sl;
+      applyConfig        : in  sl;
+      configValid        : out sl;
+      configPrepared     : out sl;
+      cancel             : in  sl;
+      ticks              : in  slv(63 downto 0);
+      sampleTicks        : in  slv(63 downto 0);
+      isDelay            : in  sl;
+      forwardValue       : in  slv(127 downto 0);
+      delayValue         : in  slv(127 downto 0);
+      maxPathDelay       : in  slv(63 downto 0) := x"0000000F42400000";
+      ratio              : in  slv(63 downto 0);
+      inputValid         : in  sl;
+      inputReady         : out sl;
+      commandValid       : out sl;
+      commandReady       : in  sl;
+      commandAck         : in  sl;
+      commandError       : in  sl;
+      commandKind        : out slv(2 downto 0);
+      commandRate        : out slv(63 downto 0);
+      cancelCommand      : out sl;
+      expireTime         : out sl;
+      servoState         : out slv(2 downto 0);
+      filteredDelay      : out slv(127 downto 0);
+      offsetValue        : out slv(127 downto 0);
+      ratePpb            : out slv(63 downto 0);
+      filterCount        : out slv(2 downto 0);
+      rejectedCount      : out slv(31 downto 0));
 end entity PtpServoWrapper;
 
 architecture rtl of PtpServoWrapper is
@@ -103,13 +104,24 @@ architecture rtl of PtpServoWrapper is
    signal axiReadSlave   : AxiLiteReadSlaveType;
    signal axiWriteMaster : AxiLiteWriteMasterType;
    signal axiWriteSlave  : AxiLiteWriteSlaveType;
-
    signal sharedConfig : PtpSharedConfigType := PTP_SHARED_CONFIG_INIT_C;
    signal status       : PtpPhcStatusType    := PTP_PHC_STATUS_INIT_C;
    signal measurement  : PtpMeasurementType  := PTP_MEASUREMENT_INIT_C;
    signal command      : PtpPhcCommandType;
+   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
+   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
 
 begin
+
+   U_Compute : entity surf.PtpCompute
+      generic map (
+         RST_POLARITY_G => '1',
+         RST_ASYNC_G    => false)
+      port map (
+         clk     => clk,
+         rst     => rst,
+         masters => computeMasters,
+         slaves  => computeSlaves);
 
    resetN                          <= not rst;
    sharedConfig.syncTimeout        <= x"3FFFFFFFFFFFFFFF";
@@ -167,23 +179,28 @@ begin
       generic map (
          CLK_FREQ_G => CLK_FREQ_G)
       port map (
-         clk                        => clk,             -- [in]
-         rst                        => rst,             -- [in]
-         regRst                     => regRst,          -- [in]
-         restart                    => restart,         -- [in]
-         axiReadMaster              => axiReadMaster,   -- [in]
-         axiReadSlave               => axiReadSlave,    -- [out]
-         axiWriteMaster             => axiWriteMaster,  -- [in]
-         axiWriteSlave              => axiWriteSlave,   -- [out]
+         computeMaster  => computeMasters(PTP_COMPUTE_SERVO_C),
+         computeSlave   => computeSlaves(PTP_COMPUTE_SERVO_C),
+         clk            => clk,             -- [in]
+         rst            => rst,             -- [in]
+         regRst         => regRst,          -- [in]
+         restart        => restart,         -- [in]
+         axiReadMaster  => axiReadMaster,   -- [in]
+         axiReadSlave   => axiReadSlave,    -- [out]
+         axiWriteMaster => axiWriteMaster,  -- [in]
+         axiWriteSlave  => axiWriteSlave,   -- [out]
          configControl.prepare      => prepareConfig,   -- [in]
          configControl.apply        => applyConfig,     -- [in]
          configControl.busy         => '0',             -- [in]
-         configValid                => configValid,     -- [out]
+         configPrepared   => configPrepared,
+         configValid      => configValid,     -- [out]
+         snapshotPrepared => snapshotPrepared,
+         snapshotControl.publish => snapshotPublish,
          snapshotControl.capture    => snapshotCapture, -- [in]
          snapshotControl.sequenceId => snapshotSequence, -- [in]
-         servoEnable                => '1',             -- [in]
-         sharedConfig               => sharedConfig,    -- [in]
-         phcStatus                  => status,          -- [in]
+         servoEnable  => '1',             -- [in]
+         sharedConfig => sharedConfig,    -- [in]
+         phcStatus    => status,          -- [in]
          measurementMaster.data     => measurement,     -- [in]
          measurementMaster.valid    => inputValid,      -- [in]
          measurementMaster.abort    => cancel,          -- [in]
@@ -195,7 +212,7 @@ begin
          commandSlave.ready         => commandReady,    -- [in]
          commandSlave.ack           => commandAck,      -- [in]
          commandSlave.error         => commandError,    -- [in]
-         expireTime                 => expireTime,      -- [out]
+         expireTime => expireTime,      -- [out]
          status.state               => servoState,      -- [out]
          status.filteredDelay       => filteredDelay,   -- [out]
          status.offsetValue         => offsetValue,     -- [out]

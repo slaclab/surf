@@ -26,14 +26,13 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
 
 entity PtpPhcWrapper is
    generic (
@@ -43,70 +42,73 @@ entity PtpPhcWrapper is
       CLK_FREQ_G     : positive := 156250000);
    port (
       -- PHC clock domain: management, command and live time interfaces.
-      clk                  : in  sl;
-      rst                  : in  sl;
-      axil_awaddr          : in  slv(31 downto 0);
-      axil_awvalid         : in  sl;
-      axil_awready         : out sl;
-      axil_wdata           : in  slv(31 downto 0);
-      axil_wstrb           : in  slv(3 downto 0);
-      axil_wvalid          : in  sl;
-      axil_wready          : out sl;
-      axil_bresp           : out slv(1 downto 0);
-      axil_bvalid          : out sl;
-      axil_bready          : in  sl;
-      axil_araddr          : in  slv(31 downto 0);
-      axil_arvalid         : in  sl;
-      axil_arready         : out sl;
-      axil_rdata           : out slv(31 downto 0);
-      axil_rresp           : out slv(1 downto 0);
-      axil_rvalid          : out sl;
-      axil_rready          : in  sl;
-      prepareConfig        : in  sl;
-      applyConfig          : in  sl;
-      configValid          : out sl;
-      commandValid         : in  sl;
-      commandCancel        : in  sl := '0';
-      commandStale         : in  sl := '0';
-      clearValid           : in  sl := '0';
-      commandReady         : out sl;
-      commandKind          : in  slv(2 downto 0);
-      commandGeneration    : in  slv(31 downto 0);
-      commandSeconds       : in  slv(47 downto 0);
-      commandNanoseconds   : in  slv(31 downto 0);
-      commandFraction      : in  slv(31 downto 0);
-      phaseSeconds         : in  slv(63 downto 0);
-      phaseFraction        : in  slv(63 downto 0);
-      commandRate          : in  slv(63 downto 0);
-      commandValue         : in  sl;
-      timeSeconds          : out slv(47 downto 0);
-      timeNanoseconds      : out slv(31 downto 0);
-      timeFraction         : out slv(31 downto 0);
-      timeGeneration       : out slv(31 downto 0);
-      timeTicks            : out slv(63 downto 0);
-      timeIncrement        : out slv(63 downto 0);
-      timeRate             : out slv(63 downto 0);
-      timeValid            : out sl;
-      commandAck           : out sl;
-      commandError         : out sl;
-      discontinuity        : out sl;
-      fault                : out sl;
-      pps                  : out sl;
-      captureAbort         : out sl;
-
+      clk                : in  sl;
+      rst                : in  sl;
+      axil_awaddr        : in  slv(31 downto 0);
+      axil_awvalid       : in  sl;
+      axil_awready       : out sl;
+      axil_wdata         : in  slv(31 downto 0);
+      axil_wstrb         : in  slv(3 downto 0);
+      axil_wvalid        : in  sl;
+      axil_wready        : out sl;
+      axil_bresp         : out slv(1 downto 0);
+      axil_bvalid        : out sl;
+      axil_bready        : in  sl;
+      axil_araddr        : in  slv(31 downto 0);
+      axil_arvalid       : in  sl;
+      axil_arready       : out sl;
+      axil_rdata         : out slv(31 downto 0);
+      axil_rresp         : out slv(1 downto 0);
+      axil_rvalid        : out sl;
+      axil_rready        : in  sl;
+      prepareConfig      : in  sl;
+      applyConfig        : in  sl;
+      configValid        : out sl;
+      snapshotCapture    : in  sl               := '0';
+      snapshotPublish    : in  sl               := '0';
+      snapshotSequence   : in  slv(31 downto 0) := (others => '0');
+      snapshotPrepared   : out sl;
+      commandValid       : in  sl;
+      commandCancel      : in  sl               := '0';
+      commandStale       : in  sl               := '0';
+      clearValid         : in  sl               := '0';
+      commandReady       : out sl;
+      commandKind        : in  slv(2 downto 0);
+      commandGeneration  : in  slv(31 downto 0);
+      commandSeconds     : in  slv(47 downto 0);
+      commandNanoseconds : in  slv(31 downto 0);
+      commandFraction    : in  slv(31 downto 0);
+      phaseSeconds       : in  slv(63 downto 0);
+      phaseFraction      : in  slv(63 downto 0);
+      commandRate        : in  slv(63 downto 0);
+      commandValue       : in  sl;
+      timeSeconds        : out slv(47 downto 0);
+      timeNanoseconds    : out slv(31 downto 0);
+      timeFraction       : out slv(31 downto 0);
+      timeGeneration     : out slv(31 downto 0);
+      timeTicks          : out slv(63 downto 0);
+      timeIncrement      : out slv(63 downto 0);
+      timeRate           : out slv(63 downto 0);
+      timeValid          : out sl;
+      commandAck         : out sl;
+      commandError       : out sl;
+      discontinuity      : out sl;
+      fault              : out sl;
+      pps                : out sl;
+      captureAbort       : out sl;
       -- Independent reader clock domain: coherent snapshot mailbox.
-      readClk              : in  sl;
-      readRst              : in  sl;
-      readRequest          : in  sl;
-      readReady            : out sl;
-      readValid            : out sl;
-      readSeconds          : out slv(47 downto 0);
-      readNanoseconds      : out slv(31 downto 0);
-      readFraction         : out slv(31 downto 0);
-      readGeneration       : out slv(31 downto 0);
-      readTicks            : out slv(63 downto 0);
-      readTimeValid        : out sl;
-      readSequence         : out slv(31 downto 0));
+      readClk         : in  sl;
+      readRst         : in  sl;
+      readRequest     : in  sl;
+      readReady       : out sl;
+      readValid       : out sl;
+      readSeconds     : out slv(47 downto 0);
+      readNanoseconds : out slv(31 downto 0);
+      readFraction    : out slv(31 downto 0);
+      readGeneration  : out slv(31 downto 0);
+      readTicks       : out slv(63 downto 0);
+      readTimeValid   : out sl;
+      readSequence    : out slv(31 downto 0));
 end entity PtpPhcWrapper;
 
 architecture rtl of PtpPhcWrapper is
@@ -116,15 +118,27 @@ architecture rtl of PtpPhcWrapper is
    signal axiReadSlave   : AxiLiteReadSlaveType;
    signal axiWriteMaster : AxiLiteWriteMasterType;
    signal axiWriteSlave  : AxiLiteWriteSlaveType;
-
    signal command      : PtpPhcCommandType;
    signal status       : PtpPhcStatusType;
    signal timeValue    : PtpTimeType;
    signal snapshot     : PtpTimeType;
    signal abortCapture : sl;
    signal resetHigh    : sl;
+   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
+   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
 
 begin
+
+   U_Compute : entity surf.PtpCompute
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
+      port map (
+         clk     => clk,
+         rst     => rst,
+         masters => computeMasters,
+         slaves  => computeSlaves);
 
    command.kind                <= commandKind;
    command.generation          <= commandGeneration;
@@ -135,8 +149,8 @@ begin
    command.phaseFraction       <= phaseFraction;
    command.rate                <= commandRate;
    command.value               <= commandValue;
-
-   resetHigh       <= '1' when rst = RST_POLARITY_G else '0';
+   resetHigh       <= '1' when rst = RST_POLARITY_G else
+   '0';
    resetN          <= not resetHigh;
    timeSeconds     <= timeValue.seconds;
    timeNanoseconds <= timeValue.nanoseconds;
@@ -195,18 +209,24 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk                   => clk,             -- [in]
-         rst                   => rst,             -- [in]
-         axiReadMaster         => axiReadMaster,   -- [in]
-         axiReadSlave          => axiReadSlave,    -- [out]
-         axiWriteMaster        => axiWriteMaster,  -- [in]
-         axiWriteSlave         => axiWriteSlave,   -- [out]
+         computeMaster  => computeMasters(PTP_COMPUTE_PHC_C),
+         computeSlave   => computeSlaves(PTP_COMPUTE_PHC_C),
+         clk            => clk,             -- [in]
+         rst            => rst,             -- [in]
+         axiReadMaster  => axiReadMaster,   -- [in]
+         axiReadSlave   => axiReadSlave,    -- [out]
+         axiWriteMaster => axiWriteMaster,  -- [in]
+         axiWriteSlave  => axiWriteSlave,   -- [out]
          configControl.prepare => prepareConfig,   -- [in]
          configControl.apply   => applyConfig,     -- [in]
          configControl.busy    => '0',             -- [in]
-         configValid           => configValid,     -- [out]
-         servoEnable           => '1',             -- [in]
-         clearValid            => clearValid,      -- [in]
+         configValid => configValid,     -- [out]
+         snapshotControl.capture    => snapshotCapture,
+         snapshotControl.publish    => snapshotPublish,
+         snapshotControl.sequenceId => snapshotSequence,
+         snapshotPrepared           => snapshotPrepared,
+         servoEnable => '1',             -- [in]
+         clearValid  => clearValid,      -- [in]
          commandMaster.data    => command,         -- [in]
          commandMaster.valid   => commandValid,    -- [in]
          commandMaster.cancel  => commandCancel,   -- [in]
@@ -214,10 +234,10 @@ begin
          commandSlave.ready    => commandReady,    -- [out]
          commandSlave.ack      => commandAck,      -- [out]
          commandSlave.error    => commandError,    -- [out]
-         phcTime               => timeValue,       -- [out]
-         status                => status,          -- [out]
-         pps                   => pps,             -- [out]
-         captureAbort          => abortCapture);   -- [out]
+         phcTime      => timeValue,       -- [out]
+         status       => status,          -- [out]
+         pps          => pps,             -- [out]
+         captureAbort => abortCapture);   -- [out]
 
    U_Read : entity surf.PtpPhcRead
       generic map (

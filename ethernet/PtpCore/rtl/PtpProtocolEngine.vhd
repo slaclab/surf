@@ -58,35 +58,34 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
+use surf.PtpRegisterPkg.all;
 
 entity PtpProtocolEngine is
    generic (
-      TPD_G                 : time             := 1 ns;
-      RST_POLARITY_G        : sl               := '1';
-      RST_ASYNC_G           : boolean          := false;
-      CLK_FREQ_G            : positive         := 156250000;
-      PACKET_LIFETIME_G     : positive         := 156250000;
-      INGRESS_LATENCY_G     : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G      : slv(63 downto 0) := (others => '0');
+      TPD_G             : time             := 1 ns;
+      RST_POLARITY_G    : sl               := '1';
+      RST_ASYNC_G       : boolean          := false;
+      CLK_FREQ_G        : positive         := 156250000;
+      PACKET_LIFETIME_G : positive         := 156250000;
+      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
+      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       -- Supported inferred RAM implementations: "distributed" or "block".
       HISTORY_MEMORY_TYPE_G : string           := "distributed";
       PAIR_MEMORY_TYPE_G    : string           := "distributed");
    port (
       -- Shared endpoint clock domain.
-      clk                 : in  sl;
-      rst                 : in  sl;
-
+      clk : in  sl;
+      rst : in  sl;
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
       axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -95,44 +94,43 @@ entity PtpProtocolEngine is
       axiWriteSlave    : out AxiLiteWriteSlaveType;
       configControl    : in  PtpConfigControlType   := PTP_CONFIG_CONTROL_INIT_C;
       snapshotControl  : in  PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
+      snapshotPrepared : out sl;
       configValid      : out sl;
+      configPrepared   : out sl;
       enable           : in  sl                     := '0';
       rxCounters       : in  PtpRxCountersType      := PTP_RX_COUNTERS_INIT_C;
       sharedConfig     : out PtpSharedConfigType;
-
       -- Protocol/clock interface.
-      restart             : in  sl;
-      linkReady           : in  sl;
-      macResetDone        : in  sl;
-      localMac            : in  slv(47 downto 0);
-      phcStatus           : in  PtpPhcStatusType;
-      captureAbort        : in  sl;
-      rxMessage           : in  PtpRxMessageType;
-      rxValid             : in  sl;
-      rxReady             : out sl;
-      rxQueueOverflow     : in  sl := '0';
-      rxAbort             : in  sl;
+      restart         : in  sl;
+      linkReady       : in  sl;
+      macResetDone    : in  sl;
+      localMac        : in  slv(47 downto 0);
+      phcStatus       : in  PtpPhcStatusType;
+      captureAbort    : in  sl;
+      rxMessage       : in  PtpRxMessageType;
+      rxValid         : in  sl;
+      rxReady         : out sl;
+      rxQueueOverflow : in  sl := '0';
+      rxAbort         : in  sl;
       -- Physical completion producer holds its record through txMessageReady.
-      txMessage           : in  PtpRxMessageType;
-      txValid             : in  sl;
-      txMessageReady      : out sl;
-      txAbort             : in  sl;
-      txMaster            : out AxiStreamMasterType;
-      txSlave             : in  AxiStreamSlaveType;
-      measurementMaster   : out PtpMeasurementMasterType;
-      measurementSlave    : in  PtpMeasurementSlaveType;
-      lifecycle           : out PtpPortLifecycleType;
-      status              : out PtpPortStatusType);
+      txMessage         : in  PtpRxMessageType;
+      txValid           : in  sl;
+      txMessageReady    : out sl;
+      txAbort           : in  sl;
+      txMaster          : out AxiStreamMasterType;
+      txSlave           : in  AxiStreamSlaveType;
+      measurementMaster : out PtpMeasurementMasterType;
+      measurementSlave  : in  PtpMeasurementSlaveType;
+      lifecycle         : out PtpPortLifecycleType;
+      status            : out PtpPortStatusType;
+      computeMasters    : out PtpComputeMasterArray(0 to 1);
+      computeSlaves     : in PtpComputeSlaveArray(0 to 1));
 end entity PtpProtocolEngine;
 
 architecture rtl of PtpProtocolEngine is
 
    constant PAIR_DEPTH_C    : positive := 4;
    constant HISTORY_DEPTH_C : positive := 4;
-
-   -- Existing implementation admission floor, in raw cycles. Its original
-   -- latency budget is not documented; retain it pending timing qualification.
-   constant MIN_ASSOCIATION_TICKS_C : positive := 2048;
    -- Raw oscillator qualification envelope, independent of servo actuation.
    constant MAX_OSCILLATOR_PPB_C  : positive := 200000; -- 200 ppm.
    constant RATIO_QUALIFY_COUNT_C : positive := 2;
@@ -146,203 +144,314 @@ architecture rtl of PtpProtocolEngine is
    constant RECEIPT_INTERVALS_C   : positive         := 3;
    constant ANNOUNCE_CAP_FACTOR_C : positive         := 2;
    constant LFSR_SEED_C           : slv(15 downto 0) := PTP_PORT_CONFIG_INIT_C.lfsrSeed;
-
    -- Untagged Delay_Req, excluding MAC-supplied padding and FCS.
    constant TX_FRAME_BYTES_C : positive                        := PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C;
    constant TX_BEAT_BYTES_C  : positive                        := PTP_RX_AXIS_CONFIG_C.TDATA_BYTES_C;
    constant TX_LAST_BEAT_C   : natural                         := (TX_FRAME_BYTES_C-1)/TX_BEAT_BYTES_C;
    constant TX_LAST_BYTES_C  : positive                        := TX_FRAME_BYTES_C-TX_LAST_BEAT_C*TX_BEAT_BYTES_C;
    constant TX_LAST_KEEP_C   : slv(TX_BEAT_BYTES_C-1 downto 0) := toSlv(2**TX_LAST_BYTES_C-1, TX_BEAT_BYTES_C);
-
    function initialConfig return PtpPortConfigType is
       variable v      : PtpPortConfigType     := PTP_PORT_CONFIG_INIT_C;
       constant TICK_C : unsigned(63 downto 0) := to_unsigned(CLK_FREQ_G, 64);
-
    begin
       v.delayInterval      := slv(TICK_C);               -- 1 s before jitter.
       v.syncTimeout        := slv(resize(TICK_C*3, 64));  -- 3 s.
-      v.associationTimeout := slv(resize(TICK_C*2, 64));  -- 2 s.
+      v.associationTimeout := slv(resize(TICK_C*2, 64));  -- 2 s at supported PHY clocks.
+
+      if unsigned(v.associationTimeout) < PTP_MIN_ASSOCIATION_TICKS_C then
+         v.associationTimeout := toSlv(PTP_MIN_ASSOCIATION_TICKS_C,64);
+      end if;
+
       v.maxExchange        := slv(resize(TICK_C*2, 64));  -- 2 s.
       v.minRateSpan        := slv(TICK_C/2);             -- 0.5 s, rounded down to ticks.
       v.maxRateAge         := slv(resize(TICK_C*4, 64));  -- 4 s.
       return v;
    end function;
 
-   -- Validate the same pre-edge shadows captured by prepare.
-   function validConfig (cfg : PtpPortConfigType) return boolean is
+   -- Identity, admission/expiry and request scheduling must react on any
+   -- clock, so only those controls are cached. The rate-span operand is fetched
+   -- from the active word bank during its serialized upload.
+   type ControlCacheType is record
+      identityOverride   : sl;
+      domainNumber       : slv(7 downto 0);
+      minorVersion       : slv(3 downto 0);
+      localIdentity      : slv(79 downto 0);
+      sourceIdentity     : slv(79 downto 0);
+      delayInterval      : slv(63 downto 0);
+      syncTimeout        : slv(63 downto 0);
+      associationTimeout : slv(63 downto 0);
+      maxExchange        : slv(63 downto 0);
+      maxRateAge         : slv(63 downto 0);
+      maxPathDelay       : slv(63 downto 0);
+      lfsrSeed           : slv(15 downto 0);
+   end record;
+
+   function initialCache return ControlCacheType is
+      constant CFG_C : PtpPortConfigType := initialConfig;
+      variable cache : ControlCacheType;
    begin
-      -- Identity and protocol selection.
-      if unsigned(cfg.minorVersion) > unsigned(PTP_MINOR_VERSION_MAX_C) then
-         return false;
-      end if;
-      if unsigned(cfg.localIdentity(15 downto 0)) = 0 or
-         unsigned(cfg.sourceIdentity(15 downto 0)) = 0 then
-         return false;
-      end if;
+      cache.identityOverride := CFG_C.identityOverride;
+      cache.domainNumber := CFG_C.domainNumber;
+      cache.minorVersion := CFG_C.minorVersion;
+      cache.localIdentity := CFG_C.localIdentity;
+      cache.sourceIdentity := CFG_C.sourceIdentity;
+      cache.delayInterval := CFG_C.delayInterval;
+      cache.syncTimeout := CFG_C.syncTimeout;
+      cache.associationTimeout := CFG_C.associationTimeout;
+      cache.maxExchange := CFG_C.maxExchange;
+      cache.maxRateAge := CFG_C.maxRateAge;
+      cache.maxPathDelay := CFG_C.maxPathDelay;
+      cache.lfsrSeed := CFG_C.lfsrSeed;
+      return cache;
+   end function;
 
-      -- Physical and association limits.
-      if signed(cfg.maxPathDelay) <= 0 then
-         return false;
-      end if;
-      if unsigned(cfg.associationTimeout) < MIN_ASSOCIATION_TICKS_C then
-         return false;
-      end if;
-      if unsigned(cfg.maxRateAge) < unsigned(cfg.minRateSpan) then
-         return false;
-      end if;
+   function portConfig(cache : ControlCacheType) return PtpPortConfigType is
+      variable cfg : PtpPortConfigType := PTP_PORT_CONFIG_INIT_C;
+   begin
+      cfg.identityOverride := cache.identityOverride;
+      cfg.domainNumber := cache.domainNumber;
+      cfg.minorVersion := cache.minorVersion;
+      cfg.localIdentity := cache.localIdentity;
+      cfg.sourceIdentity := cache.sourceIdentity;
+      cfg.delayInterval := cache.delayInterval;
+      cfg.syncTimeout := cache.syncTimeout;
+      cfg.associationTimeout := cache.associationTimeout;
+      cfg.maxExchange := cache.maxExchange;
+      cfg.maxRateAge := cache.maxRateAge;
+      cfg.maxPathDelay := cache.maxPathDelay;
+      cfg.lfsrSeed := cache.lfsrSeed;
+      return cfg;
+   end function;
 
-      -- Every timeout must fit the supported unsigned-difference range.
-      if not ptpValidTimeout(cfg.delayInterval) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.syncTimeout) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.associationTimeout) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.maxExchange) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.minRateSpan) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.maxRateAge) then
-         return false;
-      end if;
-      return true;
+   function initialWords return Slv32Array is
+      constant CFG_C : PtpPortConfigType := initialConfig;
+      variable words : Slv32Array(0 to 47) := (others => (others => '0'));
+      procedure put(constant index : natural;
+      constant value : slv) is
+      begin
+         for i in 0 to (value'length+31)/32-1 loop
+            words(index+i) := slv(resize(shift_right(unsigned(value),32*i),32));
+         end loop;
+      end procedure;
+
+   begin
+      words(1)(4) := CFG_C.identityOverride;
+      words(2)(7 downto 0) := CFG_C.domainNumber;
+      words(2)(11 downto 8) := CFG_C.minorVersion;
+      put(4,CFG_C.localIdentity);
+      put(8,CFG_C.sourceIdentity);
+      put(32,CFG_C.delayInterval);
+      put(34,CFG_C.syncTimeout);
+      put(36,CFG_C.associationTimeout);
+      put(38,CFG_C.maxExchange);
+      put(40,CFG_C.minRateSpan);
+      put(42,CFG_C.maxRateAge);
+      put(44,CFG_C.lfsrSeed);
+      put(46,CFG_C.maxPathDelay);
+      return words;
+   end function;
+
+   function configIndex(address : slv(11 downto 0)) return integer is
+      variable index : natural := to_integer(unsigned(address(11 downto 2)));
+   begin
+
+      case index is
+         when 1 | 2 | 4 to 6 | 8 to 10 | 32 to 44 | 46 to 47 =>
+            return index;
+         when others =>
+            return -1;
+      end case;
+
+   end function;
+
+   function configMask(index : integer;
+   strobe : slv(3 downto 0)) return slv is
+      variable mask : slv(31 downto 0) := (others => '0');
+   begin
+
+      case index is
+         when 1 =>
+
+            if strobe(0) = '1' then
+               mask(4) := '1';
+            end if;
+
+         when 2 =>
+
+            if strobe(0) = '1' then
+               mask(7 downto 0) := (others => '1');
+            end if;
+
+            if strobe(1) = '1' then
+               mask(11 downto 8) := (others => '1');
+            end if;
+
+         when 6 | 10 | 44 =>
+
+            if strobe(1 downto 0) = "11" then
+               mask(15 downto 0) := (others => '1');
+            end if;
+
+         when others =>
+
+            if strobe = x"F" then
+               mask := (others => '1');
+            end if;
+
+      end case;
+
+      return mask;
    end function;
 
    -- Q16 elapsed master ns / Q3 elapsed raw cycles -> Q48 ns/cycle.
    constant RATE_RATIO_SHIFT_C : natural               := PTP_RATIO_FRAC_BITS_C+PTP_TICK_PHASE_BITS_C-PTP_TIME_FRAC_BITS_C;
    constant NOMINAL_C          : unsigned(63 downto 0) := shift_left(unsigned(ptpNominalIncrement(CLK_FREQ_G)), PTP_PHC_TO_RATIO_SHIFT_C);
    constant RATE_MARGIN_C      : unsigned(63 downto 0) := resize((resize(NOMINAL_C, 96)*to_unsigned(MAX_OSCILLATOR_PPB_C, 32))/to_unsigned(PTP_PPB_SCALE_C, 128), 64);
-
+   -- Temporary decision flags only; payload fields stay in the pair word RAM.
    type PairType is record
-      used             : sl;
-      syncSeen         : sl;
-      twoStep          : sl;            -- Meaningful only after syncSeen.
-      followSeen       : sl;
-      complete         : sl;
-      born             : slv(63 downto 0);
-      syncCorrection   : slv(63 downto 0);
-      followCorrection : slv(63 downto 0);
-      sample           : PtpSyncSampleType;
+      used       : sl;
+      syncSeen   : sl;
+      twoStep    : sl;                  -- Meaningful only after syncSeen.
+      followSeen : sl;
+      complete   : sl;
+      sequenceId : slv(15 downto 0);
    end record;
 
    constant PAIR_INIT_C : PairType := (
-      used             => '0',
-      syncSeen         => '0',
-      twoStep          => '0',
-      followSeen       => '0',
-      complete         => '0',
-      born             => (others => '0'),
-      syncCorrection   => (others => '0'),
-      followCorrection => (others => '0'),
-      sample           => PTP_SYNC_SAMPLE_INIT_C);
+      used       => '0',
+      syncSeen   => '0',
+      twoStep    => '0',
+      followSeen => '0',
+      complete   => '0',
+      sequenceId => (others => '0'));
 
-   -- Combined correction, sequence, remote time, then the complete capture.
-   constant SYNC_WIDTH_C       : positive := 128+16+80+96+64+PTP_TICK_PHASE_BITS_C+32+64+2;
-   constant PAIR_WIDTH_C       : positive := 3*64+SYNC_WIDTH_C-128;
-   constant TABLE_ADDR_WIDTH_C : positive := 2;
-
-   subtype SyncPayloadType is slv(SYNC_WIDTH_C-1 downto 0);
-   subtype PairPayloadType is slv(PAIR_WIDTH_C-1 downto 0);
-
-   function packSync (sample : PtpSyncSampleType) return SyncPayloadType is
+   constant PAIR_WORDS_C : positive := 20;
+   constant PAIR_ADDR_WIDTH_C : positive := log2(PAIR_DEPTH_C*PAIR_WORDS_C);
+   constant HISTORY_WORDS_C : positive := 25;
+   constant HISTORY_ADDR_WIDTH_C : positive := log2(HISTORY_DEPTH_C*HISTORY_WORDS_C);
+   -- The first four words are the nearest-sample search key. Only the chosen
+   -- sample is read into the stable E2E publication record after the scan.
+   function syncWord(sample : PtpSyncSampleType;
+   index : natural) return slv is
+      variable word : slv(31 downto 0) := (others => '0');
    begin
-      return sample.correction & sample.sequenceId & sample.remoteTime &
-         sample.capture.timestamp & sample.capture.ticks & sample.capture.tickPhase &
-         sample.capture.generation & sample.capture.increment & sample.capture.timeValid & sample.capture.error;
+
+      case index is
+         when 0 to 1 =>
+            word := sample.capture.ticks(32*index+31 downto 32*index);
+         when 2 =>
+            word(PTP_TICK_PHASE_BITS_C-1 downto 0) := sample.capture.tickPhase;
+            word(3) := sample.capture.timeValid;
+            word(4) := sample.capture.error;
+         when 3 =>
+            word := sample.capture.generation;
+         when 4 =>
+            word(15 downto 0) := sample.sequenceId;
+         when 5 to 7 =>
+            word := sample.capture.timestamp(32*(index-5)+31 downto 32*(index-5));
+         when 8 to 9 =>
+            word := sample.capture.increment(32*(index-8)+31 downto 32*(index-8));
+         when 10 to 11 =>
+            word := sample.remoteTime(32*(index-10)+31 downto 32*(index-10));
+         when 12 =>
+            word(15 downto 0) := sample.remoteTime(79 downto 64);
+         when 13 to 16 =>
+            word := sample.correction(32*(index-13)+31 downto 32*(index-13));
+         when others =>
+            null;
+      end case;
+
+      return word;
    end function;
 
-   function unpackSync (payload : SyncPayloadType) return PtpSyncSampleType is
-      variable sample : PtpSyncSampleType;
-      variable index  : natural := SYNC_WIDTH_C;
-
-      procedure take (variable field : out slv) is
-      begin
-         field := payload(index-1 downto index-field'length);
-         index := index-field'length;
-      end procedure;
-
+   procedure takeSyncWord(variable sample : inout PtpSyncSampleType;
+   constant index : natural;
+   constant word : slv(31 downto 0)) is
    begin
-      take(sample.correction);
-      take(sample.sequenceId);
-      take(sample.remoteTime);
-      take(sample.capture.timestamp);
-      take(sample.capture.ticks);
-      take(sample.capture.tickPhase);
-      take(sample.capture.generation);
-      take(sample.capture.increment);
-      sample.capture.timeValid := payload(1);
-      sample.capture.error     := payload(0);
-      return sample;
-   end function;
 
-   -- The combined correction exists only after completion. Pair RAM stores
-   -- the two wire corrections, omitting the otherwise constant 128-bit field.
-   function packPair (item : PairType) return PairPayloadType is
-      variable sample : SyncPayloadType;
-   begin
-      sample := packSync(item.sample);
-      return item.born & item.syncCorrection & item.followCorrection & sample(SYNC_WIDTH_C-129 downto 0);
-   end function;
+      case index is
+         when 0 to 1 =>
+            sample.capture.ticks(32*index+31 downto 32*index) := word;
+         when 2 =>
+            sample.capture.tickPhase := word(PTP_TICK_PHASE_BITS_C-1 downto 0);
+            sample.capture.timeValid := word(3);
+            sample.capture.error := word(4);
+         when 3 =>
+            sample.capture.generation := word;
+         when 4 =>
+            sample.sequenceId := word(15 downto 0);
+         when 5 to 7 =>
+            sample.capture.timestamp(32*(index-5)+31 downto 32*(index-5)) := word;
+         when 8 to 9 =>
+            sample.capture.increment(32*(index-8)+31 downto 32*(index-8)) := word;
+         when 10 to 11 =>
+            sample.remoteTime(32*(index-10)+31 downto 32*(index-10)) := word;
+         when 12 =>
+            sample.remoteTime(79 downto 64) := word(15 downto 0);
+         when 13 to 16 =>
+            sample.correction(32*(index-13)+31 downto 32*(index-13)) := word;
+         when others =>
+            null;
+      end case;
 
-   function unpackPair (payload : PairPayloadType) return PairType is
-      variable item : PairType := PAIR_INIT_C;
-   begin
-      item.born             := payload(PAIR_WIDTH_C-1 downto PAIR_WIDTH_C-64);
-      item.syncCorrection   := payload(PAIR_WIDTH_C-65 downto PAIR_WIDTH_C-128);
-      item.followCorrection := payload(PAIR_WIDTH_C-129 downto PAIR_WIDTH_C-192);
-      item.sample           := unpackSync(slv'(127 downto 0 => '0') & payload(SYNC_WIDTH_C-129 downto 0));
-      return item;
-   end function;
+   end procedure;
 
    type PairStateType is (
       PAIR_IDLE_S,
       PAIR_READ_S,
       PAIR_CHECK_S,
       PAIR_SELECT_S,
-      PAIR_LOAD_S,
-      PAIR_APPLY_S);
+      PAIR_COMPARE_READ_S,
+      PAIR_COMPARE_S,
+      PAIR_DECIDE_S,
+      PAIR_UPDATE_S,
+      PAIR_PUBLISH_S,
+      PAIR_PUBLISH_READ_S,
+      PAIR_PUBLISH_CAPTURE_S,
+      PAIR_ACK_S);
 
    type HistoryStateType is (
       HISTORY_IDLE_S,
       HISTORY_READ_S,
       HISTORY_CHECK_S,
+      HISTORY_SELECT_S,
+      HISTORY_FETCH_S,
+      HISTORY_CAPTURE_S,
       HISTORY_DONE_S);
 
    type StateType is (
       IDLE_S,
-      REMOTE_TIME_S,
-      LOCAL_TIME_S,
-      RATE_ISSUE_S,
-      RATE_WAIT_S);
+      RATE_HISTORY_BEGIN_S, RATE_HISTORY_READ_S, RATE_HISTORY_WAIT_S, RATE_HISTORY_DONE_S,
+      RATE_LOAD_S, RATE_CONFIG_READ_S, RATE_CONFIG_WAIT_S, RATE_PLAN_S, RATE_ISSUE_S, RATE_WAIT_S,
+      RATE_READ_S, RATE_READ_WAIT_S, RATE_CORRECTION_READ_S, RATE_CORRECTION_WAIT_S, RATE_PUBLISH_S);
 
    type RegType is record
       -- Current-edge admission for RX, ledger samples and E2E results.
-      rxReady             : sl;
-      delayReady          : sl;
-      e2eTake             : sl;
+      rxReady    : sl;
+      delayReady : sl;
+      e2eTake    : sl;
       -- Live diagnostic state; AXI snapshots below have a separate lifetime.
-      portStatus          : PtpPortStatusType;
-
+      portStatus : PtpPortStatusType;
       -- Local management state shares the core reset and register process.
-      readSlave           : AxiLiteReadSlaveType;
-      writeSlave          : AxiLiteWriteSlaveType;
-      shadow              : PtpPortConfigType;
-      candidate           : PtpPortConfigType;
-      configValid         : sl;
-      activeConfig        : PtpPortConfigType;
-      lastMac             : slv(47 downto 0);
-      sequenceId          : slv(31 downto 0);
-      snapExchange        : PtpExchangeType;
-      snapAnnounce        : slv(239 downto 0);
-      snapGm              : slv(63 downto 0);
-      snapFlags           : slv(15 downto 0);
-      snapUtc             : slv(15 downto 0);
-      snapCounters        : Slv32Array(0 to 6);
+      readSlave        : AxiLiteReadSlaveType;
+      writeSlave       : AxiLiteWriteSlaveType;
+      candidate        : ControlCacheType;
+      configBus        : PtpRegisterBusType;
+      configMaster     : PtpRegisterMasterType;
+      rateSpanCarry    : slv(2 downto 0);
+      validateValue    : slv(63 downto 0);
+      validatePrevious : slv(63 downto 0);
+      configValid      : sl;
+      activeConfig     : ControlCacheType;
+      lastMac          : slv(47 downto 0);
+      sequenceId       : slv(31 downto 0);
+      publicationPort  : PtpPublicationType;
+      snapshotBus      : PtpRegisterBusType;
+      counterBus       : PtpRegisterBusType;
+      announceWord     : natural range 0 to 11;
+      announceStored   : sl;
+      exchangeWriting  : sl;
+      exchangeWord     : natural range 0 to 19;
       -- Payload tables use synchronous RAM; only ownership is reset in bulk.
       pairState           : PairStateType;
       pairUsed            : slv(PAIR_DEPTH_C-1 downto 0);
@@ -355,68 +464,80 @@ architecture rtl of PtpProtocolEngine is
       pairMatch           : integer range -1 to PAIR_DEPTH_C-1;
       pairFree            : integer range -1 to PAIR_DEPTH_C-1;
       pairOldest          : integer range -1 to PAIR_DEPTH_C-1;
-      pairOldestBorn       : slv(63 downto 0);
+      pairOldestBorn      : slv(63 downto 0);
       pairTicks           : slv(63 downto 0);
       pairReadEnable      : sl;
-      pairReadAddress     : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      pairReadAddress     : slv(PAIR_ADDR_WIDTH_C-1 downto 0);
       pairWriteEnable     : sl;
-      pairWriteAddress    : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
-      pairWriteData       : PairPayloadType;
+      pairWriteAddress    : slv(PAIR_ADDR_WIDTH_C-1 downto 0);
+      pairWriteData       : slv(31 downto 0);
       historyState        : HistoryStateType;
+      normalizedValid     : sl;
+      normalizedWord      : slv(2 downto 0);
       historyIndex        : natural range 0 to HISTORY_DEPTH_C-1;
       historyTicks        : slv(63 downto 0);
       historyFound        : sl;
       historyQualified    : sl;
-      historyDistance     : signed(127 downto 0);
+      historyDistance     : signed(67 downto 0);
       historyReadEnable   : sl;
-      historyReadAddress  : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      historyReadAddress  : slv(HISTORY_ADDR_WIDTH_C-1 downto 0);
       historyWriteEnable  : sl;
-      historyWriteAddress : slv(TABLE_ADDR_WIDTH_C-1 downto 0);
+      historyWriteAddress : slv(HISTORY_ADDR_WIDTH_C-1 downto 0);
       historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
       historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
       generation          : slv(31 downto 0);
-      -- Last accepted sample also drives the registered history RAM write.
-      lastSync            : PtpSyncSampleType;
-      lastRemote          : signed(127 downto 0);
-      syncLimit           : slv(63 downto 0);
-      announceLimit       : slv(63 downto 0);
-      lastTicks           : slv(63 downto 0);
+      -- Per-clock receipt policy and rate qualification remain local.
+      syncLimit     : slv(63 downto 0);
+      announceLimit : slv(63 downto 0);
+      lastTicks     : slv(63 downto 0);
       -- Retain normalized anchor data rather than reconverting a full sample.
-      anchorRemote        : signed(127 downto 0);
-      anchorPhase         : slv(63+PTP_TICK_PHASE_BITS_C downto 0);
-      ratePending         : sl;
-      anchorValid         : sl;
-      ratio               : slv(63 downto 0);
-      ratioCount          : natural range 0 to RATIO_QUALIFY_COUNT_C;
-      ratioTicks          : slv(63 downto 0);
-      state               : StateType;
-      rateInput           : sl;
-      rateA               : slv(127 downto 0);
-      rateB               : slv(127 downto 0);
-      pendingSync         : PtpSyncSampleType;
-      measurementMaster   : PtpMeasurementMasterType;
-      lifecycle           : PtpPortLifecycleType;
-      allocate            : sl;
-      response            : PtpRxMessageType;
-      responseValid       : sl;
-      responseLog         : slv(7 downto 0);
-      e2eInput             : sl;
-      e2eBusy              : sl;
-      e2eSync              : PtpSyncSampleType;
-      e2eDelay            : PtpDelaySampleType;
-      e2eRatio            : slv(63 downto 0);
-      e2eMaximum          : slv(63 downto 0);
-      master              : AxiStreamMasterType;
-      frame               : slv(8*TX_FRAME_BYTES_C-1 downto 0);
-      beat                : natural range 0 to TX_LAST_BEAT_C;
-      lastRequest         : slv(63 downto 0);
-      requestInterval     : unsigned(63 downto 0);
-      minimumInterval     : unsigned(63 downto 0);
-      requestStarted      : sl;
-      lfsr                : slv(15 downto 0);
-      pendingExchange     : PtpExchangeType;
-      announceSeen        : sl;
-      announceTicks       : slv(63 downto 0);
+      anchorValid        : sl;
+      ratio              : slv(63 downto 0);
+      ratioCount         : natural range 0 to RATIO_QUALIFY_COUNT_C;
+      ratioTicks         : slv(63 downto 0);
+      state              : StateType;
+      pendingSync        : PtpSyncSampleType;
+      measurementMaster  : PtpMeasurementMasterType;
+      lifecycle          : PtpPortLifecycleType;
+      allocate           : sl;
+      response           : PtpRxMessageType;
+      responseValid      : sl;
+      responseLog        : slv(7 downto 0);
+      e2eInput           : sl;
+      e2eBusy            : sl;
+      e2eSync            : PtpSyncSampleType;
+      e2eDelay           : PtpDelaySampleType;
+      e2eRatio           : slv(63 downto 0);
+      e2eMaximum         : slv(63 downto 0);
+      master             : AxiStreamMasterType;
+      frame              : slv(8*TX_FRAME_BYTES_C-1 downto 0);
+      beat               : natural range 0 to TX_LAST_BEAT_C;
+      lastRequest        : slv(63 downto 0);
+      requestInterval    : unsigned(63 downto 0);
+      minimumInterval    : unsigned(63 downto 0);
+      requestStarted     : sl;
+      lfsr               : slv(15 downto 0);
+      announceSeen       : sl;
+      announceTicks      : slv(63 downto 0);
+      pairWord           : natural range 0 to PAIR_WORDS_C-1;
+      pairKey            : slv(15 downto 0);
+      pairBorn           : slv(63 downto 0);
+      pairNew            : sl;
+      pairDuplicateEqual : sl;
+      pairWriteSync      : sl;
+      pairWriteFollow    : sl;
+      pairPublish        : sl;
+      historyWriteData   : slv(31 downto 0);
+      historyWriteBusy   : sl;
+      historyWriteWord   : natural range 0 to HISTORY_WORDS_C;
+      historyWord        : natural range 0 to HISTORY_WORDS_C-1;
+      historyBest        : natural range 0 to HISTORY_DEPTH_C-1;
+      historySampleTicks : slv(63 downto 0);
+      historyPhase       : slv(PTP_TICK_PHASE_BITS_C-1 downto 0);
+      compute            : PtpComputeMasterType;
+      rateWord           : natural range 0 to 47;
+      rateStep           : natural range 0 to 23;
+      rateUpdated        : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -426,19 +547,32 @@ architecture rtl of PtpProtocolEngine is
       portStatus          => PTP_PORT_STATUS_INIT_C,
       readSlave           => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
-      shadow              => initialConfig,
-      candidate           => initialConfig,
-      configValid         => toSl(validConfig(initialConfig)),
-      activeConfig        => initialConfig,
+      candidate           => initialCache,
+      configBus           => PTP_REGISTER_BUS_INIT_C,
+      configMaster        => PTP_REGISTER_MASTER_INIT_C,
+      rateSpanCarry       => (others => '0'),
+      validateValue       => (others => '0'),
+      validatePrevious    => (others => '0'),
+      configValid         => '1',
+      activeConfig        => initialCache,
       lastMac             => (others => '0'),
       sequenceId          => (others => '0'),
-      snapExchange        => PTP_EXCHANGE_INIT_C,
-      snapAnnounce        => (others => '0'),
-      snapGm              => (others => '0'),
-      snapFlags           => (others => '0'),
-      snapUtc             => (others => '0'),
-      snapCounters        => (others => (others => '0')),
+      publicationPort     => PTP_PUBLICATION_INIT_C,
+      snapshotBus         => PTP_REGISTER_BUS_INIT_C,
+      counterBus          => PTP_REGISTER_BUS_INIT_C,
+      announceWord        => 0,
+      announceStored      => '0',
+      exchangeWriting     => '0',
+      exchangeWord        => 0,
       pairState           => PAIR_IDLE_S,
+      pairWord            => 0,
+      pairKey             => (others => '0'),
+      pairBorn            => (others => '0'),
+      pairNew             => '0',
+      pairDuplicateEqual  => '1',
+      pairWriteSync       => '0',
+      pairWriteFollow     => '0',
+      pairPublish         => '0',
       pairUsed            => (others => '0'),
       pairSyncSeen        => (others => '0'),
       pairTwoStep         => (others => '0'),
@@ -457,6 +591,8 @@ architecture rtl of PtpProtocolEngine is
       pairWriteAddress    => (others => '0'),
       pairWriteData       => (others => '0'),
       historyState        => HISTORY_IDLE_S,
+      normalizedValid     => '0',
+      normalizedWord      => (others => '0'),
       historyIndex        => 0,
       historyTicks        => (others => '0'),
       historyFound        => '0',
@@ -465,26 +601,29 @@ architecture rtl of PtpProtocolEngine is
       historyReadEnable   => '0',
       historyReadAddress  => (others => '0'),
       historyWriteEnable  => '0',
+      historyWriteData    => (others => '0'),
+      historyWriteBusy    => '0',
+      historyWriteWord    => 0,
+      historyWord         => 0,
+      historyBest         => 0,
+      historySampleTicks  => (others => '0'),
+      historyPhase        => (others => '0'),
       historyWriteAddress => (others => '0'),
       historyValid        => (others => '0'),
       historyPtr          => 0,
       generation          => (others => '0'),
-      lastSync            => PTP_SYNC_SAMPLE_INIT_C,
-      lastRemote          => (others => '0'),
       lastTicks           => (others => '0'),
       syncLimit           => (others => '0'),
       announceLimit       => (others => '0'),
-      anchorRemote        => (others => '0'),
-      anchorPhase         => (others => '0'),
-      ratePending         => '0',
       anchorValid         => '0',
       ratio               => slv(NOMINAL_C),
       ratioCount          => 0,
       ratioTicks          => (others => '0'),
       state               => IDLE_S,
-      rateInput           => '0',
-      rateA               => (others => '0'),
-      rateB               => (others => '0'),
+      compute             => PTP_COMPUTE_MASTER_INIT_C,
+      rateWord            => 0,
+      rateStep            => 0,
+      rateUpdated         => '0',
       pendingSync         => PTP_SYNC_SAMPLE_INIT_C,
       measurementMaster   => PTP_MEASUREMENT_MASTER_INIT_C,
       lifecycle           => PTP_PORT_LIFECYCLE_INIT_C,
@@ -506,7 +645,6 @@ architecture rtl of PtpProtocolEngine is
       minimumInterval     => (others => '0'),
       requestStarted      => '0',
       lfsr                => LFSR_SEED_C,
-      pendingExchange     => PTP_EXCHANGE_INIT_C,
       announceSeen        => '0',
       announceTicks       => (others => '0'));
 
@@ -523,11 +661,9 @@ architecture rtl of PtpProtocolEngine is
    signal delayValid       : sl;
    signal delayReady       : sl;
    signal ledgerRejected   : slv(31 downto 0);
-   signal rateInput        : sl;
-   signal rateReady        : sl;
-   signal rateResultValid  : sl;
-   signal rateResult       : slv(127 downto 0);
-   signal rateError        : sl;
+   signal normalizedValid : sl;
+   signal normalizedReady : sl;
+   signal normalizedWord : slv(2 downto 0);
    signal e2eInput         : sl;
    signal e2eReady         : sl;
    signal e2eSync          : PtpSyncSampleType;
@@ -535,11 +671,8 @@ architecture rtl of PtpProtocolEngine is
    signal e2eValid         : sl;
    signal e2eTake          : sl;
    signal e2eError         : sl;
-
-   signal historyReadData  : SyncPayloadType;
-   signal historyWriteData : SyncPayloadType;
-   signal pairReadData     : PairPayloadType;
-
+   signal historyReadData  : slv(31 downto 0);
+   signal pairReadData     : slv(31 downto 0);
    -- Supported log2(seconds) range; 0x7F means unspecified on the wire.
    function validLogInterval (logInterval : slv(7 downto 0)) return boolean is
    begin
@@ -548,7 +681,6 @@ architecture rtl of PtpProtocolEngine is
 
    -- IEEE 1588-2019 13.2 and Table 37: reserved flags are ignored on receipt.
    constant RESERVED_FLAGS_MASK_C : slv(15 downto 0) := x"9880";
-
    -- Leap flags are mutually exclusive. Unsupported assigned upper-octet
    -- flags remain outside this multicast endpoint's selected options.
    -- Layer-2 controlField is ignored per 13.3.2.13, including legacy values.
@@ -566,11 +698,13 @@ architecture rtl of PtpProtocolEngine is
    begin
       exponent := to_integer(signed(logInterval));
       value    := to_unsigned(CLK_FREQ_G, 64);
+
       if exponent < MIN_LOG_INTERVAL_C or exponent > MAX_LOG_INTERVAL_C then
          return unsigned(fallback);
       elsif exponent < 0 then
          return shift_right(value, -exponent);
       end if;
+
       return shift_left(value, exponent);
    end function;
 
@@ -582,6 +716,7 @@ architecture rtl of PtpProtocolEngine is
       limit       : slv(63 downto 0)) return slv is
       variable ticks : unsigned(63 downto 0);
    begin
+
       if validLogInterval(logInterval) then
          ticks := intervalTicks(logInterval, limit);
          ticks := resize(ticks*RECEIPT_INTERVALS_C, ticks'length);
@@ -589,6 +724,7 @@ architecture rtl of PtpProtocolEngine is
             return slv(ticks);
          end if;
       end if;
+
       return limit;
    end function;
 
@@ -599,7 +735,6 @@ architecture rtl of PtpProtocolEngine is
       constant MESSAGE_LENGTH_C : slv(15 downto 0)                   := toSlv(PTP_TIMESTAMP_MSG_BYTES_C, 16);
       variable bytes            : Slv8Array(0 to TX_FRAME_BYTES_C-1) := (others => (others => '0'));
       variable resultValue      : slv(8*TX_FRAME_BYTES_C-1 downto 0);
-
    begin
       -- Ethernet header, bytes 0..13. Destination uses network significance;
       -- the SURF source MAC stores its first wire octet in the low byte.
@@ -609,7 +744,6 @@ architecture rtl of PtpProtocolEngine is
       end loop;
       bytes(12) := PTP_ETH_TYPE_C(15 downto 8);  -- EtherType, high octet first.
       bytes(13) := PTP_ETH_TYPE_C(7 downto 0);
-
       -- PTP common header, bytes 14..47. Explicit wire positions keep this
       -- encoder readable; protocol values and message sizes remain named.
       bytes(14) := PTP_TRANSPORT_SPECIFIC_C & PTP_MSG_DELAY_REQ_C;  -- transportSpecific/messageType.
@@ -617,7 +751,6 @@ architecture rtl of PtpProtocolEngine is
       bytes(16) := MESSAGE_LENGTH_C(15 downto 8);                  -- messageLength.
       bytes(17) := MESSAGE_LENGTH_C(7 downto 0);
       bytes(18) := cfg.domainNumber;                              -- domainNumber.
-
       -- sourcePortIdentity, bytes 34..43, high octet first.
       for i in 0 to 9 loop
          bytes(34+i) := cfg.localIdentity(79-8*i downto 72-8*i);
@@ -629,8 +762,8 @@ architecture rtl of PtpProtocolEngine is
       if cfg.minorVersion = PTP_MINOR_VERSION_MIN_C then
          bytes(46) := PTP_CONTROL_DELAY_REQ_C;
       end if;
-      bytes(47) := PTP_LOG_INTERVAL_UNSPECIFIED_C;   -- logMessageInterval.
 
+      bytes(47) := PTP_LOG_INTERVAL_UNSPECIFIED_C;   -- logMessageInterval.
       -- Reserved fields, flags, correctionField and originTimestamp (48..57)
       -- retain their zero initialization. Pack into low-byte-first AXI lanes.
       for i in bytes'range loop
@@ -641,15 +774,128 @@ architecture rtl of PtpProtocolEngine is
 
    signal ledgerStatus : slv(31 downto 0);
    signal timeoutCount : slv(31 downto 0);
+   function exchangeRecord(sync : PtpSyncSampleType;
+   delay : PtpDelaySampleType) return PtpExchangeType is
+      variable ret : PtpExchangeType;
+   begin
+      ret.t1 := sync.remoteTime;
+      ret.t2 := sync.capture.timestamp;
+      ret.t3 := delay.capture.timestamp;
+      ret.t4 := delay.remoteTime;
+      ret.syncCorrection := sync.correction;
+      ret.delayCorrection := delay.correction;
+      ret.generation := delay.generation;
+      ret.syncSequence := sync.sequenceId;
+      ret.delaySequence := delay.sequenceId;
+      return ret;
+   end function;
+
+   function exchangeWord(item : PtpExchangeType;
+   index : natural) return slv is
+      variable word : slv(31 downto 0) := (others => '0');
+   begin
+
+      case index is
+         when 0 to 2 =>
+            word := slv(resize(shift_right(unsigned(item.t1),32*index),32));
+         when 3 to 5 =>
+            word := slv(resize(shift_right(unsigned(item.t2),32*(index-3)),32));
+         when 6 to 8 =>
+            word := slv(resize(shift_right(unsigned(item.t3),32*(index-6)),32));
+         when 9 to 11 =>
+            word := slv(resize(shift_right(unsigned(item.t4),32*(index-9)),32));
+         when 12 to 15 =>
+            word := slv(resize(shift_right(unsigned(item.syncCorrection),32*(index-12)),32));
+         when 16 to 17 =>
+            word := slv(resize(shift_right(unsigned(item.delayCorrection),32*(index-16)),32));
+         when 18 =>
+            word := item.generation;
+         when 19 =>
+            word := item.delaySequence & item.syncSequence;
+         when others =>
+            null;
+      end case;
+
+      return word;
+   end function;
+
+   signal snapshotSlave : PtpRegisterSlaveType;
+   signal counterSlave : PtpRegisterSlaveType;
+   signal snapshotScalars : Slv32Array(0 to 6);
+   signal configMasters : PtpRegisterMasterArray(0 to 1);
+   signal configSlaves : PtpRegisterSlaveArray(0 to 1);
+   signal scanValid : sl;
+   signal scanIndex : slv(7 downto 0);
+   signal scanData : slv(31 downto 0);
 
 begin
+
+   computeMasters(PTP_COMPUTE_RATE_C) <= r.compute;
+   snapshotScalars <=
+   (
+      rxCounters.accepted,
+      rxCounters.dropped,
+      rxCounters.overflow,
+      r.portStatus.rejectedCount,
+      r.portStatus.syncCount,
+      r.portStatus.delayCount,
+      timeoutCount
+   );
+
+   U_Publication : entity surf.PtpPublicationBank
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         RECORD_WORDS_G => IntegerArray'(12,20))
+      port map (
+         clk         => clk,
+         rst         => rst,
+         publication => r.publicationPort,
+         snapshot    => snapshotControl,
+         master      => r.snapshotBus.master,
+         slave       => snapshotSlave);
+
+   U_Snapshot : entity surf.PtpSnapshotBank
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         WORDS_G        => 7)
+      port map (
+         clk      => clk,
+         rst      => rst,
+         scalars  => snapshotScalars,
+         snapshot => snapshotControl,
+         prepared => snapshotPrepared,
+         master   => r.counterBus.master,
+         slave    => counterSlave);
+
+   configMasters(0) <= r.configBus.master;
+   configMasters(1) <= r.configMaster;
+
+   U_Config : entity surf.PtpConfigBank
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DEFAULTS_G     => initialWords)
+      port map (
+         clk       => clk,
+         rst       => rst,
+         prepare   => configControl.prepare,
+         apply     => configControl.apply,
+         prepared  => configPrepared,
+         scanValid => scanValid,
+         scanIndex => scanIndex,
+         scanData  => scanData,
+         masters   => configMasters,
+         slaves    => configSlaves);
 
    assert HISTORY_MEMORY_TYPE_G = "distributed" or HISTORY_MEMORY_TYPE_G = "block"
       report "PtpProtocolEngine history memory must be distributed or block" severity failure;
    assert PAIR_MEMORY_TYPE_G = "distributed" or PAIR_MEMORY_TYPE_G = "block"
       report "PtpProtocolEngine pair memory must be distributed or block" severity failure;
-
-   historyWriteData <= packSync(r.lastSync);
 
    U_HistoryRam : entity surf.SimpleDualPortRam
       generic map (
@@ -657,10 +903,10 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          MEMORY_TYPE_G  => HISTORY_MEMORY_TYPE_G,
-         DATA_WIDTH_G   => SYNC_WIDTH_C,
+         DATA_WIDTH_G   => 32,
          BYTE_WR_EN_G   => false,
-         BYTE_WIDTH_G   => SYNC_WIDTH_C,
-         ADDR_WIDTH_G   => TABLE_ADDR_WIDTH_C,
+         BYTE_WIDTH_G   => 32,
+         ADDR_WIDTH_G   => HISTORY_ADDR_WIDTH_C,
          SYNTH_MODE_G   => "inferred",
          COMMON_CLK_G   => true,
          READ_LATENCY_G => 1)
@@ -668,7 +914,7 @@ begin
          clka  => clk,                    -- [in]
          wea   => r.historyWriteEnable,   -- [in]
          addra => r.historyWriteAddress,  -- [in]
-         dina  => historyWriteData,       -- [in]
+         dina  => r.historyWriteData,       -- [in]
          clkb  => clk,                    -- [in]
          enb   => r.historyReadEnable,    -- [in]
          rstb  => rst,                    -- [in]
@@ -681,10 +927,10 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          MEMORY_TYPE_G  => PAIR_MEMORY_TYPE_G,
-         DATA_WIDTH_G   => PAIR_WIDTH_C,
+         DATA_WIDTH_G   => 32,
          BYTE_WR_EN_G   => false,
-         BYTE_WIDTH_G   => PAIR_WIDTH_C,
-         ADDR_WIDTH_G   => TABLE_ADDR_WIDTH_C,
+         BYTE_WIDTH_G   => 32,
+         ADDR_WIDTH_G   => PAIR_ADDR_WIDTH_C,
          SYNTH_MODE_G   => "inferred",
          COMMON_CLK_G   => true,
          READ_LATENCY_G => 1)
@@ -712,7 +958,7 @@ begin
          macResetDone     => macResetDone,          -- [in]
          ticks            => phcStatus.ticks,       -- [in]
          generation       => phcStatus.generation,  -- [in]
-         config           => r.activeConfig,        -- [in]
+         config           => portConfig(r.activeConfig),        -- [in]
          allocate         => allocate,              -- [in]
          allocateReady    => allocateReady,         -- [out]
          allocateSequence => allocateSequence,      -- [out]
@@ -730,26 +976,10 @@ begin
          responseAccepted => responseAccepted,      -- [out]
          rejectedCount    => ledgerRejected);       -- [out]
 
-   U_RateMath : entity surf.PtpMath
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
-      port map (
-         clk             => clk,              -- [in]
-         rst             => rst,              -- [in]
-         cancel          => abortNow,         -- [in]
-         inputValid      => rateInput,        -- [in]
-         inputReady      => rateReady,        -- [out]
-         divide          => '1',              -- [in]
-         roundNearest    => '1',              -- [in]
-         operandA        => r.rateA,          -- [in]
-         operandB        => r.rateB,          -- [in]
-         resultValid     => rateResultValid,  -- [out]
-         resultReady     => '1',              -- [in]
-         resultValue     => rateResult,       -- [out]
-         resultRemainder => open,             -- [out]
-         resultError     => rateError);       -- [out]
+   -- Payload comes directly from synchronous RAM; valid and word ownership
+   -- are registered on the same return edge and held through a stalled upload.
+   normalizedValid <= r.normalizedValid;
+   normalizedWord  <= r.normalizedWord;
 
    U_E2e : entity surf.PtpE2e
       generic map (
@@ -757,31 +987,39 @@ begin
          RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+         NORMALIZED_SYNC_G => true)
       port map (
-         clk          => clk,           -- [in]
-         rst          => rst,           -- [in]
-         cancel       => abortNow,      -- [in]
-         inputValid   => e2eInput,      -- [in]
-         inputReady   => e2eReady,      -- [out]
-         syncSample   => e2eSync,       -- [in]
-         delaySample  => r.e2eDelay,    -- [in]
-         ratio        => r.e2eRatio,    -- [in]
-         maxPathDelay => r.e2eMaximum,  -- [in]
-         resultValue  => e2eResult,     -- [out]
-         resultValid  => e2eValid,      -- [out]
-         resultReady  => e2eTake,       -- [in]
-         resultError  => e2eError);     -- [out]
+         normalizedValid => normalizedValid,
+         normalizedReady => normalizedReady,
+         normalizedWord  => normalizedWord,
+         normalizedData  => historyReadData,
+         clk             => clk,           -- [in]
+         rst             => rst,           -- [in]
+         cancel          => abortNow,      -- [in]
+         inputValid      => e2eInput,      -- [in]
+         inputReady      => e2eReady,      -- [out]
+         syncSample      => e2eSync,       -- [in]
+         delaySample     => r.e2eDelay,    -- [in]
+         ratio           => r.e2eRatio,    -- [in]
+         maxPathDelay    => r.e2eMaximum,  -- [in]
+         resultValue     => e2eResult,     -- [out]
+         resultValid     => e2eValid,      -- [out]
+         resultReady     => e2eTake,       -- [in]
+         resultError     => e2eError,
+         computeMaster   => computeMasters(PTP_COMPUTE_E2E_C),
+         computeSlave    => computeSlaves(PTP_COMPUTE_E2E_C));     -- [out]
 
-   comb : process (r, rst, regRst, axiReadMaster, axiWriteMaster, configControl, snapshotControl,
-                   enable, rxCounters, restart, linkReady, localMac, phcStatus, captureAbort, rxMessage,
-                   rxValid, rxQueueOverflow, rxAbort, txAbort, txSlave, measurementSlave,
-                   responseAccepted, responseReady, allocateReady, allocateSequence, delaySample, delayValid,
-                   rateReady, rateResultValid, rateResult, rateError, e2eReady, e2eResult, e2eValid,
-                   e2eError, ledgerStatus, timeoutCount, historyReadData, pairReadData) is
-      variable v  : RegType;
-      variable ep : AxiLiteEndpointType;
-
+   comb : process (all) is
+      variable readAddress      : slv(11 downto 0);
+      variable writeAddress     : slv(11 downto 0);
+      variable v                : RegType;
+      variable ep               : AxiLiteEndpointType;
+      variable configReadIndex  : integer range -1 to 47;
+      variable configWriteIndex : integer range -1 to 47;
+      variable configIndexValue : natural range 0 to 255;
+      variable snapshotIndex    : integer range -1 to 31;
+      variable snapshotAddress  : natural range 0 to 1023;
       -- Same-edge admission/cancellation decisions.
       variable announceChange : sl;
       variable externalAbort  : sl;
@@ -791,37 +1029,81 @@ begin
       variable validResponse  : sl;
       variable malformed      : boolean;
       variable policyFlags    : slv(15 downto 0);
-
       -- Bounded table searches (-1 means no match) and timestamp arithmetic.
       variable slot              : integer range -1 to PAIR_DEPTH_C-1;
       variable pair              : PairType;
       variable pairUpdated       : boolean;
-      variable historySample     : PtpSyncSampleType;
-      variable distance          : signed(127 downto 0);
-      variable maximumSeparation : signed(127 downto 0);
+      variable distance          : signed(67 downto 0);
+      variable maximumSeparation : signed(67 downto 0);
       variable historyAge        : unsigned(63 downto 0);
-      variable remoteTime        : signed(127 downto 0);
-      variable timestamp         : slv(95 downto 0);
-      variable convertedTime     : signed(127 downto 0);
-      variable rateSpan          : signed(127 downto 0);
-      variable completedSync     : PtpSyncSampleType;
+      variable rateData          : slv(127 downto 0);
+      variable rateJob           : PtpComputeJobType;
+      variable rateAddress       : natural range 0 to 63;
+      variable pairWord          : slv(31 downto 0);
+      variable remoteTime        : slv(95 downto 0);
+      variable inputSample       : PtpSyncSampleType;
    begin
-      v                    := r;
-      pair                 := PAIR_INIT_C;
-      pairUpdated          := false;
+      v := r;
+      v.publicationPort.write := '0';
+      v.publicationPort.commit := '0';
+      pair        := PAIR_INIT_C;
+      pairUpdated := false;
+      pairWord    := (others => '0');
+      remoteTime  := x"0000" & ptpMessageTimestamp(rxMessage);
+      inputSample := PTP_SYNC_SAMPLE_INIT_C;
+      inputSample.sequenceId := rxMessage.sequenceId;
+      inputSample.capture := rxMessage.capture;
+      inputSample.remoteTime := ptpMessageTimestamp(rxMessage);
       v.pairReadEnable     := '0';
       v.pairWriteEnable    := '0';
       v.historyReadEnable  := '0';
       v.historyWriteEnable := '0';
-      policyFlags          := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
+      policyFlags := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
+      v.compute.resultReady := '0';
+      v.compute.readReady := '0';
+      v.compute.cancel := '0';
+      v.configMaster.cancel := '0';
+      v.configMaster.responseReady := '1';
 
-      -- One seconds-to-Q16 converter serves remote and local timestamps.
-      -- Select before arithmetic; each completed sample visits both states.
-      timestamp := r.pendingSync.capture.timestamp;
-      if r.state = REMOTE_TIME_S then
-         timestamp := r.pendingSync.remoteTime & x"0000";
+      if r.configMaster.valid = '1' and configSlaves(1).ready = '1' then
+         v.configMaster.valid := '0';
       end if;
-      convertedTime := ptpTimeQ16(timestamp);
+
+      rateJob     := PTP_COMPUTE_JOB_INIT_C;
+      rateData    := (others => '0');
+      rateAddress := r.rateWord;
+      -- Word selection is wiring only. Normalized current/last/anchor time,
+      -- elapsed values and filtered-ratio intermediates remain in the workspace.
+      case r.rateWord/4 is
+         when 0 =>
+            rateData(47 downto 0) := r.pendingSync.remoteTime(79 downto 32);
+         when 1 =>
+            rateData(47 downto 16) := r.pendingSync.remoteTime(31 downto 0);
+         when 2 =>
+            rateData(47 downto 0) := r.pendingSync.capture.timestamp(95 downto 48);
+         when 3 =>
+            rateData(47 downto 0) := r.pendingSync.capture.timestamp(47 downto 0);
+         when 4 =>
+            rateData := slv(resize(signed(r.pendingSync.correction(63 downto 0)), 128));
+         when 5 =>
+            rateData(66 downto 0) := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
+         when 6 =>
+            rateData(66 downto 64) := r.rateSpanCarry;
+         when 7 =>
+            rateData := slv(resize(NOMINAL_C-RATE_MARGIN_C, 128));
+         when 8 =>
+            rateData := slv(resize(NOMINAL_C+RATE_MARGIN_C, 128));
+         when 9 =>
+            rateData(63 downto 0) := r.ratio;
+         when 10 =>
+            rateAddress := 56+r.rateWord mod 4;
+            rateData    := slv(shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
+         when 11 =>
+            rateAddress := 52+r.rateWord mod 4;
+            rateData    := slv(resize(signed(r.pendingSync.correction(127 downto 64)), 128));
+         when others =>
+            null;
+      end case;
 
       -- Requests retain their complete payload until the child accepts them.
       -- The RAM ledger scans the held response before accepting it. Retain
@@ -830,12 +1112,15 @@ begin
          v.responseValid := '0';
          v.responseLog   := r.response.logInterval;
       end if;
+
       if r.e2eInput = '1' and e2eReady = '1' then
          v.e2eInput := '0';
       end if;
+
       v.delayReady := '0';
       v.e2eTake    := '0';
       v.generation := phcStatus.generation;
+
       if r.measurementMaster.valid = '1' and measurementSlave.ready = '1' then
          v.measurementMaster.valid := '0';
       end if;
@@ -846,6 +1131,7 @@ begin
       -- First check Ethernet/PTP identity, then capture provenance and age.
       -- A rejected record is still consumed below and counted as a rejection.
       policyValid := '1';
+
       if rxMessage.destination /= PTP_PRIMARY_MULTICAST_MAC_C then
          policyValid := '0';
       elsif rxMessage.sourcePortIdentity /= r.activeConfig.sourceIdentity then
@@ -863,6 +1149,7 @@ begin
       -- A changed grandmaster or timescale cancels the old measurements on
       -- this edge. This decision precedes readiness and cannot depend on it.
       announceChange := '0';
+
       if rxValid = '1' and r.state = IDLE_S and r.measurementMaster.valid = '0' then
          if policyValid = '1' and r.announceSeen = '1' and rxMessage.messageType = PTP_MSG_ANNOUNCE_C then
             if validAnnounce(rxMessage) then
@@ -876,6 +1163,7 @@ begin
       -- Independent protocol causes may revoke an accepted PHC command. Its
       -- own capture invalidation only flushes measurement/association work.
       externalAbort := '0';
+
       if rst = RST_POLARITY_G or restart = '1' or configControl.apply = '1' or localMac /= r.lastMac then
          externalAbort := '1';
       elsif linkReady = '0' or enable = '0' then
@@ -887,7 +1175,9 @@ begin
             externalAbort := '1';
          end if;
       end if;
+
       abortPort := '0';
+
       if externalAbort = '1' or captureAbort = '1' or rxAbort = '1' or
          phcStatus.generation /= r.generation then
          abortPort := '1';
@@ -898,15 +1188,17 @@ begin
       -- this edge. Earlier committed work is not retroactively revoked.
       v.lifecycle              := PTP_PORT_LIFECYCLE_INIT_C;
       v.lifecycle.commandAbort := externalAbort;
+
       if localMac /= r.lastMac then
          v.lifecycle.identityRestart := '1';
       end if;
+
       v.measurementMaster.abort := abortPort;
       -- Drain the registered child cancellation before admitting new work.
       -- Do not feed that old event back into its own next value above.
-      abortPort := abortPort or r.measurementMaster.abort;
-
+      abortPort      := abortPort or r.measurementMaster.abort;
       qualifiedRatio := '0';
+
       if r.ratioCount = RATIO_QUALIFY_COUNT_C and
          unsigned(phcStatus.ticks)-unsigned(r.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
@@ -915,185 +1207,362 @@ begin
       -------------------------------------------------------------------------
       -- History lookup owns a stable table and admission-time arithmetic inputs.
       -------------------------------------------------------------------------
+      -- Appends reuse the rate producer's held sample. A lookup pins the
+      -- table until its selected record is copied; it never sees a partial row.
+      if r.historyWriteBusy = '1' and r.historyState = HISTORY_IDLE_S and r.historyWriteWord < 17 then
+         v.historyWriteEnable := '1';
+         v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+r.historyWriteWord, HISTORY_ADDR_WIDTH_C);
+         v.historyWriteData := syncWord(r.pendingSync, r.historyWriteWord);
+         v.historyWriteWord := r.historyWriteWord+1;
+      end if;
+
       case r.historyState is
          when HISTORY_IDLE_S =>
-            -- Drain a registered append before starting the first RAM read.
-            if delayValid = '1' and r.e2eBusy = '0' and r.historyWriteEnable = '0' and abortPort = '0' then
-               v.delayReady         := '1';
-               v.e2eBusy            := '1';
-               v.e2eDelay           := delaySample;
-               v.e2eRatio           := r.ratio;
-               v.e2eMaximum         := r.activeConfig.maxPathDelay;
-               v.historyTicks       := phcStatus.ticks;
-               v.historyQualified   := qualifiedRatio;
-               v.historyFound       := '0';
-               v.historyIndex       := 0;
+
+            if delayValid = '1' and r.e2eBusy = '0' and r.historyWriteBusy = '0' and
+               r.historyWriteEnable = '0' and abortPort = '0' then
+               v.delayReady := '1';
+               v.e2eBusy := '1';
+               v.e2eDelay := delaySample;
+               v.e2eRatio := r.ratio;
+               v.e2eMaximum := r.activeConfig.maxPathDelay;
+               v.historyTicks := phcStatus.ticks;
+               v.historyQualified := qualifiedRatio;
+               v.historyFound := '0';
+               v.historyIndex := 0;
+               v.historyWord := 0;
                v.historyReadAddress := (others => '0');
-               v.historyReadEnable  := '1';
-               v.historyState       := HISTORY_READ_S;
+               v.historyReadEnable := '1';
+               v.historyState := HISTORY_READ_S;
             end if;
 
          when HISTORY_READ_S =>
             v.historyState := HISTORY_CHECK_S;
-
          when HISTORY_CHECK_S =>
-            -- Never interpret uninitialized or invalid RAM rows.
-            if r.historyValid(r.historyIndex) = '1' then
-               historySample := unpackSync(historyReadData);
-               distance      := abs(ptpTickPhase(r.e2eDelay.capture)-ptpTickPhase(historySample.capture));
 
-               -- Convert the unsigned whole-cycle limit to signed Q3 cycles.
-               -- Widen before scaling so neither the sign nor upper bits wrap.
-               maximumSeparation := signed(resize(unsigned(r.activeConfig.maxExchange), distance'length));
-               maximumSeparation := shift_left(maximumSeparation, PTP_TICK_PHASE_BITS_C);
-               historyAge        := unsigned(r.historyTicks)-unsigned(historySample.capture.ticks);
+            case r.historyWord is
+               when 0 to 1 =>
+                  v.historySampleTicks(32*r.historyWord+31 downto 32*r.historyWord) := historyReadData;
+               when 2 =>
+                  v.historyPhase := historyReadData(PTP_TICK_PHASE_BITS_C-1 downto 0);
+               when others =>
 
-               if historySample.capture.generation = r.e2eDelay.generation and
-                  distance <= maximumSeparation and historyAge <= unsigned(r.activeConfig.associationTimeout) then
-                  -- Strict comparison retains the first physical slot on ties.
-                  if r.historyFound = '0' or distance < r.historyDistance then
-                     v.historyFound    := '1';
-                     v.historyDistance := distance;
-                     v.e2eSync         := historySample;
+                  if r.historyValid(r.historyIndex) = '1' then
+                     distance          := abs(resize(ptpTickPhase(r.e2eDelay.capture),68)-signed(resize(unsigned(slv'(r.historySampleTicks & r.historyPhase)), 68)));
+                     maximumSeparation := shift_left(signed(resize(unsigned(r.activeConfig.maxExchange), 68)), PTP_TICK_PHASE_BITS_C);
+                     historyAge        := unsigned(r.historyTicks)-unsigned(r.historySampleTicks);
+                     if historyReadData = r.e2eDelay.generation and distance <= maximumSeparation and
+                        historyAge <= unsigned(r.activeConfig.associationTimeout) then
+                        -- Strict comparison retains the first physical slot on ties.
+                        if r.historyFound = '0' or distance < r.historyDistance then
+                           v.historyFound := '1';
+                           v.historyDistance := distance;
+                           v.historyBest := r.historyIndex;
+                        end if;
+                     end if;
                   end if;
-               end if;
+
+            end case;
+
+            if r.historyWord /= 3 then
+               v.historyWord := r.historyWord+1;
+               v.historyReadAddress := toSlv(HISTORY_WORDS_C*r.historyIndex+r.historyWord+1, HISTORY_ADDR_WIDTH_C);
+               v.historyReadEnable := '1';
+               v.historyState := HISTORY_READ_S;
+            elsif r.historyIndex = HISTORY_DEPTH_C-1 then
+               v.historyState := HISTORY_SELECT_S;
+            else
+               v.historyIndex := r.historyIndex+1;
+               v.historyWord := 0;
+               v.historyReadAddress := toSlv(HISTORY_WORDS_C*(r.historyIndex+1), HISTORY_ADDR_WIDTH_C);
+               v.historyReadEnable := '1';
+               v.historyState := HISTORY_READ_S;
             end if;
 
-            if r.historyIndex = HISTORY_DEPTH_C-1 then
-               v.historyState := HISTORY_DONE_S;
-            else
-               v.historyIndex       := r.historyIndex+1;
-               v.historyReadAddress := toSlv(v.historyIndex, TABLE_ADDR_WIDTH_C);
-               v.historyReadEnable  := '1';
-               v.historyState       := HISTORY_READ_S;
+         when HISTORY_SELECT_S =>
+            v.historyState := HISTORY_DONE_S;
+
+            if r.historyFound = '1' and r.historyQualified = '1' then
+               v.historyWord := 0;
+               v.historyReadAddress := toSlv(HISTORY_WORDS_C*r.historyBest, HISTORY_ADDR_WIDTH_C);
+               v.historyReadEnable := '1';
+               v.historyState := HISTORY_FETCH_S;
+            end if;
+
+         when HISTORY_FETCH_S =>
+            v.historyState := HISTORY_CAPTURE_S;
+            v.normalizedWord := toSlv((r.historyWord+7) mod 8,3);
+            if r.historyWord >= 17 then
+               v.normalizedValid := '1';
+            end if;
+         when HISTORY_CAPTURE_S =>
+
+            if r.historyWord < 17 then
+               takeSyncWord(v.e2eSync, r.historyWord, historyReadData);
+            end if;
+
+            if r.historyWord < 17 or normalizedReady = '1' then
+               v.normalizedValid := '0';
+               if r.historyWord = HISTORY_WORDS_C-1 then
+                  v.historyState := HISTORY_DONE_S;
+               else
+                  v.historyWord := r.historyWord+1;
+                  v.historyReadAddress := toSlv(HISTORY_WORDS_C*r.historyBest+r.historyWord+1, HISTORY_ADDR_WIDTH_C);
+                  v.historyReadEnable := '1';
+                  v.historyState := HISTORY_FETCH_S;
+               end if;
             end if;
 
          when HISTORY_DONE_S =>
             v.historyState := HISTORY_IDLE_S;
 
             if r.historyFound = '1' and r.historyQualified = '1' then
-               v.e2eInput                        := '1';
-               v.pendingExchange.t1              := r.e2eSync.remoteTime;
-               v.pendingExchange.t2              := r.e2eSync.capture.timestamp;
-               v.pendingExchange.t3              := r.e2eDelay.capture.timestamp;
-               v.pendingExchange.t4              := r.e2eDelay.remoteTime;
-               v.pendingExchange.syncCorrection  := r.e2eSync.correction;
-               v.pendingExchange.delayCorrection := r.e2eDelay.correction;
-               v.pendingExchange.generation      := r.e2eDelay.generation;
-               v.pendingExchange.syncSequence    := r.e2eSync.sequenceId;
-               v.pendingExchange.delaySequence   := r.e2eDelay.sequenceId;
+               v.e2eInput := '1';
+               v.exchangeWriting := '1';
+               v.exchangeWord := 0;
             else
-               v.e2eBusy                  := '0';
+               v.e2eBusy := '0';
                v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
             end if;
+
       end case;
+
+      -- Stream the stable E2E producer fields once into the result store.
+      -- The arithmetic client owns these inputs until result retirement; no
+      -- separate pendingExchange record is needed.
+      if r.exchangeWriting = '1' then
+         v.publicationPort.write := '1';
+         v.publicationPort.first := toSl(r.exchangeWord = 0);
+         v.publicationPort.recordIndex := x"1";
+         v.publicationPort.wordIndex := toSlv(r.exchangeWord,8);
+         v.publicationPort.data := exchangeWord(exchangeRecord(r.e2eSync,r.e2eDelay),r.exchangeWord);
+         if r.exchangeWord = 19 then
+            v.exchangeWriting := '0';
+         else
+            v.exchangeWord := r.exchangeWord+1;
+         end if;
+      end if;
 
       -------------------------------------------------------------------------
       -- RX holds a pair transaction through its shared expiry/key search.
       -------------------------------------------------------------------------
       case r.pairState is
          when PAIR_IDLE_S =>
-            -- Retire a pending E2E result before reserving publication again.
-            -- Rejected RX rows have no write bubble; continuous rejected
-            -- traffic must not starve the result by starting another scan.
+
             if rxValid = '1' and (rxMessage.messageType = PTP_MSG_SYNC_C or rxMessage.messageType = PTP_MSG_FOLLOW_UP_C) and
                r.state = IDLE_S and r.measurementMaster.valid = '0' and
                r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
-               r.pairWriteEnable = '0' and e2eValid = '0' and abortPort = '0' then
-               v.pairTicks       := phcStatus.ticks;
-               v.pairIndex       := 0;
-               v.pairMatch       := -1;
-               v.pairFree        := -1;
-               v.pairOldest      := -1;
+               r.pairWriteEnable = '0' and r.historyWriteBusy = '0' and e2eValid = '0' and abortPort = '0' then
+               v.pairTicks := phcStatus.ticks;
+               v.pairIndex := 0;
+               v.pairWord := 0;
+               v.pairMatch := -1;
+               v.pairFree := -1;
+               v.pairOldest := -1;
+               v.pairPublish := '0';
                v.pairReadAddress := (others => '0');
-               v.pairReadEnable  := '1';
-               v.pairState       := PAIR_READ_S;
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_READ_S;
             end if;
 
          when PAIR_READ_S =>
             v.pairState := PAIR_CHECK_S;
-
          when PAIR_CHECK_S =>
-            if r.pairUsed(r.pairIndex) = '1' then
-               pair := unpackPair(pairReadData);
 
-               if unsigned(r.pairTicks)-unsigned(pair.born) > unsigned(r.activeConfig.associationTimeout) then
+            case r.pairWord is
+               when 0 =>
+                  v.pairKey := pairReadData(15 downto 0);
+               when 1 =>
+                  v.pairBorn(31 downto 0) := pairReadData;
+               when others =>
+                  v.pairBorn(63 downto 32) := pairReadData;
+            end case;
+
+            if r.pairWord /= 2 then
+               v.pairWord := r.pairWord+1;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairIndex+r.pairWord+1, PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_READ_S;
+            else
+               if r.pairUsed(r.pairIndex) = '1' and
+                  unsigned(r.pairTicks)-unsigned(v.pairBorn) > unsigned(r.activeConfig.associationTimeout) then
                   v.pairUsed(r.pairIndex) := '0';
                end if;
-            end if;
-
-            if v.pairUsed(r.pairIndex) = '0' then
-               if r.pairFree = -1 then
-                  v.pairFree := r.pairIndex;
-               end if;
-            else
-               if pair.sample.sequenceId = rxMessage.sequenceId then
-                  v.pairMatch := r.pairIndex;
-               end if;
-
-               if r.pairComplete(r.pairIndex) = '1' then
-                  if r.pairOldest = -1 or unsigned(pair.born) < unsigned(r.pairOldestBorn) then
-                     v.pairOldest     := r.pairIndex;
-                     v.pairOldestBorn := pair.born;
+               if v.pairUsed(r.pairIndex) = '0' then
+                  if r.pairFree = -1 then
+                     v.pairFree := r.pairIndex;
+                  end if;
+               else
+                  if r.pairKey = rxMessage.sequenceId then
+                     v.pairMatch := r.pairIndex;
+                  end if;
+                  if r.pairComplete(r.pairIndex) = '1' and
+                     (r.pairOldest = -1 or unsigned(v.pairBorn) < unsigned(r.pairOldestBorn)) then
+                     v.pairOldest := r.pairIndex;
+                     v.pairOldestBorn := v.pairBorn;
                   end if;
                end if;
-            end if;
-
-            if r.pairIndex = PAIR_DEPTH_C-1 then
-               v.pairState := PAIR_SELECT_S;
-            else
-               v.pairIndex       := r.pairIndex+1;
-               v.pairReadAddress := toSlv(v.pairIndex, TABLE_ADDR_WIDTH_C);
-               v.pairReadEnable  := '1';
-               v.pairState       := PAIR_READ_S;
+               if r.pairIndex = PAIR_DEPTH_C-1 then
+                  v.pairState := PAIR_SELECT_S;
+               else
+                  v.pairIndex := r.pairIndex+1;
+                  v.pairWord := 0;
+                  v.pairReadAddress := toSlv(PAIR_WORDS_C*(r.pairIndex+1), PAIR_ADDR_WIDTH_C);
+                  v.pairReadEnable := '1';
+                  v.pairState := PAIR_READ_S;
+               end if;
             end if;
 
          when PAIR_SELECT_S =>
             v.pairSlot := r.pairMatch;
+            v.pairNew := '0';
+            v.pairDuplicateEqual := '1';
+            v.pairWriteSync := '0';
+            v.pairWriteFollow := '0';
+            v.pairState := PAIR_DECIDE_S;
 
             if r.pairMatch = -1 then
+               v.pairNew := '1';
                v.pairSlot := r.pairFree;
-
                if r.pairFree = -1 then
                   v.pairSlot := r.pairOldest;
                end if;
+            elsif rxMessage.messageType = PTP_MSG_FOLLOW_UP_C and r.pairFollowSeen(r.pairMatch) = '1' then
+               -- Duplicate identity is checked without reconstructing the row.
+               v.pairWord := 5;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairMatch+5, PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_COMPARE_READ_S;
             end if;
 
-            v.pairState := PAIR_APPLY_S;
+         when PAIR_COMPARE_READ_S =>
+            v.pairState := PAIR_COMPARE_S;
+         when PAIR_COMPARE_S =>
 
-            if v.pairSlot /= -1 then
-               if r.pairUsed(v.pairSlot) = '1' then
-                  v.pairReadAddress := toSlv(v.pairSlot, TABLE_ADDR_WIDTH_C);
-                  v.pairReadEnable  := '1';
-                  v.pairState       := PAIR_LOAD_S;
+            if r.pairWord <= 6 then
+               pairWord := rxMessage.correction(32*(r.pairWord-5)+31 downto 32*(r.pairWord-5));
+            else
+               pairWord := remoteTime(32*(r.pairWord-17)+31 downto 32*(r.pairWord-17));
+            end if;
+
+            v.pairDuplicateEqual := r.pairDuplicateEqual and toSl(pairWord = pairReadData);
+
+            if r.pairWord = 19 then
+               v.pairState := PAIR_DECIDE_S;
+            else
+               v.pairWord := r.pairWord+1;
+               if r.pairWord = 6 then
+                  v.pairWord := 17;
                end if;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairSlot+v.pairWord, PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_COMPARE_READ_S;
             end if;
 
-         when PAIR_LOAD_S =>
-            v.pairState := PAIR_APPLY_S;
+         when PAIR_DECIDE_S =>
+            v.pairState := PAIR_ACK_S;
 
-         when PAIR_APPLY_S =>
-            if r.pairSlot /= -1 then
-               if r.pairUsed(r.pairSlot) = '1' then
-                  pair            := unpackPair(pairReadData);
-                  pair.used       := '1';
-                  pair.syncSeen   := r.pairSyncSeen(r.pairSlot);
-                  pair.twoStep    := r.pairTwoStep(r.pairSlot);
-                  pair.followSeen := r.pairFollowSeen(r.pairSlot);
-                  pair.complete   := r.pairComplete(r.pairSlot);
-               end if;
+            if r.pairSlot /= -1 and r.pairNew = '0' then
+               pair.used := '1';
+               pair.sequenceId := rxMessage.sequenceId;
+               pair.syncSeen := r.pairSyncSeen(r.pairSlot);
+               pair.twoStep := r.pairTwoStep(r.pairSlot);
+               pair.followSeen := r.pairFollowSeen(r.pairSlot);
+               pair.complete := r.pairComplete(r.pairSlot);
             end if;
+
+         when PAIR_UPDATE_S =>
+            v.pairWriteEnable := r.pairNew;
+
+            case r.pairWord is
+               when 0 =>
+                  pairWord(15 downto 0) := rxMessage.sequenceId;
+               when 1 to 2 =>
+                  pairWord := r.pairTicks(32*(r.pairWord-1)+31 downto 32*(r.pairWord-1));
+               when 3 to 4 =>
+
+                  if r.pairWriteSync = '1' then
+                     pairWord := rxMessage.correction(32*(r.pairWord-3)+31 downto 32*(r.pairWord-3));
+                     v.pairWriteEnable := '1';
+                  end if;
+
+               when 5 to 6 =>
+
+                  if r.pairWriteFollow = '1' then
+                     if rxMessage.messageType = PTP_MSG_FOLLOW_UP_C then
+                        pairWord := rxMessage.correction(32*(r.pairWord-5)+31 downto 32*(r.pairWord-5));
+                     end if;
+                     v.pairWriteEnable := '1';
+                  end if;
+
+               when 7 to 16 =>
+
+                  if r.pairWriteSync = '1' then
+                     pairWord := syncWord(inputSample, r.pairWord-7);
+                     v.pairWriteEnable := '1';
+                  end if;
+
+               when 17 to 19 =>
+
+                  if r.pairWriteFollow = '1' then
+                     pairWord := syncWord(inputSample, r.pairWord-7);
+                     v.pairWriteEnable := '1';
+                  end if;
+
+            end case;
+
+            v.pairWriteAddress := toSlv(PAIR_WORDS_C*r.pairSlot+r.pairWord, PAIR_ADDR_WIDTH_C);
+            v.pairWriteData := pairWord;
+
+            if r.pairWord = PAIR_WORDS_C-1 then
+               v.pairState := PAIR_PUBLISH_S;
+            else
+               v.pairWord := r.pairWord+1;
+            end if;
+
+         when PAIR_PUBLISH_S =>
+            v.pairState := PAIR_ACK_S;
+
+            if r.pairPublish = '1' then
+               v.pairWord := 3;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairSlot+3, PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_PUBLISH_READ_S;
+            end if;
+
+         when PAIR_PUBLISH_READ_S =>
+            v.pairState := PAIR_PUBLISH_CAPTURE_S;
+         when PAIR_PUBLISH_CAPTURE_S =>
+
+            if r.pairWord <= 6 then
+               -- Keep the two signed wire corrections here until RATE sums
+               -- them in its workspace before normalizing the remote timestamp.
+               v.pendingSync.correction(32*(r.pairWord-3)+31 downto 32*(r.pairWord-3)) := pairReadData;
+            else
+               takeSyncWord(v.pendingSync, r.pairWord-7, pairReadData);
+            end if;
+
+            if r.pairWord = PAIR_WORDS_C-1 then
+               v.pairState := PAIR_ACK_S;
+            else
+               v.pairWord := r.pairWord+1;
+               v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairSlot+r.pairWord+1, PAIR_ADDR_WIDTH_C);
+               v.pairReadEnable := '1';
+               v.pairState := PAIR_PUBLISH_READ_S;
+            end if;
+
+         when PAIR_ACK_S =>
+            null;
       end case;
 
       v.rxReady := '0';
-
       -- A pair's producer is the input holding register throughout the scan.
       -- Acknowledge only when its selected row and publication capacity are
       -- available; registering ready here would require another payload slot.
       if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' and
          r.historyState = HISTORY_IDLE_S and v.historyState = HISTORY_IDLE_S and
          (r.responseValid = '0' or responseReady = '1') then
-         if r.pairState = PAIR_APPLY_S then
+         if r.pairState = PAIR_ACK_S then
             v.rxReady := '1';
          elsif r.pairState = PAIR_IDLE_S and
             rxMessage.messageType /= PTP_MSG_SYNC_C and rxMessage.messageType /= PTP_MSG_FOLLOW_UP_C then
@@ -1101,7 +1570,43 @@ begin
          end if;
       end if;
 
+      -- Announce body and decoded metadata form one immutable result. Its
+      -- producer holds them through this twelve-word upload; acknowledgement publishes RAM ownership
+      -- and the public diagnostic record together. Rejected traffic needs no copy.
+      if v.rxReady = '1' and rxValid = '1' and rxMessage.messageType = PTP_MSG_ANNOUNCE_C and
+         policyValid = '1' and validAnnounce(rxMessage) and r.announceStored = '0' then
+         v.rxReady := '0';
+         if r.exchangeWriting = '0' then
+            v.publicationPort.write := '1';
+            v.publicationPort.first := toSl(r.announceWord = 0);
+            v.publicationPort.recordIndex := x"0";
+            v.publicationPort.wordIndex := toSlv(r.announceWord,8);
+            case r.announceWord is
+               when 0 to 7 =>
+                  v.publicationPort.data := slv(resize(shift_right(unsigned(rxMessage.messageBody),32*r.announceWord),32));
+               when 8 to 9 =>
+                  v.publicationPort.data := slv(resize(shift_right(unsigned(ptpGrandmasterIdentity(rxMessage)),32*(r.announceWord-8)),32));
+               when 10 =>
+                  v.publicationPort.data := x"0000" & rxMessage.flags;
+               when others =>
+                  v.publicationPort.data := x"0000" & ptpUtcOffset(rxMessage);
+            end case;
+            if r.announceWord = 11 then
+               v.announceStored := '1';
+               v.announceWord := 0;
+            else
+               v.announceWord := r.announceWord+1;
+            end if;
+         end if;
+      end if;
+
+      if v.rxReady = '1' and rxValid = '1' and rxMessage.messageType = PTP_MSG_ANNOUNCE_C then
+         v.announceStored := '0';
+         v.announceWord := 0;
+      end if;
+
       validResponse := '0';
+
       if rxMessage.messageType = PTP_MSG_DELAY_RESP_C and policyFlags = x"0000" and
          unsigned(ptpMessageNanoseconds(rxMessage)) < PTP_NANOSECONDS_PER_SECOND_C then
          validResponse := rxValid and v.rxReady and policyValid;
@@ -1111,6 +1616,7 @@ begin
          v.response      := rxMessage;
          v.responseValid := '1';
       end if;
+
       if responseAccepted = '1' and abortPort = '0' and validLogInterval(r.responseLog) then
          v.minimumInterval := intervalTicks(r.responseLog, r.activeConfig.delayInterval);
       end if;
@@ -1151,9 +1657,10 @@ begin
          (r.requestStarted = '0' or unsigned(phcStatus.ticks)-unsigned(r.lastRequest) >= r.requestInterval) then
          v.allocate := '1';
       end if;
+
       if r.allocate = '1' and allocateReady = '1' and r.measurementMaster.abort = '0' then
          v.allocate                                   := '0';
-         v.frame                                      := buildRequest(r.activeConfig, localMac, allocateSequence);
+         v.frame                                      := buildRequest(portConfig(r.activeConfig), localMac, allocateSequence);
          v.master                                     := AXI_STREAM_MASTER_INIT_C;
          v.master.tValid                              := '1';
          v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0)   := (others => '1');
@@ -1186,12 +1693,13 @@ begin
       -- payload stays at its producer until this acknowledgement edge.
       -- Consume one message: reject policy failures, otherwise dispatch by type.
       malformed := false;
-      if v.rxReady = '1' and rxValid = '1' then
-         v.pairState := PAIR_IDLE_S;
 
+      if rxValid = '1' and (r.pairState = PAIR_DECIDE_S or
+         (v.rxReady = '1' and r.pairState = PAIR_IDLE_S)) then
          if policyValid = '0' then
             malformed := true;
          else
+
             case rxMessage.messageType is
                when PTP_MSG_SYNC_C | PTP_MSG_FOLLOW_UP_C =>
                   -- Validate message semantics before allocating or changing a slot.
@@ -1213,21 +1721,16 @@ begin
                         malformed := true;
                      end if;
                   end if;
-
                   if not malformed then
                      slot := r.pairSlot;
-
                      if slot /= -1 then
                         pairUpdated := true;
-
-                        if pair.used = '0' or pair.sample.sequenceId /= rxMessage.sequenceId then
-                           pair                   := PAIR_INIT_C;
+                        if pair.used = '0' or pair.sequenceId /= rxMessage.sequenceId then
+                           pair := PAIR_INIT_C;
                            pair.used              := '1';
-                           pair.born              := r.pairTicks;
-                           pair.sample.sequenceId := rxMessage.sequenceId;
+                           pair.sequenceId := rxMessage.sequenceId;
                         end if;
                      end if;
-
                      if slot = -1 then
                         malformed := true;
                      elsif rxMessage.correction = PTP_CORRECTION_OVERFLOW_C then
@@ -1235,7 +1738,7 @@ begin
                         -- half received. Neither arrival order nor a later
                         -- finite duplicate may revive an overflowed exchange.
                         pair.complete := '1';
-                        malformed     := true;
+                        malformed := true;
                      elsif rxMessage.messageType = PTP_MSG_SYNC_C then
                         if pair.syncSeen = '1' or
                            (policyFlags = PTP_ONE_STEP_FLAGS_C and pair.followSeen = '1') then
@@ -1243,22 +1746,17 @@ begin
                            -- the physical capture is a different wire event.
                            -- One-step cannot inherit an earlier Follow_Up either.
                            pair.complete := '1';
-                           malformed     := true;
+                           malformed := true;
                         else
+                           v.pairWriteSync := '1';
                            pair.syncSeen       := '1';
-                           pair.sample.capture := rxMessage.capture;
-                           pair.syncCorrection := rxMessage.correction;
                            pair.twoStep        := '0';
-
                            if policyFlags = PTP_TWO_STEP_FLAGS_C then
                               pair.twoStep := '1';
                            else
-                              pair.sample.remoteTime := ptpMessageTimestamp(rxMessage);
-                              pair.followCorrection  := (others => '0');
+                              v.pairWriteFollow := '1';
                            end if;
-
                            v.syncLimit := receiptTimeout(rxMessage.logInterval, r.activeConfig.syncTimeout);
-
                            if not validLogInterval(rxMessage.logInterval) and
                               rxMessage.logInterval /= PTP_LOG_INTERVAL_UNSPECIFIED_C then
                               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
@@ -1270,30 +1768,28 @@ begin
                            -- part of the one-step association, even after use.
                            malformed := true;
                         elsif pair.followSeen = '1' then
-                           if pair.sample.remoteTime /= ptpMessageTimestamp(rxMessage) or
-                              pair.followCorrection /= rxMessage.correction then
+                           if r.pairDuplicateEqual = '0' then
                               pair.complete := '1';
-                              malformed     := true;
+                              malformed := true;
                            end if;
                         else
+                           v.pairWriteFollow := '1';
                            pair.followSeen        := '1';
-                           pair.sample.remoteTime := ptpMessageTimestamp(rxMessage);
-                           pair.followCorrection  := rxMessage.correction;
                         end if;
                      end if;
                   end if;
-
                when PTP_MSG_DELAY_RESP_C =>
                   if validResponse = '0' then
                      malformed := true;
                   end if;
-
                when PTP_MSG_ANNOUNCE_C =>
                   if not validAnnounce(rxMessage) then
-                     malformed      := true;
+                     malformed := true;
                      v.announceSeen := '0';
                   else
                      v.announceSeen                   := '1';
+                     v.publicationPort.commit := '1';
+                     v.publicationPort.commitRecord := x"0";
                      v.portStatus.announceBody        := rxMessage.messageBody;
                      v.announceTicks                  := rxMessage.capture.ticks;
                      v.portStatus.grandmasterIdentity := ptpGrandmasterIdentity(rxMessage);
@@ -1306,10 +1802,10 @@ begin
                         v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                      end if;
                   end if;
-
                when others =>
                   malformed := true;
             end case;
+
          end if;
       end if;
 
@@ -1325,108 +1821,320 @@ begin
       -- or second wide table read is needed. Chronology still gates acceptance.
       case r.state is
          when IDLE_S =>
-            if r.measurementMaster.valid = '0' then
-               if pairUpdated and pair.used = '1' and pair.syncSeen = '1' and pair.complete = '0' and
-                  (pair.twoStep = '0' or pair.followSeen = '1') then
-                  pair.complete            := '1';
-                  completedSync            := pair.sample;
-                  completedSync.correction := slv(resize(signed(pair.syncCorrection), 128));
 
-                  if pair.twoStep = '1' then
-                     completedSync.correction := slv(signed(completedSync.correction)+
-                                                     resize(signed(pair.followCorrection), 128));
-                  end if;
-
-                  -- Check age at completion, before conversion adds latency.
-                  if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
+            if r.pairState = PAIR_ACK_S and v.rxReady = '1' and rxValid = '1' then
+               v.pairState := PAIR_IDLE_S;
+               if r.pairPublish = '1' then
+                  if unsigned(phcStatus.ticks)-unsigned(r.pendingSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
                      v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                   else
-                     v.pendingSync := completedSync;
-                     v.state       := REMOTE_TIME_S;
+                     v.rateWord := 0;
+                     v.rateStep := 0;
+                     v.rateUpdated := '0';
+                     v.state := RATE_LOAD_S;
                   end if;
                end if;
             end if;
 
-         when REMOTE_TIME_S =>
-            remoteTime := convertedTime+signed(r.pendingSync.correction);
-            v.state    := IDLE_S;
-            if r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks)) then
-               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
-            else
-               v.portStatus.active          := '1';
-               v.lastSync                   := r.pendingSync;
-               v.lastRemote                 := remoteTime;
-               v.lastTicks                  := r.pendingSync.capture.ticks;
-               v.historyWriteEnable         := '1';
-               v.historyWriteAddress        := toSlv(r.historyPtr, TABLE_ADDR_WIDTH_C);
-               v.historyValid(r.historyPtr) := '1';
-               v.historyPtr                 := (r.historyPtr+1) mod HISTORY_DEPTH_C;
-               v.portStatus.syncCount       := ptpSatInc(v.portStatus.syncCount);
-               v.ratePending                := '0';
-               v.state                      := LOCAL_TIME_S;
+         when RATE_LOAD_S =>
 
-               if r.anchorValid = '0' then
-                  v.anchorRemote := remoteTime;
-                  v.anchorPhase  := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
-                  v.anchorValid  := '1';
+            if r.compute.memValid = '0' and (r.rateWord = 24 or r.rateWord = 25) then
+               v.state := RATE_CONFIG_READ_S;
+            elsif r.compute.memValid = '0' then
+               v.compute.memValid := '1';
+               v.compute.memWrite := '1';
+               v.compute.memWord := toSlv(rateAddress, 6);
+               v.compute.memData := rateData(32*(r.rateWord mod 4)+31 downto 32*(r.rateWord mod 4));
+            elsif computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
+               v.compute.memValid := '0';
+               if r.rateWord = 47 then
+                  v.state := RATE_PLAN_S;
                else
-                  rateSpan := ptpTickPhase(r.pendingSync.capture)-signed(resize(unsigned(r.anchorPhase), 128));
-                  if rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), PTP_TICK_PHASE_BITS_C) and rateSpan > 0 then
-                     v.rateA        := slv(shift_left(remoteTime-r.anchorRemote, RATE_RATIO_SHIFT_C));
-                     v.rateB        := slv(rateSpan);
-                     v.anchorRemote := remoteTime;
-                     v.anchorPhase  := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
-                     v.ratePending  := '1';
-                  end if;
+                  v.rateWord := r.rateWord+1;
                end if;
             end if;
 
-         when LOCAL_TIME_S =>
-            -- Keep this forward result while the optional rate divide runs.
-            v.measurementMaster.data              := PTP_MEASUREMENT_INIT_C;
-            v.measurementMaster.data.generation   := r.pendingSync.capture.generation;
-            v.measurementMaster.data.ticks        := r.pendingSync.capture.ticks;
-            v.measurementMaster.data.syncSequence := r.pendingSync.sequenceId;
-            v.measurementMaster.data.forward      := slv(convertedTime-r.lastRemote);
-            v.measurementMaster.data.ratio        := r.ratio;
-            v.measurementMaster.data.ratioValid   := qualifiedRatio;
-            v.measurementMaster.valid             := '1';
-            v.state                               := IDLE_S;
-            if r.ratePending = '1' then
-               v.measurementMaster.valid := '0';
-               v.state                   := RATE_ISSUE_S;
+         when RATE_CONFIG_READ_S =>
+            v.configMaster.valid := '1';
+            v.configMaster.write := '0';
+            v.configMaster.bank := "01";
+            v.configMaster.index := toSlv(40+r.rateWord-24,8);
+            v.state := RATE_CONFIG_WAIT_S;
+         when RATE_CONFIG_WAIT_S =>
+
+            if configSlaves(1).responseValid = '1' then
+               v.compute.memValid := '1';
+               v.compute.memWrite := '1';
+               v.compute.memWord := toSlv(r.rateWord,6);
+               v.compute.memData := configSlaves(1).data(28 downto 0) & "000";
+               if r.rateWord = 25 then
+                  v.compute.memData(2 downto 0) := r.rateSpanCarry;
+               end if;
+               v.rateSpanCarry := configSlaves(1).data(31 downto 29);
+               v.state := RATE_LOAD_S;
+            end if;
+
+         when RATE_PLAN_S =>
+            v.state := RATE_ISSUE_S;
+
+            case r.rateStep is
+               when 0 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_MUL_C, 0, 14, 0, 15);
+               when 1 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 0, 1, 0, 15);
+               when 2 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 0, 4, 0, 15);
+               when 3 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 0, 10, 13, 15);
+
+                  if r.portStatus.active = '0' then
+                     v.rateStep := 4;
+                     v.state := RATE_PLAN_S;
+                  end if;
+
+               when 4 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_MUL_C, 2, 14, 2, 15);
+               when 5 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 2, 3, 2, 15);
+               when 6 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 2, 0, 2, 15);
+               when 7 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 10, 15);
+               when 8 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 11, 15);
+               when 9 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 5, 0, 12, 15);
+               when 10 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 5, 12, 13, 15);
+               when 11 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 13, 6, 14, 15);
+               when 12 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 0, 11, 14, 15);
+               when 13 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SHL_C, 14, 0, 14, 15, RATE_RATIO_SHIFT_C);
+               when 14 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 11, 15);
+               when 15 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 5, 0, 12, 15);
+               when 16 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_DIV_C, 14, 13, 13, 15, 0, '1');
+               when 17 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 13, 7, 14, 15);
+               when 18 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 8, 13, 14, 15);
+               when 19 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 13, 9, 14, 15);
+
+                  if r.ratioCount = 0 then
+                     rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 13, 0, 9, 15);
+                  end if;
+
+               when 20 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_SHR_C, 14, 0, 14, 15, RATIO_FILTER_SHIFT_C, '1');
+               when 21 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 9, 14, 9, 15);
+               when 22 =>
+                  v.rateWord := 0;
+                  v.state := RATE_READ_S;
+               when 23 =>
+                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 4, 13, 4, 15);
+            end case;
+
+            if v.state = RATE_ISSUE_S then
+               v.compute.job := rateJob;
+               v.compute.jobValid := '1';
             end if;
 
          when RATE_ISSUE_S =>
-            if rateReady = '1' then
+
+            if computeSlaves(PTP_COMPUTE_RATE_C).jobReady = '1' then
+               v.compute.jobValid := '0';
                v.state := RATE_WAIT_S;
             end if;
 
          when RATE_WAIT_S =>
-            if rateResultValid = '1' and abortPort = '0' then
-               if rateError = '0' and signed(rateResult) >= signed(resize(NOMINAL_C-RATE_MARGIN_C, 128)) and
-                  signed(rateResult) <= signed(resize(NOMINAL_C+RATE_MARGIN_C, 128)) then
-                  if r.ratioCount = 0 then
-                     v.ratio := rateResult(63 downto 0);
-                  else
-                     v.ratio := slv(resize(signed(resize(unsigned(r.ratio), 128))+
-                        ptpRoundShift(signed(rateResult)-signed(resize(unsigned(r.ratio), 128)), RATIO_FILTER_SHIFT_C), 64));
-                  end if;
-                  if r.ratioCount < RATIO_QUALIFY_COUNT_C then
-                     v.ratioCount := r.ratioCount+1;
-                  end if;
-                  v.ratioTicks := r.pendingSync.capture.ticks;
-               else
-                  v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
-               end if;
-               v.measurementMaster.data.ratio      := v.ratio;
-               v.measurementMaster.data.ratioValid := '0';
-               if v.ratioCount = RATIO_QUALIFY_COUNT_C and unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
-                  v.measurementMaster.data.ratioValid := '1';
-               end if;
-               v.measurementMaster.valid := '1';
-               v.state                   := IDLE_S;
+
+            if computeSlaves(PTP_COMPUTE_RATE_C).resultValid = '1' then
+               v.compute.resultReady := '1';
+               v.state := RATE_PLAN_S;
+               v.rateStep := (r.rateStep+1) mod 24;
+
+               case r.rateStep is
+                  when 1 =>
+                     v.rateStep := 23;
+                  when 23 =>
+                     v.rateWord := 0;
+                     v.state := RATE_CORRECTION_READ_S;
+                  when 3 =>
+                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' or
+                        computeSlaves(PTP_COMPUTE_RATE_C).resultEqual = '1' or
+                        unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks) then
+                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        v.state := IDLE_S;
+                     end if;
+                  when 7 =>
+                     v.state := RATE_HISTORY_BEGIN_S;
+                     v.rateWord := 0;
+                     v.portStatus.active := '1';
+                     v.lastTicks := r.pendingSync.capture.ticks;
+                     v.historyWriteBusy := '1';
+                     v.historyWriteWord := 0;
+                     v.portStatus.syncCount := ptpSatInc(v.portStatus.syncCount);
+                     if r.anchorValid = '1' then
+                        v.rateStep := 10;
+                     end if;
+                  when 9 =>
+                     v.anchorValid := '1';
+                     v.rateStep := 22;
+                  when 11 =>
+                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' then
+                        v.rateStep := 22;
+                     end if;
+                  when 16 =>
+                     if computeSlaves(PTP_COMPUTE_RATE_C).resultError = '1' then
+                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        v.rateStep := 22;
+                     end if;
+                  when 17 | 18 =>
+                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' then
+                        v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+                        v.rateStep := 22;
+                     elsif r.rateStep = 18 then
+                        v.rateUpdated := '1';
+                     end if;
+                  when 19 =>
+                     if r.ratioCount = 0 then
+                        v.rateStep := 22;
+                     end if;
+                  when others =>
+                     null;
+               end case;
+
             end if;
+
+         when RATE_HISTORY_BEGIN_S =>
+
+            if r.historyWriteWord = 17 and r.historyWriteEnable = '0' then
+               v.state := RATE_HISTORY_READ_S;
+            end if;
+
+         when RATE_HISTORY_READ_S =>
+            v.compute.memValid := '1';
+            v.compute.memWrite := '0';
+            v.compute.memWord := toSlv(8+r.rateWord,6);
+
+            if r.rateWord >= 4 then
+               v.compute.memWord := toSlv(r.rateWord-4,6);
+            end if;
+
+            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
+               v.compute.memValid := '0';
+               v.compute.readReady := '1';
+               v.state := RATE_HISTORY_WAIT_S;
+            end if;
+
+         when RATE_HISTORY_WAIT_S =>
+            v.compute.readReady := '1';
+
+            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
+               v.historyWriteEnable := '1';
+               v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+17+r.rateWord,HISTORY_ADDR_WIDTH_C);
+               v.historyWriteData := computeSlaves(PTP_COMPUTE_RATE_C).readData;
+               if r.rateWord = 7 then
+                  v.state := RATE_HISTORY_DONE_S;
+               else
+                  v.rateWord := r.rateWord+1;
+                  v.state := RATE_HISTORY_READ_S;
+               end if;
+            end if;
+
+         when RATE_HISTORY_DONE_S =>
+            v.historyWriteBusy := '0';
+            v.historyValid(r.historyPtr) := '1';
+            v.historyPtr := (r.historyPtr+1) mod HISTORY_DEPTH_C;
+            v.state := RATE_PLAN_S;
+         when RATE_CORRECTION_READ_S =>
+            v.compute.memValid := '1';
+            v.compute.memWrite := '0';
+            v.compute.memWord := toSlv(16+r.rateWord, 6);
+
+            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
+               v.compute.memValid := '0';
+               v.compute.readReady := '1';
+               v.state := RATE_CORRECTION_WAIT_S;
+            end if;
+
+         when RATE_CORRECTION_WAIT_S =>
+            v.compute.readReady := '1';
+
+            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
+               v.pendingSync.correction(32*r.rateWord+31 downto 32*r.rateWord) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
+               if r.rateWord = 3 then
+                  v.rateStep := 2;
+                  v.state := RATE_PLAN_S;
+               else
+                  v.rateWord := r.rateWord+1;
+                  v.state := RATE_CORRECTION_READ_S;
+               end if;
+            end if;
+
+         when RATE_READ_S =>
+            v.compute.memValid := '1';
+            v.compute.memWrite := '0';
+            v.compute.memWord := toSlv(8+r.rateWord, 6);
+
+            if r.rateWord >= 4 then
+               v.compute.memWord := toSlv(36+r.rateWord-4, 6);
+            end if;
+
+            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
+               v.compute.memValid := '0';
+               v.compute.readReady := '1';
+               v.state := RATE_READ_WAIT_S;
+            end if;
+
+         when RATE_READ_WAIT_S =>
+            v.compute.readReady := '1';
+
+            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
+               if r.rateWord < 4 then
+                  v.measurementMaster.data.forward(32*r.rateWord+31 downto 32*r.rateWord) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
+               else
+                  v.ratio(32*(r.rateWord-4)+31 downto 32*(r.rateWord-4)) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
+               end if;
+               if r.rateWord = 5 then
+                  v.state := RATE_PUBLISH_S;
+               else
+                  v.rateWord := r.rateWord+1;
+                  v.state := RATE_READ_S;
+               end if;
+            end if;
+
+         when RATE_PUBLISH_S =>
+
+            if r.rateUpdated = '1' then
+               if r.ratioCount < RATIO_QUALIFY_COUNT_C then
+                  v.ratioCount := r.ratioCount+1;
+               end if;
+               v.ratioTicks := r.pendingSync.capture.ticks;
+            end if;
+
+            v.measurementMaster.data.isDelay := '0';
+            v.measurementMaster.data.generation := r.pendingSync.capture.generation;
+            v.measurementMaster.data.ticks := r.pendingSync.capture.ticks;
+            v.measurementMaster.data.syncSequence := r.pendingSync.sequenceId;
+            v.measurementMaster.data.delaySequence := (others => '0');
+            v.measurementMaster.data.delayValue := (others => '0');
+            v.measurementMaster.data.ratio := r.ratio;
+            v.measurementMaster.data.ratioValid := '0';
+
+            if v.ratioCount = RATIO_QUALIFY_COUNT_C and
+               unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+               v.measurementMaster.data.ratioValid := '1';
+            end if;
+
+            v.measurementMaster.valid := '1';
+            v.state := IDLE_S;
       end case;
 
       -------------------------------------------------------------------------
@@ -1435,12 +2143,15 @@ begin
       -- Result valid is registered; the shared abort takes priority at this
       -- receiver as well as at the arithmetic/ledger producers.
       if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and v.state = IDLE_S and
-         r.pairState = PAIR_IDLE_S and v.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' then
+         r.pairState = PAIR_IDLE_S and v.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' and
+         r.exchangeWriting = '0' and v.publicationPort.commit = '0' then
          v.e2eTake := '1';
          v.e2eBusy := '0';
          if e2eError = '0' and qualifiedRatio = '1' then
             v.measurementMaster.data           := e2eResult;
-            v.portStatus.exchange              := r.pendingExchange;
+            v.portStatus.exchange := exchangeRecord(r.e2eSync,r.e2eDelay);
+            v.publicationPort.commit := '1';
+            v.publicationPort.commitRecord := x"1";
             v.measurementMaster.valid          := '1';
             v.portStatus.delayCount            := ptpSatInc(v.portStatus.delayCount);
          else
@@ -1448,16 +2159,22 @@ begin
          end if;
       end if;
 
-      -- One whole-row update; RAM contents are never cleared by reset/abort.
+      -- Ownership changes precede field writes, but RX and rate admission
+      -- remain blocked until the selected row has drained its registered write.
       if pairUpdated then
-         v.pairUsed(r.pairSlot)       := pair.used;
-         v.pairSyncSeen(r.pairSlot)   := pair.syncSeen;
-         v.pairTwoStep(r.pairSlot)    := pair.twoStep;
+         v.pairPublish := '0';
+         if pair.used = '1' and pair.syncSeen = '1' and pair.complete = '0' and
+            (pair.twoStep = '0' or pair.followSeen = '1') then
+            v.pairPublish := '1';
+            pair.complete := '1';
+         end if;
+         v.pairUsed(r.pairSlot) := pair.used;
+         v.pairSyncSeen(r.pairSlot) := pair.syncSeen;
+         v.pairTwoStep(r.pairSlot) := pair.twoStep;
          v.pairFollowSeen(r.pairSlot) := pair.followSeen;
-         v.pairComplete(r.pairSlot)   := pair.complete;
-         v.pairWriteEnable           := '1';
-         v.pairWriteAddress          := toSlv(r.pairSlot, TABLE_ADDR_WIDTH_C);
-         v.pairWriteData             := packPair(pair);
+         v.pairComplete(r.pairSlot) := pair.complete;
+         v.pairWord := 0;
+         v.pairState := PAIR_UPDATE_S;
       end if;
 
       -------------------------------------------------------------------------
@@ -1473,15 +2190,23 @@ begin
          v.pairReadEnable          := '0';
          v.pairWriteEnable         := '0';
          v.historyState            := HISTORY_IDLE_S;
+         v.normalizedValid         := '0';
+         v.exchangeWriting := '0';
+         v.announceWord := 0;
+         v.announceStored := '0';
          v.historyReadEnable       := '0';
          v.historyWriteEnable      := '0';
+         v.historyWriteBusy := '0';
          v.historyFound            := '0';
          v.historyValid            := (others => '0');
          v.portStatus.active       := '0';
          v.syncLimit               := r.activeConfig.syncTimeout;
          v.announceLimit           := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
          v.anchorValid             := '0';
-         v.ratePending             := '0';
+         v.compute := PTP_COMPUTE_MASTER_INIT_C;
+         v.compute.cancel := '1';
+         v.configMaster.valid := '0';
+         v.configMaster.cancel := '1';
          v.ratioCount              := 0;
          v.state                   := IDLE_S;
          v.measurementMaster.valid := '0';
@@ -1501,34 +2226,41 @@ begin
          v.e2eBusy       := '0';
          v.delayReady    := '0';
       end if;
-      -- Register the rate request with the next operands/state. The shared
-      -- child samples the registered abort with these requests. Local admission
-      -- remains closed while that cancellation drains through the child.
-      v.rateInput := '0';
-      if v.state = RATE_ISSUE_S then
-         v.rateInput := '1';
-      end if;
+
       -------------------------------------------------------------------------
       -- Registered diagnostic summaries
       -------------------------------------------------------------------------
       -- Sample derived diagnostic summaries after all protocol updates and
       -- cancellation. Counters, metadata and exchange already live in portStatus.
       v.portStatus.ratioValid := '0';
+
       if v.ratioCount = RATIO_QUALIFY_COUNT_C and
          unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
          v.portStatus.ratioValid := '1';
       end if;
+
       v.portStatus.announceValid := '0';
+
       if unsigned(phcStatus.ticks)-unsigned(v.announceTicks) <= unsigned(v.announceLimit) then
          v.portStatus.announceValid := v.announceSeen;
       end if;
+
       v.portStatus.ledgerStatus := ledgerStatus;
       v.portStatus.timeoutCount := timeoutCount;
-
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, then close the transaction.
       -------------------------------------------------------------------------
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
+      -- An inactive AXI address is unspecified. Decode only admitted requests;
+      -- RAM responses retain their address/ownership inside ptpRegisterBus.
+      readAddress := (others => '0');
+      writeAddress := (others => '0');
+      if ep.axiStatus.readEnable = '1' then
+         readAddress := ep.axiReadMaster.araddr(11 downto 0);
+      end if;
+      if ep.axiStatus.writeEnable = '1' then
+         writeAddress := ep.axiWriteMaster.awaddr(11 downto 0);
+      end if;
 
       -- Suppress register accesses during AXI-only reset.
       if regRst = '1' then
@@ -1536,11 +2268,6 @@ begin
       end if;
 
       -- Configuration shadows and live identity/status.
-      axiSlaveRegister(ep, x"004", 4, v.shadow.identityOverride);
-      axiSlaveRegister(ep, x"008", 0, v.shadow.domainNumber);
-      axiSlaveRegister(ep, x"008", 8, v.shadow.minorVersion);
-      axiSlaveRegister(ep, x"010", 0, v.shadow.localIdentity);
-      axiSlaveRegister(ep, x"020", 0, v.shadow.sourceIdentity);
       axiSlaveRegisterR(ep, x"030", 0, localMac);
       axiSlaveRegisterR(ep, x"044", 0, r.portStatus.active);
       axiSlaveRegisterR(ep, x"044", 1, r.portStatus.announceValid);
@@ -1548,17 +2275,7 @@ begin
       axiSlaveRegisterR(ep, x"048", 0, r.portStatus.ledgerStatus);
       axiSlaveRegisterR(ep, x"060", 0, r.activeConfig.localIdentity);
       axiSlaveRegisterR(ep, x"070", 0, r.activeConfig.sourceIdentity);
-
       -- Protocol timer and acceptance-limit shadows.
-      axiSlaveRegister(ep, x"080", 0, v.shadow.delayInterval);
-      axiSlaveRegister(ep, x"088", 0, v.shadow.syncTimeout);
-      axiSlaveRegister(ep, x"090", 0, v.shadow.associationTimeout);
-      axiSlaveRegister(ep, x"098", 0, v.shadow.maxExchange);
-      axiSlaveRegister(ep, x"0A0", 0, v.shadow.minRateSpan);
-      axiSlaveRegister(ep, x"0A8", 0, v.shadow.maxRateAge);
-      axiSlaveRegister(ep, x"0B0", 0, v.shadow.lfsrSeed);
-      axiSlaveRegister(ep, x"0B8", 0, v.shadow.maxPathDelay);
-
       -- Implementation constants and active shared limits.
       axiSlaveRegisterR(ep, x"0C0", 0, slv(to_unsigned(PACKET_LIFETIME_G, 64)));
       axiSlaveRegisterR(ep, x"0D0", 0, INGRESS_LATENCY_G);
@@ -1566,32 +2283,44 @@ begin
       axiSlaveRegisterR(ep, x"0E0", 0, r.activeConfig.associationTimeout);
       axiSlaveRegisterR(ep, x"0E8", 0, r.activeConfig.syncTimeout);
       axiSlaveRegisterR(ep, x"0F0", 0, r.activeConfig.maxPathDelay);
-
+      axiSlaveRegisterR(ep, x"0F8", 0, toSlv(PTP_MIN_ASSOCIATION_TICKS_C, 32));
       -- Coherent Announce and exchange snapshots.
-      axiSlaveRegisterR(ep, x"130", 0, r.snapGm);
-      axiSlaveRegisterR(ep, x"138", 0, r.snapFlags);
-      axiSlaveRegisterR(ep, x"13C", 0, r.snapUtc);
-      axiSlaveRegisterR(ep, x"140", 0, r.snapAnnounce);
-      axiSlaveRegisterR(ep, x"160", 0, r.snapExchange.t1);
-      axiSlaveRegisterR(ep, x"170", 0, r.snapExchange.t2);
-      axiSlaveRegisterR(ep, x"180", 0, r.snapExchange.t3);
-      axiSlaveRegisterR(ep, x"190", 0, r.snapExchange.t4);
-      axiSlaveRegisterR(ep, x"1A0", 0, r.snapExchange.syncCorrection);
-      axiSlaveRegisterR(ep, x"1B0", 0, r.snapExchange.delayCorrection);
-      axiSlaveRegisterR(ep, x"1B8", 0, r.snapExchange.generation);
-      axiSlaveRegisterR(ep, x"1BC", 0, r.snapExchange.syncSequence);
-      axiSlaveRegisterR(ep, x"1BC", 16, r.snapExchange.delaySequence);
-
       -- Coherent RX/protocol counters and snapshot sequence.
-      axiSlaveRegisterR(ep, x"200", 0, r.snapCounters(0));
-      axiSlaveRegisterR(ep, x"204", 0, r.snapCounters(1));
-      axiSlaveRegisterR(ep, x"208", 0, r.snapCounters(2));
-      axiSlaveRegisterR(ep, x"20C", 0, r.snapCounters(3));
-      axiSlaveRegisterR(ep, x"210", 0, r.snapCounters(4));
-      axiSlaveRegisterR(ep, x"214", 0, r.snapCounters(5));
-      axiSlaveRegisterR(ep, x"218", 0, r.snapCounters(6));
       axiSlaveRegisterR(ep, x"3FC", 0, r.sequenceId);
+      configReadIndex  := configIndex(readAddress);
+      configWriteIndex := configIndex(writeAddress);
+      ptpRegisterBus(v.configBus, r.configBus, configSlaves(0), ep, configReadIndex, configWriteIndex,
+         configMask(configWriteIndex,ep.axiWriteMaster.wstrb), "00", regRst);
+      snapshotIndex   := -1;
+      snapshotAddress := to_integer(unsigned(readAddress(11 downto 2)));
 
+      case snapshotAddress is
+         when 76 to 79 =>
+            snapshotIndex := snapshotAddress-68;
+         when 80 to 87 =>
+            snapshotIndex := snapshotAddress-80;
+         when 88 to 90 =>
+            snapshotIndex := snapshotAddress-76;
+         when 92 to 94 =>
+            snapshotIndex := snapshotAddress-77;
+         when 96 to 98 =>
+            snapshotIndex := snapshotAddress-78;
+         when 100 to 102 =>
+            snapshotIndex := snapshotAddress-79;
+         when 104 to 111 =>
+            snapshotIndex := snapshotAddress-80;
+         when others =>
+            null;
+      end case;
+
+      ptpRegisterBus(v.snapshotBus, r.snapshotBus, snapshotSlave, ep, snapshotIndex, -1, x"00000000", "00", regRst);
+      snapshotIndex := -1;
+
+      if snapshotAddress >= 128 and snapshotAddress <= 134 then
+         snapshotIndex := snapshotAddress-128;
+      end if;
+
+      ptpRegisterBus(v.counterBus, r.counterBus, counterSlave, ep, snapshotIndex, -1, x"00000000", "00", regRst);
       axiSlaveDefault(ep, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
       -- The bus reset cancels responses only. Accepted operations and active
       -- settings belong to the system-reset lifetime, not the AXI transaction.
@@ -1603,16 +2332,83 @@ begin
       -------------------------------------------------------------------------
       -- Coordinated configuration and snapshots survive AXI-only reset.
       -------------------------------------------------------------------------
-
-      -- Freeze candidate and vote together; same-edge shadow writes belong
-      -- to the next commit and must not affect this validation result.
+      -- Validate only the frozen candidate streamed by the word bank. Its
+      -- preparation handshake keeps the coordinator from sampling a partial vote.
       if configControl.prepare = '1' then
-         v.candidate   := r.shadow;
-         v.configValid := toSl(validConfig(r.shadow));
+         v.configValid := '1';
       end if;
+
+      if scanValid = '1' then
+         configIndexValue := to_integer(unsigned(scanIndex));
+         if configIndexValue mod 2 = 0 then
+            v.validateValue(31 downto 0) := scanData;
+         else
+            v.validateValue(63 downto 32) := scanData;
+         end if;
+
+         case configIndexValue is
+            when 1 =>
+               v.candidate.identityOverride := scanData(4);
+            when 2 =>
+               v.candidate.domainNumber := scanData(7 downto 0);
+               v.candidate.minorVersion := scanData(11 downto 8);
+               if unsigned(scanData(11 downto 8)) > unsigned(PTP_MINOR_VERSION_MAX_C) then
+                  v.configValid := '0';
+               end if;
+            when 4 to 5 =>
+               v.candidate.localIdentity(32*(configIndexValue-4)+31 downto 32*(configIndexValue-4)) := scanData;
+               if configIndexValue = 4 and unsigned(scanData(15 downto 0)) = 0 then
+                  v.configValid := '0';
+               end if;
+            when 6 =>
+               v.candidate.localIdentity(79 downto 64) := scanData(15 downto 0);
+            when 8 to 9 =>
+               v.candidate.sourceIdentity(32*(configIndexValue-8)+31 downto 32*(configIndexValue-8)) := scanData;
+               if configIndexValue = 8 and unsigned(scanData(15 downto 0)) = 0 then
+                  v.configValid := '0';
+               end if;
+            when 10 =>
+               v.candidate.sourceIdentity(79 downto 64) := scanData(15 downto 0);
+            when 33 =>
+               v.candidate.delayInterval := v.validateValue;
+            when 35 =>
+               v.candidate.syncTimeout := v.validateValue;
+            when 37 =>
+               v.candidate.associationTimeout := v.validateValue;
+               if unsigned(v.validateValue) < PTP_MIN_ASSOCIATION_TICKS_C then
+                  v.configValid := '0';
+               end if;
+            when 39 =>
+               v.candidate.maxExchange := v.validateValue;
+            when 41 =>
+               v.validatePrevious := v.validateValue;
+            when 43 =>
+               v.candidate.maxRateAge := v.validateValue;
+               if unsigned(v.validateValue) < unsigned(r.validatePrevious) then
+                  v.configValid := '0';
+               end if;
+            when 44 =>
+               v.candidate.lfsrSeed := scanData(15 downto 0);
+            when 47 =>
+               v.candidate.maxPathDelay := v.validateValue;
+               if signed(v.validateValue) <= 0 then
+                  v.configValid := '0';
+               end if;
+            when others =>
+               null;
+         end case;
+
+         if configIndexValue >= 33 and configIndexValue <= 43 and configIndexValue mod 2 = 1 then
+            if not ptpValidTimeout(v.validateValue) then
+               v.configValid := '0';
+            end if;
+         end if;
+      end if;
+
       if configControl.apply = '1' then
          v.activeConfig := r.candidate;
       end if;
+
       -- Derive the active identity at apply and whenever the shared MAC
       -- changes. A frozen override candidate remains independent of MAC edits.
       if configControl.apply = '1' or localMac /= r.lastMac then
@@ -1621,29 +2417,19 @@ begin
                localMac, v.activeConfig.localIdentity(15 downto 0));
          end if;
       end if;
+
       v.lastMac := localMac;
-      if snapshotControl.capture = '1' then
-         v.sequenceId   := snapshotControl.sequenceId;
-         v.snapExchange := r.portStatus.exchange;
-         v.snapAnnounce := r.portStatus.announceBody;
-         v.snapGm       := r.portStatus.grandmasterIdentity;
-         v.snapFlags    := r.portStatus.announceFlags;
-         v.snapUtc      := r.portStatus.utcOffset;
-         v.snapCounters := (
-            rxCounters.accepted,
-            rxCounters.dropped,
-            rxCounters.overflow,
-            r.portStatus.rejectedCount,
-            r.portStatus.syncCount,
-            r.portStatus.delayCount,
-            timeoutCount);
+
+      if snapshotControl.publish = '1' then
+         v.sequenceId := snapshotControl.sequenceId;
       end if;
+
       -- Apply synchronous reset before publishing next state and outputs.
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
-      rin <= v;
 
+      rin <= v;
       configValid   <= r.configValid;
       axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
@@ -1656,28 +2442,27 @@ begin
       e2eSync           <= r.e2eSync;
       delayReady        <= v.delayReady;
       e2eTake           <= v.e2eTake;
-      rateInput         <= r.rateInput;
       rxReady           <= v.rxReady;
       responseValid     <= r.responseValid;
       lifecycle         <= r.lifecycle;
       abortNow          <= r.measurementMaster.abort;
       measurementMaster <= r.measurementMaster;
       txMaster          <= r.master;
-
       -- Registered diagnostics and active shared configuration.
       status                          <= r.portStatus;
       sharedConfig.associationTimeout <= r.activeConfig.associationTimeout;
       sharedConfig.syncTimeout        <= r.activeConfig.syncTimeout;
       sharedConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;
    end process comb;
-
    seq : process (clk, rst) is
    begin
+
       if RST_ASYNC_G and rst = RST_POLARITY_G then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
+
    end process seq;
 
 end architecture rtl;

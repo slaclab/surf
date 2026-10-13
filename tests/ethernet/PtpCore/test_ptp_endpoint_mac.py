@@ -16,6 +16,9 @@
 #   eventual fresh E2E completion, and unchanged non-PTP application payload.
 # - Timing: Pause holds a complete MAC-accepted frame; explicit zero pause drains
 #   it without resetting MAC/PHC. All waits are bounded by simulator cycles.
+#   Zero propagation delay reduces GHDL event scheduling in this long fixture;
+#   registered cycle boundaries and the independent wire/FCS observer remain.
+#   Leaf and model-MAC endpoint fixtures retain their 1 ns delay checks.
 
 import cocotb
 import pytest
@@ -51,7 +54,10 @@ async def real_mac_lifecycle(d):
     await b.source(2)
     d.pauseEnable.value = 1
     async with b.rx_lock:
-        await b.wire(build_pause_frame(2000))
+        # At eight clocks per pause quantum, 8192 quanta cover the next
+        # 30000-clock Sync service interval and packet/AXI overhead. The
+        # explicit zero-pause frame below still controls physical release.
+        await b.wire(build_pause_frame(8192))
     await b.source(1, sequence=2)
     assert b.tx_count == 0, "request escaped pause"
     ledger = await b.read(0x2048)
@@ -83,7 +89,7 @@ async def real_mac_lifecycle(d):
 @pytest.mark.parametrize("two_step", [True, False], ids=["two-step", "one-step"])
 def test_ptp_endpoint_mac(mode, two_step):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpendpointloopbackwrapper",
-                      parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
+                      parameters={"TPD_PS_G": 0, "PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": True},
                       extra_env={"TWO_STEP": int(two_step), "MODE": mode, "REAL_MAC": 1},
                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})

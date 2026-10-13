@@ -57,6 +57,7 @@ class Bench:
         self.increment = round((8 if self.mode == "GMII" else 6.4) * (1 << 32))
         self.capture_extra = {}
         self.available_at = {}
+        self.decode_groups = {}
         # Exercise large seconds and nanosecond carry independently of PHC RTL.
         self.base = (((1 << 40) * 1_000_000_000 + 999999990) << 32)
         for name, value in dict(clk=0, rst=1-self.polarity, rxFlush=0, phyReady=1,
@@ -118,7 +119,16 @@ class Bench:
                             restart=bool(integer(d.rxFlush) or not integer(d.phyReady)),
                             generation=integer(d.generation))
             if self.model.counters["accepted"] > accepted:
-                self.available_at[self.model.entries[-1].stamp.ticks] = self.cycle+4
+                entry = self.model.entries[-1]
+                # Compact fixed fields: 35 common octets plus the fixed body.
+                body_bytes = {0: 10, 8: 10, 9: 20, 11: 30}[entry.key[0]]
+                groups = (35+body_bytes+7)//8
+                self.decode_groups[entry.stamp.ticks] = groups
+                self.available_at[entry.stamp.ticks] = self.cycle+groups+5
+            if actual_transfer and self.model.entries:
+                stamp = self.model.entries[0].stamp.ticks
+                self.available_at[stamp] = max(self.available_at[stamp],
+                                               self.cycle+self.decode_groups[stamp]+2)
         if expected is not None:
             self.received.append(expected)
         d.clk.value = 1
@@ -134,7 +144,7 @@ class Bench:
         await self.step(rst=self.polarity)
         await self.step(rst=1-self.polarity)
 
-    async def wait(self, count=6, **kwargs):
+    async def wait(self, count=20, **kwargs):
         for _ in range(count):
             await self.step(**kwargs)
 
@@ -176,7 +186,7 @@ class Bench:
                                 rxFlush=int(i == flush_at), **extra)
             await self.wait(12, rxFlush=0)
             point_cycles = Fraction(8)
-        await self.wait(6, rxFlush=0)
+        await self.wait(15, rxFlush=0)
         # Quantize at the capture boundary, after fractional lane advance and
         # signed calibration. The RTL uses the active increment, not 0.8 ns.
         point_q32 = self.base + (start + point_cycles) * self.increment - (self.latency << 16)
@@ -322,13 +332,15 @@ async def rx_contract(dut):
                 bench.increment += 17
                 await bench.direct(frame(marker=1000+batch*bench.depth+slot))
             dut.messageReady.value = 1
-            await bench.wait(bench.depth+4)
+            await bench.wait(8*bench.depth+5)
             assert len(bench.received) == before+bench.depth
 
         # Exact collision: full before the EOF edge even though ready is high.
         dut.messageReady.value = 0
         for slot in range(bench.depth):
             await bench.direct(frame(marker=700+slot))
+        await bench.wait(12)
+        assert integer(dut.messageValid), "collision fixture requires a published old head"
         before = len(bench.received)
         for i, beat in enumerate(beats(frame(marker=710))):
             await bench.step(directValid=1, directData=int.from_bytes(beat.data, "little"),
@@ -425,11 +437,64 @@ async def rx_contract(dut):
         await send(frame(kind=(0, 8, 9, 11)[index % 4], marker=index), corrupt=index % 7 == 0,
                    **({"lane": 4*(index % 2)} if mode == "XGMII" else {}))
     dut.messageReady.value = 1
-    await bench.wait(bench.depth+3)
+    await bench.wait(11*bench.depth+5)
     await bench.reset()
     await send(frame(marker=123))
     await bench.wait()
     assert int.from_bytes(bench.received[-1].body[:10], "big") == 123
+
+
+@cocotb.test(timeout_time=2, timeout_unit="ms", skip=os.environ.get("PHY_TYPE_G") == "DIRECT")
+async def minimum_spacing(dut):
+    bench = Bench(dut)
+    await bench.reset()
+
+    async def burst(packets):
+        if bench.mode == "GMII":
+            for raw in packets:
+                wire = b"\x55"*7+b"\xd5"+raw+zlib.crc32(raw).to_bytes(4, "little")
+                for byte in wire:
+                    await bench.step(gmiiRxDv=1, gmiiRxd=byte)
+                await bench.wait(12)
+        else:
+            # Continuous lane stream, no helper drain between frames. /T/
+            # starts the 12-octet IFG; align each next /S/ to lane zero or four.
+            stream = []
+            for raw in packets:
+                stream += [(0xfb, 1)]+[(0x55, 0)]*6+[(0xd5, 0)]
+                stream += [(byte, 0) for byte in raw+zlib.crc32(raw).to_bytes(4, "little")]
+                stream += [(0xfd, 1)]+[(7, 1)]*11
+                stream += [(7, 1)]*(-len(stream) % 4)
+            stream += [(7, 1)]*(-len(stream) % 8)
+            for offset in range(0, len(stream), 8):
+                word = stream[offset:offset+8]
+                await bench.step(xgmiiRxd=sum(b << (8*i) for i, (b, _) in enumerate(word)),
+                                 xgmiiRxc=sum(c << i for i, (_, c) in enumerate(word)))
+
+    # Alternate minimum Syncs and the larger nine-group Announce decode.
+    packets = [frame(kind=(0, 8, 9, 11)[i % 4], marker=i+1) for i in range(64)]
+    await burst(packets)
+    await bench.wait(20)
+    assert len(bench.received) == len(packets)
+    assert integer(dut.overflowCount) == 0
+    assert [int.from_bytes(item.body[:10], "big") for item in bench.received] == list(range(1, 65))
+
+    # Physical capture continues while the published head is held. Exactly
+    # the advertised logical depth is usable, including the decoding record.
+    await bench.reset()
+    bench.received.clear()
+    await bench.step(messageReady=0)
+    await burst(packets[:bench.depth])
+    await bench.wait(20)
+    assert integer(dut.acceptedCount) == bench.depth
+    assert integer(dut.overflowCount) == 0
+    await burst(packets[bench.depth:bench.depth+1])
+    await bench.wait(20)
+    assert integer(dut.overflowCount) == 1
+    await bench.step(messageReady=1)
+    await burst(packets[:8])
+    await bench.wait(20)
+    assert len(bench.received) == 8
 
 
 @pytest.mark.parametrize("mode,depth,polarity,async_reset,latency", [

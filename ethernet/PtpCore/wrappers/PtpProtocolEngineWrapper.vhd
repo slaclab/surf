@@ -17,21 +17,21 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
 
 entity PtpProtocolEngineWrapper is
    generic (
-      HISTORY_MEMORY_TYPE_G : string := "distributed";
-      PAIR_MEMORY_TYPE_G    : string := "distributed");
+      PACKET_LIFETIME_G     : positive := 5000;
+      HISTORY_MEMORY_TYPE_G : string   := "distributed";
+      PAIR_MEMORY_TYPE_G    : string   := "distributed");
    port (
       clk                   : in  sl;
       rst                   : in  sl;
@@ -40,6 +40,9 @@ entity PtpProtocolEngineWrapper is
       prepare               : in  sl;
       applyConfig           : in  sl;
       configValid           : out sl;
+      configPrepared        : out sl;
+      snapshotPublish       : in sl                                     := '0';
+      snapshotPrepared      : out sl;
       snapshotCapture       : in  sl                                    := '0';
       ticks                 : in  slv(63 downto 0);
       generation            : in  slv(31 downto 0);
@@ -127,10 +130,22 @@ architecture rtl of PtpProtocolEngineWrapper is
    signal resetN      : sl;
    signal txMaster    : AxiStreamMasterType;
    signal txSlave     : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
+   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
+   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
 
 begin
 
+   U_Compute : entity surf.PtpCompute
+      generic map (
+         MEMORY_TYPE_G => "block")
+      port map (
+         clk     => clk,
+         rst     => rst,
+         masters => computeMasters,
+         slaves  => computeSlaves);
+
    resetN <= not rst;
+
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
          ADDR_WIDTH    => 32,
@@ -169,6 +184,7 @@ begin
    -- Fixed record slices only: no protocol behavior in this fixture.
    config.prepare                        <= prepare;
    config.apply                          <= applyConfig;
+   snapshot.publish <= snapshotPublish;
    snapshot.capture                      <= snapshotCapture;
    phcStatus.ticks                       <= ticks;
    phcStatus.generation                  <= generation;
@@ -212,7 +228,6 @@ begin
    txLast                                <= txMaster.tLast;
    txSof                                 <= ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, txMaster);
    txEofe                                <= ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, txMaster);
-
    wireMessage.messageType               <= PTP_MSG_DELAY_REQ_C;
    wireMessage.sourcePortIdentity        <= x"020000FFFE0000010001";
    wireMessage.sequenceId                <= wireSequence;
@@ -227,8 +242,10 @@ begin
          HISTORY_MEMORY_TYPE_G => HISTORY_MEMORY_TYPE_G,
          PAIR_MEMORY_TYPE_G    => PAIR_MEMORY_TYPE_G,
          CLK_FREQ_G            => 125000000,
-         PACKET_LIFETIME_G     => 5000)
+         PACKET_LIFETIME_G     => PACKET_LIFETIME_G)
       port map (
+         computeMasters    => computeMasters(0 to 1),
+         computeSlaves     => computeSlaves(0 to 1),
          clk               => clk,                       -- [in]
          rst               => rst,                       -- [in]
          regRst            => regRst,                    -- [in]
@@ -237,7 +254,9 @@ begin
          axiWriteMaster    => writeMaster,               -- [in]
          axiWriteSlave     => writeSlave,                -- [out]
          configControl     => config,                    -- [in]
+         snapshotPrepared  => snapshotPrepared,
          snapshotControl   => snapshot,                  -- [in]
+         configPrepared    => configPrepared,
          configValid       => configValid,               -- [out]
          enable            => '1',                       -- [in]
          sharedConfig      => open,                      -- [out]

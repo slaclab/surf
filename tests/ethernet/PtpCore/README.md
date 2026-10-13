@@ -27,9 +27,9 @@ separates simulated behavior from remaining device and interoperability work.
   consumed on the following edge, including full-queue consume/overflow.
 - `test_ptp_rx_mac.py` runs the RX RTL beside the unchanged MAC under the
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
-- `test_ptp_rx_storage.py` checks TX-observer queues at depths two and three:
+- `test_ptp_rx_storage.py` checks the dedicated two-entry TX observer:
   lossless capture increment/error storage, pointer wrap, generation retention,
-  simultaneous consume/enqueue, three-clock FIFO delivery, consumption and
+  simultaneous consume/enqueue, compact-store decoding, consumption and
   reset/flush throughout the write/read pipeline, full-before-edge discard
   and malformed keep/TLV rejection.
   The RX oracle additionally covers depths one through four
@@ -134,11 +134,12 @@ reporting the previous full-suite result as validation of a later edit.
 
 ## Autonomous endpoint tests
 
-- `test_ptp_compute.py`: standalone `PtpCompute` prototype, not yet instantiated
-  by the endpoint. Block/distributed RAM cases check full signed128 arithmetic
-  using an independent Python integer oracle, four contexts, ownership/tags,
-  read/result stalls, contention, cancellation/reset and bounded job service.
-  See the [prototype contract and latency evidence](../../../docs/plans/ethernet-ptp/lut-optimization.md#shared-word-processor-prototype-october-12).
+- `test_ptp_compute.py`: the production shared processor with independent
+  integer arithmetic oracle, addressed result chaining, shifts/comparison,
+  four-owner arbitration, stalled readers, active/queued/held cancellation and
+  committed-state retention. Block/synchronous-high and distributed/asynchronous-low
+  reset cases both enforce the derived 4,608-clock operation ceiling. See
+  [service ownership and bounds](../../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound).
 - `test_ptp_math.py`, `test_ptp_phc.py`: checked arithmetic and cycle-by-cycle PHC
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.
   Math cancellation checks also assert that result-valid stays stable before
@@ -146,6 +147,8 @@ reporting the previous full-suite result as validation of a later edit.
   Math covers the default 128-bit divisor magnitude and bounded widths 46/1,
   exact work-cycle counts and zero/out-of-bound rejection. PHC RATE boundary
   cases compare commit-edge time and the published increment independently.
+  Snapshot edge cases retain that cycle oracle while capturing SET/PHASE/RATE/VALID
+  commits, invalidation and configuration apply; both reset styles are covered.
 - `test_ptp_e2e.py`, `test_ptp_tx_ledger.py`: independent full-width E2E vectors,
   calibration across PHC steering, keyed response/completion reordering, narrow
   sequence wrap, unknown physical fate and reset/quarantine behavior.
@@ -154,7 +157,8 @@ reporting the previous full-suite result as validation of a later edit.
   Execution outcomes are tracked in the acceptance record linked above.
   E2E covers both-zero, each-single-zero and both-nonzero calibration with
   signed corrections, full epochs and cancellation through the shared timestamp
-  stages. Each nonzero plane uses its own captured PHC increment.
+  stages. The same sweep runs with raw timestamps and the production normalized
+  history stream; each nonzero plane uses its own captured PHC increment.
   Ledger storage checks additionally cover full capture/response payloads,
   depths one/three/four, inferred distributed/block settings, reordered/simultaneous
   arrivals, consecutive records with valid held high, concurrent row writes/reads,
@@ -175,8 +179,8 @@ reporting the previous full-suite result as validation of a later edit.
   independent of simulation runtime; the low-clock case is not a PHY mode.
   Direct median checks cover every ordering of five distinct values, each
   startup population, duplicates, signed64 maximum, circular replacement and
-  rejected samples. They check nine comparison clocks, input backpressure,
-  held-valid transfers, cancellation on each comparison edge, AXI-only reset
+  rejected samples. They check the nine-comparison shared-service sort, input backpressure,
+  held-valid transfers, cancellation during sorting, AXI-only reset
   and snapshots across publication. PI cases include fractional half ties,
   maximum gains and signed64 offsets, checked integral overflow and cancellation
   around the shared clamp/rounding stages; Q16 rate state is checked before
@@ -189,8 +193,10 @@ reporting the previous full-suite result as validation of a later edit.
 - `test_ptp_reg.py`: all four development register banks at zero and nonzero bases, SURF
   field-strobe/address-alias/error behavior, immutable commit candidates, cross-bank
   atomicity, coherent snapshot sequences, queued commands and bus-reset recovery.
-  Snapshot requests must remain stable between edges; configuration apply is
-  observed separately from the registered endpoint restart path.
+  Every moved configuration/snapshot word and the derived association floor are
+  exercised, including byte writes while a candidate is frozen and reads held
+  across publication. Snapshot requests must remain stable between edges;
+  configuration apply is observed separately from the registered endpoint restart path.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
@@ -202,6 +208,8 @@ reporting the previous full-suite result as validation of a later edit.
   timestamp-conversion stages and the inclusive completion-age boundary. The thin wrapper adds observation
   and backpressure at the port boundary; it contains no alternate protocol model.
   Distributed and block RAM settings exercise the same pairing/history contract.
+  Announce snapshot cohorts cover body/metadata publication, capture during
+  upload, repeated bank reuse and restart on the common capture edge.
 - `test_ptp_protocol_ram.py`: both table RAM settings, nearest selection on either
   side of TX capture, wrapped-slot ties, RX/TX fractional phases, history age and
   separation rejection, concurrent append, cancellation throughout both scans,
@@ -221,6 +229,9 @@ reporting the previous full-suite result as validation of a later edit.
 - `test_ptp_endpoint_mac.py`: the real `EthMacTop`, both PHY interfaces, primary
   traffic/identity guard, paused TX surviving port restart, late completion and
   fresh transaction recovery in one-step and two-step runs.
+  These long cycle-level fixtures select zero propagation delay through the
+  wrapper's `TPD_PS_G` parameter to reduce event scheduling. Its default remains
+  1000 ps; leaf and model-MAC endpoint cases retain their 1 ns timing checks.
   `ptp_endpoint_test_utils.py` supplies shared wire
   stimulus and an independent physical request/FCS observer. One-step frame bodies
   use scheduled physical capture time from the independent simulation clock; the

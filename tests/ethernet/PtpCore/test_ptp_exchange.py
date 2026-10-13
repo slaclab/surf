@@ -108,6 +108,7 @@ class ExchangeBench(Bench):
         self.d.prepare.value = 1
         await self.wait()
         self.d.prepare.value = 0
+        await self.wait_config()
         assert int(self.d.configValid.value)
         await self.pulse('applyConfig')
         self.now = 10000
@@ -153,7 +154,7 @@ class ExchangeBench(Bench):
         assert self.counts() == (3, 0)
 
     async def request(self):
-        for _ in range(30):
+        for _ in range(2*(4*45+22+8)):
             if int(self.d.txValid.value):
                 break
             await self.wait()
@@ -185,7 +186,7 @@ class ExchangeBench(Bench):
         self.now = max(self.now, ticks)
         self.d.ticks.value = self.now
         self.d.wireValid.value = 1
-        for _ in range(40):
+        for _ in range(2*(4*45+22+8)):
             await RisingEdge(self.d.clk)
             accepted = int(self.d.wireReady.value)
             await Timer(1.1, unit='ns')
@@ -205,7 +206,7 @@ class ExchangeBench(Bench):
         return int.from_bytes(result.data, 'little')
 
     async def delay_result(self, seq):
-        for _ in range(1500):
+        for _ in range(16000):
             if int(self.d.measurementValid.value):
                 break
             await self.wait()
@@ -234,7 +235,7 @@ class ExchangeBench(Bench):
     async def no_delay(self):
         before = int(self.d.delayCount.value)
         # Covers the complete serialized E2E latency, not just RX admission.
-        for _ in range(1500):
+        for _ in range(16000):
             await self.wait()
             assert not int(self.d.measurementValid.value), 'rejected response published a measurement'
         assert int(self.d.delayCount.value) == before
@@ -270,8 +271,11 @@ async def ordinary_master(d):
         b.stop()
 
 
-@cocotb.test(timeout_time=1, timeout_unit='ms')
+@cocotb.test(timeout_time=10, timeout_unit='ms')
 async def response_association(d):
+    # Fourteen exchanges each include two complete negative E2E windows, a
+    # positive result and fresh rate samples. Their bounded waits can exceed
+    # 125000 clocks now that operand movement and division share one service.
     b = ExchangeBench(d)
     await b.setup()
     try:

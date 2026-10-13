@@ -2,7 +2,8 @@
 
 ## Proposed architecture for substantial LUT reduction
 
-October 12, 2026. **Implementation started; integrated area remains unmeasured.**
+October 12 design proposal, implemented October 13, 2026.
+**Connected implementation and behavioral checks are complete; integrated area remains unmeasured.**
 The architecture changes how the endpoint computes and stores its state.
 The maintainer clarified that **halving LUT usage is motivation, not a hard
 requirement**. Implement the shared processor and word-storage design, then
@@ -11,11 +12,14 @@ FPGA control. The earlier 19,000-LUT allocation below remains an illustrative
 planning exercise, not an acceptance threshold, predicted saving or conformance
 claim. Count complete lanes, including MAC and wrapper logic.
 
-The [full implementation brief](lut-implementation.md) is the execution handoff
-for another agent: final architecture, ownership, changes across all modules,
-correctness requirements and verification. It supersedes the staged rollout and
-hard numeric area gates previously proposed here. This analysis retains the
-design reasoning and historical evidence.
+The [implementation record](lut-implementation.md) describes the connected
+architecture, storage inventory and next build-host comparison; the
+[review record](rtl-review.md#october-13-connected-compute-and-word-storage)
+records all 171 passing regression configurations across focused batches.
+The completed design supersedes the staged rollout and hard numeric area gates
+previously proposed here. This analysis retains the proposal reasoning and
+dated evidence; the October 12 increment/prototype sections describe earlier
+revisions, not the current production hierarchy.
 
 ### Execution status and working assumptions
 
@@ -32,11 +36,13 @@ numerical precision, the current servo and full diagnostics remain the reference
 behavior. Additional BRAM/DSP use is acceptable within the allocation below.
 The maintainer authorized committing this preparatory checkpoint on October 12;
 it is SURF `3f0daa750`, recorded by consuming-project commit `e79b730`.
-The architectural objective remains one measurement processor per endpoint and
-word-addressed working/configuration/snapshot storage; a converter-only change
-does not satisfy it. The subsequent standalone `PtpCompute` prototype below
-begins that redesign. Production clients and their configuration/snapshot banks
-have **not** migrated. Mapped area and bounded latency still need verification.
+The October 13 implementation connects one measurement processor per endpoint
+and word-addressed working/configuration/snapshot storage. Rate, E2E, servo and
+PHC command preparation have migrated, together with protocol tables, the ledger,
+compact RX and the dedicated TX observer. The
+[service derivation](rtl-readability.md#shared-service-bound) replaces the old
+association floor with 70,347,776 raw ticks. Mapped area and hardware timing
+remain unverified.
 
 The maintainer proposed a **10 Hz maximum sustained Sync rate**. Use that as
 the working deployment envelope, with **8 Hz (`logSyncInterval = -3`)** as the
@@ -45,9 +51,10 @@ two. This is a planning assumption awaiting timing-performance qualification,
 not a new receive rejection rule or a claim of profile compliance. Two-step
 Follow_Up messages add traffic; Delay_Req/Delay_Resp and Announce cadences remain
 independent. Queue and scheduling analysis must include short bursts/reordering,
-not infer 100 ms of spacing between every received message. Maximum burst size
-and acceptable measurement-to-actuation latency remain open for shared-engine
-sizing; neither blocks the first increment. Retain accelerated test traffic.
+not infer 100 ms of spacing between every received message. The service contract
+accounts for the finite queue capacities, stalled consumers and cancellation;
+deployment performance still needs qualification. Accelerated regression traffic
+remains covered.
 
 Local focused simulations and structural checks precede synthesis on the
 maintainer's build host. Vivado is unavailable on this local host. Record
@@ -533,46 +540,25 @@ every sample. Keep it as a separate algorithm experiment if measured costs later
 justify it: transformed gains, quantization, saturation, anti-windup and holdover
 need independent numerical and closed-loop acceptance.
 
-### Implementation handoff
+### Implementation result and build-host handoff
 
-Execute the [complete design brief](lut-implementation.md), starting with the
-endpoint-owned service and rate/E2E clients, then carrying the same word-storage
-architecture through the remaining owners. Check behavior as changes land and
-measure the integrated result. There is no required percentage reduction or
-per-module LUT acceptance threshold, and no need to pause for approval or
-synthesis after every client.
+The [complete design](lut-implementation.md) is connected and behaviorally
+verified. The next step is a matched baseline/current Vivado comparison, with
+complete lane and changed-hierarchy accounting. No percentage reduction or
+per-module LUT threshold determines success. Shared EthMacCore remains outside
+this rewrite; its measured cost stays in complete-lane accounting.
 
-Use actual hierarchy costs to identify remaining duplicated datapaths, register
-banks or control muxes. Fixed ROM-based sequencing is an option if control cost
-dominates, not a mandatory fallback triggered by a guessed allocation. Preserve
-compatibility, diagnostics and numerical range. Shared EthMacCore remains out of
-scope; its measured cost stays in the complete-lane accounting.
-
-Use the [test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests)
-throughout: arithmetic/PHC/E2E/servo leaves for their operations, protocol RAM
-and direct-sample fixtures for association, register fixtures for bank changes,
-and physical RX/real-MAC fixtures for tap changes. Shared scheduling also needs
-mixed-client cancellation/backpressure assertions; leaf equivalence alone is
-insufficient. Select one closed-loop case during integration and expand to all
-affected PHY/mode combinations for final acceptance. Record independent-master
-and hardware timing/holdover results separately from simulation.
-
-All new or reviewed RTL must follow [SURF VHDL conventions](../../vhdl-conventions.md)
-and its checklist: two-process state ownership, registered payload/control timing,
-explicit arithmetic widths, memory primitive exceptions, reset/CDC and AXI/FIFO
-contracts. Reuse the checked-out SURF interfaces and update the nearest ruckus
-manifest for new files. The architecture/budget proposal was documentation-only;
-implementation and focused verification now follow the increment record above.
-No mapped synthesis result exists for this increment.
-
-**Current implementation:** shared protocol timestamp conversion and a standalone
-[word processor prototype](#shared-word-processor-prototype-october-12).
-Rate/E2E integration and mapped engine-plus-adapter area are next. Checksum elaboration is deferred
-and reverted. Keep both receive modes, E2E, the current servo and full diagnostics
-as the reference behavior. The largest saving depends on completing the shared
-computation/storage redesign.
+Use actual hierarchy costs to identify remaining datapaths, register banks and
+control muxes. Fixed ROM-based sequencing is an option if measured control cost
+dominates. Preserve diagnostics, numerical range and lifecycle ownership when
+considering any subsequent optimization. Hardware timing, calibrated accuracy
+and independent-master results remain separate from simulation.
 
 ## Earlier implementation and evidence
+
+The remaining sections preserve dated private-engine and FIFO experiments. Their
+module descriptions, next steps and resource figures apply to those revisions;
+the connected implementation and its current follow-up are linked above.
 
 October 9, 2026. Goal: reduce combinational logic while preserving numerical,
 packet-validation, queue and cancellation behavior. The maintainer reported

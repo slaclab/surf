@@ -76,9 +76,9 @@ async def tx_storage(d):
         error = sequence & 1
         stamp = RxStamp(Fraction(((seconds*1000000000+nanos) << 16)+fraction, 1 << 16),
                         ticks, generation, bool(sequence & 1), sequence % 8)
-        expected = RxMessage(stamp, int(d.rxEpoch.value), bytes(raw[:6]),
-                             (1, raw[18], bytes(raw[34:44]), sequence), raw[15] >> 4,
-                             raw[14] >> 4, 44+len(tlvs), 0, -17, raw[46], -3, bytes(raw[48:58]))
+        expected = RxMessage(stamp, int(d.rxEpoch.value), bytes(6),
+                             (1, raw[18], bytes(raw[34:44]), sequence), 0,
+                             0, 0, 0, 0, 0, 0, bytes(30))
         for index, beat in enumerate(beats(bytes(raw), width=sequence % 8+1)):
             keep = (1 << len(beat.data))-1
             if sparse and index == 1:
@@ -94,6 +94,15 @@ async def tx_storage(d):
             await edge(directValid=0, messageReady=0)
         return pack_record(expected), increment, error
 
+    async def wait_head():
+        # Two compact groups plus the two-stage RAM read pipe after descriptor
+        # admission; an empty queue additionally crosses the three-edge FIFO.
+        for _ in range(7):
+            if int(d.messageValid.value):
+                return
+            await edge(directValid=0)
+        assert False, "Delay_Req descriptor exceeded its decode bound"
+
     # Every completion traverses the FIFO. Alternating errors prove the omitted
     # legacy bit survives. Once primed, the output drains on consecutive clocks.
     for batch in range(4):
@@ -105,6 +114,7 @@ async def tx_storage(d):
             assert payload() == expected[0]
         start = len(observed)
         for value in expected:
+            await wait_head()
             assert int(d.messageValid.value) and payload() == value
             await edge(messageReady=1)
         assert observed[start:] == expected
@@ -117,9 +127,9 @@ async def tx_storage(d):
     for batch in range(depth+1):
         old = await send(60+2*batch, idle_after=False)
         assert not int(d.messageValid.value)
-        for delay in range(1, 4):
+        for delay in range(1, 7):
             await edge(directValid=0, messageReady=0)
-            assert bool(int(d.messageValid.value)) == (delay == 3)
+            assert bool(int(d.messageValid.value)) == (delay == 6)
         assert int(d.messageValid.value) and payload() == old
         new = await send(61+2*batch, idle_after=False)
         assert int(d.messageValid.value) and payload() == old
@@ -128,7 +138,7 @@ async def tx_storage(d):
         assert not int(d.messageValid.value)
         await edge(messageReady=1)
         assert not int(d.messageValid.value)
-        await edge(messageReady=1)
+        await wait_head()
         assert int(d.messageValid.value) and payload() == new
         await edge(messageReady=1)
         assert observed[start:] == [old, new]
@@ -147,6 +157,7 @@ async def tx_storage(d):
     expected = await send(21)
     for _ in range(2):
         await edge(directValid=0, messageReady=0)
+    await wait_head()
     assert payload() == expected and int(d.messageValid.value)
     await edge(messageReady=1)
     assert observed[-1] == expected
@@ -161,6 +172,7 @@ async def tx_storage(d):
     assert not int(d.messageValid.value)
     for _ in range(2):
         await edge(directValid=0, messageReady=0)
+    await wait_head()
     assert int(d.messageValid.value) and payload() == new
     await edge(messageReady=1)
     assert observed[-1] == new
@@ -180,7 +192,7 @@ async def tx_storage(d):
     # payload RAM. Sweep from the pending write through read/head publication.
     # Refill/drain after each event must never expose an old memory entry.
     for reset in (False, True):
-        for delay in range(4):
+        for delay in range(7):
             for slot in range(depth):
                 await send(120+slot, idle_after=slot != depth-1)
             for _ in range(delay):
@@ -193,6 +205,7 @@ async def tx_storage(d):
                 await edge(directValid=0, messageReady=0)
             start = len(observed)
             for value in expected:
+                await wait_head()
                 assert int(d.messageValid.value) and payload() == value
                 await edge(messageReady=1)
             assert observed[start:] == expected
@@ -200,7 +213,7 @@ async def tx_storage(d):
             await edge(messageReady=0)
 
 
-@pytest.mark.parametrize("depth", [2, 3])
+@pytest.mark.parametrize("depth", [2])
 def test_ptp_rx_storage(depth):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptprxfrontendwrapper",

@@ -9,9 +9,9 @@
 -- is forward time minus filtered delay and configured asymmetry. Generation,
 -- sample chronology and raw-tick age checks reject stale measurements before
 -- they can affect the clock.
--- The median sorts a scratch copy through one compare/swap per clock. Input
--- ready is low during its nine comparison clocks; the prior median/population
--- remain published until both are replaced on the final comparison edge.
+-- The median sorts RAM scratch through nine shared-service comparisons and
+-- conditional word copies. Input ready stays low until atomic publication;
+-- the prior median/population remain stable throughout the sequence.
 --
 -- Control is measurement-driven: delay updates refresh the filter, while an
 -- eligible forward (Sync) update starts a correction using the latest delay.
@@ -22,15 +22,14 @@
 --
 -- During acquisition, an enabled large phase adjustment can establish the
 -- epoch. Otherwise the qualified raw-clock rate estimate initializes frequency
--- control. A serialized PtpMath engine evaluates the fixed-point
+-- control. The endpoint-owned word processor evaluates the fixed-point
 -- proportional/integral loop, including elapsed-time integration, frequency
 -- and phase-slew clamps, final-rate limiting and conditional integration at
 -- saturation. Commands use the PHC ready/valid and acknowledgement lifecycle;
 -- only acknowledged rate commands update the retained frequency estimate.
--- A shared local adder/clamp and rounded correction path sequence the work
--- around PtpMath; cancellation and expiry remain active in every state.
--- The divider is bounded to the largest constant denominator used by this
--- controller; full dividend/result precision and scheduling are unchanged.
+-- Addressed intermediates, committed/candidate frequency and sorting scratch
+-- remain in the shared workspace. Cancellation and expiry remain active in
+-- every state; command acknowledgement waiting releases the arithmetic engine.
 --
 -- Lock/unlock thresholds and counters provide quality hysteresis. Loss of
 -- fresh measurements enters holdover, removes phase slew and preserves the
@@ -64,15 +63,15 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
+use surf.PtpComputePkg.all;
+use surf.PtpRegisterPkg.all;
 
 entity PtpServo is
    generic (
@@ -82,9 +81,8 @@ entity PtpServo is
       CLK_FREQ_G     : positive := 156250000);
    port (
       -- Shared endpoint clock domain.
-      clk               : in  sl;
-      rst               : in  sl;
-
+      clk : in  sl;
+      rst : in  sl;
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
       axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
@@ -93,20 +91,23 @@ entity PtpServo is
       axiWriteSlave    : out AxiLiteWriteSlaveType;
       configControl    : in  PtpConfigControlType   := PTP_CONFIG_CONTROL_INIT_C;
       snapshotControl  : in  PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
+      snapshotPrepared : out sl;
       configValid      : out sl;
+      configPrepared   : out sl;
       servoEnable      : in  sl                     := '0';
       sharedConfig     : in  PtpSharedConfigType    := PTP_SHARED_CONFIG_INIT_C;
-
       -- Protocol/clock interface.
       measurementMaster : in  PtpMeasurementMasterType;
       measurementSlave  : out PtpMeasurementSlaveType;
       restart           : in  sl            := '0';
       phcStatus         : in  PtpPhcStatusType;
       -- Registered revocation level; the PHC consumes it on the next edge.
-      expireTime        : out sl;
-      commandMaster     : out PtpPhcCommandMasterType;
-      commandSlave      : in  PtpPhcCommandSlaveType;
-      status            : out PtpServoStatusType);
+      expireTime    : out sl;
+      commandMaster : out PtpPhcCommandMasterType;
+      commandSlave  : in  PtpPhcCommandSlaveType;
+      status        : out PtpServoStatusType;
+      computeMaster : out PtpComputeMasterType;
+      computeSlave  : in PtpComputeSlaveType);
 end entity PtpServo;
 
 architecture rtl of PtpServo is
@@ -116,32 +117,9 @@ architecture rtl of PtpServo is
    -- limit. Preserve the existing cap; hardware qualification remains open.
    -- It is independent of the port's raw-oscillator qualification bound.
    constant MAX_ACTUATOR_PPB_C : positive := 200000;
-
-   -- Every stored controller term has passed a validated actuator clamp.
-   -- 1 sign + 18 integer + 16 fractional bits covers +/-200000 ppb exactly.
-   constant RATE_PPB_WIDTH_C : positive := 1+bitSize(MAX_ACTUATOR_PPB_C)+PTP_PPB_FRAC_BITS_C;
-   subtype RatePpbType is signed(RATE_PPB_WIDTH_C-1 downto 0);
-
-   -- A checked signed128 product rounded right by 62 has magnitude <= 2**65.
-   -- Negation and addition of a clamped signed35 frequency fit signed67. The
-   -- proportional product is signed64 * unsigned32, so its 30-bit shift also
-   -- fits this width. Preserve the full product until PtpMath checks overflow.
-   subtype CorrectionType is signed(66 downto 0);
-
-   type ClampResultType is record
-      value     : RatePpbType;
-      saturated : boolean;
-   end record;
-
-   -- ptpValidTimeout limits tracking intervals to fewer than 2**62 ticks.
-   -- For every positive CLK_FREQ_G, nominalQ32 <= 1e9 * 2**32; hence the
-   -- rounded interval in seconds Q32 is < 2**94, needing 95 signed bits.
-   subtype IntervalType is signed(94 downto 0);
-
    function initialConfig return PtpServoConfigType is
       variable v      : PtpServoConfigType    := PTP_SERVO_CONFIG_INIT_C;
       constant TICK_C : unsigned(63 downto 0) := to_unsigned(CLK_FREQ_G, 64);
-
    begin
       -- Vector arithmetic avoids integer overflow for long default durations;
       -- numeric_std multiplication widens its result before the resize.
@@ -152,152 +130,247 @@ architecture rtl of PtpServo is
       return v;
    end function;
 
-   -- Validate the same pre-edge shadows captured by prepare.
-   function validConfig (cfg : PtpServoConfigType) return boolean is
+   -- Only admission/expiry policy is cached for cycle-by-cycle decisions.
+   -- Gains, thresholds, asymmetry and clamps are read from the active word bank
+   -- when their arithmetic stage needs them.
+   type ControlCacheType is record
+      allowStep       : sl;
+      lockCount       : slv(7 downto 0);
+      unlockCount     : slv(7 downto 0);
+      maxDelayAge     : slv(63 downto 0);
+      holdoverTimeout : slv(63 downto 0);
+      minSampleTicks  : slv(63 downto 0);
+      maxSampleTicks  : slv(63 downto 0);
+   end record;
+
+   function initialCache return ControlCacheType is
+      constant CFG_C : PtpServoConfigType := initialConfig;
    begin
-      -- Phase policy and lock hysteresis.
-      if signed(cfg.stepThreshold) < 0 then
-         return false;
-      end if;
-      if signed(cfg.lockThreshold) < 0 then
-         return false;
-      end if;
-      if signed(cfg.unlockThreshold) < signed(cfg.lockThreshold) then
-         return false;
-      end if;
-      if unsigned(cfg.lockCount) = 0 or unsigned(cfg.unlockCount) = 0 then
-         return false;
+      return (CFG_C.allowStep, CFG_C.lockCount, CFG_C.unlockCount, CFG_C.maxDelayAge,
+         CFG_C.holdoverTimeout, CFG_C.minSampleTicks, CFG_C.maxSampleTicks);
+   end function;
+
+   function initialWords return Slv32Array is
+      constant CFG_C : PtpServoConfigType := initialConfig;
+      variable words : Slv32Array(0 to 33) := (others => (others => '0'));
+      procedure put(constant index : natural;
+      constant value : slv) is
+      begin
+         for i in 0 to (value'length+31)/32-1 loop
+            words(index+i) := slv(resize(shift_right(unsigned(value),32*i),32));
+         end loop;
+      end procedure;
+
+   begin
+      words(1)(2) := CFG_C.allowStep;
+      put(8,CFG_C.kp);
+      put(9,CFG_C.ki);
+      put(10,CFG_C.maxFrequencyPpb);
+      put(11,CFG_C.maxSlewPpb);
+      put(12,CFG_C.maxRatePpb);
+      put(14,CFG_C.stepThreshold);
+      put(16,CFG_C.lockThreshold);
+      put(18,CFG_C.unlockThreshold);
+      put(20,CFG_C.lockCount);
+      put(21,CFG_C.unlockCount);
+      put(24,CFG_C.maxDelayAge);
+      put(26,CFG_C.holdoverTimeout);
+      put(28,CFG_C.minSampleTicks);
+      put(30,CFG_C.maxSampleTicks);
+      put(32,CFG_C.delayAsymmetry);
+      return words;
+   end function;
+
+   function configIndex(address : slv(11 downto 0)) return integer is
+      variable index : natural := to_integer(unsigned(address(11 downto 2)));
+   begin
+
+      case index is
+         when 1 | 8 to 12 | 14 to 21 | 24 to 33 =>
+            return index;
+         when others =>
+            return -1;
+      end case;
+
+   end function;
+
+   function configMask(index : integer;
+   strobe : slv(3 downto 0)) return slv is
+      variable mask : slv(31 downto 0) := (others => '0');
+   begin
+
+      if index = 1 and strobe(0) = '1' then
+         mask(2) := '1';
+      elsif (index = 20 or index = 21) and strobe(0) = '1' then
+         mask(7 downto 0) := (others => '1');
+      elsif index /= 1 and index /= 20 and index /= 21 and strobe = x"F" then
+         mask := (others => '1');
       end if;
 
-      -- Actuator limits and sample chronology.
-      if unsigned(cfg.maxRatePpb) > MAX_ACTUATOR_PPB_C then
-         return false;
-      end if;
-      if unsigned(cfg.maxFrequencyPpb) > unsigned(cfg.maxRatePpb) then
-         return false;
-      end if;
-      if unsigned(cfg.maxSlewPpb) > unsigned(cfg.maxRatePpb) then
-         return false;
-      end if;
-      if unsigned(cfg.maxSampleTicks) < unsigned(cfg.minSampleTicks) then
-         return false;
-      end if;
-
-      -- Every timeout must fit the supported unsigned-difference range.
-      if not ptpValidTimeout(cfg.maxDelayAge) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.holdoverTimeout) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.minSampleTicks) then
-         return false;
-      end if;
-      if not ptpValidTimeout(cfg.maxSampleTicks) then
-         return false;
-      end if;
-      return true;
+      return mask;
    end function;
 
    constant NOMINAL_C    : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
    constant SECOND_Q16_C : signed(127 downto 0)  := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C);
-
    constant PPB_Q16_SCALE_C : signed(127 downto 0) := shift_left(to_signed(PTP_PPB_SCALE_C, 128), PTP_PPB_FRAC_BITS_C);
-
    -- Elaboration only: the encoded increment exceeds the VHDL integer range.
-   function nominalWidth return positive is
-      variable width : positive := 1;
-   begin
-      for i in NOMINAL_C'range loop
-         if NOMINAL_C(i) = '1' then
-            width := maximum(width, i+1);
-         end if;
-      end loop;
-
-      return width;
-   end function;
-
-   -- All divisions use nominal increment, seconds or ppb scaling constants.
-   -- Derive the bound so standalone low-frequency instances remain supported.
-   constant DIVISOR_WIDTH_C : positive := maximum(nominalWidth,
-      maximum(bitSize(PTP_NANOSECONDS_PER_SECOND_C)+PTP_TIME_FRAC_BITS_C,
-              bitSize(PTP_PPB_SCALE_C)+PTP_PPB_FRAC_BITS_C));
-
    -- Offset Q16 * gain Q30 -> ppb Q16. Integration additionally multiplies
    -- by elapsed seconds with the PHC addend's fractional precision (Q32).
    constant PROPORTIONAL_SHIFT_C : natural := PTP_TIME_FRAC_BITS_C+PTP_GAIN_FRAC_BITS_C-PTP_PPB_FRAC_BITS_C;
    constant INTEGRAL_SHIFT_C     : natural := PROPORTIONAL_SHIFT_C+PTP_PHC_FRAC_BITS_C;
-
    -- Arithmetic/command progress, distinct from status.state's synchronization
    -- quality (acquiring, tracking, locked, holdover, fault). PtpPhc continues
    -- ticking while this FSM waits for a multi-cycle math result or command ACK.
    type StateType is (
       IDLE_S,
-      MEDIAN_S,
+      INIT_COPY_S,
+      INIT_DONE_S,
+      LOAD_S, CONFIG_READ_S, CONFIG_WAIT_S,
+      READ_S,
+      READ_WAIT_S,
       ISSUE_S,
       WAIT_S,
-      BOOTSTRAP_CLAMP_S,
-      ROUND_S,
-      SLEW_CLAMP_S,
+      DELAY_HIGH_S,
+      DELAY_ACCEPT_S,
+      MEDIAN_FETCH_S,
+      MEDIAN_RAM_WAIT_S,
+      MEDIAN_RAM_CAPTURE_S,
+      MEDIAN_STORE_S,
+      MEDIAN_COMPARE_S,
+      MEDIAN_DECIDE_S,
+      MEDIAN_SWAP_RIGHT_S,
+      MEDIAN_SWAP_LEFT_S,
+      MEDIAN_NEXT_S,
+      MEDIAN_PUBLISH_S,
+      FORWARD_RATIO_S,
+      FORWARD_ACCEPT_S,
+      OFFSET_DELAY_S,
+      OFFSET_ASYMMETRY_S,
+      OFFSET_SUBTRACT_S,
+      OFFSET_READ_S,
+      OFFSET_PUBLISH_S,
+      OFFSET_ABSOLUTE_S,
+      OFFSET_THRESHOLD_S,
+      OFFSET_DECIDE_S,
+      LOCK_COMPARE_S,
+      LOCK_CAPTURE_S,
+      UNLOCK_COMPARE_S,
+      UNLOCK_CAPTURE_S,
+      BOOT_DIFFERENCE_S,
+      BOOT_SCALE_S,
+      BOOT_MULTIPLY_S,
+      BOOT_DENOMINATOR_S,
+      BOOT_DIVIDE_S,
+      BOOT_CLAMP_S,
+      PROPORTIONAL_LOAD_S,
+      PROPORTIONAL_MULTIPLY_S,
+      PROPORTIONAL_ROUND_S,
+      PROPORTIONAL_NEGATE_S,
+      PROPORTIONAL_CLAMP_S,
+      PROPORTIONAL_DONE_S,
+      INTERVAL_LOAD_S,
+      INTERVAL_SUBTRACT_S,
+      INTERVAL_NOMINAL_S,
+      INTERVAL_MULTIPLY_S,
+      INTERVAL_SCALE_S,
+      INTERVAL_DIVIDE_S,
+      INTEGRAL_GAIN_LOAD_S,
+      INTEGRAL_GAIN_MULTIPLY_S,
+      INTEGRAL_TIME_MULTIPLY_S,
+      INTEGRAL_ROUND_S,
+      INTEGRAL_NEGATE_S,
+      INTEGRAL_SIGN_S,
+      INTEGRAL_ADD_S,
+      BOOT_FREQUENCY_S,
       FREQUENCY_CLAMP_S,
-      RATE_CHECK_S,
-      RATE_CLAMP_S,
+      FREQUENCY_DONE_S,
+      RATE_TRIAL_S,
+      RATE_TRIAL_CLAMP_S,
+      RATE_TRIAL_CHECK_S,
+      RATE_SUM_S,
+      RATE_LIMIT_S,
+      RATE_READ_S,
+      RATE_PUBLISH_S,
+      RATE_NOMINAL_S,
+      RATE_MULTIPLY_S,
+      RATE_SCALE_S,
+      RATE_DIVIDE_S,
+      RATE_COMMAND_S,
+      PHASE_NEGATE_S,
+      PHASE_SCALE_S,
+      PHASE_DIVIDE_S,
+      PHASE_QUOTIENT_S,
+      PHASE_SECONDS_S,
+      PHASE_REMAINDER_S,
+      PHASE_COMMAND_S,
+      CLAMP_POSITIVE_S,
+      CLAMP_POSITIVE_CHECK_S,
+      CLAMP_NEGATE_S,
+      CLAMP_NEGATIVE_S,
+      CLAMP_NEGATIVE_CHECK_S,
       COMMAND_S,
       ACK_S);
-
-   type DelayArray is array (0 to DELAY_FILTER_DEPTH_C-1) of signed(63 downto 0);
 
    -- The same nine sorting-network pairs are visited by one comparator.
    -- Keep the circular history separate from this destructively sorted copy.
    type MedianIndexArray is array (0 to 8) of natural range 0 to DELAY_FILTER_DEPTH_C-1;
    constant MEDIAN_LEFT_C  : MedianIndexArray := (0, 1, 0, 1, 0, 2, 1, 3, 2);
    constant MEDIAN_RIGHT_C : MedianIndexArray := (3, 4, 2, 3, 1, 4, 2, 4, 3);
-
-   type OperationType is (
-      RATIO_SCALE_S,
-      RATIO_DIVIDE_S,
-      PROPORTIONAL_S,
-      INTERVAL_SCALE_S,
-      INTERVAL_DIVIDE_S,
-      INTEGRAL_GAIN_S,
-      INTEGRAL_TIME_S,
-      RATE_SCALE_S,
-      RATE_DIVIDE_S,
-      RESERVED_S,
-      PHASE_DIVIDE_S);
-
+   type LoadType is (ZERO_L, INPUT_FORWARD_L, INPUT_RATIO_L, FILTER_L, ASYMMETRY_L, STEP_L, LOCK_L, UNLOCK_L, NOMINAL_RATIO_L, NOMINAL_L, BILLION_L, SECOND_L, KP_L, KI_L, SAMPLE_TICKS_L, LAST_TICKS_L, MAX_FREQUENCY_L, MAX_SLEW_L, MAX_RATE_L);
    type RegType is record
       -- Registered command interface. Use v.commandMaster.cancel/stale for
       -- current-edge local decisions and publish the complete record from r.
-      commandMaster      : PtpPhcCommandMasterType;
+      commandMaster : PtpPhcCommandMasterType;
       -- Combinational measurement admission, resolved through v each cycle.
-      measurementSlave   : PtpMeasurementSlaveType;
-      expireTime         : sl;
-      status             : PtpServoStatusType;
-
+      measurementSlave : PtpMeasurementSlaveType;
+      expireTime       : sl;
+      status           : PtpServoStatusType;
       -- Local management state shares the core reset and register process.
       readSlave          : AxiLiteReadSlaveType;
       writeSlave         : AxiLiteWriteSlaveType;
-      shadow             : PtpServoConfigType;
-      candidate          : PtpServoConfigType;
+      candidate          : ControlCacheType;
+      configBus          : PtpRegisterBusType;
+      configMaster       : PtpRegisterMasterType;
+      configWord         : slv(31 downto 0);
+      configSign         : sl;
+      validateValue      : slv(63 downto 0);
+      validatePrevious   : slv(63 downto 0);
+      validateFrequency  : slv(31 downto 0);
+      validateSlew       : slv(31 downto 0);
       configValid        : sl;
-      activeConfig       : PtpServoConfigType;
+      activeConfig       : ControlCacheType;
       sequenceId         : slv(31 downto 0);
-      snapOffset         : slv(127 downto 0);
-      snapDelay          : slv(127 downto 0);
-      snapRate           : slv(63 downto 0);
-      snapRejected       : slv(31 downto 0);
+      publicationPort    : PtpPublicationType;
+      snapshotBus        : PtpRegisterBusType;
+      counterBus         : PtpRegisterBusType;
       state              : StateType;
-      operation          : OperationType;
-      a                  : slv(127 downto 0);
-      b                  : slv(127 downto 0);
-      divide             : sl;
-      mathValid          : sl;
-      mathRound          : sl;
+      compute            : PtpComputeMasterType;
+      nextState          : StateType;
+      loadKind           : LoadType;
+      wordIndex          : natural range 0 to 3;
+      slot               : natural range 0 to 15;
+      publication        : slv(127 downto 0);
+      checked            : boolean;
+      less               : sl;
+      equal              : sl;
+      frequencyValid     : sl;
+      frequencyBank      : natural range 0 to 1;
+      correctionNegative : sl;
+      correctionNonzero  : sl;
+      inLock             : sl;
+      outUnlock          : sl;
+      clampSlot          : natural range 0 to 15;
+      clampReturn        : StateType;
+      saturated          : sl;
+      clampNegative      : sl;
+      medianWord         : natural range 0 to 19;
+      ramRead            : sl;
+      ramReadAddr        : slv(3 downto 0);
+      ramWrite           : sl;
+      ramWriteAddr       : slv(3 downto 0);
+      ramWriteData       : slv(31 downto 0);
       generation         : slv(31 downto 0);
       abortSeen          : sl;
-      delays             : DelayArray;
-      sorted             : DelayArray;
       medianStep         : natural range MEDIAN_LEFT_C'range;
       filterPopulation   : positive range 1 to DELAY_FILTER_DEPTH_C;
       delayPtr           : natural range 0 to DELAY_FILTER_DEPTH_C-1;
@@ -311,18 +384,10 @@ architecture rtl of PtpServo is
       -- Signed Q16 ppb: frequency is the acknowledged integral state, slew is
       -- the temporary proportional correction, and workFrequency is a candidate
       -- retained as frequency only after the PHC acknowledges its rate command.
-      workFrequency      : RatePpbType;
-      frequency          : RatePpbType;
-      slew               : RatePpbType;
-      bootstrap          : RatePpbType;
-      correction         : CorrectionType;
-      roundUp            : sl;
-      roundIntegral      : sl;
-      integrating        : sl;
-      integrate          : sl;
-      interval           : IntervalType;
-      good               : unsigned(7 downto 0);
-      bad                : unsigned(7 downto 0);
+      integrating : sl;
+      integrate   : sl;
+      good        : unsigned(7 downto 0);
+      bad         : unsigned(7 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -332,26 +397,49 @@ architecture rtl of PtpServo is
       status             => PTP_SERVO_STATUS_INIT_C,
       readSlave          => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave         => AXI_LITE_WRITE_SLAVE_INIT_C,
-      shadow             => initialConfig,
-      candidate          => initialConfig,
-      configValid        => toSl(validConfig(initialConfig)),
-      activeConfig       => initialConfig,
+      candidate          => initialCache,
+      configBus          => PTP_REGISTER_BUS_INIT_C,
+      configMaster       => PTP_REGISTER_MASTER_INIT_C,
+      configWord         => (others => '0'),
+      configSign         => '0',
+      validateValue      => (others => '0'),
+      validatePrevious   => (others => '0'),
+      validateFrequency  => (others => '0'),
+      validateSlew       => (others => '0'),
+      configValid        => '1',
+      activeConfig       => initialCache,
       sequenceId         => (others => '0'),
-      snapOffset         => (others => '0'),
-      snapDelay          => (others => '0'),
-      snapRate           => (others => '0'),
-      snapRejected       => (others => '0'),
+      publicationPort    => PTP_PUBLICATION_INIT_C,
+      snapshotBus        => PTP_REGISTER_BUS_INIT_C,
+      counterBus         => PTP_REGISTER_BUS_INIT_C,
       state              => IDLE_S,
-      operation          => RATIO_SCALE_S,
-      a                  => (others => '0'),
-      b                  => (others => '0'),
-      divide             => '0',
-      mathValid          => '0',
-      mathRound          => '1',
+      compute            => PTP_COMPUTE_MASTER_INIT_C,
+      nextState          => IDLE_S,
+      loadKind           => ZERO_L,
+      wordIndex          => 0,
+      slot               => 0,
+      publication        => (others => '0'),
+      checked            => false,
+      less               => '0',
+      equal              => '0',
+      frequencyValid     => '0',
+      frequencyBank      => 0,
+      correctionNegative => '0',
+      correctionNonzero  => '0',
+      inLock             => '0',
+      outUnlock          => '0',
+      clampSlot          => 0,
+      clampReturn        => IDLE_S,
+      saturated          => '0',
+      clampNegative      => '0',
+      medianWord         => 0,
+      ramRead            => '0',
+      ramReadAddr        => (others => '0'),
+      ramWrite           => '0',
+      ramWriteAddr       => (others => '0'),
+      ramWriteData       => (others => '0'),
       generation         => (others => '0'),
       abortSeen          => '0',
-      delays             => (others => (others => '0')),
-      sorted             => (others => (others => '0')),
       medianStep         => 0,
       filterPopulation   => 1,
       delayPtr           => 0,
@@ -362,151 +450,267 @@ architecture rtl of PtpServo is
       tracking           => '0',
       holding            => '0',
       holdApplied        => '0',
-      frequency          => (others => '0'),
-      workFrequency      => (others => '0'),
-      slew               => (others => '0'),
-      bootstrap          => (others => '0'),
-      correction         => (others => '0'),
-      roundUp            => '0',
-      roundIntegral      => '0',
       integrating        => '0',
       integrate          => '0',
-      interval           => (others => '0'),
       good               => (others => '0'),
       bad                => (others => '0'));
 
    signal r             : RegType := REG_INIT_C;
    signal rin           : RegType;
-   signal invalidate    : sl;
-   signal inputMath     : sl;
-   signal readyMath     : sl;
-   signal validMath     : sl;
-   signal valueMath     : slv(127 downto 0);
-   signal remainderMath : slv(127 downto 0);
-   signal errorMath     : sl;
-   signal roundMath     : sl;
-
-   -- Only validated active limits reach this helper. Compare at full width
-   -- before narrowing: truncating first could wrap an out-of-range correction
-   -- through zero and choose the wrong saturation sign.
-   function clamp (
-      value   : signed(127 downto 0);
-      maximum : slv(bitSize(MAX_ACTUATOR_PPB_C)-1 downto 0)) return ClampResultType is
-      variable limitValue : RatePpbType;
-      variable retVar     : ClampResultType;
+   signal historyData : slv(31 downto 0);
+   -- Slots 0..4 are median scratch or offset/bootstrap/slew/interval/correction.
+   -- 7 holds the candidate rate or normalized command. Slots 10/11 alternate
+   -- retained and candidate frequency; ACK changes only their ownership pointer.
+   -- 12 is a loaded configuration constant, 13 is zero, 14 scratch, 15 remainder.
+   procedure issue (
+      variable v : inout RegType;
+      constant operation : slv(2 downto 0);
+      constant a : natural;
+      constant b : natural;
+      constant target : natural;
+      constant following : StateType;
+      constant checked : boolean := false;
+      constant shift : natural   := 0;
+      constant rounding : sl     := '0') is
    begin
-      limitValue       := shift_left(signed(resize(unsigned(maximum), RATE_PPB_WIDTH_C)), PTP_PPB_FRAC_BITS_C);
-      retVar.value     := resize(value, RATE_PPB_WIDTH_C);
-      retVar.saturated := true;
+      v.compute.job := ptpComputeJob(operation, a, b, target, 15, shift, rounding);
+      v.compute.jobValid := '1';
+      v.nextState := following;
+      v.checked := checked;
+      v.state := ISSUE_S;
+   end procedure issue;
 
-      if value > resize(limitValue, 128) then
-         retVar.value := limitValue;
-      elsif value < resize(-limitValue, 128) then
-         retVar.value := -limitValue;
-      else
-         retVar.saturated := false;
-      end if;
+   procedure loadWords (
+      variable v : inout RegType;
+      constant kind : LoadType;
+      constant target : natural;
+      constant following : StateType) is
+   begin
+      v.loadKind := kind;
+      v.slot := target;
+      v.wordIndex := 0;
+      v.nextState := following;
+      v.state := LOAD_S;
+   end procedure loadWords;
 
-      return retVar;
-   end function;
+   procedure readWords (
+      variable v : inout RegType;
+      constant source : natural;
+      constant following : StateType) is
+   begin
+      v.slot := source;
+      v.wordIndex := 0;
+      v.nextState := following;
+      v.state := READ_S;
+   end procedure readWords;
+
+   procedure clampWords (
+      variable v : inout RegType;
+      constant source : natural;
+      constant maximum : LoadType;
+      constant following : StateType) is
+   begin
+      v.clampSlot := source;
+      v.clampReturn := following;
+      v.saturated := '0';
+      v.clampNegative := '0';
+      loadWords(v, maximum, 12, CLAMP_POSITIVE_S);
+   end procedure clampWords;
+
+   signal configMasters : PtpRegisterMasterArray(0 to 1);
+   signal configSlaves : PtpRegisterSlaveArray(0 to 1);
+   signal scanValid : sl;
+   signal scanIndex : slv(7 downto 0);
+   signal scanData : slv(31 downto 0);
+   signal snapshotSlave : PtpRegisterSlaveType;
+   signal counterSlave : PtpRegisterSlaveType;
 
 begin
 
-   U_Math : entity surf.PtpMath
+   U_Publication : entity surf.PtpPublicationBank
       generic map (
-         TPD_G           => TPD_G,
-         RST_POLARITY_G  => RST_POLARITY_G,
-         RST_ASYNC_G     => RST_ASYNC_G,
-         DIVISOR_WIDTH_G => DIVISOR_WIDTH_C)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         RECORD_WORDS_G => IntegerArray'(4,4,2))
       port map (
-         clk             => clk,            -- [in]
-         rst             => rst,            -- [in]
-         cancel          => invalidate,     -- [in]
-         inputValid      => inputMath,      -- [in]
-         inputReady      => readyMath,      -- [out]
-         divide          => r.divide,       -- [in]
-         roundNearest    => roundMath,      -- [in]
-         operandA        => r.a,            -- [in]
-         operandB        => r.b,            -- [in]
-         resultValid     => validMath,      -- [out]
-         resultReady     => '1',            -- [in]
-         resultValue     => valueMath,      -- [out]
-         resultRemainder => remainderMath,  -- [out]
-         resultError     => errorMath);     -- [out]
+         clk         => clk,
+         rst         => rst,
+         publication => r.publicationPort,
+         snapshot    => snapshotControl,
+         master      => r.snapshotBus.master,
+         slave       => snapshotSlave);
 
-   comb : process (r, measurementMaster, rst, regRst, axiReadMaster, axiWriteMaster, configControl,
-                   snapshotControl, servoEnable, sharedConfig, restart, phcStatus, commandSlave,
-                   readyMath, validMath, valueMath, remainderMath, errorMath) is
-      variable v  : RegType;
-      variable ep : AxiLiteEndpointType;
+   U_Snapshot : entity surf.PtpSnapshotBank
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         WORDS_G        => 1)
+      port map (
+         clk      => clk,
+         rst      => rst,
+         scalars  => Slv32Array'(0 => r.status.rejectedCount),
+         snapshot => snapshotControl,
+         prepared => snapshotPrepared,
+         master   => r.counterBus.master,
+         slave    => counterSlave);
 
-      -- Calculations used only during this evaluation.
-      variable sampleTickDelta : signed(127 downto 0);
-      variable addA            : CorrectionType;
-      variable addB            : CorrectionType;
-      variable sumValue        : CorrectionType;
-      variable roundCarry      : CorrectionType;
-      variable clampValue      : signed(127 downto 0);
-      variable clampMaximum    : slv(bitSize(MAX_ACTUATOR_PPB_C)-1 downto 0);
-      variable clampResult     : ClampResultType;
-      variable stale           : boolean;
-      variable acceptSample    : boolean;
-      variable leftIndex       : natural range 0 to DELAY_FILTER_DEPTH_C-1;
-      variable rightIndex      : natural range 0 to DELAY_FILTER_DEPTH_C-1;
+   configMasters(0) <= r.configBus.master;
+   configMasters(1) <= r.configMaster;
+
+   U_Config : entity surf.PtpConfigBank
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DEFAULTS_G     => initialWords)
+      port map (
+         clk       => clk,
+         rst       => rst,
+         prepare   => configControl.prepare,
+         apply     => configControl.apply,
+         prepared  => configPrepared,
+         scanValid => scanValid,
+         scanIndex => scanIndex,
+         scanData  => scanData,
+         masters   => configMasters,
+         slaves    => configSlaves);
+
+   U_DelayHistory : entity surf.SimpleDualPortRam
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => 32,
+         BYTE_WR_EN_G   => false,
+         BYTE_WIDTH_G   => 32,
+         ADDR_WIDTH_G   => 4,
+         COMMON_CLK_G   => true,
+         MEMORY_TYPE_G  => "distributed",
+         DOB_REG_G      => false,
+         READ_LATENCY_G => 1)
+      port map (
+         clka  => clk,
+         ena   => r.ramWrite,
+         wea   => r.ramWrite,
+         addra => r.ramWriteAddr,
+         dina  => r.ramWriteData,
+         clkb  => clk,
+         rstb  => rst,
+         enb   => r.ramRead,
+         addrb => r.ramReadAddr,
+         doutb => historyData);
+
+   comb : process (all) is
+      variable readAddress      : slv(11 downto 0);
+      variable writeAddress     : slv(11 downto 0);
+      variable v                : RegType;
+      variable ep               : AxiLiteEndpointType;
+      variable sampleTickDelta  : signed(127 downto 0);
+      variable stale            : boolean;
+      variable acceptSample     : boolean;
+      variable value            : slv(127 downto 0);
+      variable frequencySlot    : natural range 10 to 11;
+      variable candidateSlot    : natural range 10 to 11;
+      variable leftIndex        : natural range 0 to 4;
+      variable rightIndex       : natural range 0 to 4;
+      variable configAddress    : integer range -1 to 33;
+      variable configReadIndex  : integer range -1 to 33;
+      variable configWriteIndex : integer range -1 to 33;
+      variable configReadBank   : slv(1 downto 0);
+      variable clampConstant    : boolean;
+      variable configIndexValue : natural range 0 to 255;
+      variable snapshotIndex    : integer range -1 to 9;
    begin
-      -- r is the current registered state; v collects next-edge updates. A
-      -- later read of r still sees the old value, even after assigning v.
-      v                  := r;
+      v := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
+      v.compute.cancel := '0';
+      v.publicationPort.write := '0';
+      v.publicationPort.commit := '0';
+      v.compute.retain := '1';
+      v.compute.resultReady := '0';
+      v.compute.readReady := '0';
+      v.configMaster.responseReady := '1';
+      v.configMaster.cancel := '0';
 
-      -- One adder serves bootstrap seeding, integration and final-rate sums.
-      -- Select operands before arithmetic so exclusive states share hardware.
-      addA := resize(r.workFrequency, addA'length);
-      addB := resize(r.slew, addB'length);
-
-      if r.state = FREQUENCY_CLAMP_S then
-         if r.integrating = '1' then
-            addA := resize(r.frequency, addA'length);
-            addB := r.correction;
-         else
-            addA := resize(r.bootstrap, addA'length);
-            addB := resize(-r.slew, addB'length);
-         end if;
+      if r.configMaster.valid = '1' and configSlaves(1).ready = '1' then
+         v.configMaster.valid := '0';
       end if;
 
-      sumValue     := addA + addB;
-      clampValue   := resize(sumValue, 128);
-      clampMaximum := r.activeConfig.maxRatePpb(clampMaximum'range);
+      v.ramRead := '0';
+      v.ramWrite := '0';
+      frequencySlot := 10+r.frequencyBank;
+      candidateSlot := 11-r.frequencyBank;
+      leftIndex     := MEDIAN_LEFT_C(r.medianStep);
+      rightIndex    := MEDIAN_RIGHT_C(r.medianStep);
+      value         := (others => '0');
+      configAddress := -1;
+      clampConstant := false;
 
-      case r.state is
-         when BOOTSTRAP_CLAMP_S =>
-            clampValue   := signed(r.a);
-            clampMaximum := r.activeConfig.maxFrequencyPpb(clampMaximum'range);
-         when SLEW_CLAMP_S =>
-            clampValue   := resize(r.correction, 128);
-            clampMaximum := r.activeConfig.maxSlewPpb(clampMaximum'range);
-         when FREQUENCY_CLAMP_S =>
-            clampMaximum := r.activeConfig.maxFrequencyPpb(clampMaximum'range);
-         when RATE_CLAMP_S =>
-            if r.holding = '1' then
-               clampValue := resize(r.frequency, 128);
-            end if;
-         when others =>
+      case r.loadKind is
+         when ZERO_L =>
             null;
+         when INPUT_FORWARD_L =>
+            value := measurementMaster.data.forward;
+         when INPUT_RATIO_L =>
+            value(63 downto 0) := measurementMaster.data.ratio;
+         when FILTER_L =>
+            value := r.status.filteredDelay;
+         when ASYMMETRY_L =>
+            configAddress := 32;
+         when STEP_L =>
+            configAddress := 14;
+         when LOCK_L =>
+            configAddress := 16;
+         when UNLOCK_L =>
+            configAddress := 18;
+         when NOMINAL_RATIO_L =>
+            value := slv(shift_left(resize(NOMINAL_C, 128), PTP_PHC_TO_RATIO_SHIFT_C));
+         when NOMINAL_L =>
+            value := slv(resize(NOMINAL_C, 128));
+         when BILLION_L =>
+            value := slv(to_signed(PTP_PPB_SCALE_C, 128));
+         when SECOND_L =>
+            value := slv(SECOND_Q16_C);
+         when KP_L =>
+            configAddress := 8;
+         when KI_L =>
+            configAddress := 9;
+         when SAMPLE_TICKS_L =>
+            value(63 downto 0) := r.sampleTicks;
+         when LAST_TICKS_L =>
+            value(63 downto 0) := r.lastTicks;
+         when MAX_FREQUENCY_L =>
+            configAddress := 10;
+         when MAX_SLEW_L =>
+            configAddress := 11;
+         when MAX_RATE_L =>
+            configAddress := 12;
       end case;
 
-      -- Active actuator limits have passed the coordinated full-width vote.
-      -- The shared clamp still compares its input before narrowing the result.
-      clampResult := clamp(clampValue, clampMaximum);
+      clampConstant := r.loadKind = MAX_FREQUENCY_L or r.loadKind = MAX_SLEW_L or r.loadKind = MAX_RATE_L;
+
+      if configAddress >= 0 then
+         value := (others => '0');
+         if clampConstant then
+            value(47 downto 16) := r.configWord;
+         elsif configAddress >= 14 then
+            value := (others => r.configSign);
+         end if;
+      end if;
 
       -- A held link/port abort cancels once, allowing later holdover work.
       -- Generation changes and stale samples independently invalidate work.
       v.commandMaster.stale := '0';
+
       if r.state /= IDLE_S and r.holding = '0' and
          unsigned(phcStatus.ticks)-unsigned(r.sampleTicks) > unsigned(sharedConfig.associationTimeout) then
          v.commandMaster.stale := '1';
       end if;
+
       v.commandMaster.cancel := '0';
+
       if v.commandMaster.stale = '1' or restart = '1' or
          (measurementMaster.abort = '1' and r.abortSeen = '0') or
          phcStatus.generation /= r.generation or servoEnable = '0' then
@@ -515,12 +719,13 @@ begin
 
       v.abortSeen  := measurementMaster.abort;
       v.generation := phcStatus.generation;
-      stale        := r.haveSample = '1' and (measurementMaster.abort = '1' or unsigned(r.status.filterCount) = 0 or
+      stale := r.haveSample = '1' and (measurementMaster.abort = '1' or unsigned(r.status.filterCount) = 0 or
          unsigned(phcStatus.ticks)-unsigned(r.delayTicks) > unsigned(r.activeConfig.maxDelayAge) or
          unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(sharedConfig.syncTimeout));
       -- Sample expiry as a registered level. The PHC consumes it on the
       -- following edge; both assertion and release have one cycle of latency.
       v.expireTime := '0';
+
       if r.status.state = PTP_SERVO_FAULT_C then
          v.expireTime := '1';
       elsif servoEnable = '1' and r.haveSample = '1' then
@@ -530,307 +735,483 @@ begin
       end if;
 
       acceptSample := false;
+
       if stale then
          v.status.state := PTP_SERVO_HOLDOVER_C;
          v.tracking     := '0';
          v.good         := (others => '0');
       end if;
+
       -- Accept/filter a sample, evaluate the loop in named arithmetic stages,
       -- then wait for PHC acceptance and acknowledgement before updating history.
       case r.state is
          when IDLE_S =>
-            if stale and r.holdApplied = '0' then
-               -- Holdover removes the phase slew but preserves the last good
-               -- frequency estimate. Conversion uses the same checked path as
-               -- tracking; no combinational wide divider enters the clock loop.
-               v.holding        := '1';
-               v.state          := RATE_CLAMP_S;
-            else
-               -- Holdover work has priority over admitting another sample.
+
+            if r.frequencyValid = '0' then
+               loadWords(v, ZERO_L, 13, INIT_COPY_S);
+            elsif r.compute.cancel = '0' then
                v.measurementSlave.ready := '1';
-               if measurementMaster.valid = '1' and measurementMaster.abort = '0' and servoEnable = '1' then
+               if stale and r.holdApplied = '0' then
+                  v.measurementSlave.ready := '0';
+                  v.holding := '1';
+                  issue(v, PTP_COMPUTE_COPY_C, frequencySlot, 0, 7, RATE_LIMIT_S);
+               elsif measurementMaster.valid = '1' and measurementMaster.abort = '0' and servoEnable = '1' then
+                  v.measurementSlave.ready := '1';
                   if measurementMaster.data.generation /= phcStatus.generation or
                      unsigned(measurementMaster.data.ticks) > unsigned(phcStatus.ticks) or
                      unsigned(phcStatus.ticks)-unsigned(measurementMaster.data.ticks) > unsigned(sharedConfig.associationTimeout) then
                      v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                   elsif measurementMaster.data.isDelay = '1' then
-                     -- Delay_Req/Delay_Resp results have their own cadence. A
-                     -- delay sample updates this rolling filter without running
-                     -- the PI calculation; filling five entries is not required.
                      if signed(measurementMaster.data.delayValue) >= 0 and signed(measurementMaster.data.delayValue) <= signed(sharedConfig.maxPathDelay) and
                         (unsigned(r.status.filterCount) = 0 or unsigned(measurementMaster.data.ticks) > unsigned(r.delayTicks)) then
-                        v.delays(r.delayPtr) := signed(measurementMaster.data.delayValue(63 downto 0));
-                        v.delayPtr           := (r.delayPtr+1) mod DELAY_FILTER_DEPTH_C;
+                        v.measurementSlave.ready := '0';
+                        v.ramWrite := '1';
+                        v.ramWriteAddr := toSlv(2*r.delayPtr, 4);
+                        v.ramWriteData := measurementMaster.data.delayValue(31 downto 0);
                         v.filterPopulation := DELAY_FILTER_DEPTH_C;
-
                         if unsigned(r.status.filterCount) < DELAY_FILTER_DEPTH_C then
                            v.filterPopulation := to_integer(unsigned(r.status.filterCount))+1;
                         end if;
-
-                        for i in v.sorted'range loop
-                           v.sorted(i) := v.delays(i);
-
-                           if i >= v.filterPopulation then
-                              v.sorted(i) := signed'(x"7FFFFFFFFFFFFFFF");
-                           end if;
-                        end loop;
-
-                        -- The admitted delay refreshes age while sorting. Its
-                        -- value/count publish together; no forward sample can
-                        -- use the old filter while this transaction is busy.
-                        v.delayTicks  := measurementMaster.data.ticks;
                         v.sampleTicks := measurementMaster.data.ticks;
-                        v.holding     := '0';
-                        v.medianStep  := 0;
-                        v.state       := MEDIAN_S;
+                        v.holding := '0';
+                        v.state := DELAY_HIGH_S;
                      else
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      end if;
                   elsif unsigned(r.status.filterCount) /= 0 and measurementMaster.data.ratioValid = '1' and
                      unsigned(phcStatus.ticks)-unsigned(r.delayTicks) <= unsigned(r.activeConfig.maxDelayAge) and
                      (r.haveSample = '0' or unsigned(measurementMaster.data.ticks) > unsigned(r.lastTicks)) then
-                     -- A forward Sync sample drives the loop using the latest
-                     -- fresh filtered delay. Several Sync updates can therefore
-                     -- reuse one delay estimate; the median does not decimate Sync.
                      sampleTickDelta := signed(resize(unsigned(measurementMaster.data.ticks), 128))-signed(resize(unsigned(r.lastTicks), 128));
                      if r.tracking = '1' and (sampleTickDelta < signed(resize(unsigned(r.activeConfig.minSampleTicks), 128)) or
                         sampleTickDelta > signed(resize(unsigned(r.activeConfig.maxSampleTicks), 128))) then
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      else
-                        -- e = local - master, in Q16 ns. Positive e means our
-                        -- numerical time is ahead: step it back while invalid,
-                        -- or reduce the tracking rate with negative phase feedback.
-                        v.status.offsetValue            := slv(signed(measurementMaster.data.forward)-signed(r.status.filteredDelay)-resize(signed(r.activeConfig.delayAsymmetry), 128));
-                        v.sampleTicks                   := measurementMaster.data.ticks;
-                        v.holding                       := '0';
-                        v.commandMaster.data            := PTP_PHC_COMMAND_INIT_C;
+                        v.measurementSlave.ready := '0';
+                        v.sampleTicks := measurementMaster.data.ticks;
+                        v.holding := '0';
+                        v.commandMaster.data := PTP_PHC_COMMAND_INIT_C;
                         v.commandMaster.data.generation := phcStatus.generation;
-                        if phcStatus.timeValid = '0' and r.activeConfig.allowStep = '1' and abs(signed(v.status.offsetValue)) > signed(r.activeConfig.stepThreshold) then
-                           -- Normalize the full acquisition epoch delta outside the
-                           -- PHC. Quotient/remainder are transported atomically and
-                           -- applied to the normally advanced commit-edge time.
-                           v.a         := slv(-signed(v.status.offsetValue));
-                           v.b         := slv(SECOND_Q16_C);
-                           v.divide    := '1';
-                           v.operation := PHASE_DIVIDE_S;
-                           v.state     := ISSUE_S;
-                        elsif resize(resize(signed(v.status.offsetValue), 64), 128) /= signed(v.status.offsetValue) then
-                           v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
-                        else
-                           -- ratio is master ns per raw local cycle (Q48), not
-                           -- a dimensionless ratio. Compute the bootstrap ppb as
-                           -- 1e9 * (ratio / nominalIncrement - 1).
-                           v.a         := slv(signed(resize(unsigned(measurementMaster.data.ratio), 128))-
-                                      signed(shift_left(resize(NOMINAL_C, 128), PTP_PHC_TO_RATIO_SHIFT_C)));
-                           v.b         := slv(to_signed(PTP_PPB_SCALE_C, 128));
-                           v.divide    := '0';
-                           v.operation := RATIO_SCALE_S;
-                           v.state     := ISSUE_S;
-                        end if;
+                        loadWords(v, INPUT_FORWARD_L, 0, FORWARD_RATIO_S);
                      end if;
                   end if;
                end if;
             end if;
 
-         when MEDIAN_S =>
-            -- Revocation on the publication edge must retain the prior value,
-            -- as well as invalidating the population in the final override.
-            if v.commandMaster.cancel = '0' and phcStatus.fault = '0' then
-               leftIndex  := MEDIAN_LEFT_C(r.medianStep);
-               rightIndex := MEDIAN_RIGHT_C(r.medianStep);
+         when INIT_COPY_S =>
+            issue(v, PTP_COMPUTE_COPY_C, 13, 0, frequencySlot, INIT_DONE_S);
+         when INIT_DONE_S =>
+            v.frequencyValid := '1';
+            v.state := IDLE_S;
+         when LOAD_S =>
 
-               if r.sorted(leftIndex) > r.sorted(rightIndex) then
-                  v.sorted(leftIndex)  := r.sorted(rightIndex);
-                  v.sorted(rightIndex) := r.sorted(leftIndex);
-               end if;
-
-               if r.medianStep = MEDIAN_LEFT_C'high then
-                  -- Use v so the final comparison contributes to the result.
-                  -- Even populations retain the lower median, including fractions.
-                  if r.filterPopulation <= 2 then
-                     v.status.filteredDelay := slv(resize(v.sorted(0), 128));
-                  elsif r.filterPopulation <= 4 then
-                     v.status.filteredDelay := slv(resize(v.sorted(1), 128));
-                  else
-                     v.status.filteredDelay := slv(resize(v.sorted(2), 128));
-                  end if;
-
-                  v.status.filterCount := slv(to_unsigned(r.filterPopulation, v.status.filterCount'length));
-                  v.state              := IDLE_S;
+            if r.compute.memValid = '0' and configAddress >= 0 and
+               ((configAddress < 14 and r.wordIndex = 0) or (configAddress >= 14 and r.wordIndex < 2)) then
+               v.state := CONFIG_READ_S;
+            elsif r.compute.memValid = '0' then
+               v.compute.memValid := '1';
+               v.compute.memWrite := '1';
+               v.compute.memWord := toSlv(4*r.slot+r.wordIndex, 6);
+               v.compute.memData := value(32*r.wordIndex+31 downto 32*r.wordIndex);
+            elsif computeSlave.memReady = '1' then
+               v.compute.memValid := '0';
+               if r.wordIndex = 3 then
+                  v.state := r.nextState;
                else
-                  v.medianStep := r.medianStep+1;
+                  v.wordIndex := r.wordIndex+1;
+               end if;
+            end if;
+
+         when CONFIG_READ_S =>
+            v.configMaster.valid := '1';
+            v.configMaster.write := '0';
+            v.configMaster.bank := "01";
+            v.configMaster.index := toSlv(configAddress+r.wordIndex, 8);
+            v.state := CONFIG_WAIT_S;
+         when CONFIG_WAIT_S =>
+
+            if configSlaves(1).responseValid = '1' then
+               v.configWord := configSlaves(1).data;
+               v.configSign := configSlaves(1).data(31);
+               v.compute.memValid := '1';
+               v.compute.memWrite := '1';
+               v.compute.memWord := toSlv(4*r.slot+r.wordIndex, 6);
+               v.compute.memData := configSlaves(1).data;
+               if clampConstant then
+                  v.compute.memData := configSlaves(1).data(15 downto 0) & x"0000";
+               end if;
+               v.state := LOAD_S;
+            end if;
+
+         when READ_S =>
+            v.compute.memValid := '1';
+            v.compute.memWrite := '0';
+            v.compute.memWord := toSlv(4*r.slot+r.wordIndex, 6);
+
+            if r.compute.memValid = '1' and computeSlave.memReady = '1' then
+               v.compute.memValid := '0';
+               v.compute.readReady := '1';
+               v.state := READ_WAIT_S;
+            end if;
+
+         when READ_WAIT_S =>
+            v.compute.readReady := '1';
+
+            if computeSlave.readValid = '1' then
+               if r.nextState = OFFSET_PUBLISH_S or r.nextState = MEDIAN_PUBLISH_S or
+                  (r.nextState = RATE_PUBLISH_S and r.wordIndex < 2) then
+                  v.publicationPort.write := '1';
+                  v.publicationPort.first := toSl(r.wordIndex = 0);
+                  v.publicationPort.recordIndex := x"0";
+                  if r.nextState = MEDIAN_PUBLISH_S then
+                     v.publicationPort.recordIndex := x"1";
+                  elsif r.nextState = RATE_PUBLISH_S then
+                     v.publicationPort.recordIndex := x"2";
+                  end if;
+                  v.publicationPort.wordIndex := toSlv(r.wordIndex,8);
+                  v.publicationPort.data := computeSlave.readData;
+               end if;
+               v.publication(32*r.wordIndex+31 downto 32*r.wordIndex) := computeSlave.readData;
+               if r.wordIndex = 3 then
+                  v.state := r.nextState;
+               else
+                  v.wordIndex := r.wordIndex+1;
+                  v.state := READ_S;
                end if;
             end if;
 
          when ISSUE_S =>
-            if readyMath = '1' then
+
+            if computeSlave.jobReady = '1' then
+               v.compute.jobValid := '0';
                v.state := WAIT_S;
             end if;
+
          when WAIT_S =>
-            if validMath = '1' and v.commandMaster.cancel = '0' then
-               v.state := ISSUE_S;
-               if errorMath = '1' then
-                  v.state                := IDLE_S;
+
+            if computeSlave.resultValid = '1' then
+               v.compute.resultReady := '1';
+               v.less := computeSlave.resultLess;
+               v.equal := computeSlave.resultEqual;
+               v.state := r.nextState;
+               if r.checked and computeSlave.resultError = '1' then
                   v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
+                  v.state := IDLE_S;
+               end if;
+            end if;
+
+         when DELAY_HIGH_S =>
+            v.ramWrite := '1';
+            v.ramWriteAddr := toSlv(2*r.delayPtr+1, 4);
+            v.ramWriteData := measurementMaster.data.delayValue(63 downto 32);
+            v.state := DELAY_ACCEPT_S;
+         when DELAY_ACCEPT_S =>
+            v.measurementSlave.ready := '1';
+
+            if measurementMaster.valid = '1' then
+               v.delayTicks := r.sampleTicks;
+               v.delayPtr := (r.delayPtr+1) mod DELAY_FILTER_DEPTH_C;
+               v.medianWord := 0;
+               v.medianStep := 0;
+               v.state := MEDIAN_FETCH_S;
+            end if;
+
+         when MEDIAN_FETCH_S =>
+            v.compute.memWord := toSlv(r.medianWord, 6);
+            v.compute.memWrite := '1';
+
+            if r.medianWord/4 < r.filterPopulation and r.medianWord mod 4 < 2 then
+               v.ramRead := '1';
+               v.ramReadAddr := toSlv(2*(r.medianWord/4)+r.medianWord mod 4, 4);
+               v.state := MEDIAN_RAM_WAIT_S;
+            else
+               v.compute.memData := (others => '0');
+               if r.medianWord/4 >= r.filterPopulation then
+                  if r.medianWord mod 4 = 0 then
+                     v.compute.memData := x"FFFFFFFF";
+                  elsif r.medianWord mod 4 = 1 then
+                     v.compute.memData := x"7FFFFFFF";
+                  end if;
+               end if;
+               v.compute.memValid := '1';
+               v.state := MEDIAN_STORE_S;
+            end if;
+
+         when MEDIAN_RAM_WAIT_S =>
+            v.state := MEDIAN_RAM_CAPTURE_S;
+         when MEDIAN_RAM_CAPTURE_S =>
+            v.compute.memData := historyData;
+            v.compute.memValid := '1';
+            v.state := MEDIAN_STORE_S;
+         when MEDIAN_STORE_S =>
+
+            if computeSlave.memReady = '1' then
+               v.compute.memValid := '0';
+               if r.medianWord = 19 then
+                  v.state := MEDIAN_COMPARE_S;
                else
-                  case r.operation is
-                     when RATIO_SCALE_S =>
-                        v.a         := valueMath;
-                        v.b         := slv(resize(NOMINAL_C, 128));
-                        v.divide    := '1';
-                        v.operation := RATIO_DIVIDE_S;
-                     when RATIO_DIVIDE_S =>
-                        -- Ratio Q48 vs nominal Q32 leaves Q16 ppb after the
-                        -- 1e9 conversion. Bootstrap is independent of PHC rate.
-                        v.a     := valueMath;
-                        v.state := BOOTSTRAP_CLAMP_S;
-                     when PROPORTIONAL_S =>
-                        -- Temporary phase removal by rate: slew = -Kp * e.
-                        -- Kp has units ppb/ns. This slews numerical time through
-                        -- its increment; it does not issue a PHASE step.
-                        v.correction    := resize(shift_right(signed(valueMath), PROPORTIONAL_SHIFT_C), v.correction'length);
-                        v.roundUp       := valueMath(PROPORTIONAL_SHIFT_C-1) and
-                           (not valueMath(127) or uOr(valueMath(PROPORTIONAL_SHIFT_C-2 downto 0)));
-
-                        v.roundIntegral := '0';
-                        v.integrating   := r.tracking;
-                        v.state         := ROUND_S;
-                     when INTERVAL_SCALE_S =>
-                        v.a         := valueMath;
-                        v.b         := slv(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128));
-                        v.divide    := '1';
-                        v.operation := INTERVAL_DIVIDE_S;
-                     when INTERVAL_DIVIDE_S =>
-                        v.interval  := resize(signed(valueMath), v.interval'length); -- seconds Q32; bounded above by the tick limit.
-                        v.a         := r.status.offsetValue;
-                        v.b         := slv(resize(unsigned(r.activeConfig.ki), 128));
-                        v.divide    := '0';
-                        v.operation := INTEGRAL_GAIN_S;
-                     when INTEGRAL_GAIN_S =>
-                        v.a         := valueMath; -- Q16 offset * Q30 gain
-                        v.b         := slv(resize(r.interval, 128)); -- seconds Q32
-                        v.operation := INTEGRAL_TIME_S;
-                     when INTEGRAL_TIME_S =>
-                        -- Persistent rate estimate: Fnew = Fold - Ki * e * dt.
-                        -- Ki is ppb/(ns*s); dt is nominal raw elapsed seconds.
-                        -- The final command is Fnew + slew, subject to limits.
-                        v.correction    := resize(shift_right(signed(valueMath), INTEGRAL_SHIFT_C), v.correction'length);
-                        v.roundUp       := valueMath(INTEGRAL_SHIFT_C-1) and
-                           (not valueMath(127) or uOr(valueMath(INTEGRAL_SHIFT_C-2 downto 0)));
-
-                        v.roundIntegral := '1';
-                        v.state         := ROUND_S;
-                     when RATE_SCALE_S =>
-                        -- Convert requested Q16 ppb to a Q32 ns/tick addend:
-                        -- round(nominalQ32 * ratePpbQ16 / (1e9 * 2**16)).
-                        -- status.ratePpb is a candidate; phcStatus.rate and
-                        -- phcStatus.increment report the committed PHC actuator.
-                        v.a         := valueMath;
-                        v.b         := slv(PPB_Q16_SCALE_C); -- Convert Q16 ppb to a dimensionless rate.
-                        v.divide    := '1';
-                        v.operation := RATE_DIVIDE_S;
-                     when RATE_DIVIDE_S =>
-                        if resize(resize(signed(valueMath), 64), 128) /= signed(valueMath) then
-                           v.status.state := PTP_SERVO_FAULT_C;
-                           v.state        := IDLE_S;
-                        else
-                           v.commandMaster.data            := PTP_PHC_COMMAND_INIT_C;
-                           v.commandMaster.data.kind       := PTP_CMD_RATE_C;
-                           v.commandMaster.data.generation := phcStatus.generation;
-                           v.commandMaster.data.rate       := valueMath(63 downto 0);
-                           v.state                         := COMMAND_S;
-                        end if;
-                     when PHASE_DIVIDE_S =>
-                        if resize(resize(signed(valueMath), 64), 128) /= signed(valueMath) then
-                           v.status.state := PTP_SERVO_FAULT_C;
-                           v.state        := IDLE_S;
-                        else
-                           v.commandMaster.data.kind          := PTP_CMD_PHASE_C;
-                           v.commandMaster.data.phaseSeconds  := valueMath(63 downto 0);
-                           v.commandMaster.data.phaseFraction := slv(shift_left(resize(signed(remainderMath), 64), PTP_TIME_TO_PHC_SHIFT_C));
-                           v.state                            := COMMAND_S;
-                        end if;
-                     when others =>
-                        v.status.state := PTP_SERVO_FAULT_C;
-                        v.state        := IDLE_S;
-                  end case;
+                  v.medianWord := r.medianWord+1;
+                  v.state := MEDIAN_FETCH_S;
                end if;
             end if;
 
-         when BOOTSTRAP_CLAMP_S =>
-            v.bootstrap := clampResult.value;
-            v.a         := r.status.offsetValue;
-            v.b         := slv(resize(unsigned(r.activeConfig.kp), 128));
-            v.divide    := '0';
-            v.operation := PROPORTIONAL_S;
-            v.state     := ISSUE_S;
+         when MEDIAN_COMPARE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, leftIndex, rightIndex, 14, MEDIAN_DECIDE_S);
+         when MEDIAN_DECIDE_S =>
+            v.state := MEDIAN_NEXT_S;
 
-         when ROUND_S =>
-            -- Arithmetic shift is floor division. Round upward for positive
-            -- half ties and negative values strictly above half, then negate:
-            -- -(floor + roundUp) = not floor + (1 - roundUp).
-            -- This shares one signed67 increment/sign-restoration datapath.
-            roundCarry    := (others => '0');
-            roundCarry(0) := not r.roundUp;
-            v.correction  := (not r.correction) + roundCarry;
-            v.state       := SLEW_CLAMP_S;
-
-            if r.roundIntegral = '1' then
-               v.state := FREQUENCY_CLAMP_S;
+            if r.less = '0' and r.equal = '0' then
+               issue(v, PTP_COMPUTE_COPY_C, leftIndex, 0, 14, MEDIAN_SWAP_RIGHT_S);
             end if;
 
-         when SLEW_CLAMP_S =>
-            v.slew  := clampResult.value;
-            v.state := FREQUENCY_CLAMP_S;
+         when MEDIAN_SWAP_RIGHT_S =>
+            issue(v, PTP_COMPUTE_COPY_C, rightIndex, 0, leftIndex, MEDIAN_SWAP_LEFT_S);
+         when MEDIAN_SWAP_LEFT_S =>
+            issue(v, PTP_COMPUTE_COPY_C, 14, 0, rightIndex, MEDIAN_NEXT_S);
+         when MEDIAN_NEXT_S =>
+
+            if r.medianStep = MEDIAN_LEFT_C'high then
+               readWords(v, (r.filterPopulation-1)/2, MEDIAN_PUBLISH_S);
+            else
+               v.medianStep := r.medianStep+1;
+               v.state := MEDIAN_COMPARE_S;
+            end if;
+
+         when MEDIAN_PUBLISH_S =>
+
+            if v.commandMaster.cancel = '0' and phcStatus.fault = '0' then
+               v.status.filteredDelay := r.publication;
+               v.publicationPort.commit := '1';
+               v.publicationPort.commitRecord := x"1";
+               v.status.filterCount := toSlv(r.filterPopulation, v.status.filterCount'length);
+            end if;
+
+            v.state := IDLE_S;
+         when FORWARD_RATIO_S =>
+            loadWords(v, INPUT_RATIO_L, 1, FORWARD_ACCEPT_S);
+         when FORWARD_ACCEPT_S =>
+            v.measurementSlave.ready := '1';
+
+            if measurementMaster.valid = '1' then
+               loadWords(v, FILTER_L, 12, OFFSET_DELAY_S);
+            end if;
+
+         when OFFSET_DELAY_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 0, 12, 0, OFFSET_ASYMMETRY_S);
+         when OFFSET_ASYMMETRY_S =>
+            loadWords(v, ASYMMETRY_L, 12, OFFSET_SUBTRACT_S);
+         when OFFSET_SUBTRACT_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 0, 12, 0, OFFSET_READ_S);
+         when OFFSET_READ_S =>
+            readWords(v, 0, OFFSET_PUBLISH_S);
+         when OFFSET_PUBLISH_S =>
+            v.status.offsetValue := r.publication;
+            v.publicationPort.commit := '1';
+            v.publicationPort.commitRecord := x"0";
+            issue(v, PTP_COMPUTE_CMP_C, 0, 13, 14, OFFSET_ABSOLUTE_S);
+         when OFFSET_ABSOLUTE_S =>
+
+            if r.less = '1' then
+               issue(v, PTP_COMPUTE_SUB_C, 13, 0, 7, OFFSET_THRESHOLD_S);
+            else
+               issue(v, PTP_COMPUTE_COPY_C, 0, 0, 7, OFFSET_THRESHOLD_S);
+            end if;
+
+         when OFFSET_THRESHOLD_S =>
+            loadWords(v, STEP_L, 12, OFFSET_DECIDE_S);
+         when OFFSET_DECIDE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, 12, 7, 14, LOCK_COMPARE_S);
+         when LOCK_COMPARE_S =>
+
+            if phcStatus.timeValid = '0' and r.activeConfig.allowStep = '1' and r.less = '1' then
+               v.state := PHASE_NEGATE_S;
+            elsif resize(resize(signed(r.publication), 64), 128) /= signed(r.publication) then
+               v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
+               v.state := IDLE_S;
+            else
+               loadWords(v, LOCK_L, 12, LOCK_CAPTURE_S);
+            end if;
+
+         when LOCK_CAPTURE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, 7, 12, 14, UNLOCK_COMPARE_S);
+         when UNLOCK_COMPARE_S =>
+            v.inLock := r.less or r.equal;
+            loadWords(v, UNLOCK_L, 12, UNLOCK_CAPTURE_S);
+         when UNLOCK_CAPTURE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, 12, 7, 14, BOOT_DIFFERENCE_S);
+         when BOOT_DIFFERENCE_S =>
+            v.outUnlock := r.less or r.equal;
+            loadWords(v, NOMINAL_RATIO_L, 12, BOOT_SCALE_S);
+         when BOOT_SCALE_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 1, 12, 1, BOOT_MULTIPLY_S, false, 0, '0');
+         when BOOT_MULTIPLY_S =>
+            loadWords(v, BILLION_L, 12, BOOT_DENOMINATOR_S);
+         when BOOT_DENOMINATOR_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 1, 12, 1, BOOT_DIVIDE_S, true, 0, '0');
+         when BOOT_DIVIDE_S =>
+            loadWords(v, NOMINAL_L, 12, BOOT_CLAMP_S);
+         when BOOT_CLAMP_S =>
+            issue(v, PTP_COMPUTE_DIV_C, 1, 12, 1, PROPORTIONAL_LOAD_S, true, 0, '1');
+         when PROPORTIONAL_LOAD_S =>
+            clampWords(v, 1, MAX_FREQUENCY_L, PROPORTIONAL_MULTIPLY_S);
+         when PROPORTIONAL_MULTIPLY_S =>
+            loadWords(v, KP_L, 12, PROPORTIONAL_ROUND_S);
+         when PROPORTIONAL_ROUND_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 0, 12, 2, PROPORTIONAL_NEGATE_S, true, 0, '0');
+         when PROPORTIONAL_NEGATE_S =>
+            issue(v, PTP_COMPUTE_SHR_C, 2, 0, 2, PROPORTIONAL_CLAMP_S, false, PROPORTIONAL_SHIFT_C, '1');
+         when PROPORTIONAL_CLAMP_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 13, 2, 2, PROPORTIONAL_DONE_S, false, 0, '0');
+         when PROPORTIONAL_DONE_S =>
+            v.integrating := r.tracking;
+            clampWords(v, 2, MAX_SLEW_L, INTERVAL_LOAD_S);
+         when INTERVAL_LOAD_S =>
 
             if r.integrating = '1' then
-               -- Use nominal raw elapsed time, independent of PHC steering.
-               v.a         := slv(resize(unsigned(r.sampleTicks)-unsigned(r.lastTicks), 128));
-               v.b         := slv(resize(NOMINAL_C, 128));
-               v.divide    := '0';
-               v.operation := INTERVAL_SCALE_S;
-               v.state     := ISSUE_S;
+               loadWords(v, SAMPLE_TICKS_L, 3, INTERVAL_SUBTRACT_S);
+            else
+               v.state := BOOT_FREQUENCY_S;
             end if;
 
+         when INTERVAL_SUBTRACT_S =>
+            loadWords(v, LAST_TICKS_L, 12, INTERVAL_NOMINAL_S);
+         when INTERVAL_NOMINAL_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 3, 12, 3, INTERVAL_MULTIPLY_S, false, 0, '0');
+         when INTERVAL_MULTIPLY_S =>
+            loadWords(v, NOMINAL_L, 12, INTERVAL_SCALE_S);
+         when INTERVAL_SCALE_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 3, 12, 3, INTERVAL_DIVIDE_S, true, 0, '0');
+         when INTERVAL_DIVIDE_S =>
+            loadWords(v, BILLION_L, 12, INTEGRAL_GAIN_LOAD_S);
+         when INTEGRAL_GAIN_LOAD_S =>
+            issue(v, PTP_COMPUTE_DIV_C, 3, 12, 3, INTEGRAL_GAIN_MULTIPLY_S, true, 0, '1');
+         when INTEGRAL_GAIN_MULTIPLY_S =>
+            loadWords(v, KI_L, 12, INTEGRAL_TIME_MULTIPLY_S);
+         when INTEGRAL_TIME_MULTIPLY_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 0, 12, 4, INTEGRAL_ROUND_S, true, 0, '0');
+         when INTEGRAL_ROUND_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 4, 3, 4, INTEGRAL_NEGATE_S, true, 0, '0');
+         when INTEGRAL_NEGATE_S =>
+            issue(v, PTP_COMPUTE_SHR_C, 4, 0, 4, INTEGRAL_SIGN_S, false, INTEGRAL_SHIFT_C, '1');
+         when INTEGRAL_SIGN_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 13, 4, 4, INTEGRAL_ADD_S, false, 0, '0');
+         when INTEGRAL_ADD_S =>
+            issue(v, PTP_COMPUTE_CMP_C, 4, 13, 14, FREQUENCY_CLAMP_S, false, 0, '0');
+         when BOOT_FREQUENCY_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 1, 2, candidateSlot, FREQUENCY_DONE_S, false, 0, '0');
          when FREQUENCY_CLAMP_S =>
-            -- Bootstrap seeds frequency minus slew; tracking integrates the
-            -- rounded delta. Neither candidate becomes retained before ACK.
-            v.workFrequency := clampResult.value;
-            v.integrate     := '1';
-            v.state         := RATE_CLAMP_S;
+            v.correctionNegative := r.less;
+            v.correctionNonzero := not r.equal;
+            issue(v, PTP_COMPUTE_ADD_C, frequencySlot, 4, candidateSlot, FREQUENCY_DONE_S);
+         when FREQUENCY_DONE_S =>
+            clampWords(v, candidateSlot, MAX_FREQUENCY_L, RATE_TRIAL_S);
+         when RATE_TRIAL_S =>
+            v.integrate := '1';
 
-            if r.integrating = '1' then
-               v.state := RATE_CHECK_S;
-
-               if clampResult.saturated and
-                  ((clampValue > 0 and r.correction > 0) or (clampValue < 0 and r.correction < 0)) then
-                  v.integrate := '0';
-               end if;
+            if r.integrating = '1' and r.saturated = '1' and
+               r.correctionNonzero = '1' and r.clampNegative = r.correctionNegative then
+               v.integrate := '0';
             end if;
 
-         when RATE_CHECK_S =>
-            -- Freeze only outward integration at either saturation boundary.
-            -- Recompute the final rate after choosing old or new frequency.
-            if r.integrate = '0' or (clampResult.saturated and
-               ((clampValue > 0 and r.correction > 0) or (clampValue < 0 and r.correction < 0))) then
-               v.workFrequency := r.frequency;
+            issue(v, PTP_COMPUTE_ADD_C, candidateSlot, 2, 7, RATE_TRIAL_CLAMP_S);
+         when RATE_TRIAL_CLAMP_S =>
+            clampWords(v, 7, MAX_RATE_L, RATE_TRIAL_CHECK_S);
+         when RATE_TRIAL_CHECK_S =>
+
+            if r.integrating = '1' and (r.integrate = '0' or
+               (r.saturated = '1' and r.correctionNonzero = '1' and r.clampNegative = r.correctionNegative)) then
+               issue(v, PTP_COMPUTE_COPY_C, frequencySlot, 0, candidateSlot, RATE_SUM_S);
+            else
+               v.state := RATE_SUM_S;
             end if;
 
-            v.state := RATE_CLAMP_S;
+         when RATE_SUM_S =>
+            issue(v, PTP_COMPUTE_ADD_C, candidateSlot, 2, 7, RATE_LIMIT_S, false, 0, '0');
+         when RATE_LIMIT_S =>
+            clampWords(v, 7, MAX_RATE_L, RATE_READ_S);
+         when RATE_READ_S =>
+            readWords(v, 7, RATE_PUBLISH_S);
+         when RATE_PUBLISH_S =>
+            v.status.ratePpb := r.publication(63 downto 0);
+            v.publicationPort.commit := '1';
+            v.publicationPort.commitRecord := x"2";
+            loadWords(v, NOMINAL_L, 12, RATE_NOMINAL_S);
+         when RATE_NOMINAL_S =>
+            issue(v, PTP_COMPUTE_MUL_C, 7, 12, 7, RATE_MULTIPLY_S, true, 0, '0');
+         when RATE_MULTIPLY_S =>
+            loadWords(v, SECOND_L, 12, RATE_SCALE_S);
+         when RATE_SCALE_S =>
+            issue(v, PTP_COMPUTE_DIV_C, 7, 12, 7, RATE_DIVIDE_S, true, 0, '1');
+         when RATE_DIVIDE_S =>
+            readWords(v, 7, RATE_COMMAND_S);
+         when RATE_COMMAND_S =>
 
-         when RATE_CLAMP_S =>
-            v.status.ratePpb := slv(resize(clampResult.value, 64));
-            v.a              := slv(resize(clampResult.value, 128));
-            v.b              := slv(resize(NOMINAL_C, 128));
-            v.divide         := '0';
-            v.operation      := RATE_SCALE_S;
-            v.state          := ISSUE_S;
+            if resize(resize(signed(r.publication), 64), 128) /= signed(r.publication) then
+               v.status.state := PTP_SERVO_FAULT_C;
+               v.state := IDLE_S;
+            else
+               v.commandMaster.data := PTP_PHC_COMMAND_INIT_C;
+               v.commandMaster.data.kind := PTP_CMD_RATE_C;
+               v.commandMaster.data.generation := phcStatus.generation;
+               v.commandMaster.data.rate := r.publication(63 downto 0);
+               v.state := COMMAND_S;
+            end if;
+
+         when PHASE_NEGATE_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 13, 0, 0, PHASE_SCALE_S, false, 0, '0');
+         when PHASE_SCALE_S =>
+            loadWords(v, SECOND_L, 12, PHASE_DIVIDE_S);
+         when PHASE_DIVIDE_S =>
+            issue(v, PTP_COMPUTE_DIV_C, 0, 12, 7, PHASE_QUOTIENT_S, true, 0, '0');
+         when PHASE_QUOTIENT_S =>
+            readWords(v, 7, PHASE_SECONDS_S);
+         when PHASE_SECONDS_S =>
+
+            if resize(resize(signed(r.publication), 64), 128) /= signed(r.publication) then
+               v.status.state := PTP_SERVO_FAULT_C;
+               v.state := IDLE_S;
+            else
+               v.commandMaster.data.kind := PTP_CMD_PHASE_C;
+               v.commandMaster.data.phaseSeconds := r.publication(63 downto 0);
+               v.state := PHASE_REMAINDER_S;
+            end if;
+
+         when PHASE_REMAINDER_S =>
+            readWords(v, 15, PHASE_COMMAND_S);
+         when PHASE_COMMAND_S =>
+            v.commandMaster.data.phaseFraction := r.publication(47 downto 0) & x"0000";
+            v.state := COMMAND_S;
+         when CLAMP_POSITIVE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, 12, r.clampSlot, 14, CLAMP_POSITIVE_CHECK_S);
+         when CLAMP_POSITIVE_CHECK_S =>
+
+            if r.less = '1' then
+               v.saturated := '1';
+               issue(v, PTP_COMPUTE_COPY_C, 12, 0, r.clampSlot, r.clampReturn);
+            else
+               v.state := CLAMP_NEGATE_S;
+            end if;
+
+         when CLAMP_NEGATE_S =>
+            issue(v, PTP_COMPUTE_SUB_C, 13, 12, 12, CLAMP_NEGATIVE_S);
+         when CLAMP_NEGATIVE_S =>
+            issue(v, PTP_COMPUTE_CMP_C, r.clampSlot, 12, 14, CLAMP_NEGATIVE_CHECK_S);
+         when CLAMP_NEGATIVE_CHECK_S =>
+            v.state := r.clampReturn;
+
+            if r.less = '1' then
+               v.saturated := '1';
+               v.clampNegative := '1';
+               issue(v, PTP_COMPUTE_COPY_C, 12, 0, r.clampSlot, r.clampReturn);
+            end if;
 
          when COMMAND_S =>
+
             if commandSlave.ready = '1' then
                v.state := ACK_S;
             end if;
+
          when ACK_S =>
+
             if commandSlave.ack = '1' then
                v.state := IDLE_S;
                if commandSlave.error = '1' then
@@ -839,21 +1220,21 @@ begin
                   if r.holding = '1' then
                      v.holdApplied := '1';
                   else
-                     acceptSample  := true;
-                     v.frequency   := r.workFrequency;
-                     v.tracking    := '1';
+                     acceptSample := true;
+                     v.frequencyBank := 1-r.frequencyBank;
+                     v.tracking := '1';
                      v.holdApplied := '0';
                      if phcStatus.timeValid = '0' then
-                        -- An accepted rate can establish usable time before
-                        -- enough good samples have accumulated to claim LOCKED.
-                        v.commandMaster.data.kind  := PTP_CMD_VALID_C;
+                        v.commandMaster.data.kind := PTP_CMD_VALID_C;
                         v.commandMaster.data.value := '1';
-                        v.state                    := COMMAND_S;
+                        v.state := COMMAND_S;
                      end if;
                   end if;
                end if;
             end if;
+
       end case;
+
       -- Lock hysteresis uses only a sample whose rate command was acknowledged.
       -- This qualifies the internal offset estimate. It is not an independent
       -- accuracy measurement, nor the LOCKED indication of a physical PLL.
@@ -861,12 +1242,12 @@ begin
          v.lastTicks    := r.sampleTicks;
          v.haveSample   := '1';
          v.status.state := PTP_SERVO_TRACKING_C;
-         if abs(signed(r.status.offsetValue)) <= signed(r.activeConfig.lockThreshold) then
+         if r.inLock = '1' then
             if r.good /= x"FF" then
                v.good := r.good+1;
             end if;
             v.bad := (others => '0');
-         elsif abs(signed(r.status.offsetValue)) >= signed(r.activeConfig.unlockThreshold) then
+         elsif r.outUnlock = '1' then
             v.good := (others => '0');
             if r.bad /= x"FF" then
                v.bad := r.bad+1;
@@ -876,10 +1257,18 @@ begin
             v.status.state := PTP_SERVO_LOCKED_C;
          end if;
       end if;
+
       -- Cancellation overrides work above; disabling/fault policy then selects
       -- the externally visible quality without discarding retained frequency.
       if v.commandMaster.cancel = '1' then
          v.state              := IDLE_S;
+         v.compute := PTP_COMPUTE_MASTER_INIT_C;
+         v.compute.cancel := '1';
+         v.compute.retain := '1';
+         v.configMaster.valid := '0';
+         v.configMaster.cancel := '1';
+         v.ramRead := '0';
+         v.ramWrite := '0';
          v.status.filterCount := (others => '0');
          v.delayPtr           := 0;
          v.tracking           := '0';
@@ -891,11 +1280,13 @@ begin
             v.status.state := PTP_SERVO_HOLDOVER_C;
          end if;
       end if;
+
       -- Cancel current-edge measurement admission using pre-edge fault state.
       -- Math has its separate local cancel input; its valid remains registered.
       if v.commandMaster.cancel = '1' or r.status.state = PTP_SERVO_FAULT_C then
          v.measurementSlave.ready := '0';
       end if;
+
       if servoEnable = '0' then
          -- Manual ownership still drains the port's measurement queue, even
          -- after a servo fault. Reset below has final admission priority.
@@ -903,6 +1294,7 @@ begin
          v.status.state           := PTP_SERVO_DISABLED_C;
          v.haveSample             := '0';
       end if;
+
       if phcStatus.fault = '1' or r.status.state = PTP_SERVO_FAULT_C then
          v.status.state := PTP_SERVO_FAULT_C;
          v.state        := IDLE_S;
@@ -917,27 +1309,25 @@ begin
       -- coincides with its detection, the PHC rejects the pending command on
       -- the following commit edge using r.commandMaster.cancel/r.commandMaster.stale.
       v.commandMaster.valid := '0';
+
       if v.state = COMMAND_S then
          v.commandMaster.valid := '1';
-      end if;
-
-      -- Register the request controls with the next operands and operation.
-      -- Decoding v keeps valid aligned with ISSUE_S without adding a cycle.
-      v.mathValid := '0';
-      if v.state = ISSUE_S then
-         v.mathValid := '1';
-      end if;
-      -- Phase normalization transports a signed remainder and truncates;
-      -- all other operations retain nearest rounding.
-      v.mathRound := '1';
-      if v.operation = PHASE_DIVIDE_S then
-         v.mathRound := '0';
       end if;
 
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, then close the transaction.
       -------------------------------------------------------------------------
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
+      -- An inactive AXI address is unspecified. Decode only admitted requests;
+      -- RAM responses retain their address/ownership inside ptpRegisterBus.
+      readAddress := (others => '0');
+      writeAddress := (others => '0');
+      if ep.axiStatus.readEnable = '1' then
+         readAddress := ep.axiReadMaster.araddr(11 downto 0);
+      end if;
+      if ep.axiStatus.writeEnable = '1' then
+         writeAddress := ep.axiWriteMaster.awaddr(11 downto 0);
+      end if;
 
       -- Suppress register accesses during AXI-only reset.
       if regRst = '1' then
@@ -945,41 +1335,43 @@ begin
       end if;
 
       -- Phase policy, PI gains and actuator-limit shadows.
-      axiSlaveRegister(ep, x"004", 2, v.shadow.allowStep);
-      axiSlaveRegister(ep, x"020", 0, v.shadow.kp);
-      axiSlaveRegister(ep, x"024", 0, v.shadow.ki);
-      axiSlaveRegister(ep, x"028", 0, v.shadow.maxFrequencyPpb);
-      axiSlaveRegister(ep, x"02C", 0, v.shadow.maxSlewPpb);
-      axiSlaveRegister(ep, x"030", 0, v.shadow.maxRatePpb);
-
       -- Lock thresholds, qualification counts and sample timing.
-      axiSlaveRegister(ep, x"038", 0, v.shadow.stepThreshold);
-      axiSlaveRegister(ep, x"040", 0, v.shadow.lockThreshold);
-      axiSlaveRegister(ep, x"048", 0, v.shadow.unlockThreshold);
-      axiSlaveRegister(ep, x"050", 0, v.shadow.lockCount);
-      axiSlaveRegister(ep, x"054", 0, v.shadow.unlockCount);
-      axiSlaveRegister(ep, x"060", 0, v.shadow.maxDelayAge);
-      axiSlaveRegister(ep, x"068", 0, v.shadow.holdoverTimeout);
-      axiSlaveRegister(ep, x"070", 0, v.shadow.minSampleTicks);
-      axiSlaveRegister(ep, x"078", 0, v.shadow.maxSampleTicks);
-      axiSlaveRegister(ep, x"080", 0, v.shadow.delayAsymmetry);
-
       -- Live quality and active local/shared configuration.
       axiSlaveRegisterR(ep, x"090", 0, r.status.state);
       axiSlaveRegisterR(ep, x"090", 4, r.status.filterCount);
-      axiSlaveRegisterR(ep, x"094", 0, r.activeConfig.kp);
-      axiSlaveRegisterR(ep, x"098", 0, r.activeConfig.ki);
       axiSlaveRegisterR(ep, x"0A0", 0, sharedConfig.associationTimeout);
       axiSlaveRegisterR(ep, x"0A8", 0, sharedConfig.syncTimeout);
       axiSlaveRegisterR(ep, x"0B0", 0, sharedConfig.maxPathDelay);
-
       -- Coherent measurement and diagnostic snapshots.
-      axiSlaveRegisterR(ep, x"100", 0, r.snapOffset);
-      axiSlaveRegisterR(ep, x"110", 0, r.snapDelay);
-      axiSlaveRegisterR(ep, x"120", 0, r.snapRate);
-      axiSlaveRegisterR(ep, x"200", 0, r.snapRejected);
       axiSlaveRegisterR(ep, x"3FC", 0, r.sequenceId);
+      configReadIndex  := configIndex(readAddress);
+      configWriteIndex := configIndex(writeAddress);
+      configReadBank   := "00";
 
+      if readAddress(11 downto 2) = slv(to_unsigned(16#094#/4,10)) then
+         configReadIndex := 8;
+         configReadBank  := "01";
+      elsif readAddress(11 downto 2) = slv(to_unsigned(16#098#/4,10)) then
+         configReadIndex := 9;
+         configReadBank  := "01";
+      end if;
+
+      ptpRegisterBus(v.configBus, r.configBus, configSlaves(0), ep, configReadIndex, configWriteIndex,
+         configMask(configWriteIndex,ep.axiWriteMaster.wstrb), configReadBank, regRst);
+      snapshotIndex := -1;
+
+      if unsigned(readAddress(11 downto 2)) >= 64 and unsigned(readAddress(11 downto 2)) <= 73 then
+         snapshotIndex := to_integer(unsigned(readAddress(11 downto 2)))-64;
+      end if;
+
+      ptpRegisterBus(v.snapshotBus, r.snapshotBus, snapshotSlave, ep, snapshotIndex, -1, x"00000000", "00", regRst);
+      snapshotIndex := -1;
+
+      if readAddress(11 downto 2) = slv(to_unsigned(128,10)) then
+         snapshotIndex := 0;
+      end if;
+
+      ptpRegisterBus(v.counterBus, r.counterBus, counterSlave, ep, snapshotIndex, -1, x"00000000", "00", regRst);
       axiSlaveDefault(ep, v.writeSlave, v.readSlave, AXI_RESP_DECERR_C);
       -- The bus reset cancels responses only. Accepted operations and active
       -- settings belong to the system-reset lifetime, not the AXI transaction.
@@ -991,29 +1383,94 @@ begin
       -------------------------------------------------------------------------
       -- Coordinated configuration and snapshots survive AXI-only reset.
       -------------------------------------------------------------------------
-
-      -- Freeze candidate and vote together. Same-edge AXI writes belong to
-      -- the next commit, so both use r.shadow rather than v.shadow.
+      -- The word bank freezes the candidate and streams its validation scan.
+      -- Previously admitted writes drain before copying; later writes wait for
+      -- the next shadow. The coordinator samples the vote after preparation.
       if configControl.prepare = '1' then
-         v.candidate   := r.shadow;
-         v.configValid := toSl(validConfig(r.shadow));
+         v.configValid := '1';
       end if;
+
+      if scanValid = '1' then
+         configIndexValue := to_integer(unsigned(scanIndex));
+         if configIndexValue mod 2 = 0 then
+            v.validateValue(31 downto 0) := scanData;
+         else
+            v.validateValue(63 downto 32) := scanData;
+         end if;
+
+         case configIndexValue is
+            when 1 =>
+               v.candidate.allowStep := scanData(2);
+            when 10 =>
+               v.validateFrequency := scanData;
+            when 11 =>
+               v.validateSlew := scanData;
+            when 12 =>
+               if unsigned(scanData) > MAX_ACTUATOR_PPB_C or unsigned(r.validateFrequency) > unsigned(scanData) or
+                  unsigned(r.validateSlew) > unsigned(scanData) then
+                  v.configValid := '0';
+               end if;
+            when 15 | 17 =>
+               if scanData(31) = '1' then
+                  v.configValid := '0';
+               end if;
+               v.validatePrevious := v.validateValue;
+            when 19 =>
+               if signed(v.validateValue) < signed(r.validatePrevious) then
+                  v.configValid := '0';
+               end if;
+            when 20 =>
+               v.candidate.lockCount := scanData(7 downto 0);
+               if unsigned(scanData(7 downto 0)) = 0 then
+                  v.configValid := '0';
+               end if;
+            when 21 =>
+               v.candidate.unlockCount := scanData(7 downto 0);
+               if unsigned(scanData(7 downto 0)) = 0 then
+                  v.configValid := '0';
+               end if;
+            when 25 =>
+               v.candidate.maxDelayAge := v.validateValue;
+               if not ptpValidTimeout(v.validateValue) then
+                  v.configValid := '0';
+               end if;
+            when 27 =>
+               v.candidate.holdoverTimeout := v.validateValue;
+               if not ptpValidTimeout(v.validateValue) then
+                  v.configValid := '0';
+               end if;
+            when 29 =>
+               v.candidate.minSampleTicks := v.validateValue;
+               v.validatePrevious := v.validateValue;
+               if not ptpValidTimeout(v.validateValue) then
+                  v.configValid := '0';
+               end if;
+            when 31 =>
+               v.candidate.maxSampleTicks := v.validateValue;
+               if not ptpValidTimeout(v.validateValue) or unsigned(v.validateValue) < unsigned(r.validatePrevious) then
+                  v.configValid := '0';
+               end if;
+            when others =>
+               null;
+         end case;
+
+      end if;
+
       if configControl.apply = '1' then
          v.activeConfig := r.candidate;
       end if;
-      if snapshotControl.capture = '1' then
-         v.sequenceId   := snapshotControl.sequenceId;
-         v.snapOffset   := r.status.offsetValue;
-         v.snapDelay    := r.status.filteredDelay;
-         v.snapRate     := r.status.ratePpb;
-         v.snapRejected := r.status.rejectedCount;
+
+      if snapshotControl.publish = '1' then
+         v.sequenceId := snapshotControl.sequenceId;
       end if;
+
       -- Apply synchronous reset before publishing next state and outputs.
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
-      rin <= v;
 
+      rin <= v;
+      computeMaster <= r.compute;
       -- Publish resolved controls and registered payloads without another
       -- decision stage. Combinational ready observes the reset override above.
       -- Measurement ready is the reverse capacity exception: holdover work and
@@ -1026,17 +1483,16 @@ begin
       commandMaster    <= r.commandMaster;
       expireTime       <= r.expireTime;
       status           <= r.status;
-      invalidate       <= r.commandMaster.cancel;
-      inputMath        <= r.mathValid;
-      roundMath        <= r.mathRound;
    end process comb;
    seq : process (clk, rst) is
    begin
+
       if RST_ASYNC_G and rst = RST_POLARITY_G then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
+
    end process seq;
 
 end architecture rtl;

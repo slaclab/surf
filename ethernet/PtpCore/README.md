@@ -29,62 +29,40 @@ insertion remains outside scope.
   FCS/message validation, composing `PtpRxTimestampAdapter` and `PtpRxFrontend`
   without additional state or latency. The adapter/frontend register boundary
   keeps frame bytes and their start capture aligned. The leaf blocks remain
-  independently testable. `PtpTxTimestampTap` composes the same leaves in
-  TX-observation mode for actual TX wire completion.
-- `PtpRxFrontend` aligns beat data for fixed prefix writes and stores complete
-  message/capture records in a synchronous SURF FWFT FIFO with a registered
-  output head. Delivery takes three clocks after completion. Logical capacity
-  includes the write/read pipeline; no-backpressure input, full-before-edge
-  overflow and abort timing are unchanged. See [queue storage](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-queue-storage).
-- `PtpProtocolEngine` (formerly `PtpPort`), `PtpTxLedger`, `PtpE2e`: fixed-source
-  policy, message association, persistent TX reservations, rate estimation,
-  request building and E2E arithmetic. The Python device is also
-  `PtpProtocolEngine`, exposed as the endpoint's `ProtocolEngine` child.
-  Shared `PtpPort*Type` records retain their existing names and layouts.
-- `PtpE2e` shares one timestamp converter and one wide add/subtract path.
-  Zero calibration planes skip their arithmetic; both-zero builds need only
-  elapsed scaling. Full epoch/correction precision and input rejection remain
-  unchanged. See [E2E sequencing](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#e2e-arithmetic-sequencing).
-- `PtpProtocolEngine` keeps four 485-bit Sync history rows and four 549-bit
-  pairing payloads in synchronous `SimpleDualPortRam`. Shared scans replace
-  parallel nearest-Sync, expiry, key and replacement searches. Ownership flags
-  remain in registers; RX holds pair records through acknowledgement and E2E
-  lookup holds history stable. See the [association storage contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#protocol-association-storage)
-  for latency, expiry, cancellation and optional block-RAM settings.
-- `PtpTxLedger` stores complete 636-bit entries in synchronous `SimpleDualPortRam`,
-  distributed by default (`MEMORY_TYPE_G="block"` is also supported at the leaf).
-  Only four ownership bits per slot remain in registers. A shared row scan
-  takes `2*DEPTH_G+2` clocks and uses ready/valid on wire completions and responses.
-  Low-level endpoint/engine users must connect the new `txMessageReady` output;
-  MAC/PHY compositions connect it to the TX tap queue internally. See the
-  [ledger storage contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#tx-ledger-storage).
-- `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
-  arithmetic, delay filtering, acquisition, PI control and holdover.
-  The servo shares clamp/rounding arithmetic across controller stages and runs
-  nine compare/swaps through one comparator over a copy of its circular history.
-  Its median publishes after nine comparison clocks with input backpressure,
-  preserving populated-only lower-median semantics. See the
-  [servo sequencing contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing).
-  The [synthesis comparison](../../docs/plans/ethernet-ptp/lut-optimization.md#october-12-arithmetic-synthesis-comparison)
-  records area reductions; controlled attribution and timing remain open.
-- The PHC ticks with its committed increment and bounds its constant phase
-  divider's remainder to 46 bits. `PtpMath` shares the divide trial subtraction
-  and borrow decision; full-width operands and the 128-iteration schedule remain.
-  See [PHC/math arithmetic](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#phc-increment-and-phase-normalization).
-- `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
-  configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
-  Servo command payload, valid, cancellation and expiry are registered. The
-  PHC's separate acceptance/commit edges allow cancellation registered on an
-  acceptance edge to reject the pending command before it takes effect.
-  Expiry assertion and release reach the PHC one clock after the servo samples
-  the condition; measurement readiness remains combinational backpressure.
-- `PtpCompute` is a standalone prototype for replacing the separate arithmetic
-  engines and wide staging records. Four contexts share a 32-bit word RAM and
-  arithmetic datapath. It is not instantiated by `PtpEndpoint`; current clients,
-  PHC ticks and register banks retain their existing implementations. See the
-  [prototype contract, checks and migration gates](../../docs/plans/ethernet-ptp/lut-optimization.md#shared-word-processor-prototype-october-12).
-  Servo status and RX counters are authoritative registered records, shared
-  by their output ports and local state updates.
+  independently testable. `PtpTxTimestampTap` shares physical normalization/capture and uses its
+  dedicated Delay_Req validator for actual TX wire completion.
+- `PtpRxFrontend` streams compact fields into eight byte lanes of dedicated
+  frame RAM. A descriptor FIFO retains four logical records, including the
+  decoder and held head. Capture metadata is written once at physical SOF.
+  `PtpTxTimestampTap` uses the dedicated `PtpDelayReqObserver`, retaining only
+  identity/sequence/domain and capture, with two logical entries. Both validate
+  FCS/framing/length and preserve physical timestamp provenance. See
+  [queue storage](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-queue-storage).
+- `PtpProtocolEngine`, `PtpTxLedger`, `PtpE2e` retain association, wire fate,
+  request scheduling and measurement ownership. Pair rows use 20x32 words;
+  history rows use 25x32 words, including reusable normalized Sync/forward
+  values. Ledger entries use 22x32 words. Scans retain only selected fields,
+  ages and ownership; complete rows are never copied into scan registers.
+- One endpoint-owned `PtpCompute` serves rate, E2E, servo and PHC preparation.
+  Persistent addressed workspaces chain results through a 32-bit ALU,
+  partial-product multiplier and exact iterative divider. Separate held
+  responses prevent a stalled owner from blocking the engine. `PtpMath`
+  remains a standalone tested leaf and has no production PTP instantiation.
+- `PtpServo` stores median history and sorting scratch in word RAM and uses the
+  shared processor for comparisons, clamps, PI, rounding and phase preparation.
+  Retained frequency changes only on successful command ACK. `PtpPhc` keeps
+  counter rollover, increment, PPS, generation and command checks independent
+  of compute; manual PHASE uses a frozen operand bank and the shared processor.
+- `PtpPhc`, `PtpProtocolEngine` and `PtpServo` own their local AXI banks.
+  `PtpConfigBank` freezes and clones candidates before validation completion;
+  `PtpPublicationBank` pins immutable results and `PtpSnapshotBank` copies
+  changing scalars. The coordinator applies configuration and publishes complete
+  snapshot cohorts through common registered broadcasts. AXI reset preserves
+  accepted coordination and command work.
+- See the [shared service contract](../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound)
+  for arbitration, RAM lifetimes, sequencer ceilings and the 70,347,776-tick
+  minimum association window. The two-second default remains. Area/timing
+  comparison against the prior implementation still requires Vivado evidence.
 - Configuration defaults live in `PTP_PORT_CONFIG_INIT_C` and
   `PTP_SERVO_CONFIG_INIT_C`, with units and derivations beside each value.
   `PtpTxLedger.config` accepts the port's active `PtpPortConfigType` directly;
@@ -103,10 +81,9 @@ insertion remains outside scope.
   and combinational AXI reset. `PtpEndpoint` connects it to the functional cores
   through the standard SURF crossbar and otherwise remains structural. [development register map](../../docs/plans/ethernet-ptp/register-map.md)
   has four 4 KiB banks in a 16 KiB-aligned window at `AXIL_BASE_ADDR_G`.
-  Port and servo capture candidate settings and their validation votes together
-  on prepare; later shadow writes cannot change either for that commit.
-  Prepare/apply/busy and IRQ are registered from resolved next state, preserving
-  the existing commit edges. System reset resets the coordinator and every bank.
+  Port and servo freeze candidate settings on prepare; sequential validation
+  completion qualifies apply. Later shadow writes target the next candidate.
+  Prepare/apply/busy and IRQ remain registered. System reset resets the coordinator and every bank.
 - `PtpPrimaryGuard`, `EthMacPtpEndpoint`: exclusive PTP TX ownership and common-clock
   GMII/XGMII composition, using existing SURF stream adapters.
 - `PtpPhcRead`: optional, separately instantiated coherent snapshot CDC mailbox.
@@ -161,8 +138,8 @@ Port-to-ledger requests and complete E2E operands are registered. TX begins only
 after a reservation handshake and then survives logical restart. E2E owns its
 frozen exchange through result consumption. Ledger response acceptance returns
 one cycle after submission; the port retains the associated response metadata.
-Snapshots issue a registered capture/sequence broadcast; every bank samples
-pre-edge state and the coordinator completes on the next edge. Issued snapshots
+Snapshots issue a registered capture/sequence broadcast; every bank freezes
+pre-edge state, then the coordinator publishes after all copies finish. Issued snapshots
 are not withdrawn by later invalidation. The CDC mailbox registers FIFO strobes
 and read-valid, retaining asynchronous session reset for stopped clocks.
 

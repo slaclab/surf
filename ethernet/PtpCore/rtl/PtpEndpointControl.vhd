@@ -30,7 +30,6 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -44,42 +43,44 @@ entity PtpEndpointControl is
       RST_ASYNC_G    : boolean  := false;
       CLK_FREQ_G     : positive := 156250000);
    port (
-      clk              : in  sl;
-      rst              : in  sl;
-      regRst           : in  sl := '0';
-      portRst          : in  sl := '0';
-      linkReady        : in  sl;
-      identityRestart  : in  sl;
-
+      clk             : in  sl;
+      rst             : in  sl;
+      regRst          : in  sl := '0';
+      portRst         : in  sl := '0';
+      linkReady       : in  sl;
+      identityRestart : in  sl;
       -- Register bus and local configuration votes.
-      axiReadMaster    : in  AxiLiteReadMasterType;
-      axiReadSlave     : out AxiLiteReadSlaveType;
-      axiWriteMaster   : in  AxiLiteWriteMasterType;
-      axiWriteSlave    : out AxiLiteWriteSlaveType;
-      manualBusy       : in  sl;
-      phcConfigValid   : in  sl;
-      portConfigValid  : in  sl;
-      servoConfigValid : in  sl;
-
+      axiReadMaster       : in  AxiLiteReadMasterType;
+      axiReadSlave        : out AxiLiteReadSlaveType;
+      axiWriteMaster      : in  AxiLiteWriteMasterType;
+      axiWriteSlave       : out AxiLiteWriteSlaveType;
+      manualBusy          : in  sl;
+      phcConfigValid      : in  sl;
+      portConfigValid     : in  sl;
+      servoConfigValid    : in  sl;
+      portConfigPrepared  : in sl;
+      servoConfigPrepared : in sl;
       -- Narrow live status inputs; wide snapshots stay in their owning banks.
-      captureAbort     : in  sl;
-      phcFault         : in  sl;
-      phcDiscontinuity : in  sl;
-      phcCommandError  : in  sl;
-      portActive       : in  sl;
-      servoState       : in  slv(2 downto 0);
-      filterCount      : in  slv(2 downto 0);
-      announceValid    : in  sl;
-
+      phcSnapshotPrepared   : in sl;
+      portSnapshotPrepared  : in sl;
+      servoSnapshotPrepared : in sl;
+      captureAbort          : in  sl;
+      phcFault              : in  sl;
+      phcDiscontinuity      : in  sl;
+      phcCommandError       : in  sl;
+      portActive            : in  sl;
+      servoState            : in  slv(2 downto 0);
+      filterCount           : in  slv(2 downto 0);
+      announceValid         : in  sl;
       -- Active-high bus reset is combinational; lifecycle outputs are registered.
-      axiReset         : out sl;
-      restart          : out sl;
-      rxFlush          : out sl;
-      enable           : out sl;
-      servoEnable      : out sl;
-      irq              : out sl;
-      configControl    : out PtpConfigControlType;
-      snapshotControl  : out PtpSnapshotControlType);
+      axiReset        : out sl;
+      restart         : out sl;
+      rxFlush         : out sl;
+      enable          : out sl;
+      servoEnable     : out sl;
+      irq             : out sl;
+      configControl   : out PtpConfigControlType;
+      snapshotControl : out PtpSnapshotControlType);
 end entity PtpEndpointControl;
 
 architecture rtl of PtpEndpointControl is
@@ -101,6 +102,7 @@ architecture rtl of PtpEndpointControl is
       configError      : sl;
       configSequence   : slv(31 downto 0);
       snapshotPending  : sl;
+      snapshotIssued   : sl;
       snapshotSequence : slv(31 downto 0);
       snapshotControl  : PtpSnapshotControlType;
       irq              : sl;
@@ -122,6 +124,7 @@ architecture rtl of PtpEndpointControl is
       configError      => '0',
       configSequence   => (others => '0'),
       snapshotPending  => '0',
+      snapshotIssued   => '0',
       snapshotSequence => (others => '0'),
       snapshotControl  => PTP_SNAPSHOT_CONTROL_INIT_C,
       irq              => '0',
@@ -136,12 +139,9 @@ architecture rtl of PtpEndpointControl is
 
 begin
 
-   comb : process (r, rst, regRst, portRst, linkReady, identityRestart, axiReadMaster, axiWriteMaster,
-                   manualBusy, phcConfigValid, portConfigValid, servoConfigValid, captureAbort,
-                   phcFault, phcDiscontinuity, phcCommandError, portActive, servoState, filterCount, announceValid) is
+   comb : process (all) is
       variable v  : RegType;
       variable ep : AxiLiteEndpointType;
-
       -- Calculations used only during this evaluation.
       variable commitRequest   : sl;
       variable snapshotRequest : sl;
@@ -149,10 +149,10 @@ begin
       variable axiResetNow     : sl;
    begin
       v := r;
-
       -- Reset distribution is deliberately combinational. It resets bus
       -- handling without resetting the clock, protocol or pending commands.
       axiResetNow := '0';
+
       if rst = RST_POLARITY_G or regRst = '1' then
          axiResetNow := '1';
       end if;
@@ -161,11 +161,11 @@ begin
       -- This retains the register hop previously owned by PtpEndpoint.
       v.restart := portRst or r.configControl.apply or identityRestart;
       v.rxFlush := v.restart or not linkReady or captureAbort;
-
       v.events                          := (others => '0');
       v.events(PTP_IRQ_PHC_FAULT_C)     := phcFault;
       v.events(PTP_IRQ_DISCONTINUITY_C) := phcDiscontinuity;
       v.events(PTP_IRQ_COMMAND_ERROR_C) := phcCommandError;
+
       if servoState = PTP_SERVO_FAULT_C then
          v.events(PTP_IRQ_SERVO_FAULT_C) := '1';
       end if;
@@ -175,12 +175,10 @@ begin
       commitRequest   := '0';
       snapshotRequest := '0';
       irqClear        := (others => '0');
-
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, qualify submissions, then close the transaction.
       -------------------------------------------------------------------------
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
-
       -- Suppress register accesses during AXI-only reset.
       if regRst = '1' then
          ep.axiStatus := AXI_LITE_STATUS_INIT_C;
@@ -199,17 +197,14 @@ begin
       axiSlaveRegisterR(ep, x"044", 12, filterCount);
       axiSlaveRegisterR(ep, x"044", 16, announceValid);
       axiSlaveRegisterR(ep, x"048", 0, r.configSequence);
-
       -- Interrupt status, mask and write-one-to-clear.
       axiSlaveRegisterR(ep, x"04C", 0, r.irqStatus);
       axiSlaveRegister(ep, x"050", 0, v.irqMask);
       axiSlaveRegister(ep, x"054", 0, irqClear);
-
       -- Coordinated snapshot submission and completion.
       axiSlaveRegister(ep, x"100", 0, snapshotRequest);
       axiSlaveRegisterR(ep, x"104", 0, r.snapshotSequence);
       axiSlaveRegisterR(ep, x"108", 0, r.snapshotPending);
-
       -- Submission checks use pre-edge ownership. Completion below cannot
       -- make a busy command or pending snapshot accept a replacement here.
       if commitRequest = '1' then
@@ -219,6 +214,7 @@ begin
             v.state := PREPARE_S;
          end if;
       end if;
+
       if snapshotRequest = '1' then
          if r.snapshotPending = '1' then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
@@ -226,13 +222,14 @@ begin
             v.snapshotPending := '1';
          end if;
       end if;
+
       -- Consume the prior event stage, preserving status/IRQ latency. A
       -- registered event wins a coincident write-one-to-clear.
       v.irqStatus             := r.irqStatus and not irqClear;
       v.irqStatus(3 downto 0) := v.irqStatus(3 downto 0) or r.events;
-
       -- Register IRQ with the event/W1C result and any mask write.
       v.irq := '0';
+
       if unsigned(v.irqStatus and v.irqMask) /= 0 then
          v.irq := '1';
       end if;
@@ -256,7 +253,10 @@ begin
             v.candidate := r.shadow;
             v.state     := VALIDATE_S;
          when VALIDATE_S =>
-            if phcConfigValid = '1' and portConfigValid = '1' and
+
+            if portConfigPrepared = '0' or servoConfigPrepared = '0' then
+               null;
+            elsif phcConfigValid = '1' and portConfigValid = '1' and
                servoConfigValid = '1' and manualBusy = '0' then
                v.state := APPLY_S;
             else
@@ -264,19 +264,23 @@ begin
                v.configError    := '1';
                v.configSequence := ptpSatInc(r.configSequence);
             end if;
+
          when APPLY_S =>
             v.activeConfig   := r.candidate;
             v.configError    := '0';
             v.configSequence := ptpSatInc(r.configSequence);
             v.state          := IDLE_S;
       end case;
+
       -- Register coordination with the resolved state. Banks still sample
       -- prepare in PREPARE_S and apply in APPLY_S, with no extra commit cycle.
       -- System reset resets the coordinator and every participating bank.
       v.configControl := PTP_CONFIG_CONTROL_INIT_C;
+
       if v.state /= IDLE_S then
          v.configControl.busy := '1';
       end if;
+
       case v.state is
          when PREPARE_S =>
             v.configControl.prepare := '1';
@@ -286,25 +290,35 @@ begin
             null;
       end case;
 
-      -- Issue a registered broadcast, then complete on the edge on which all
-      -- banks consume it. An issued snapshot samples coherent pre-edge state,
-      -- even if a command changes that state on the same edge. Invalidation
-      -- defers new issues; it cannot withdraw an already published request.
+      -- Capture pins a common pre-edge cohort. Publish is a second common
+      -- broadcast after every bank has drained its frozen-source copy. Busy
+      -- and the old sequence remain visible until that publication edge.
       v.snapshotControl.capture := '0';
-      if r.snapshotControl.capture = '1' then
-         v.snapshotPending  := '0';
+      v.snapshotControl.publish := '0';
+
+      if r.snapshotControl.publish = '1' then
+         v.snapshotPending := '0';
          v.snapshotSequence := r.snapshotControl.sequenceId;
+      elsif r.snapshotControl.capture = '1' then
+         null; -- Prepared falls on this edge; do not sample its old value.
+      elsif r.snapshotIssued = '1' then
+         if phcSnapshotPrepared = '1' and portSnapshotPrepared = '1' and servoSnapshotPrepared = '1' then
+            v.snapshotControl.publish := '1';
+            v.snapshotIssued := '0';
+         end if;
       elsif r.snapshotPending = '1' and r.configControl.busy = '0' and
          captureAbort = '0' and rst /= RST_POLARITY_G then
-         v.snapshotControl.capture    := '1';
+         v.snapshotControl.capture := '1';
          v.snapshotControl.sequenceId := ptpSatInc(r.snapshotSequence);
+         v.snapshotIssued := '1';
       end if;
+
       -- Apply synchronous reset before publishing next state and outputs.
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
-      rin <= v;
 
+      rin <= v;
       -- Publish registered status and the qualified coordination strobes.
       axiReset        <= axiResetNow;
       restart         <= r.restart;
@@ -317,14 +331,15 @@ begin
       axiReadSlave    <= r.readSlave;
       axiWriteSlave   <= r.writeSlave;
    end process comb;
-
    seq : process (clk, rst) is
    begin
+
       if RST_ASYNC_G and rst = RST_POLARITY_G then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
+
    end process seq;
 
 end architecture rtl;

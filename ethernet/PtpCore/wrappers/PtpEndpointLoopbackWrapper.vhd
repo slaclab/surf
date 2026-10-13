@@ -43,6 +43,9 @@ use surf.PtpPkg.all;
 
 entity PtpEndpointLoopbackWrapper is
    generic (
+      -- Integer picoseconds permit GHDL command-line selection of simulation
+      -- propagation delay. Zero retains all registered clock-cycle boundaries.
+      TPD_PS_G          : natural          := 1000;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       MAC_ENABLE_G      : boolean          := true;
       PHY_TYPE_G        : string           := "XGMII";
@@ -211,6 +214,7 @@ begin
 
       U_DUT : entity surf.EthMacPtpEndpoint
          generic map (
+            TPD_G             => TPD_PS_G*1 ps,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             PHY_TYPE_G        => PHY_TYPE_G,
             CLK_FREQ_G        => CLK_FREQ_G,
@@ -294,6 +298,7 @@ begin
 
       U_Adapter : entity surf.PtpRxTimestampAdapter
          generic map (
+            TPD_G      => TPD_PS_G*1 ps,
             PHY_TYPE_G => PHY_TYPE_G)
          port map (
             clk       => clk,         -- [in]
@@ -311,6 +316,8 @@ begin
             rxCapture => capture);    -- [out]
 
       U_Rx : entity surf.PtpRxFrontend
+         generic map (
+            TPD_G => TPD_PS_G*1 ps)
          port map (
             clk           => clk,                -- [in]
             rst           => rst,                -- [in]
@@ -328,6 +335,7 @@ begin
 
       U_Tx : entity surf.PtpTxTimestampTap
          generic map (
+            TPD_G      => TPD_PS_G*1 ps,
             PHY_TYPE_G => PHY_TYPE_G)
          port map (
             clk             => clk,            -- [in]
@@ -348,6 +356,7 @@ begin
 
       U_DUT : entity surf.PtpEndpoint
          generic map (
+            TPD_G             => TPD_PS_G*1 ps,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             CLK_FREQ_G        => CLK_FREQ_G,
             PACKET_LIFETIME_G => PACKET_LIFETIME_G)

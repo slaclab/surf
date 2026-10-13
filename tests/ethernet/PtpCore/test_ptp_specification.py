@@ -295,7 +295,9 @@ async def delay_request_headers(d):
                 if i == 2:
                     assert got[4:] == (8 << 48, 1)
                 await b.drain()
-            for _ in range(20):
+            # Finish a current four-entry word scan, then allocate on the next
+            # pass (45 clocks/entry, 22 writes and control/drain edges).
+            for _ in range(2*(4*45+22+8)):
                 if int(d.txValid.value):
                     break
                 await b.wait()

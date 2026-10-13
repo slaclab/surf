@@ -104,7 +104,7 @@ class Bench:
     async def commit(self):
         before = await self.read(0x048)
         await self.write(0x03C, 1)
-        for _ in range(20):
+        for _ in range(100):
             if await self.read(0x048) != before:
                 assert await self.read(0x040) == 0
                 return
@@ -115,9 +115,9 @@ class Bench:
         # Short functional intervals retain the real PHC nominal increment.
         # Fractional correction fields avoid quantizing the independent source
         # to whole-ns accuracy during this accelerated packet schedule.
-        for address, value in {0x2080: 2500, 0x2088: 10000, 0x2090: 12000, 0x3060: 16000,
-                               0x3068: 24000, 0x2098: 12000, 0x20A0: 800, 0x20A8: 12000,
-                               0x3070: 500, 0x3078: 12000}.items():
+        for address, value in {0x2080: 25000, 0x2088: 100000, 0x2090: 70347776, 0x3060: 160000,
+                               0x3068: 240000, 0x2098: 120000, 0x20A0: 800, 0x20A8: 120000,
+                               0x3070: 500, 0x3078: 120000}.items():
             await self.write(address, value, 8)
         await self.write(0x3050, 3)
         await self.write(0x3004, 4 if self.allow_step else 0)
@@ -273,7 +273,7 @@ class Bench:
                         integer = int(origin)-self.origin_bias
                         return self.frame(0, seq, integer, nearest((origin-integer)*Q16), two_step=False)
                     await self.wire(sync_at, lane=lane)
-            await self.wait(2200)
+            await self.wait(30000)
             self.d._log.info("Sync %d: active=%s quality=%s valid=%s generation=%s tx=%d", sequence+index,
                              self.d.portActive.value, self.d.servoState.value, self.d.timeValid.value,
                              self.d.timeGeneration.value, self.tx_count)

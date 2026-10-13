@@ -18,10 +18,8 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -90,7 +88,6 @@ end entity PtpRxFrontendWrapper;
 architecture rtl of PtpRxFrontendWrapper is
 
    signal phcStatus : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
-
    signal phcTime   : PtpTimeType;
    signal master    : AxiStreamMasterType;
    signal capture   : PtpRxCaptureType;
@@ -110,7 +107,6 @@ begin
    phcTime.nanoseconds  <= phcNanoseconds;
    phcTime.fraction     <= phcFraction;
    flush                <= rxFlush or not phyReady;
-
    -- Physical tests exercise the real adapter and validator together. The
    -- normalized signals below expose their boundary for the Python scoreboard.
    GEN_PHY : if PHY_TYPE_G /= "DIRECT" generate
@@ -139,7 +135,6 @@ begin
             rxCapture => capture);   -- [out]
 
    end generate GEN_PHY;
-
    -- DIRECT bypasses physical framing so tests can target exact validator
    -- edges, including empty EOF and completion simultaneous with overflow/reset.
    -- Capture inputs are already translated/calibrated in this mode.
@@ -147,7 +142,7 @@ begin
       comb : process (directValid, directData, directKeep, directSof, directLast, directError) is
          variable v : AxiStreamMasterType;
       begin
-         v                    := AXI_STREAM_MASTER_INIT_C;
+         v := AXI_STREAM_MASTER_INIT_C;
          v.tValid             := directValid;
          v.tData(63 downto 0) := directData;
          v.tKeep              := (others => '0');
@@ -165,7 +160,6 @@ begin
       capture.timeValid  <= timeValid;
       capture.error      <= directCaptureError;
    end generate GEN_DIRECT;
-
    -- Observation only: these ports add no queue or independent capture delay.
    -- The scoreboard samples valid/ready/abort before the rising-edge TPD update.
    normValid        <= master.tValid;
@@ -184,28 +178,56 @@ begin
    messageData      <= toSlv(rxMessage);
    messageIncrement <= rxMessage.capture.increment;
    messageError     <= rxMessage.capture.error;
+   GEN_RX : if not TX_OBSERVE_G generate
 
-   U_DUT : entity surf.PtpRxFrontend
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         TX_OBSERVE_G   => TX_OBSERVE_G,
-         FIFO_DEPTH_G   => FIFO_DEPTH_G)
-      port map (
-         clk               => clk,             -- [in]
-         rst               => rst,             -- [in]
-         rxFlush           => flush,           -- [in]
-         generation        => generation,      -- [in]
-         rxMaster          => master,          -- [in]
-         rxCapture         => capture,         -- [in]
-         message           => rxMessage,       -- [out]
-         messageValid      => messageValid,    -- [out]
-         messageReady      => messageReady,    -- [in]
-         rxAbort           => rxAbort,         -- [out]
-         rxEpoch           => rxEpoch,         -- [out]
-         counters.accepted => acceptedCount,   -- [out]
-         counters.dropped  => droppedCount,    -- [out]
-         counters.overflow => overflowCount);  -- [out]
+      U_DUT : entity surf.PtpRxFrontend
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            TX_OBSERVE_G   => TX_OBSERVE_G,
+            FIFO_DEPTH_G   => FIFO_DEPTH_G)
+         port map (
+            clk          => clk,             -- [in]
+            rst          => rst,             -- [in]
+            rxFlush      => flush,           -- [in]
+            generation   => generation,      -- [in]
+            rxMaster     => master,          -- [in]
+            rxCapture    => capture,         -- [in]
+            message      => rxMessage,       -- [out]
+            messageValid => messageValid,    -- [out]
+            messageReady => messageReady,    -- [in]
+            rxAbort      => rxAbort,         -- [out]
+            rxEpoch      => rxEpoch,         -- [out]
+            counters.accepted => acceptedCount,   -- [out]
+            counters.dropped  => droppedCount,    -- [out]
+            counters.overflow => overflowCount);  -- [out]
+
+   end generate;
+   GEN_TX : if TX_OBSERVE_G generate
+      assert FIFO_DEPTH_G = 2 report "The physical completion queue has two logical entries" severity failure;
+
+      U_DUT : entity surf.PtpDelayReqObserver
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G)
+         port map (
+            clk          => clk,             -- [in]
+            rst          => rst,             -- [in]
+            rxFlush      => flush,           -- [in]
+            generation   => generation,      -- [in]
+            rxMaster     => master,          -- [in]
+            rxCapture    => capture,         -- [in]
+            message      => rxMessage,       -- [out]
+            messageValid => messageValid,    -- [out]
+            messageReady => messageReady,    -- [in]
+            rxAbort      => rxAbort,         -- [out]
+            rxEpoch      => rxEpoch,         -- [out]
+            counters.accepted => acceptedCount,   -- [out]
+            counters.dropped  => droppedCount,    -- [out]
+            counters.overflow => overflowCount);  -- [out]
+
+   end generate;
 
 end architecture rtl;

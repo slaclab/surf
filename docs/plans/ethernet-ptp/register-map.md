@@ -14,6 +14,14 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 | Protocol engine | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
 
+Word-backed registers retain their addresses, widths, defaults and field strobes.
+Reads/writes can wait for bounded initialization or candidate copying. Port and
+servo prepare completion is explicit; ConfigBusy remains high through sequential
+validation. Snapshot capture freezes common pre-edge state; SnapshotBusy remains
+high until every bank is ready and the common publish edge advances all sequences.
+Previous snapshot values remain readable during copying. See
+[bank timing and shared-service bounds](rtl-readability.md#configuration-and-snapshots).
+
 ## Register ownership
 
 | Owner | Register responsibilities |
@@ -87,7 +95,8 @@ and submissions during an accepted manual command return SLVERR. Local invalid
 settings complete with `ConfigError=1`, advancing the sequence without applying
 any bank. The previous error remains visible until completion.
 
-PREPARE freezes all local and endpoint shadows. VALIDATE checks the frozen
+PREPARE freezes all local and endpoint shadows. VALIDATE waits for preparation
+completion before checking the frozen
 port/servo candidates and manual-command exclusion. APPLY activates all candidates
 on one common edge and restarts protocol/servo acquisition. Shadow edits after
 PREPARE affect a subsequent commit. Shared association/Sync age and maximum path
@@ -97,7 +106,10 @@ PHC monotonic policy lives in Phc; phase-step permission lives in Servo.
 Snapshot submission is separate from commit. A pending request waits until
 there is no commit in progress and PHC capture is qualified. All banks then
 capture their pre-edge diagnostic values and the same next snapshot sequence.
-The endpoint publishes that sequence on the same edge, after local capture.
+Result banks are pinned and changing scalars copied from that frozen cohort.
+After all banks report ready, one common publication edge exposes the cohort
+and advances endpoint/local sequences. Previous snapshot data remains readable
+while copying; SnapshotBusy includes that interval.
 Poll `SnapshotSequence` before reading multiword values; local bank sequences
 at `0x13FC`, `0x23FC`, and `0x33FC` must match. If snapshot capture coincides with
 acceptance of a new commit, it captures the old configuration cohort before
@@ -156,7 +168,7 @@ The endpoint window occupies 16 KiB and must be aligned accordingly.
 | `0x054` | `IrqClear` | 31:0 | WO | Write-one-to-clear event mask; a concurrent new event wins. |
 | `0x100` | `Snapshot` | 0 | WO | Freeze PHC, measurement, Announce and counters together; waits through a PHC discontinuity. |
 | `0x104` | `SnapshotSequence` | 31:0 | RO | Saturating count of completed snapshots; multiword read data remains stable until the next snapshot. |
-| `0x108` | `SnapshotBusy` | 0 | RO | An accepted snapshot is waiting for a qualified common capture edge. |
+| `0x108` | `SnapshotBusy` | 0 | RO | An accepted snapshot is awaiting capture, frozen-bank copy or common publication. |
 
 ## PtpPhc fields
 
@@ -214,7 +226,7 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x2070` | `ActiveSourceIdentity` | 79:0 | RO | Committed upstream source port identity. |
 | `0x2080` | `DelayInterval` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
 | `0x2088` | `SyncTimeout` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
-| `0x2090` | `AssociationTimeout` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
+| `0x2090` | `AssociationTimeout` | 63:0 | RW | Raw-cycle shadow; must be at least MinimumAssociationTicks. Activate with CommitConfig. |
 | `0x2098` | `MaxExchange` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
 | `0x20A0` | `MinRateSpan` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
 | `0x20A8` | `MaxRateAge` | 63:0 | RW | Configuration shadow in unsteered clock cycles; activate with CommitConfig. |
@@ -226,6 +238,7 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x20E0` | `ActiveAssociationTimeout` | 63:0 | RO | Committed raw-tick association limit shared with the servo. |
 | `0x20E8` | `ActiveSyncTimeout` | 63:0 | RO | Committed raw-tick Sync receipt limit shared with the servo. |
 | `0x20F0` | `ActiveMaxPathDelay` | 63:0 | RO | Committed positive Q16 nanosecond path-delay limit shared with the servo. |
+| `0x20F8` | `MinimumAssociationTicks` | 31:0 | RO | Shared-service minimum: 70,347,776 raw ticks; smaller association candidates are invalid. |
 | `0x2130` | `GrandmasterIdentity` | 63:0 | RO | Snapshot of grandmaster identity advertised by the configured source. |
 | `0x2138` | `AnnounceFlags` | 15:0 | RO | Snapshot of PTP timescale, UTC-offset validity, leap and traceability flags. |
 | `0x213C` | `CurrentUtcOffset` | 15:0 | RO | Announce UTC-offset snapshot; never applied as a PHC leap step. |

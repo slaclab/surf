@@ -911,7 +911,104 @@ Focused GHDL 6.0.0 / cocotb 2.1.0 verification on October 12:
 
 No endpoint/full-suite rerun was selected for this static width change. Vivado
 is unavailable locally; mapped LUT/FF/DSP savings and timing remain unmeasured.
-The shared-processor client and word-state migrations remain outstanding.
+At that baseline, the shared-processor client and word-state migrations were
+still outstanding; the following implementation replaces those private engines.
+
+## October 13 connected compute and word storage
+
+The [implementation record](lut-implementation.md) describes the completed working
+tree against clean SURF baseline `75a49f427`. No files are staged or committed.
+The preceding prototype and private-engine results are historical; the evidence
+in this section applies to the connected production architecture.
+
+`PtpEndpoint` instantiates one `PtpCompute`, serving rate, E2E, servo and PHC
+preparation through private word/descriptor interfaces. Completed values remain
+in addressed workspaces across chained operations. Pair/history, TX ledger and
+median storage use word RAM; RX and the dedicated Delay_Req observer have
+independent streaming stores. Configuration uses frozen candidate banks and
+sequential validation. Snapshots pin immutable records and freeze changing
+scalars on the common capture edge before coordinated publication.
+The [storage inventory](lut-implementation.md#implemented-storage-inventory) and
+[service contract](rtl-readability.md#shared-service-bound) describe retained wide
+boundaries, ownership and the derived 70,347,776-tick association minimum.
+
+The VHDL checklist review traced RAM issue/read/write edges, registered forward
+outputs and held responses, bounded arbitration, cancellation priority, retained
+frequency commit on successful PHC ACK, AXI-only reset, candidate cloning and
+snapshot bank reuse. Announce body and decoded metadata share one twelve-word
+immutable record, so capture during upload cannot mix versions. History streams
+normalized values directly into E2E; only the selected public producer records
+remain wide. All source additions use the existing ruckus directory manifests.
+No PHY, clock-domain topology, vendor MAC or checkpoint implementation changed.
+
+This substantial integration change selects the complete PTP regression,
+executed in focused batches as interfaces became ready. The runner uses GHDL
+6.0.0 LLVM with its normal `-O2` setting and cocotb 2.1.0 on `PC100431`; Python
+3.12 is in a temporary regression environment. Late integration runs use the
+per-process macOS `MallocNanoZone=1` setting to reduce allocator overhead; no
+installed environment was changed. The real-MAC lifecycle fixtures select
+`TPD_PS_G=0` in the simulation wrapper, preserving registered clock-cycle
+boundaries and wire/FCS assertions while reducing delayed-event scheduling.
+The wrapper defaults to 1000 ps; leaf and model-MAC endpoint timing checks retain
+1 ns propagation delay. Filtered runs are counted only
+when their cocotb summary confirms execution. Completed evidence includes:
+
+| Selection | Result and temporary evidence |
+| --- | --- |
+| Independent reference, RX model and literal wire vectors | 93 passed; `/tmp/ptp-final-models.log`. |
+| Shared compute, both memory/reset configurations | Both configurations passed arithmetic, chaining, contention and retained-cancellation checks; `/tmp/ptp-compute-retention.log`. |
+| E2E calibration, PHC, physical RX/MAC, exchange and specification cases | 22 configurations passed across `/tmp/ptp-integrated-components.log` and the two corrected fixture reruns in `/tmp/ptp-component-rerun.log`. |
+| Normalized-history E2E calibration | All four calibration configurations passed the same full-epoch, correction-wrap, captured-increment, rounding, stall and cancellation oracles; `/tmp/ptp-e2e-normalized.log` (97.24 s). Together with raw timestamp cases, E2E has eight configurations. |
+| Additional PHC snapshot boundaries | Both reset/clock configurations passed capture coincident with SET/PHASE/RATE/VALID commit, invalidation and apply; `/tmp/ptp-phc-snapshot-edges.log`. |
+| Ledger | All 11 configurations passed across `/tmp/ptp-ledger-all.log` and `/tmp/ptp-ledger-tests.log`. |
+| RX and dedicated TX storage | All five RX configurations, GMII/XGMII minimum-spacing bursts and dedicated TX storage passed; `/tmp/ptp-rx-tests.log`, `/tmp/ptp-rx-spacing.log`, `/tmp/ptp-tx-store-tests.log`. |
+| Protocol tables | All eight memory/scenario cases passed; `/tmp/ptp-protocol-ram-all.log`. Final normalized-stream selection and cancellation reruns also passed in `/tmp/ptp-final-interfaces.log`. |
+| Direct port samples | Original four cocotb scenarios passed for each RAM type; `/tmp/ptp-port-full.log`, `/tmp/ptp-port-block-optimized.log`. New Announce cohort checks passed in both RAM settings; `/tmp/ptp-announce-snapshots.log` and `/tmp/ptp-announce-block.log`. |
+| Servo | All three clock configurations passed both numerical and median scenarios; `/tmp/ptp-servo-config-numeric.log`, `/tmp/ptp-servo-125-median.log`, `/tmp/ptp-servo-156.log`, `/tmp/ptp-servo-snapshots.log`, `/tmp/ptp-servo-wide.log`. |
+| Register/schema, legacy math and physical association | Schema (4), legacy math (3), association (1) and both register-base cases passed; `/tmp/ptp-final-interfaces.log` and `/tmp/ptp-reg-expanded.log`. The latter reruns the expanded snapshot index after its range was corrected to 31. |
+
+Physical-port policy and adversarial scenarios passed on both PHYs. GMII ran
+both scenarios in `/tmp/ptp-port-gmii-nano.log` (3276.84 s). XGMII's one-step
+policy passed in `/tmp/ptp-physical-integration.log`; the corrected adversarial
+rerun passed in `/tmp/ptp-port-adversarial-final.log` (5457.27 s).
+
+All four real-MAC lifecycle configurations passed in
+`/tmp/ptp-mac-cycle-complete.log` and its JUnit XML (3799.39 s, four workers).
+Both receive modes and both PHYs passed application traffic/identity guarding,
+pause/restart/late completion and fresh-exchange recovery.
+
+All four model-MAC endpoint configurations also passed acquisition, holdover,
+counter continuity and reacquisition with independent wire/time oracles. The
+one-step XGMII run passed in `/tmp/ptp-endpoint-final.log` (9256.76 s), and the
+one-step GMII run passed in `/tmp/ptp-endpoint-gmii-one-nano.log` (5133.92 s).
+Both two-step configurations passed in `/tmp/ptp-endpoint-remaining.log`; that
+batch reports two passes and one failure because its duplicate one-step GMII
+run was deliberately interrupted in favor of the separate run. The interrupted
+duplicate is not counted as a behavioral failure or a passing run.
+
+Fixture changes account for serialized operand movement and scan
+latency: bounded request/result waits, the association minimum, source spacing,
+receipt expiry and pause duration. Exact packet bytes, independent numerical
+oracles, queue capacities, expiry edges and cancellation checks remain asserted.
+Interrupted runs are diagnostic evidence only and are not counted as passes.
+
+The completed selection covers all **171 distinct configurations**: 74 RTL
+configurations and 97 Python/static cases, across the recorded batches and
+scenario-filtered reruns. This is not a claim of one uninterrupted pytest run;
+failed fixture assumptions and the expanded register index were corrected and
+their affected cases rerun. The latest collection is
+`/tmp/ptp-final-collection.log`. VSG passes all 25 changed/new VHDL files
+(`/tmp/ptp-final-complete-vsg.log`, with the final E2E wrapper recheck in
+`/tmp/ptp-e2e-normalized-vsg.log`); flake8 passes all 19 changed Python files.
+Changed Markdown links/anchors and diff whitespace also pass.
+
+Vivado/VCS are unavailable on this host. The matched baseline/current resource
+and timing comparison explicitly awaits the build host; reproduce part, linked
+IP, constraints, generics, tool version, strategy and flow stage, and retain the
+baseline revision plus working-tree patch. No LUT reduction, mapped RAM/DSP
+inference, routed timing, calibrated accuracy or external-master conformance is
+claimed from GHDL results. Existing hardware and standards acceptance below
+remains separate.
 
 ## Outstanding acceptance
 
@@ -923,8 +1020,10 @@ The shared-processor client and word-state migrations remain outstanding.
   separate MAC correctness change; this finding does not authorize a broader
   MAC rewrite as part of PTP area optimization.
 
-Document and justify the existing 2048-cycle association floor and 200,000-ppb
-actuator cap before treating them as qualified bounds. The
+The shared-service derivation replaces the former unexplained 2,048-cycle
+association floor; see the [current scheduling contract](rtl-readability.md#shared-service-bound).
+Document and justify the existing 200,000-ppb actuator cap before treating it
+as a qualified hardware bound. The
 [endpoint numerical envelope](autonomous-endpoint.md#port-policy-and-numerical-envelope)
 records their distinct purposes, introducing revision and missing rationale.
 This source/design follow-up is independent of simulation results.

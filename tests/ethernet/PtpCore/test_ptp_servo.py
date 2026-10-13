@@ -53,11 +53,22 @@ async def numerical_control(d):
         await Timer(4, unit="ns")
         if check_registered:
             assert tuple(int(getattr(d, name).value) for name in registered) == before
+        accepted = bool(int(d.inputValid.value) and int(d.inputReady.value))
         d.clk.value = 1
         await Timer(4, unit="ns")
+        if values.get("inputValid"):
+            # Input capture is serialized. Keep every field stable until the
+            # upload acknowledgement; subsequent calls may perturb the payload.
+            for _ in range(100):
+                if accepted:
+                    break
+                accepted = await edge()
+            else:
+                assert False, "sample word upload did not acknowledge"
+        return accepted
     for name in ("clk", "cancel", "ticks", "sampleTicks", "isDelay", "forwardValue", "delayValue", "ratio",
                  "inputValid", "commandReady", "commandAck", "commandError", "prepareConfig", "applyConfig",
-                 "regRst", "restart", "generation", "snapshotCapture", "snapshotSequence"):
+                 "regRst", "restart", "generation", "snapshotCapture", "snapshotPublish", "snapshotSequence"):
         getattr(d, name).value = 0
     d.associationTimeout.value = (1 << 62)-1
     d.rst.value = 0
@@ -73,7 +84,9 @@ async def numerical_control(d):
                     (0x070, 1, 8), (0x078, (1 << 62)-1, 8)]
         for address, value, size in settings:
             transaction = cocotb.start_soon(axil.write(address, value.to_bytes(size, "little")))
-            for _ in range(100):
+            # A shadow access may wait for the 34-word four-cycle clone,
+            # followed by the bounded RAM read/modify/write and AXI response.
+            for _ in range(4*34+32):
                 await edge()
                 if transaction.done():
                     assert transaction.result().resp == AxiResp.OKAY
@@ -81,12 +94,17 @@ async def numerical_control(d):
             else:
                 assert False, "servo AXI write timeout"
         await edge(prepareConfig=1)
-        assert int(d.configValid.value)
-        await edge(prepareConfig=0, applyConfig=1)
+        await edge(prepareConfig=0)
+        for _ in range(4*34+4):
+            if int(d.configPrepared.value):
+                break
+            await edge()
+        assert int(d.configPrepared.value) and int(d.configValid.value)
+        await edge(applyConfig=1)
         await edge(applyConfig=0)
 
     async def wait_command():
-        for _ in range(1600):
+        for _ in range(30000):
             if int(d.commandValid.value):
                 break
             await edge()
@@ -94,7 +112,7 @@ async def numerical_control(d):
             assert False, "servo command timeout"
 
     async def wait_input():
-        for _ in range(1600):
+        for _ in range(30000):
             if int(d.inputReady.value):
                 return
             await edge(inputValid=0)
@@ -251,7 +269,7 @@ async def median_history(d):
                  "commandError", "prepareConfig", "applyConfig", "axil_awaddr", "axil_awvalid",
                  "axil_wdata", "axil_wstrb", "axil_wvalid", "axil_bready", "axil_araddr",
                  "axil_arvalid", "axil_rready", "regRst", "restart", "generation",
-                 "snapshotCapture", "snapshotSequence"):
+                 "snapshotCapture", "snapshotPublish", "snapshotSequence"):
         getattr(d, name).value = 0
     d.associationTimeout.value = (1 << 62)-1
     maximum = (1 << 63)-1
@@ -267,14 +285,24 @@ async def median_history(d):
         await Timer(4, unit="ns")
         return accepted
 
+    async def accept_sample(value, tick):
+        for _ in range(100):
+            if await edge(ticks=tick, sampleTicks=tick, inputValid=1, isDelay=1, delayValue=value):
+                return
+        assert False, "median input upload did not acknowledge"
+
     async def submit(value, tick):
         before = (int(d.filteredDelay.value), int(d.filterCount.value))
-        assert await edge(ticks=tick, sampleTicks=tick, inputValid=1, isDelay=1, delayValue=value)
-        for _ in range(9):
+        await accept_sample(value, tick)
+        # Twenty scratch writes, nine comparisons and at most 27 word copies
+        # plus a four-word publication fit inside 1200 isolated service clocks.
+        for cycle in range(1200):
             assert not int(d.inputReady.value)
             assert (int(d.filteredDelay.value), int(d.filterCount.value)) == before
             assert not await edge(inputValid=0)
-        assert int(d.inputReady.value)
+            if int(d.inputReady.value):
+                return cycle+1
+        assert False, "median publication exceeded the service bound"
 
     await edge(rst=1)
     await edge(rst=0)
@@ -314,31 +342,43 @@ async def median_history(d):
     accepted_count = 0
     pending = None
     published = (int(d.filteredDelay.value), 0)
-    for cycle in range(10*len(values)):
+    for cycle in range(1200*len(values)+100):
         index = min(accepted_count, len(values)-1)
         accepted = await edge(ticks=10000+cycle, sampleTicks=10000+index,
                               inputValid=int(accepted_count < len(values)), delayValue=values[index])
+        observed = (int(d.filteredDelay.value), int(d.filterCount.value))
         if accepted:
-            assert pending is None
+            if pending is not None:
+                assert observed == pending
+                published = pending
             history.append(values[index])
-            pending = (cycle+9, sorted(history)[(len(history)-1)//2], len(history))
+            pending = (sorted(history)[(len(history)-1)//2], len(history))
             accepted_count += 1
-        if pending is not None and cycle == pending[0]:
-            published = pending[1:]
+        assert observed in (published, pending), "median/count tore during word publication"
+        if pending is not None and observed == pending:
+            published = pending
+        if accepted_count == len(values) and int(d.inputReady.value):
+            assert observed == pending
             pending = None
-        assert (int(d.filteredDelay.value), int(d.filterCount.value)) == published
+            break
     assert accepted_count == len(values) and pending is None
     await edge(inputValid=0)
 
-    # Abort/reset/generation/staleness on each comparison edge, including the
-    # publication edge. The canceled sample may never reappear in later history.
+    # Obtain the public completion edge for this deterministic input ordering;
+    # the independent 1200-clock bound above still constrains the implementation.
+    await edge(rst=1, inputValid=0)
+    await edge(rst=0)
+    await submit(11, 100)
+    publication_latency = await submit(5, 101)
+    phases = (0, 1, 2, 50, 100, 250, publication_latency-1)
+    # Cancel upload/compute/publication, including the exact publication edge.
     for reason in ("cancel", "restart", "generation", "rst", "stale"):
-        for phase in range(9):
+        for phase in phases:
             await edge(rst=1, cancel=0, restart=0, generation=0, inputValid=0,
                        associationTimeout=(1 << 62)-1)
             await edge(rst=0)
             await submit(11, 100)
-            assert await edge(ticks=101, sampleTicks=101, inputValid=1, delayValue=5)
+            await accept_sample(5, 101)
             for _ in range(phase):
                 await edge(inputValid=0)
             event = {reason: 1} if reason != "stale" else {"associationTimeout": 2, "ticks": 104}
@@ -362,22 +402,33 @@ async def median_history(d):
                 return int.from_bytes(transaction.result().data, "little")
         assert False, "servo snapshot read timed out"
 
+    async def publish_snapshot():
+        for _ in range(4):
+            if int(d.snapshotPrepared.value):
+                break
+            await edge()
+        assert int(d.snapshotPrepared.value)
+        await edge(snapshotPublish=1)
+        await edge(snapshotPublish=0)
+
     # AXI-only reset cannot discard admitted filter work. A snapshot on the
     # publication edge captures the previous complete value; the next sees new.
-    for phase in range(9):
+    for phase in phases:
         await edge(rst=1, inputValid=0, generation=0)
         await edge(rst=0)
         await submit(11, 100)
-        assert await edge(ticks=101, sampleTicks=101, inputValid=1, delayValue=5)
-        for cycle in range(9):
+        await accept_sample(5, 101)
+        for cycle in range(publication_latency):
             await edge(inputValid=0, regRst=int(cycle == phase),
-                       snapshotCapture=int(cycle == 8), snapshotSequence=phase)
+                       snapshotCapture=int(cycle == publication_latency-1), snapshotSequence=phase)
         assert (int(d.filteredDelay.value), int(d.filterCount.value)) == (5, 2)
         await edge(regRst=0, snapshotCapture=0)
+        await publish_snapshot()
         assert await read(0x110, 16) == 11
         assert await read(0x3FC, 4) == phase
         await edge(snapshotCapture=1, snapshotSequence=phase+100)
         await edge(snapshotCapture=0)
+        await publish_snapshot()
         assert await read(0x110, 16) == 5
         assert await read(0x3FC, 4) == phase+100
 

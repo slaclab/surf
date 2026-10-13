@@ -16,7 +16,7 @@
 # - Checks: Exact capture/response provenance, registered controls, bounded
 #   handshakes, single-count retirement, unresolved ownership and safe reuse.
 # - Timing: Manually driven 6.4 ns clock, checks after TPD. RAM rows are visited
-#   every two clocks; one scan is 2*depth+2 clocks. Event sources hold their
+#   every two clocks; one scan is 45*depth+2 clocks. Event sources hold their
 #   complete records through ready. Raw time jumps accelerate quarantine only.
 
 import cocotb
@@ -34,8 +34,8 @@ class LedgerBench:
         self.d = d
         self.now = 0
         self.depth = env_int('DEPTH_G', default=2)
-        self.scan = 2*self.depth+2
-        self.lifetime = env_int('PACKET_LIFETIME_G', default=100)
+        self.scan = 45*self.depth+2
+        self.lifetime = env_int('PACKET_LIFETIME_G', default=10000)
         for name in ("clk", "rst", "restart", "macResetDone", "ticks", "generation", "domainNumber", "allocate",
                      "wireValid", "wireSequence", "wireDomain", "wireTicks", "wireGeneration", "wireError",
                      "wireTimestamp", "wireIncrement", "wirePhase", "wireTimeValid", "responseTimestamp", "responseCorrection",
@@ -443,13 +443,13 @@ async def deferred_duplicate(d):
 
 
 def test_ptp_tx_ledger():
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters={"PACKET_LIFETIME_G": 10000},
                       extra_env=cocotb_filtered_env({}, cocotb_test_filter('lifecycle')))
 
 
 @pytest.mark.parametrize('depth', [1, 4], ids=['one', 'four'])
 def test_ptp_tx_ledger_counters(depth):
-    parameters = {'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('counter_batches')))
 
@@ -457,30 +457,30 @@ def test_ptp_tx_ledger_counters(depth):
 @pytest.mark.parametrize('depth,memory_type', [(1, 'distributed'), (3, 'distributed'), (4, 'distributed'), (4, 'block')],
                          ids=['one-lut', 'three-lut', 'four-lut', 'four-block'])
 def test_ptp_tx_ledger_storage(depth, memory_type):
-    parameters = {'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3, 'MEMORY_TYPE_G': memory_type}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3, 'MEMORY_TYPE_G': memory_type}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('capture_storage')))
 
 
 def test_ptp_tx_ledger_cancellation():
-    parameters = {'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('cancellation')))
 
 
 def test_ptp_tx_ledger_slot_reuse():
-    parameters = {'DEPTH_G': 1, 'SEQUENCE_BITS_G': 3}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 1, 'SEQUENCE_BITS_G': 3}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('slot_reuse')))
 
 
 def test_ptp_tx_ledger_keys():
-    parameters = {'DEPTH_G': 4, 'SEQUENCE_BITS_G': 2}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 2}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('keys_and_duplicates')))
 
 
 def test_ptp_tx_ledger_deferred_duplicate():
-    parameters = {'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
+    parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('deferred_duplicate')))

@@ -4,7 +4,7 @@
 -- Description: Passive Delay_Req completion capture at the physical MAC TX
 -- output.
 --
--- Reuses PtpRxTimestampAdapter and PtpRxFrontend in TX-observation mode to
+-- Uses PtpRxTimestampAdapter and the dedicated PtpDelayReqObserver to
 -- decode GMII/XGMII framing, validate the transmitted frame and publish its
 -- PTP wire identity together with the physical start timestamp. Captures refer
 -- to the first destination-MAC octet, include XGMII lane phase, and add the
@@ -31,11 +31,9 @@
 -- may be copied, modified, propagated, or distributed except according to
 -- the terms contained in the LICENSE.txt file.
 -------------------------------------------------------------------------------
-
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -107,13 +105,11 @@ begin
          rxMaster     => master,        -- [out]
          rxCapture    => capture);      -- [out]
 
-   U_Validator : entity surf.PtpRxFrontend
+   U_Validator : entity surf.PtpDelayReqObserver
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         TX_OBSERVE_G   => true,
-         FIFO_DEPTH_G   => 2)
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk          => clk,                   -- [in]
          rst          => rst,                   -- [in]

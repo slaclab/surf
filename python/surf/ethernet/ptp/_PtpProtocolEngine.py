@@ -96,7 +96,7 @@ class PtpProtocolEngine(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'AssociationTimeout',
-            description = 'Configuration shadow in unsteered clock cycles; activate with CommitConfig.',
+            description = 'Raw-cycle shadow; must be at least MinimumAssociationTicks. Activate with CommitConfig.',
             offset      = 0x090,
             bitOffset   = 0,
             bitSize     = 64,
@@ -448,6 +448,15 @@ class PtpProtocolEngine(pr.Device):
             offset      = 0x0F0,
             bitOffset   = 0,
             bitSize     = 64,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'MinimumAssociationTicks',
+            description = 'Minimum raw-cycle association window for the shared compute service finite-burst envelope.',
+            offset      = 0x0F8,
+            bitOffset   = 0,
+            bitSize     = 32,
             mode        = 'RO',
         ))
 
