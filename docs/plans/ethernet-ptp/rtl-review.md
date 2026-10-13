@@ -803,9 +803,11 @@ compliance audit reports the same two snapshot sampling-annotation findings
 present in baseline `test_ptp_phc.py`; it finds no new violations.
 
 The full PTP suite, other endpoint PHY/receive/MAC combinations, all generic
-settings, Vivado synthesis/implementation and hardware validation remain unrun.
-Vivado/VCS are unavailable on this host. The existing utilization screenshot
-predates these changes and cannot establish their savings.
+settings, local Vivado synthesis/implementation and hardware validation remain
+unrun. Vivado/VCS are unavailable on this host. The subsequently supplied
+[synthesis screenshot](lut-optimization.md#october-12-arithmetic-synthesis-screenshot)
+reports area reductions after these changes; it adds no timing or hardware
+acceptance and does not identify the exact build configuration.
 
 ## Compile/link procedure
 

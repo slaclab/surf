@@ -533,6 +533,8 @@ changes. The earlier screenshot is the area baseline, not evidence of this
 patch's savings. For separate comparisons, temporary baseline, arithmetic-only
 and final RTL/patch artifacts are retained under
 `/private/tmp/ptp-servo-20261012/` in the development workspace.
+The later [arithmetic synthesis screenshot](#october-12-arithmetic-synthesis-screenshot)
+reports the combined area change; it does not separate clamp and median savings.
 
 ## October 12 E2E, PHC and math implementation
 
@@ -570,8 +572,74 @@ records 14 passing leaf/register/consumer configurations, including the final
 Servo, protocol and GMII endpoint batch (571.85 s with two workers). Measure E2E's additional state and
 operand muxes along with the shared converter, and compare PHC own logic
 separately from `U_Phase`. A generic structural netlist cannot establish mapped
-LUT/carry/DSP savings or timing. Same-configuration Vivado synthesis and timing
-remain outstanding for all three changes.
+LUT/carry/DSP savings or timing. The subsequent screenshot below supplies area
+figures; a controlled same-configuration comparison and timing remain outstanding.
+
+## October 12 arithmetic synthesis screenshot
+
+The maintainer supplied another **synthesis** utilization screenshot after the
+Servo/E2E/PHC/math changes. Compare it with the preceding confirmed
+[post-synthesis screenshot](#october-12-protocol-table-synthesis-screenshot),
+not the older placed hierarchy. The checked-out SURF revision is
+`cb518462345b508a63c4d8cf3f21eea7a85fbfea`, which contains these changes;
+the screenshot itself does not identify the build revision/local patch,
+Vivado settings, black-box status or timing. Full reports and the SFP hierarchy
+are still absent. Values below are transcribed from the supplied image.
+
+| Scope | Previous LUTs | New LUTs | Difference | FF change | CARRY8 change |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Whole design | 111,777 | 105,948 | -5,829 (-5.21%) | +320 | -886 |
+| Copper lane | 43,152 | 40,109 | -3,043 (-7.05%) | +158 | -446 |
+| Copper `PtpEndpoint` | 30,634 | 27,181 | -3,453 (-11.27%) | +158 | -452 |
+| Copper protocol engine, including children | 16,792 | 15,500 | -1,292 (-7.69%) | -49 | -156 |
+| Copper E2E, including math | 4,156 | 2,940 | -1,216 (-29.26%) | -52 | -149 |
+| Copper rate math | 1,812 | 1,748 | -64 (-3.53%) | 0 | -7 |
+| Copper Servo, including math | 9,975 | 8,033 | -1,942 (-19.47%) | +323 | -273 |
+| Copper Servo math | 1,963 | 1,899 | -64 (-3.26%) | 0 | -7 |
+| Copper PHC, including phase math | 3,212 | 2,993 | -219 (-6.82%) | -116 | -23 |
+
+Whole-design registers are now 108,799 versus 108,479 (+0.30%); CARRY8 falls
+from 5,001 to 4,115 (-17.72%). DSPs fall from 101 to 77, with BRAM unchanged
+at 32 tiles. The copper endpoint has 23,283 FFs and 1,525 CARRY8.
+Its E2E DSP count falls **18 to 6**, consistent with replacing three timestamp
+converters by one. Copper protocol/endpoint DSP counts fall 48 to 36;
+the remaining 30 DSPs are outside E2E. The whole-design 24-DSP reduction
+cannot be allocated to the hidden SFP hierarchy from this image alone.
+
+Subtracting visible children makes the changes clearer:
+
+- Servo own logic falls from `9,975 - 1,963 = 8,012` LUTs to
+  `8,033 - 1,899 = 6,134`, a reduction of **1,878 LUTs (23.44%)**.
+  Own CARRY8 falls 559 to 293. The 323 additional FFs are consistent with
+  trading scratch/intermediate registers for shared arithmetic, but the
+  screenshot cannot attribute individual state bits or split median from clamp
+  savings. The common math child accounts for another 64 LUTs and 7 CARRY8.
+- Protocol own logic is now `15,500 - 2,940 - 1,748 - 1,801 - 316 - 280 = 8,415`
+  LUTs, versus 8,427. It retains 9,391 FFs and 537 CARRY8. Almost all of its
+  inclusive reduction is in E2E and rate math. Ledger, pairing RAM and history
+  RAM LUT/FF counts are unchanged.
+- PHC's now-visible `U_Phase` is 1,202 LUTs / 576 FFs / 65 CARRY8.
+  The preceding screenshot did not expand it. Compared specifically with the
+  older October 11 text report (1,436 LUTs / 661 FFs), this is -234 LUTs
+  (-16.30%) and -85 FFs. PHC own logic is now 1,791 LUTs / 1,752 FFs,
+  versus that older report's 1,776 / 1,783. This points to the divider as the
+  PHC area reduction; it does not demonstrate a net own-logic LUT saving from
+  retained-increment ticking.
+
+The endpoint's 3,453-LUT reduction exceeds the copper lane's 3,043 because
+logic outside `PtpEndpoint` grows by 410 LUTs. The visible MAC grows 4,164 to
+4,544 (+380); the other 30 are not isolated by this screenshot. The remaining
+design outside copper falls by 2,786 LUTs. Thus the whole-design delta should
+not be attributed exclusively to this patch or extrapolated from one lane.
+
+The largest remaining own-logic blocks are protocol (8,415 LUTs, 30 DSPs)
+and Servo (6,134 LUTs). Protocol timestamp conversion is a concrete next area
+to inspect: `forwardMeasurement` is called with `completedSync` and again with
+`pendingSync` after rate math, alongside corrected remote/anchor conversions.
+Operand selection and retention of already computed values could share this
+work, following the E2E approach. The source and DSP total motivate that review;
+a cell-level report is still needed to attribute its exact cost. This update
+records evidence only and does not implement another optimization.
 
 ## Evidence and remaining acceptance
 

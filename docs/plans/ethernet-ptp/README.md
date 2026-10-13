@@ -108,7 +108,11 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   ticks from the committed PHC increment and bounds its phase-divider remainder.
   [E2E sequencing](autonomous-endpoint.md#e2e-arithmetic-sequencing) and
   [PHC/math contracts](autonomous-endpoint.md#phc-increment-and-phase-normalization)
-  preserve numeric widths and ownership. Measured FPGA savings remain pending.
+  preserve numeric widths and ownership. The latest
+  [synthesis screenshot](lut-optimization.md#october-12-arithmetic-synthesis-screenshot)
+  shows copper `PtpEndpoint` down 11.27% to 27,181 LUTs; E2E, Servo and PHC fall
+  29.26%, 19.47% and 6.82%, respectively. Full reports, controlled attribution
+  and timing remain outstanding.
 
 ## PHY composition implementation
 
