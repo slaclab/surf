@@ -170,6 +170,16 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
    The [feedback rate-estimator study](lut-optimization.md#feedback-rate-estimator-study-october-13)
    is also deferred: LUT savings are unproven, while convergence, filtering and
    rate qualification would change. Retain the current quotient-based estimator.
+   Consider a future compile-time "no TLVs accepted" generic, disabled by
+   default, to remove the RX TLV walker for controlled deployments. This is
+   unimplemented and not a commitment: the current structural validation and
+   skipping of TLV contents remains the default. The restricted mode would
+   require each supported message's exact fixed-body `messageLength`, while
+   still allowing Ethernet padding outside that length. Before enabling it,
+   verify that the selected profile and grandmaster configuration need/send no
+   TLVs; test rejection of extended messages and acceptance of legal padding,
+   and measure matched synthesis/timing results. LUT and timing savings are
+   unproven.
    Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.
