@@ -41,6 +41,12 @@ entity PtpServoWrapper is
    port (
       clk                  : in  sl;
       rst                  : in  sl;
+      regRst               : in  sl               := '0';
+      restart              : in  sl               := '0';
+      generation           : in  slv(31 downto 0) := (others => '0');
+      associationTimeout   : in  slv(63 downto 0) := x"3FFFFFFFFFFFFFFF";
+      snapshotCapture      : in  sl               := '0';
+      snapshotSequence     : in  slv(31 downto 0) := (others => '0');
       axil_awaddr          : in  slv(31 downto 0);
       axil_awvalid         : in  sl;
       axil_awready         : out sl;
@@ -104,10 +110,12 @@ begin
 
    resetN                          <= not rst;
    sharedConfig.syncTimeout        <= x"3FFFFFFFFFFFFFFF";
-   sharedConfig.associationTimeout <= x"3FFFFFFFFFFFFFFF";
+   sharedConfig.associationTimeout <= associationTimeout;
    sharedConfig.maxPathDelay       <= maxPathDelay;
    status.ticks                    <= ticks;
    status.timeValid                <= '1';
+   status.generation               <= generation;
+   measurement.generation          <= generation;
    measurement.ticks               <= sampleTicks;
    measurement.isDelay             <= isDelay;
    measurement.forward             <= forwardValue;
@@ -156,36 +164,40 @@ begin
       generic map (
          CLK_FREQ_G => 125000000)
       port map (
-         clk                     => clk,             -- [in]
-         rst                     => rst,             -- [in]
-         axiReadMaster           => axiReadMaster,   -- [in]
-         axiReadSlave            => axiReadSlave,    -- [out]
-         axiWriteMaster          => axiWriteMaster,  -- [in]
-         axiWriteSlave           => axiWriteSlave,   -- [out]
-         configControl.prepare   => prepareConfig,   -- [in]
-         configControl.apply     => applyConfig,     -- [in]
-         configControl.busy      => '0',             -- [in]
-         configValid             => configValid,     -- [out]
-         servoEnable             => '1',             -- [in]
-         sharedConfig            => sharedConfig,    -- [in]
-         phcStatus               => status,          -- [in]
-         measurementMaster.data  => measurement,     -- [in]
-         measurementMaster.valid => inputValid,      -- [in]
-         measurementMaster.abort => cancel,          -- [in]
-         measurementSlave.ready  => inputReady,      -- [out]
-         commandMaster.data      => command,         -- [out]
-         commandMaster.valid     => commandValid,    -- [out]
-         commandMaster.cancel    => cancelCommand,   -- [out]
-         commandMaster.stale     => open,            -- [out]
-         commandSlave.ready      => commandReady,    -- [in]
-         commandSlave.ack        => commandAck,      -- [in]
-         commandSlave.error      => commandError,    -- [in]
-         expireTime              => expireTime,      -- [out]
-         status.state            => servoState,      -- [out]
-         status.filteredDelay    => filteredDelay,   -- [out]
-         status.offsetValue      => offsetValue,     -- [out]
-         status.ratePpb          => ratePpb,         -- [out]
-         status.filterCount      => filterCount,     -- [out]
-         status.rejectedCount    => rejectedCount);  -- [out]
+         clk                        => clk,             -- [in]
+         rst                        => rst,             -- [in]
+         regRst                     => regRst,          -- [in]
+         restart                    => restart,         -- [in]
+         axiReadMaster              => axiReadMaster,   -- [in]
+         axiReadSlave               => axiReadSlave,    -- [out]
+         axiWriteMaster             => axiWriteMaster,  -- [in]
+         axiWriteSlave              => axiWriteSlave,   -- [out]
+         configControl.prepare      => prepareConfig,   -- [in]
+         configControl.apply        => applyConfig,     -- [in]
+         configControl.busy         => '0',             -- [in]
+         configValid                => configValid,     -- [out]
+         snapshotControl.capture    => snapshotCapture, -- [in]
+         snapshotControl.sequenceId => snapshotSequence, -- [in]
+         servoEnable                => '1',             -- [in]
+         sharedConfig               => sharedConfig,    -- [in]
+         phcStatus                  => status,          -- [in]
+         measurementMaster.data     => measurement,     -- [in]
+         measurementMaster.valid    => inputValid,      -- [in]
+         measurementMaster.abort    => cancel,          -- [in]
+         measurementSlave.ready     => inputReady,      -- [out]
+         commandMaster.data         => command,         -- [out]
+         commandMaster.valid        => commandValid,    -- [out]
+         commandMaster.cancel       => cancelCommand,   -- [out]
+         commandMaster.stale        => open,            -- [out]
+         commandSlave.ready         => commandReady,    -- [in]
+         commandSlave.ack           => commandAck,      -- [in]
+         commandSlave.error         => commandError,    -- [in]
+         expireTime                 => expireTime,      -- [out]
+         status.state               => servoState,      -- [out]
+         status.filteredDelay       => filteredDelay,   -- [out]
+         status.offsetValue         => offsetValue,     -- [out]
+         status.ratePpb             => ratePpb,         -- [out]
+         status.filterCount         => filterCount,     -- [out]
+         status.rejectedCount       => rejectedCount);  -- [out]
 
 end architecture rtl;

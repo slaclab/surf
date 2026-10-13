@@ -678,7 +678,10 @@ changed Python files pass flake8 and the compliance audit with zero findings.
 Added relative links/anchors and diff whitespace pass.
 No full PTP suite, all reset/generic combinations, real-MAC XGMII case, long
 servo settling, Vivado implementation/timing or hardware validation was run
-for this conversion. The latest supplied utilization report predates it.
+for this conversion. The retained text utilization reports predate it; the
+subsequent [synthesis screenshot review](lut-optimization.md#october-12-protocol-table-synthesis-screenshot)
+records a smaller copper protocol engine including its new RAM children.
+That area evidence adds no behavioral, placement or timing acceptance.
 
 The direct fixture was subsequently renamed to `PtpProtocolEngineWrapper`,
 including its filename, entity and all pytest top-level references. A fresh
@@ -686,6 +689,55 @@ ruckus/GHDL import and `test_ptp_specification_protocol` pass (1 case, 21.27 s;
 `/tmp/ptp-wrapper-rename{.xml,-test.log}`). The renamed wrapper passes VSG and
 the four updated Python test files pass flake8. This naming-only follow-up does
 not rerun the table/integration selection above.
+
+## October 12 servo sharing checks
+
+Baseline: SURF `191d733c1031e5b86643f67816f41adf958db130`. The
+[servo implementation](lut-optimization.md#october-12-servo-arithmetic-and-median-implementation)
+shares local clamp/rounding arithmetic and serializes the median. The production
+interface and software ABI are unchanged. The direct wrapper adds lifecycle,
+age and snapshot inputs for focused verification. Existing directory imports
+already load the changed sources; no source-manifest change was needed.
+
+Checks use the existing `/Users/bareese/surf/.venv` Python/cocotb environment
+and GHDL 6.0.0 on `PC100431`. The staged arithmetic-only RTL passed
+`test_ptp_servo.py` in **83.53 s**, including the extended rational PI comparison,
+Q16 rate-state assertions, fractional ties, unsigned32 maximum gains and signed64
+offset extrema. The combined version's numerical scenario then passed with
+checked integral overflow and cancellation sweeps around the new arithmetic
+states. Retained frequency is checked through a subsequent holdover command.
+
+The new median checks cover all 120 distinct-value orderings, each population,
+duplicates, signed64 maximum, circular replacement, rejection, exact nine-clock
+publication, held-valid/backpressured inputs, and abort/restart/generation/reset/
+staleness on every comparison edge. AXI-only reset and snapshots are checked
+across publication. The first combined run exposed a final-edge cancellation
+bug: count was cleared but the canceled value replaced the published median.
+The current-edge cancellation guard fixes it; the focused median rerun passed
+in **16.04 s**, including that regression.
+
+Final combined selection: `test_ptp_servo.py` and
+`test_ptp_endpoint.py::test_ptp_endpoint[two-step-GMII-False]`, run with two
+workers. The endpoint case checks autonomous acquisition, numerical lock,
+independent phase/delay, link loss, holdover and reacquisition. Both selected
+pytest cases **passed in 572.26 s (9 min 32 s)**. The final servo scenarios also
+report PASS individually (numerical control 92.45 s, median history 6.73 s
+simulator wall time). No broader simulation selection was run after these passed.
+
+GHDL synthesis of production `PtpServo` succeeds. Its generated VHDL contains
+one median data comparator, one positive/negative clamp comparison pair, one
+shared frequency/rate adder and one correction-rounding adder. It also reports
+two 9-by-3-bit ROMs for the fixed comparator-pair indices. This verifies the
+intended shared structure, not FPGA area or timing. VSG reports zero violations
+for both edited entities; Python flake8, changed-document link/anchor checks
+and diff whitespace checks pass.
+
+Logs, the final JUnit report, generated structural netlist, and separate
+baseline/arithmetic-only/final RTL plus arithmetic/median patches are temporary
+artifacts under `/private/tmp/ptp-servo-20261012/`. The full PTP suite, XGMII,
+one-step and real-MAC endpoint variants, vendor synthesis/implementation and
+hardware tests are outside this selection. Vivado/VCS are unavailable on this
+host; measured LUT/FF/carry changes and timing acceptance remain outstanding.
 
 ## Compile/link procedure
 

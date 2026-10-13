@@ -159,7 +159,12 @@ reporting the previous full-suite result as validation of a later edit.
   model at varied sample intervals, median startup, backpressure and holdover.
   Direct median checks cover every ordering of five distinct values, each
   startup population, duplicates, signed64 maximum, circular replacement and
-  rejected samples without changing same-edge admission.
+  rejected samples. They check nine comparison clocks, input backpressure,
+  held-valid transfers, cancellation on each comparison edge, AXI-only reset
+  and snapshots across publication. PI cases include fractional half ties,
+  maximum gains and signed64 offsets, checked integral overflow and cancellation
+  around the shared clamp/rounding stages; Q16 rate state is checked before
+  PHC-addend quantization.
   It also checks registered command/cancellation/expiry stability between edges.
   `test_ptp_phc.py` exercises revocation after admission and expiry priority over
   validity-setting commands. Execution outcomes are tracked in the acceptance record.

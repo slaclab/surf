@@ -92,8 +92,18 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
 - The October 12 [protocol table conversion](lut-optimization.md#october-12-protocol-table-conversion)
   replaces Sync history and Sync/Follow_Up payload arrays with synchronous RAM
   and shared scans. The [storage contract](autonomous-endpoint.md#protocol-association-storage)
-  defines the added latency and scan-time expiry boundary. Resource and timing
-  improvement for these two tables remains to be measured.
+  defines the added latency and scan-time expiry boundary. A subsequent
+  [post-synthesis screenshot](lut-optimization.md#october-12-protocol-table-synthesis-screenshot)
+  shows the copper protocol engine at 16,792 LUTs, down 28.64% from the prior
+  synthesis; its own logic including the new RAMs falls 43.08%. The full new
+  reports, SFP breakdown and timing acceptance remain outstanding.
+
+- The subsequent [E2E, servo and PHC arithmetic audit](lut-optimization.md#october-12-e2e-servo-and-phc-arithmetic-audit)
+  led to the [servo sharing implementation](lut-optimization.md#october-12-servo-arithmetic-and-median-implementation):
+  a shared clamp/rounding path and one median comparator over nine clocks.
+  The [sequencing contract](autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing)
+  defines added latency and backpressure. Measured FPGA savings remain pending;
+  E2E timestamp conversion and bounded PHC arithmetic remain next candidates.
 
 ## PHY composition implementation
 
@@ -133,8 +143,9 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
 4. Select physical reference/cleanup and application epoch-transfer requirements
    through [physical-clock integration](physical-clock-integration.md). Numerical
    time, physical frequency/phase and application events remain distinct.
-5. Measure the [servo/RX LUT changes](lut-optimization.md) against their baseline
-   on the synthesis host before choosing further arithmetic or CRC changes.
+5. Measure the [remaining arithmetic candidates](lut-optimization.md#october-12-e2e-servo-and-phc-arithmetic-audit)
+   as separate patches on the synthesis host, starting with the servo. Retain
+   matching configuration/stage and timing evidence for each comparison.
    Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.

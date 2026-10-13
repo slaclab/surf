@@ -10,6 +10,11 @@ this optimization. The October 11 placed reports provide the area reference.
 The October 12 review of the later synthesis reports below confirms ledger
 LUTRAM use and substantially smaller ledger counts; a controlled comparison
 at the same implementation stage and timing acceptance remain outstanding.
+The later October 12 synthesis screenshot shows a 28.64% reduction in the
+copper protocol engine after the two table conversions; its analysis below
+includes the RAM children and distinguishes whole-design changes.
+The subsequent servo implementation below shares clamp/rounding arithmetic
+and serializes the median; its FPGA area/timing comparison remains pending.
 
 ## Implemented changes
 
@@ -170,7 +175,8 @@ these supplied reports predate it.
 
 Reviewed source: SURF `80aa5fdee396fbe40a96cbb1291fb6fd5d1633fc`, after the ledger
 conversion. This source/access-pattern review selected the first two changes
-implemented on October 12 below; neither has vendor area/timing evidence yet. The placed reference above attributes 15,954 LUTs
+implemented on October 12 below. The later synthesis screenshot supplies area
+evidence for the copper instance; timing remains open. The placed reference above attributes 15,954 LUTs
 and 11,827 FFs to the SFP protocol engine's own logic, excluding its ledger,
 E2E and rate-math children. It does not separate the arrays below, so those
 totals are not an estimate of recoverable area.
@@ -214,7 +220,7 @@ merge them merely because their record types match.
 
 ## October 12 protocol table conversion
 
-Working-tree implementation based on SURF
+Implemented in SURF `191d733c1031e5b86643f67816f41adf958db130`, based on
 `3f5b468ff3c0e99b33fa36c80850658d77c2e341`. `PtpProtocolEngine` now uses two
 synchronous `SimpleDualPortRam` instances: 485 bits by four rows for completed
 Sync history and 549 bits by four rows for pairing payloads. Both default to
@@ -240,11 +246,292 @@ focused checks and their limits. GHDL synthesis recognizes the two RAMs and the
 existing 636-bit ledger RAM; ignored vendor attributes mean this is structural
 evidence, not a Vivado utilization or timing result.
 
-Next step: synthesize against the retained ledger-only baseline with the same
-part, clocks, project state, strategy and flow stage. Compare protocol-engine
-total and exclusive logic, both new RAM children, FFs, carry and critical paths.
-Include write/read registers and E2E operand storage. Keep servo and parser
-follow-ups separate so the table savings can be attributed.
+The subsequent screenshot below supplies a synthesis comparison. Retain its
+full reports and build configuration next, including LUT-as-memory and timing
+details. Keep servo and parser follow-ups separate so their savings can be
+attributed independently.
+
+## October 12 protocol-table synthesis screenshot
+
+The maintainer supplied a newer Vivado hierarchy screenshot on October 12 and
+confirmed it is **post-synthesis**, matching the stage of the October 11 23:42
+baseline above. The consuming workspace records the supplied values in
+`docs/reference/ptpkcu105-utilization-2026-10-11/README.md`. New text reports,
+exact build revision/local patch, tool version/strategy, black-box status and
+timing results are not present. SURF `191d733c1` contains the table changes;
+that repository association is not a build identifier from the screenshot.
+
+| Scope / resource | Earlier synthesis | New screenshot | Difference |
+| --- | ---: | ---: | ---: |
+| Whole design LUTs | 121,455 | 111,777 | -9,678 (-7.97%) |
+| Whole design FFs | 105,799 | 108,479 | +2,680 (+2.53%) |
+| Whole design CARRY8 | 5,313 | 5,001 | -312 (-5.87%) |
+| Copper lane LUTs / FFs | 49,249 / 36,546 | 43,152 / 36,358 | -6,097 / -188 |
+| Copper PtpEndpoint LUTs / FFs | 37,227 / 23,918 | 30,634 / 23,125 | -6,593 / -793 |
+| Copper protocol engine, including children, LUTs | 23,532 | 16,792 | -6,740 (-28.64%) |
+| Copper protocol engine, including children, FFs | 16,035 | 15,234 | -801 (-5.00%) |
+| Copper engine own logic plus table RAMs, LUTs | 15,852 | 9,023 | -6,829 (-43.08%) |
+| Copper engine own logic plus table RAMs, FFs | 11,282 | 10,420 | -862 (-7.64%) |
+
+The last two rows subtract the E2E, rate-math and ledger children in each run.
+They **include** the new RAM children and their output registers,
+so moving cells into a child hierarchy cannot itself create the saving.
+The new LUT calculation is `16,792 - 4,156 - 1,812 - 1,801 = 9,023`.
+The ledger remains at 1,801 LUTs / 1,853 FFs and rate math at 1,812 / 794;
+E2E increases by 89 LUTs / 61 FFs, accounting for the difference between the
+protocol-total reduction and the own-logic-plus-tables reduction.
+
+| New copper child | LUTs | FFs | BRAM tiles | CARRY8 |
+| --- | ---: | ---: | ---: | ---: |
+| `U_PairRam` | 316 | 549 | 0 | 0 |
+| `U_HistoryRam` | 280 | 483 | 0 | 0 |
+| Combined | 596 | 1,032 | 0 | 0 |
+
+Both engine generics default to distributed RAM. The shared inferred RAM
+implementation registers `doutBInt`, one word wide: 549 pair bits and 485
+history bits before pruning. The observed 549/483 FF counts are consistent
+with those read registers and two pruned history bits; the screenshot alone
+does not identify the pruned bits or supply an exact LUTRAM/logic split.
+The parent also retains write/operand/control registers. This explains why
+the declared table widths are not a prediction of net FF savings.
+
+Whole-design BRAM remains 32 tiles and DSP use 101. The whole-design FF
+increase is outside the shrinking protocol engine: even the complete copper
+lane loses 188 FFs, so the rest of the design grows by 2,868. Within copper,
+the wrapper outside `GigEthPtp` grows from 94 to 588 LUTs and 173 to 776 FFs.
+Other hierarchy changes are therefore visible, but their causes and the SFP
+breakdown require the full reports. Do not extrapolate the copper saving to
+both lanes or attribute the complete design delta solely to the table work.
+
+The remaining copper protocol own logic is 8,427 LUTs after also subtracting
+the 596 LUTs in its new memories. Servo is now comparable: 9,975 LUTs total,
+of which 1,963 belong to `U_Math`, leaving 8,012 own-logic LUTs. Its own logic
+was 7,865 in the prior synthesis. The next candidate is shared servo arithmetic:
+the nine compare/swaps and repeated clamp/rounding paths deserve attribution
+before another storage change. This is an optimization recommendation, not a
+measured breakdown of those functions. Timing/placement and hardware acceptance
+remain outstanding.
+
+## October 12 E2E, servo and PHC arithmetic audit
+
+Reviewed source: SURF `191d733c1031e5b86643f67816f41adf958db130`.
+This is a source review against the latest copper synthesis screenshot, with
+the older text hierarchy used only where explicitly identified. No RTL changes,
+new simulation or synthesis results accompany this audit. Proposed savings need
+measurement; function calls do not map one-for-one to independent hardware,
+and synthesis can already remove constant/sign-extension bits.
+
+| Block | Latest inclusive LUTs | Arithmetic outside its math child |
+| --- | ---: | --- |
+| `PtpServo` | 9,975 | 8,012 LUTs after subtracting its 1,963-LUT `U_Math` |
+| `PtpE2e` | 4,156 | 2,488 LUTs after subtracting its 1,668-LUT `U_Math`; all 18 DSPs are outside that child |
+| `PtpPhc` | 3,212 | Latest screenshot does not expand the child; the prior text report divides the same total into 1,776 own LUTs and 1,436 for `U_Phase` |
+
+These three blocks total 17,343 LUTs in the screenshot. Their source presents
+more opportunities to share arithmetic than to substitute another RAM. The
+servo delay history is only five words; PHC live state and command ownership
+need concurrent access and distinct lifetimes.
+
+### Recommended implementation order
+
+The subsequent servo implementation below addresses rows 1 and 2. The E2E,
+PHC and common-math candidates remain unimplemented.
+
+| Order | Candidate | Concrete change and main constraint |
+| --- | --- | --- |
+| 1 | Servo clamp/rounding and anti-windup | Select operands into one staged add/round/clamp datapath. Preserve rounding points, saturation decisions and command-ACK ownership. |
+| 2 | Servo median | Execute the existing nine compare/swaps through one signed64 comparator and swap unit. Allow busy backpressure; preserve circular replacement and lower-median selection. |
+| 3 | E2E timestamp arithmetic | Reuse one seconds-to-Q16 converter and one add/subtract datapath for the corrected timestamps and final results. Retain full epoch/correction precision. |
+| 4 | E2E zero-calibration specialization | Bypass each zero-latency multiply/divide pair at elaboration. Both-zero builds can make the math instance multiply-only. Preserve invalid-input rejection. |
+| 5 | PHC active increment | Tick with the already committed `status.increment`; calculate nominal-plus-rate only when accepting a new RATE command. Preserve old-increment use on the commit edge. |
+| 6 | PHC constant phase divider | Exploit the fixed `1e9 * 2^16` divisor to reduce remainder/trial-subtract width. Retain the full signed128 software operand and quotient-fit rejection. |
+| 7 | Shared `PtpMath` implementation | Evaluate one trial subtraction with borrow for division, replacing separate compare/subtract expressions. Keep the 128-iteration schedule and exact result/error behavior. |
+
+Implement and measure the first two separately so comparator sharing and clamp
+sharing have attributable results. The PHC increment change is a small,
+independent candidate that can be evaluated without changing clock-command
+latency. Its likely scope is much smaller than the servo work.
+
+### Servo: arithmetic remains parallel inside the sequencer
+
+[PtpServo](../../../ethernet/PtpCore/rtl/PtpServo.vhd) already shares multiply
+and divide operations, but calls `clamp` at eight sites. In `PROPORTIONAL_S`,
+rounding/clamping the slew, clamping the bootstrap-minus-slew frequency and
+clamping the final rate form one combinational chain. `INTEGRAL_TIME_S` similarly
+combines rounded integration, frequency saturation, the trial final-rate clamp,
+anti-windup selection and a second final-rate clamp. These are the primary
+targets for additional states and an explicitly shared arithmetic unit.
+
+The helper accepts signed128 values and unsigned32 limits. Configuration
+validation limits all three actuator maxima to 200,000 ppb, so their active
+integer magnitudes need only 18 bits. Make that bound explicit in the datapath
+after full-width configuration validation; keep software shadows and atomic
+prepare/apply semantics intact. Already-clamped terms remain signed35, and
+their sum/difference remains signed36. A full-width incoming value must still
+be range-checked before narrowing into a clamp.
+
+There is also a specific narrower intermediate to prove and expose: rounding
+a checked signed128 integral product right by 62 gives magnitude at most
+`2^65`. Negating it and adding a clamped frequency of magnitude below `2^34`
+therefore fits **signed67**. This can narrow the integral update after the
+existing rounding point; it does not permit narrowing the checked product or
+moving the rounding before multiplication. The
+[existing width audit](autonomous-endpoint.md#fixed-point-width-audit) still
+governs the larger integral product and public phase/epoch operands.
+
+`medianDelay` is a separate nine-comparator network. A sequencer can use the
+same nine pairs over nine comparison cycles, sorting a scratch copy while
+retaining the circular history. Keep all fractional bits, population/sentinel
+handling, duplicate values and signed64 maximum. Account for operand-selection
+muxes and scratch registers in the area comparison. RAM at depth five is a
+secondary choice after changing access to one comparison at a time.
+
+Serialization changes admission/publication timing. Cancellation, stale-sample
+detection and holdover expiry must remain active during every new state, and
+snapshots must observe coherent published results. The current median test
+explicitly requires same-edge publication/no admission bubble; a serialized
+implementation needs a documented timing change and matching busy/stall tests.
+
+### E2E: share conversion and final accumulation
+
+The final state of [PtpE2e](../../../ethernet/PtpCore/rtl/PtpE2e.vhd) forms both
+delay and forward offset using three distinct absolute timestamps: remote
+Sync, local Sync capture and remote Delay_Resp. The remote Sync conversion is
+also spelled twice, although synthesis may already share that identical
+expression. Each [time conversion](../../../ethernet/PtpCore/rtl/PtpPkg.vhd)
+multiplies 48-bit seconds by one billion before combining nanoseconds/fraction.
+The 18 DSPs outside `U_Math` are consistent with these conversions, but a cell
+report is needed to attribute them exactly.
+
+Reuse one converter over successive clocks and retain the corrected Sync time
+for both equations. A shared wide add/subtract unit can then form the two
+results instead of the current same-cycle subtraction chains. Subtracting
+timestamp fields before conversion is another option, provided seconds are
+widened before subtraction and the full epoch difference is preserved.
+Retain both result fields until the existing output handshake; test cancellation
+at each new stage and include the added latency in the association budget.
+
+Both KCU105 lanes default ingress and egress latency to zero in the checked-out
+target, with no override in its local ruckus manifest. The screenshot does not
+prove the build's generic values. Even with zero constants, the present FSM
+issues five 128-iteration operations: elapsed scaling plus two calibration
+multiply/divide pairs. Explicit specialization can reduce a both-zero build to
+elapsed scaling alone and remove its need for division. Each nonzero plane
+still uses its own capture increment and original rounding. Keep rejection of
+zero increments, zero ratio and generation mismatch even when a plane is zero.
+This is a conditional area opportunity and a clear latency opportunity; the
+five operations already share one math instance, so skipping four does not
+imply an 80% area saving. The current E2E leaf uses nonzero calibration; add
+both-zero and each-single-zero cases for this specialization.
+
+### PHC and common math: target the bounded arithmetic first
+
+[PtpPhc](../../../ethernet/PtpCore/rtl/PtpPhc.vhd) initializes `status.increment`
+to nominal and updates it with accepted RATE commands. The ordinary tick
+nevertheless recomputes nominal plus the retained rate. Using the pre-edge
+registered increment can remove that redundant calculation. An accepted RATE
+must still publish the new increment alongside commit-edge time, while that
+edge itself advances with the old increment. Rejected commands, reset,
+fault behavior and exact capture metadata remain part of the check.
+
+The manual phase path uses a separate, divide-only `PtpMath` with a constant
+46-bit divisor `D = 1e9 * 2^16`. In restoring division, the stored remainder is
+below `D`, so the shifted trial value needs 47 bits; an additional borrow bit
+can implement its comparison/subtraction. A dedicated constant-divisor path
+can expose this bound without shortening the signed128 dividend/quotient or
+changing the 128 iterations. Preserve truncation toward zero, signed remainder,
+`MIN_SIGNED`, quotient-fit errors and accepted manual work across AXI reset.
+Confirm what the existing constant propagation already removes before claiming
+a saving. Avoid changing the every-clock rollover/phase/PPS path in the first
+pass; it has stricter edge semantics than the manual preparation engine.
+
+The general [PtpMath](../../../ethernet/PtpCore/rtl/PtpMath.vhd) division loop
+currently compares a 129-bit trial remainder and then conditionally subtracts.
+One widened subtraction can supply both the borrow decision and new remainder.
+This is worth a controlled experiment across rate, E2E, servo and PHC instances;
+the constants and live outputs differ, so do not extrapolate one leaf's saving.
+The existing contract and math test require 128 work iterations. Sharing input
+absolute-value, result-sign or final-rounding hardware across extra cycles is
+a separate latency-contract change, not part of this first experiment.
+
+### Existing SURF arithmetic helpers
+
+[DspAddSub](../../../dsp/generic/fixed/DspAddSub.vhd) supports registered
+add/subtract at widths up to 48 bits, covering the servo's signed36 rate
+sum/difference. [DspComparator](../../../dsp/generic/fixed/DspComparator.vhd)
+supports widths through 96 bits, covering the median operands and narrowed
+integral clamp comparisons. Both expose ready/valid and `USE_DSP_G`, and the
+existing generic DSP manifest already loads them. Compare inferred logic and
+DSP implementations after sharing operations; the screenshot uses only 101
+of 1,920 DSPs, so this is a practical resource trade to measure.
+
+The comparator zero-extends its `slv` inputs and therefore orders them as
+unsigned. That agrees with the admitted nonnegative median samples/sentinel;
+signed clamp inputs require explicit signed-order handling, such as sign-bit
+biasing. `DspAddSub` returns only the configured width, so widen rate operands
+before addition and keep range checks around wider arithmetic. Neither helper
+directly replaces the full signed128 checked engine. Their registered latency
+and cancellation/flush integration need to be included in the sequencer design;
+`USE_DSP_G` requests mapping but does not prove it occurred.
+
+### Validation for a subsequent implementation
+
+Choose the affected leaf and independent reference cases using the
+[test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests):
+servo/median changes need PI, saturation, anti-windup, startup/replacement,
+backpressure, cancellation and one affected endpoint case; E2E changes need
+full epochs/corrections, calibration/increment combinations and protocol
+consumer timing; PHC changes need the cycle-by-cycle clock oracle plus manual
+phase and command-boundary cases. A common math change needs its arithmetic,
+overflow, rounding, stalled-result/cancel checks and affected consumers.
+
+For each independent patch, compare the same integrated synthesis configuration
+and retain total/own LUTs, carry, FFs, DSPs and critical paths. Latest full
+reports and timing are still missing. The current host is `PC100431`, not a
+configured `rdsrv` tool host; Vivado/VCS are unavailable here. This audit changes
+documentation only and requires link/whitespace checks rather than RTL runs.
+
+## October 12 servo arithmetic and median implementation
+
+Source baseline: SURF `191d733c1031e5b86643f67816f41adf958db130`. This follow-up
+implements the first two arithmetic-audit candidates in `PtpServo`, with
+fixture controls and focused checks in `PtpServoWrapper` and
+`test_ptp_servo.py`. Production ports, the software register map, math-engine
+operations and acknowledged-frequency ownership are unchanged.
+
+The first change replaces eight clamp call sites with one selected-operand
+clamp, sharing a signed67 adder for frequency and rate candidates. Limit
+magnitudes use the validated 18-bit actuator range. Proportional/integral
+rounding selects a fixed-shift quotient and round-up bit, then shares one
+signed67 sign-restoration/increment stage. Overflow is still checked on the
+full signed128 product before either shift. Conditional integration retains
+separate frequency-saturation and trial-rate decisions before the final clamp.
+The arithmetic-only revision passed the expanded PI/median leaf in 83.53 s
+before introducing median sequencing.
+
+The second change retains circular history and sorts a 320-bit scratch copy
+using one signed64 comparator, visiting the same nine pairs over nine clocks.
+Ready is low during sorting; median and population publish together on the
+last comparison edge. Cancellation on that edge suppresses publication.
+The [servo sequencing contract](autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing)
+owns latency, age handling, reset, cancellation and snapshot behavior.
+
+The changes add a signed67 correction register, scratch history and sequencing
+flags. Measure those registers and operand-selection muxes along with the
+removed parallel arithmetic. No payload RAM or DSP helper is added in this pass; its
+purpose is explicit local sharing before evaluating further mapping changes.
+Existing ruckus directory imports already load both edited entities; there
+are no added/moved HDL files or manifest changes.
+
+The [servo verification record](rtl-review.md#october-12-servo-sharing-checks)
+records the selected simulations and their limits: the final servo leaf and
+GMII two-step closed-loop endpoint both pass (572.26 s with two workers).
+Same-configuration Vivado
+synthesis, placement and timing are still required to measure LUT/FF/carry
+changes. The earlier screenshot is the area baseline, not evidence of this
+patch's savings. For separate comparisons, temporary baseline, arithmetic-only
+and final RTL/patch artifacts are retained under
+`/private/tmp/ptp-servo-20261012/` in the development workspace.
 
 ## Evidence and remaining acceptance
 
@@ -294,14 +581,11 @@ of that configuration. XGMII must continue accepting eight bytes every cycle.
 These remain conditional on measured attribution rather than part of the
 current RTL change:
 
-- Serialize the median through one comparator if the fixed network is still
-  too expensive. This changes backpressure and publication latency and needs
-  busy/cancellation/snapshot checks plus an affected endpoint integration case.
-- Share clamp/rounding datapaths or prove narrower intermediate widths if the
-  servo's own arithmetic dominates. Preserve anti-windup decisions and exact
-  overflow/rounding behavior; the [existing width audit](autonomous-endpoint.md#fixed-point-width-audit)
-  already narrowed rate state and does not authorize globally narrowing epochs.
-- Redesign `PtpMath` sharing or DSP use if its child utilization dominates.
+- Follow the [E2E, servo and PHC arithmetic audit](#october-12-e2e-servo-and-phc-arithmetic-audit)
+  for the next local sharing/width changes and their behavioral constraints.
+- Consider sharing math between clients or a DSP-based multiplier after local
+  datapath changes have been measured. Arbitration must preserve independent
+  cancellation/ownership and account for losing per-instance constant pruning.
   Multiplication/division is already serialized; an attribute alone does not
   replace its shift/add algorithm with a new architecture.
 - Compare CRC sharing if the full-width alternatives survive synthesis and

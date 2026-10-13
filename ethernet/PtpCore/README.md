@@ -56,9 +56,12 @@ insertion remains outside scope.
   [ledger storage contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#tx-ledger-storage).
 - `PtpPhc`, `PtpMath`, `PtpServo`: continuously advancing clock, checked serialized
   arithmetic, delay filtering, acquisition, PI control and holdover.
-  The servo's combinational median uses nine fixed compare/swaps over a copy
-  of its circular history, preserving populated-only lower-median semantics
-  and same-edge sample admission. FPGA area/timing improvements need synthesis.
+  The servo shares clamp/rounding arithmetic across controller stages and runs
+  nine compare/swaps through one comparator over a copy of its circular history.
+  Its median publishes after nine comparison clocks with input backpressure,
+  preserving populated-only lower-median semantics. See the
+  [servo sequencing contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#servo-arithmetic-and-filter-sequencing).
+  FPGA area/timing improvements need synthesis.
 - `PtpPhc`, `PtpProtocolEngine`, `PtpServo` each contain their own AXI-Lite registers,
   configuration and snapshots. PHC command arbitration is inside `PtpPhc`.
   Servo command payload, valid, cancellation and expiry are registered. The

@@ -476,6 +476,44 @@ Bootstrap therefore estimates rate independently of already-valid path delay.
 Do not constrain the individual cross-clock differences to a network-delay
 range before their potentially large epoch offsets cancel.
 
+### Servo arithmetic and filter sequencing
+
+`PtpServo` shares one selected-operand add/clamp path for bootstrap frequency,
+integral update, trial/final rate and holdover limiting. Proportional and
+integral corrections share a signed67 rounding/sign-restoration stage. The
+fixed shifts remain 30 and 62 bits, with nearest ties away from zero; checked
+signed128 products are consumed only after `PtpMath` reports success. Selecting
+the floor quotient and a round-up bit before the shared stage avoids a variable
+barrel shifter. Active limit magnitudes use their validated 18-bit range;
+software shadows and coordinated full-width validation remain unchanged.
+
+Relative to the former same-cycle clamps, bootstrap adds five local clocks,
+tracking adds seven and holdover adds one, excluding input/command stalls.
+The math engine still performs 128 work iterations per operation. Frequency
+and final-rate anti-windup decisions precede command formation, and only a
+successful PHC acknowledgement commits the retained frequency. Generation,
+restart/abort, sample staleness and validity expiry are checked throughout the
+added states; they do not wait for arithmetic to finish.
+
+An admitted delay sample updates circular history and captures a scratch copy,
+padding unpopulated locations with signed64 maximum. One comparator visits the
+existing nine pairs over the following nine clocks. Measurement ready stays
+low throughout those comparisons. The previous published median and population
+stay intact until both update on the ninth comparison edge; input acceptance
+can resume on the next edge, for a ten-clock minimum delay-sample interval.
+Lower median, duplicate/sentinel behavior, all fractional bits and circular
+replacement are preserved. The 320-bit scratch copy is distinct from history;
+this implementation uses registers rather than a new RAM.
+
+The admitted delay refreshes the internal delay-age timestamp immediately and
+supplies the active-work timestamp for association expiry. A forward sample
+cannot use the filter until sorting finishes. Abort, restart, generation change
+or active-work expiry cancels sorting and clears population/replacement state;
+cancellation on the publication edge retains the prior median payload as well.
+System reset clears the complete state. AXI-only reset preserves sorting, and
+a snapshot on the publication edge captures the previous registered median;
+a later snapshot captures the new one.
+
 ### Fixed-point width audit
 
 The October 2026 source audit sizes stored values from the accepted configuration
@@ -488,10 +526,11 @@ Behavioral equivalence is assessed through the [width acceptance checks](rtl-rev
 | Quantity | Bound and implementation decision |
 | --- | --- |
 | Stored servo frequency, candidate frequency, slew and bootstrap | Each is clamped to at most +/-200,000 ppb. With 16 fractional bits, `200000 * 2^16 < 2^34`: **35 signed bits** suffice. `RatePpbType` replaces four signed128 registers. |
-| Sum/difference of two clamped rate terms | Can reach +/-400,000 ppb before clamping. Explicit **36-bit** arithmetic preserves the carry/sign before saturation and anti-windup decisions. |
+| Sum/difference of two clamped rate terms | Can reach +/-400,000 ppb before clamping, requiring at least **36 signed bits**. The shared servo adder now uses signed67 for these sums and the integral update, preserving the carry/sign before saturation and anti-windup decisions. |
 | Tracking offset and gain product | Tracking admission requires the offset to fit signed64 Q16 ns; Kp/Ki are unsigned32 Q2.30. Their exact product fits **signed96**. The shared engine still publishes signed128 because other operations need the wider contract. |
 | Elapsed sample time | Validated timeouts are nonzero and below `2^62` raw ticks. For any positive `CLK_FREQ_G`, nominal Q32 ns/tick is at most `1e9 * 2^32`. Thus the rounded interval in Q32 seconds is below `2^94`: **95 signed bits** suffice for `interval`, formerly signed128. |
 | Integral update | Multiplying the offset/gain product by the permitted interval can exceed signed128 before the existing 62-bit rounded shift. Retain checked128 overflow rejection; a narrower engine or an earlier rounding shift could change which samples are rejected or change the PI result. |
+| Rounded servo correction and frequency candidate | After the checked integral product is rounded right by 62, its magnitude is at most `2^65`. Negation and addition of a clamped frequency below `2^34` fit **signed67**. The proportional signed96 product shifted by 30 also fits this width. `CorrectionType` and the shared adder expose these bounds after the existing rounding points. |
 | Rate-to-PHC conversion | The clamped signed35 rate times the nominal increment fits signed97 for all positive clock-frequency generics. At 125 MHz, the exact nominal increment is `2^35`, so signed70 suffices for this product. The shared engine retains its wider interface. |
 | Epoch and manual phase adjustment | A full 48-bit seconds epoch expressed in Q16 ns needs about 95 signed bits. The software phase operand and measurement/normalization interfaces accept signed128; phase division must retain that public input range and its quotient-fit checks. |
 | E2E and raw-rate estimation | Raw ticks/phase, unsigned64 ratios, correction fields and calibration conversions have separate bounds. The E2E tick-span/ratio product can exceed signed128 and is checked. Do not infer smaller operands merely from the subsequently qualified oscillator or path-delay range. |

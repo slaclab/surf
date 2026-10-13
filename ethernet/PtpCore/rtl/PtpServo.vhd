@@ -9,6 +9,9 @@
 -- is forward time minus filtered delay and configured asymmetry. Generation,
 -- sample chronology and raw-tick age checks reject stale measurements before
 -- they can affect the clock.
+-- The median sorts a scratch copy through one compare/swap per clock. Input
+-- ready is low during its nine comparison clocks; the prior median/population
+-- remain published until both are replaced on the final comparison edge.
 --
 -- Control is measurement-driven: delay updates refresh the filter, while an
 -- eligible forward (Sync) update starts a correction using the latest delay.
@@ -24,6 +27,8 @@
 -- and phase-slew clamps, final-rate limiting and conditional integration at
 -- saturation. Commands use the PHC ready/valid and acknowledgement lifecycle;
 -- only acknowledged rate commands update the retained frequency estimate.
+-- A shared local adder/clamp and rounded correction path sequence the work
+-- around PtpMath; cancellation and expiry remain active in every state.
 --
 -- Lock/unlock thresholds and counters provide quality hysteresis. Loss of
 -- fresh measurements enters holdover, removes phase slew and preserves the
@@ -115,6 +120,17 @@ architecture rtl of PtpServo is
    constant RATE_PPB_WIDTH_C : positive := 1+bitSize(MAX_ACTUATOR_PPB_C)+PTP_PPB_FRAC_BITS_C;
    subtype RatePpbType is signed(RATE_PPB_WIDTH_C-1 downto 0);
 
+   -- A checked signed128 product rounded right by 62 has magnitude <= 2**65.
+   -- Negation and addition of a clamped signed35 frequency fit signed67. The
+   -- proportional product is signed64 * unsigned32, so its 30-bit shift also
+   -- fits this width. Preserve the full product until PtpMath checks overflow.
+   subtype CorrectionType is signed(66 downto 0);
+
+   type ClampResultType is record
+      value     : RatePpbType;
+      saturated : boolean;
+   end record;
+
    -- ptpValidTimeout limits tracking intervals to fewer than 2**62 ticks.
    -- For every positive CLK_FREQ_G, nominalQ32 <= 1e9 * 2**32; hence the
    -- rounded interval in seconds Q32 is < 2**94, needing 95 signed bits.
@@ -196,52 +212,25 @@ architecture rtl of PtpServo is
    -- ticking while this FSM waits for a multi-cycle math result or command ACK.
    type StateType is (
       IDLE_S,
+      MEDIAN_S,
       ISSUE_S,
       WAIT_S,
+      BOOTSTRAP_CLAMP_S,
+      ROUND_S,
+      SLEW_CLAMP_S,
+      FREQUENCY_CLAMP_S,
+      RATE_CHECK_S,
+      RATE_CLAMP_S,
       COMMAND_S,
       ACK_S);
 
    type DelayArray is array (0 to DELAY_FILTER_DEPTH_C-1) of signed(63 downto 0);
 
-   -- Sort a copy, never the circular history. Unpopulated entries sort last;
-   -- accepted delays fit nonnegative signed64, including the sentinel itself.
-   function medianDelay (delays : DelayArray; count : positive) return signed is
-      variable sorted : DelayArray := delays;
-
-      procedure compareSwap (variable a : inout signed; variable b : inout signed) is
-         variable temp : signed(a'range);
-      begin
-         if a > b then
-            temp := a;
-            a    := b;
-            b    := temp;
-         end if;
-      end procedure;
-
-   begin
-      for i in sorted'range loop
-         if i >= count then
-            sorted(i) := signed'(x"7FFFFFFFFFFFFFFF");
-         end if;
-      end loop;
-      -- Nine fixed compare/swaps replace five unrolled bubble-sort passes.
-      compareSwap(sorted(0), sorted(3));
-      compareSwap(sorted(1), sorted(4));
-      compareSwap(sorted(0), sorted(2));
-      compareSwap(sorted(1), sorted(3));
-      compareSwap(sorted(0), sorted(1));
-      compareSwap(sorted(2), sorted(4));
-      compareSwap(sorted(1), sorted(2));
-      compareSwap(sorted(3), sorted(4));
-      compareSwap(sorted(2), sorted(3));
-      -- Lower median for even populations; no sample or fraction is invented.
-      if count <= 2 then
-         return sorted(0);
-      elsif count <= 4 then
-         return sorted(1);
-      end if;
-      return sorted(2);
-   end function;
+   -- The same nine sorting-network pairs are visited by one comparator.
+   -- Keep the circular history separate from this destructively sorted copy.
+   type MedianIndexArray is array (0 to 8) of natural range 0 to DELAY_FILTER_DEPTH_C-1;
+   constant MEDIAN_LEFT_C  : MedianIndexArray := (0, 1, 0, 1, 0, 2, 1, 3, 2);
+   constant MEDIAN_RIGHT_C : MedianIndexArray := (3, 4, 2, 3, 1, 4, 2, 4, 3);
 
    type OperationType is (
       RATIO_SCALE_S,
@@ -287,6 +276,9 @@ architecture rtl of PtpServo is
       generation         : slv(31 downto 0);
       abortSeen          : sl;
       delays             : DelayArray;
+      sorted             : DelayArray;
+      medianStep         : natural range MEDIAN_LEFT_C'range;
+      filterPopulation   : positive range 1 to DELAY_FILTER_DEPTH_C;
       delayPtr           : natural range 0 to DELAY_FILTER_DEPTH_C-1;
       delayTicks         : slv(63 downto 0);
       sampleTicks        : slv(63 downto 0);
@@ -302,6 +294,11 @@ architecture rtl of PtpServo is
       frequency          : RatePpbType;
       slew               : RatePpbType;
       bootstrap          : RatePpbType;
+      correction         : CorrectionType;
+      roundUp            : sl;
+      roundIntegral      : sl;
+      integrating        : sl;
+      integrate          : sl;
       interval           : IntervalType;
       good               : unsigned(7 downto 0);
       bad                : unsigned(7 downto 0);
@@ -333,6 +330,9 @@ architecture rtl of PtpServo is
       generation         => (others => '0'),
       abortSeen          => '0',
       delays             => (others => (others => '0')),
+      sorted             => (others => (others => '0')),
+      medianStep         => 0,
+      filterPopulation   => 1,
       delayPtr           => 0,
       delayTicks         => (others => '0'),
       sampleTicks        => (others => '0'),
@@ -345,6 +345,11 @@ architecture rtl of PtpServo is
       workFrequency      => (others => '0'),
       slew               => (others => '0'),
       bootstrap          => (others => '0'),
+      correction         => (others => '0'),
+      roundUp            => '0',
+      roundIntegral      => '0',
+      integrating        => '0',
+      integrate          => '0',
       interval           => (others => '0'),
       good               => (others => '0'),
       bad                => (others => '0'));
@@ -365,16 +370,23 @@ architecture rtl of PtpServo is
    -- through zero and choose the wrong saturation sign.
    function clamp (
       value   : signed(127 downto 0);
-      maximum : slv(31 downto 0)) return RatePpbType is
-      variable limitValue : signed(127 downto 0);
+      maximum : slv(bitSize(MAX_ACTUATOR_PPB_C)-1 downto 0)) return ClampResultType is
+      variable limitValue : RatePpbType;
+      variable retVar     : ClampResultType;
    begin
-      limitValue := shift_left(signed(resize(unsigned(maximum), 128)), PTP_PPB_FRAC_BITS_C);
-      if value > limitValue then
-         return resize(limitValue, RATE_PPB_WIDTH_C);
-      elsif value < -limitValue then
-         return resize(-limitValue, RATE_PPB_WIDTH_C);
+      limitValue       := shift_left(signed(resize(unsigned(maximum), RATE_PPB_WIDTH_C)), PTP_PPB_FRAC_BITS_C);
+      retVar.value     := resize(value, RATE_PPB_WIDTH_C);
+      retVar.saturated := true;
+
+      if value > resize(limitValue, 128) then
+         retVar.value := limitValue;
+      elsif value < resize(-limitValue, 128) then
+         retVar.value := -limitValue;
+      else
+         retVar.saturated := false;
       end if;
-      return resize(value, RATE_PPB_WIDTH_C);
+
+      return retVar;
    end function;
 
 begin
@@ -407,19 +419,63 @@ begin
       variable ep : AxiLiteEndpointType;
 
       -- Calculations used only during this evaluation.
-      variable sampleTickDelta    : signed(127 downto 0);
-      variable frequencyCandidate : signed(127 downto 0);
-      variable integralDelta      : signed(127 downto 0);
-      variable rateCandidate      : signed(RATE_PPB_WIDTH_C downto 0);
-      variable stale              : boolean;
-      variable acceptSample       : boolean;
-      variable integrate          : boolean;
+      variable sampleTickDelta : signed(127 downto 0);
+      variable addA            : CorrectionType;
+      variable addB            : CorrectionType;
+      variable sumValue        : CorrectionType;
+      variable roundCarry      : CorrectionType;
+      variable clampValue      : signed(127 downto 0);
+      variable clampMaximum    : slv(bitSize(MAX_ACTUATOR_PPB_C)-1 downto 0);
+      variable clampResult     : ClampResultType;
+      variable stale           : boolean;
+      variable acceptSample    : boolean;
+      variable leftIndex       : natural range 0 to DELAY_FILTER_DEPTH_C-1;
+      variable rightIndex      : natural range 0 to DELAY_FILTER_DEPTH_C-1;
    begin
       -- r is the current registered state; v collects next-edge updates. A
       -- later read of r still sees the old value, even after assigning v.
       v                  := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
-      rateCandidate      := (others => '0');
+
+      -- One adder serves bootstrap seeding, integration and final-rate sums.
+      -- Select operands before arithmetic so exclusive states share hardware.
+      addA := resize(r.workFrequency, addA'length);
+      addB := resize(r.slew, addB'length);
+
+      if r.state = FREQUENCY_CLAMP_S then
+         if r.integrating = '1' then
+            addA := resize(r.frequency, addA'length);
+            addB := r.correction;
+         else
+            addA := resize(r.bootstrap, addA'length);
+            addB := resize(-r.slew, addB'length);
+         end if;
+      end if;
+
+      sumValue     := addA + addB;
+      clampValue   := resize(sumValue, 128);
+      clampMaximum := r.activeConfig.maxRatePpb(clampMaximum'range);
+
+      case r.state is
+         when BOOTSTRAP_CLAMP_S =>
+            clampValue   := signed(r.a);
+            clampMaximum := r.activeConfig.maxFrequencyPpb(clampMaximum'range);
+         when SLEW_CLAMP_S =>
+            clampValue   := resize(r.correction, 128);
+            clampMaximum := r.activeConfig.maxSlewPpb(clampMaximum'range);
+         when FREQUENCY_CLAMP_S =>
+            clampMaximum := r.activeConfig.maxFrequencyPpb(clampMaximum'range);
+         when RATE_CLAMP_S =>
+            if r.holding = '1' then
+               clampValue := resize(r.frequency, 128);
+            end if;
+         when others =>
+            null;
+      end case;
+
+      -- Active actuator limits have passed the coordinated full-width vote.
+      -- The shared clamp still compares its input before narrowing the result.
+      clampResult := clamp(clampValue, clampMaximum);
 
       -- A held link/port abort cancels once, allowing later holdover work.
       -- Generation changes and stale samples independently invalidate work.
@@ -465,13 +521,8 @@ begin
                -- Holdover removes the phase slew but preserves the last good
                -- frequency estimate. Conversion uses the same checked path as
                -- tracking; no combinational wide divider enters the clock loop.
-               v.status.ratePpb := slv(resize(clamp(resize(r.frequency, 128), r.activeConfig.maxRatePpb), 64));
-               v.a              := slv(resize(signed(v.status.ratePpb), 128));
-               v.b              := slv(resize(NOMINAL_C, 128));
-               v.divide         := '0';
-               v.operation      := RATE_SCALE_S;
                v.holding        := '1';
-               v.state          := ISSUE_S;
+               v.state          := RATE_CLAMP_S;
             else
                -- Holdover work has priority over admitting another sample.
                v.measurementSlave.ready := '1';
@@ -488,11 +539,28 @@ begin
                         (unsigned(r.status.filterCount) = 0 or unsigned(measurementMaster.data.ticks) > unsigned(r.delayTicks)) then
                         v.delays(r.delayPtr) := signed(measurementMaster.data.delayValue(63 downto 0));
                         v.delayPtr           := (r.delayPtr+1) mod DELAY_FILTER_DEPTH_C;
+                        v.filterPopulation := DELAY_FILTER_DEPTH_C;
+
                         if unsigned(r.status.filterCount) < DELAY_FILTER_DEPTH_C then
-                           v.status.filterCount := slv(unsigned(r.status.filterCount)+1);
+                           v.filterPopulation := to_integer(unsigned(r.status.filterCount))+1;
                         end if;
-                        v.status.filteredDelay := slv(resize(medianDelay(v.delays, to_integer(unsigned(v.status.filterCount))), 128));
-                        v.delayTicks           := measurementMaster.data.ticks;
+
+                        for i in v.sorted'range loop
+                           v.sorted(i) := v.delays(i);
+
+                           if i >= v.filterPopulation then
+                              v.sorted(i) := signed'(x"7FFFFFFFFFFFFFFF");
+                           end if;
+                        end loop;
+
+                        -- The admitted delay refreshes age while sorting. Its
+                        -- value/count publish together; no forward sample can
+                        -- use the old filter while this transaction is busy.
+                        v.delayTicks  := measurementMaster.data.ticks;
+                        v.sampleTicks := measurementMaster.data.ticks;
+                        v.holding     := '0';
+                        v.medianStep  := 0;
+                        v.state       := MEDIAN_S;
                      else
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      end if;
@@ -541,6 +609,37 @@ begin
                   end if;
                end if;
             end if;
+
+         when MEDIAN_S =>
+            -- Revocation on the publication edge must retain the prior value,
+            -- as well as invalidating the population in the final override.
+            if v.commandMaster.cancel = '0' and phcStatus.fault = '0' then
+               leftIndex  := MEDIAN_LEFT_C(r.medianStep);
+               rightIndex := MEDIAN_RIGHT_C(r.medianStep);
+
+               if r.sorted(leftIndex) > r.sorted(rightIndex) then
+                  v.sorted(leftIndex)  := r.sorted(rightIndex);
+                  v.sorted(rightIndex) := r.sorted(leftIndex);
+               end if;
+
+               if r.medianStep = MEDIAN_LEFT_C'high then
+                  -- Use v so the final comparison contributes to the result.
+                  -- Even populations retain the lower median, including fractions.
+                  if r.filterPopulation <= 2 then
+                     v.status.filteredDelay := slv(resize(v.sorted(0), 128));
+                  elsif r.filterPopulation <= 4 then
+                     v.status.filteredDelay := slv(resize(v.sorted(1), 128));
+                  else
+                     v.status.filteredDelay := slv(resize(v.sorted(2), 128));
+                  end if;
+
+                  v.status.filterCount := slv(to_unsigned(r.filterPopulation, v.status.filterCount'length));
+                  v.state              := IDLE_S;
+               else
+                  v.medianStep := r.medianStep+1;
+               end if;
+            end if;
+
          when ISSUE_S =>
             if readyMath = '1' then
                v.state := WAIT_S;
@@ -561,37 +660,19 @@ begin
                      when RATIO_DIVIDE_S =>
                         -- Ratio Q48 vs nominal Q32 leaves Q16 ppb after the
                         -- 1e9 conversion. Bootstrap is independent of PHC rate.
-                        v.bootstrap := clamp(signed(valueMath), r.activeConfig.maxFrequencyPpb);
-                        v.a         := r.status.offsetValue;
-                        v.b         := slv(resize(unsigned(r.activeConfig.kp), 128));
-                        v.divide    := '0';
-                        v.operation := PROPORTIONAL_S;
+                        v.a     := valueMath;
+                        v.state := BOOTSTRAP_CLAMP_S;
                      when PROPORTIONAL_S =>
                         -- Temporary phase removal by rate: slew = -Kp * e.
                         -- Kp has units ppb/ns. This slews numerical time through
                         -- its increment; it does not issue a PHASE step.
-                        v.slew := clamp(-ptpRoundShift(signed(valueMath), PROPORTIONAL_SHIFT_C), r.activeConfig.maxSlewPpb);
-                        if r.tracking = '0' then
-                           -- First apply qualified oscillator feedforward. Seed
-                           -- the integrator minus the new proportional term, so
-                           -- entry to tracking preserves this applied command.
-                           -- Widen before adding/subtracting clamped terms: two
-                           -- 35-bit values can require a 36-bit signed result.
-                           rateCandidate    := resize(r.bootstrap, rateCandidate'length)-resize(v.slew, rateCandidate'length);
-                           v.workFrequency  := clamp(resize(rateCandidate, 128), r.activeConfig.maxFrequencyPpb);
-                           rateCandidate    := resize(v.workFrequency, rateCandidate'length)+resize(v.slew, rateCandidate'length);
-                           v.status.ratePpb := slv(resize(clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb), 64));
-                           v.a              := slv(resize(signed(v.status.ratePpb), 128));
-                           v.b              := slv(resize(NOMINAL_C, 128));
-                           v.operation      := RATE_SCALE_S;
-                        else
-                           -- Use actual sample spacing in raw ticks, converted
-                           -- with the nominal period. Do not assume one second
-                           -- or measure this interval with already-steered time.
-                           v.a         := slv(resize(unsigned(r.sampleTicks)-unsigned(r.lastTicks), 128));
-                           v.b         := slv(resize(NOMINAL_C, 128));
-                           v.operation := INTERVAL_SCALE_S;
-                        end if;
+                        v.correction    := resize(shift_right(signed(valueMath), PROPORTIONAL_SHIFT_C), v.correction'length);
+                        v.roundUp       := valueMath(PROPORTIONAL_SHIFT_C-1) and
+                           (not valueMath(127) or uOr(valueMath(PROPORTIONAL_SHIFT_C-2 downto 0)));
+
+                        v.roundIntegral := '0';
+                        v.integrating   := r.tracking;
+                        v.state         := ROUND_S;
                      when INTERVAL_SCALE_S =>
                         v.a         := valueMath;
                         v.b         := slv(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128));
@@ -611,33 +692,12 @@ begin
                         -- Persistent rate estimate: Fnew = Fold - Ki * e * dt.
                         -- Ki is ppb/(ns*s); dt is nominal raw elapsed seconds.
                         -- The final command is Fnew + slew, subject to limits.
-                        integralDelta      := -ptpRoundShift(signed(valueMath), INTEGRAL_SHIFT_C); -- ppb Q16
-                        frequencyCandidate := resize(r.frequency, 128)+integralDelta;
-                        v.workFrequency    := clamp(frequencyCandidate, r.activeConfig.maxFrequencyPpb);
-                        -- Conditional integration freezes only outward movement
-                        -- at either frequency or final-rate saturation. Movement
-                        -- back toward the linear region remains possible.
-                        integrate := true;
-                        if frequencyCandidate /= v.workFrequency then
-                           if (frequencyCandidate > 0 and integralDelta > 0) or (frequencyCandidate < 0 and integralDelta < 0) then
-                              integrate := false;
-                           end if;
-                        end if;
-                        rateCandidate := resize(v.workFrequency, rateCandidate'length)+resize(r.slew, rateCandidate'length);
-                        if clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb) /= rateCandidate then
-                           if (rateCandidate > 0 and integralDelta > 0) or (rateCandidate < 0 and integralDelta < 0) then
-                              integrate := false;
-                           end if;
-                        end if;
-                        if not integrate then
-                           v.workFrequency := r.frequency;
-                        end if;
-                        rateCandidate    := resize(v.workFrequency, rateCandidate'length)+resize(r.slew, rateCandidate'length);
-                        v.status.ratePpb := slv(resize(clamp(resize(rateCandidate, 128), r.activeConfig.maxRatePpb), 64));
-                        v.a              := slv(resize(signed(v.status.ratePpb), 128));
-                        v.b              := slv(resize(NOMINAL_C, 128));
-                        v.divide         := '0';
-                        v.operation      := RATE_SCALE_S;
+                        v.correction    := resize(shift_right(signed(valueMath), INTEGRAL_SHIFT_C), v.correction'length);
+                        v.roundUp       := valueMath(INTEGRAL_SHIFT_C-1) and
+                           (not valueMath(127) or uOr(valueMath(INTEGRAL_SHIFT_C-2 downto 0)));
+
+                        v.roundIntegral := '1';
+                        v.state         := ROUND_S;
                      when RATE_SCALE_S =>
                         -- Convert requested Q16 ppb to a Q32 ns/tick addend:
                         -- round(nominalQ32 * ratePpbQ16 / (1e9 * 2**16)).
@@ -674,6 +734,76 @@ begin
                   end case;
                end if;
             end if;
+
+         when BOOTSTRAP_CLAMP_S =>
+            v.bootstrap := clampResult.value;
+            v.a         := r.status.offsetValue;
+            v.b         := slv(resize(unsigned(r.activeConfig.kp), 128));
+            v.divide    := '0';
+            v.operation := PROPORTIONAL_S;
+            v.state     := ISSUE_S;
+
+         when ROUND_S =>
+            -- Arithmetic shift is floor division. Round upward for positive
+            -- half ties and negative values strictly above half, then negate:
+            -- -(floor + roundUp) = not floor + (1 - roundUp).
+            -- This shares one signed67 increment/sign-restoration datapath.
+            roundCarry    := (others => '0');
+            roundCarry(0) := not r.roundUp;
+            v.correction  := (not r.correction) + roundCarry;
+            v.state       := SLEW_CLAMP_S;
+
+            if r.roundIntegral = '1' then
+               v.state := FREQUENCY_CLAMP_S;
+            end if;
+
+         when SLEW_CLAMP_S =>
+            v.slew  := clampResult.value;
+            v.state := FREQUENCY_CLAMP_S;
+
+            if r.integrating = '1' then
+               -- Use nominal raw elapsed time, independent of PHC steering.
+               v.a         := slv(resize(unsigned(r.sampleTicks)-unsigned(r.lastTicks), 128));
+               v.b         := slv(resize(NOMINAL_C, 128));
+               v.divide    := '0';
+               v.operation := INTERVAL_SCALE_S;
+               v.state     := ISSUE_S;
+            end if;
+
+         when FREQUENCY_CLAMP_S =>
+            -- Bootstrap seeds frequency minus slew; tracking integrates the
+            -- rounded delta. Neither candidate becomes retained before ACK.
+            v.workFrequency := clampResult.value;
+            v.integrate     := '1';
+            v.state         := RATE_CLAMP_S;
+
+            if r.integrating = '1' then
+               v.state := RATE_CHECK_S;
+
+               if clampResult.saturated and
+                  ((clampValue > 0 and r.correction > 0) or (clampValue < 0 and r.correction < 0)) then
+                  v.integrate := '0';
+               end if;
+            end if;
+
+         when RATE_CHECK_S =>
+            -- Freeze only outward integration at either saturation boundary.
+            -- Recompute the final rate after choosing old or new frequency.
+            if r.integrate = '0' or (clampResult.saturated and
+               ((clampValue > 0 and r.correction > 0) or (clampValue < 0 and r.correction < 0))) then
+               v.workFrequency := r.frequency;
+            end if;
+
+            v.state := RATE_CLAMP_S;
+
+         when RATE_CLAMP_S =>
+            v.status.ratePpb := slv(resize(clampResult.value, 64));
+            v.a              := slv(resize(clampResult.value, 128));
+            v.b              := slv(resize(NOMINAL_C, 128));
+            v.divide         := '0';
+            v.operation      := RATE_SCALE_S;
+            v.state          := ISSUE_S;
+
          when COMMAND_S =>
             if commandSlave.ready = '1' then
                v.state := ACK_S;
