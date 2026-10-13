@@ -69,9 +69,11 @@ end entity PtpRxFrontend;
 
 architecture rtl of PtpRxFrontend is
 
-   -- Compact fixed fields omit Ethernet source/reserved octets. Eight lane
-   -- banks accept any normalized physical beat without compute-port arbitration.
-   constant STORE_BYTES_C : positive := 35+PTP_ANNOUNCE_BODY_BYTES_C;
+   -- Remove the eight-byte source/EtherType gap while preserving every stored
+   -- byte's modulo-eight lane. Other reserved positions are neither written
+   -- nor decoded. Nine groups retain the compact layout's RAM depth at all
+   -- queue depths, without its gap-dependent byte-lane permutation.
+   constant STORE_BYTES_C : positive := PTP_ETH_HEADER_BYTES_C+PTP_ANNOUNCE_BYTES_C-8;
    constant STORE_GROUPS_C : positive := (STORE_BYTES_C+7)/8;
    constant BANKS_C : positive := FIFO_DEPTH_G+1;
    constant BANK_BITS_C : positive := log2(BANKS_C);
@@ -225,26 +227,6 @@ architecture rtl of PtpRxFrontend is
 
    end function;
 
-   -- Monotone compaction guarantees at most one write per lane in an
-   -- eight-byte physical group, even when that group straddles a RAM row.
-   function compactIndex(offset : natural) return integer is
-   begin
-
-      case offset is
-         when 0 to 5 =>
-            return offset;
-         when 14 to 18 =>
-            return offset-8;
-         when 20 to 29 =>
-            return offset-9;
-         when 34 to 77 =>
-            return offset-13;
-         when others =>
-            return -1;
-      end case;
-
-   end function;
-
    procedure takeByte(variable item : inout PtpRxMessageType;
    constant index : natural;
    constant octet : slv(7 downto 0)) is
@@ -262,20 +244,20 @@ architecture rtl of PtpRxFrontend is
             item.messageLength(15-8*(index-8) downto 8-8*(index-8)) := octet;
          when 10 =>
             item.domainNumber := octet;
-         when 11 to 12 =>
-            item.flags(15-8*(index-11) downto 8-8*(index-11)) := octet;
-         when 13 to 20 =>
-            item.correction(63-8*(index-13) downto 56-8*(index-13)) := octet;
-         when 21 to 30 =>
-            item.sourcePortIdentity(79-8*(index-21) downto 72-8*(index-21)) := octet;
-         when 31 to 32 =>
-            item.sequenceId(15-8*(index-31) downto 8-8*(index-31)) := octet;
-         when 33 =>
+         when 12 to 13 =>
+            item.flags(15-8*(index-12) downto 8-8*(index-12)) := octet;
+         when 14 to 21 =>
+            item.correction(63-8*(index-14) downto 56-8*(index-14)) := octet;
+         when 26 to 35 =>
+            item.sourcePortIdentity(79-8*(index-26) downto 72-8*(index-26)) := octet;
+         when 36 to 37 =>
+            item.sequenceId(15-8*(index-36) downto 8-8*(index-36)) := octet;
+         when 38 =>
             item.control := octet;
-         when 34 =>
+         when 39 =>
             item.logInterval := octet;
-         when 35 to 64 =>
-            item.messageBody(239-8*(index-35) downto 232-8*(index-35)) := octet;
+         when 40 to 69 =>
+            item.messageBody(239-8*(index-40) downto 232-8*(index-40)) := octet;
          when others =>
             null;
       end case;
@@ -385,7 +367,7 @@ begin
       variable last            : natural range 0 to MAX_FRAME_G+9;
       variable tlvFirst        : natural range 0 to MAX_FRAME_G+9;
       variable tlvLast         : natural range 0 to MAX_FRAME_G+9;
-      variable compact         : integer range -1 to STORE_BYTES_C-1;
+      variable storeGroup      : natural range 0 to STORE_GROUPS_C-1;
       variable captureIndex    : natural;
       variable descriptorBank  : natural range 0 to BANKS_C-1;
       variable descriptorBytes : natural range 0 to STORE_BYTES_C;
@@ -401,7 +383,7 @@ begin
       offset          := 0;
       first           := 0;
       last            := 0;
-      compact         := -1;
+      storeGroup      := 0;
       captureIndex    := 0;
       descriptorBank  := 0;
       descriptorBytes := 0;
@@ -417,7 +399,11 @@ begin
       v.captureWrite := '0';
       v.readEnable := '0';
       v.returnValid := r.readEnable;
-      v.returnGroup := to_integer(unsigned(r.readAddress)) mod STORE_GROUPS_C;
+      -- The request carries the next group counter, independent of bank stride.
+      -- Avoid recovering the group with a non-power-of-two address remainder.
+      if r.readEnable = '1' then
+         v.returnGroup := r.issueGroup-1;
+      end if;
 
       if r.messageValid = '1' and messageReady = '1' then
          v.messageValid := '0';
@@ -549,11 +535,16 @@ begin
                         null;
                   end case;
 
-                  compact := compactIndex(offset);
-                  if compact >= 0 and (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+v.frame.base) then
-                     v.storeWrite(compact mod 8) := '1';
-                     v.storeAddress(compact mod 8) := toSlv(r.tail*STORE_GROUPS_C+compact/8, STORE_ADDR_BITS_C);
-                     v.storeData(compact mod 8) := octet;
+                  if (offset <= 5 or (offset >= 14 and offset <= 18) or
+                      (offset >= 20 and offset <= 29) or (offset >= 34 and offset < STORE_BYTES_C+8)) and
+                     (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+v.frame.base) then
+                     storeGroup := 0;
+                     if offset >= 14 then
+                        storeGroup := offset/8-1;
+                     end if;
+                     v.storeWrite(offset mod 8) := '1';
+                     v.storeAddress(offset mod 8) := toSlv(r.tail*STORE_GROUPS_C+storeGroup, STORE_ADDR_BITS_C);
+                     v.storeData(offset mod 8) := octet;
                   end if;
                end if;
             end loop;
@@ -661,7 +652,7 @@ begin
          v.abortNow          := '1';
       elsif frameComplete then
          v.fifoWrite         := '1';
-         v.fifoWriteData := toSlv(35+base-PTP_HEADER_BYTES_C, 7) & toSlv(r.tail, BANK_BITS_C);
+         v.fifoWriteData := toSlv(PTP_ETH_HEADER_BYTES_C+base-8, 7) & toSlv(r.tail, BANK_BITS_C);
          v.tail := (r.tail+1) mod BANKS_C;
          v.fill              := v.fill+1;
          v.counters.accepted := ptpSatInc(r.counters.accepted);

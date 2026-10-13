@@ -23,6 +23,14 @@ acceptance remain open.
 
 ## Current validation
 
+The [LUT candidates 5-7 follow-up](rtl-review.md#october-13-lut-candidates-5-7)
+selects a 70-byte lane-aligned RX store and specialized TX observer, retaining
+the existing chunked TLV helper. Matched synthesis saves 770 LUTs (1.50%) with
+unchanged RAM/DSP use; the selected SFP-only routed build has WNS +0.247 ns and
+zero setup/hold/pulse-width failures. Seven RX configurations, the unchanged
+TX storage source and final real-MAC RX pass focused checks. Final endpoint
+integration and hardware acceptance remain open; see the linked provenance.
+
 The [arithmetic-guided timing follow-up](rtl-review.md#october-13-arithmetic-guided-timing-follow-up)
 uses native arithmetic, parallel TLV validation and shorter protocol admission
 logic. The isolated KCU105 SFP-only R4 build meets its existing setup, hold and

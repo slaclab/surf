@@ -926,20 +926,22 @@ implementation, updated with the validator probe above. Priorities indicate an
 initial experiment order, not promised savings. Candidates 1–4 now have source
 implementations: the initial pass is committed as `0d27ddbba`, followed by the
 [protocol scan word arithmetic](#protocol-scan-word-arithmetic) below. Ledger
-live-age checks retain their original edges. Area/timing measurement remains
-open. Shared MAC changes and reuse of MAC FCS status
+live-age checks retain their original edges. Combined resource measurements and
+the later R4 timing closure are recorded in the consuming project; per-candidate
+resource attribution remains open. Candidates 5–7 are reconciled in the
+[follow-up below](#october-13-candidates-5-7-follow-up). Shared MAC changes and reuse of MAC FCS status
 remain deferred; the CRC candidate concerns the validators' existing independent
 Ethernet FCS calculation, not a separate PTP CRC.
 
 | Priority | Optimization and modules | Experiment, rationale and limits |
 | --- | --- | --- |
-| **1** | **Consolidate protocol counter updates** — `PtpProtocolEngine` | **Implemented, unmeasured:** nine rejection sites feed a bounded event count and one 33-bit saturating addition. Same-edge multiplicity and reset precedence are preserved; logical restart and AXI reset retain diagnostics. |
-| **2** | **Move selected word memories from LUTRAM to BRAM** — pair/history stores, `PtpTxLedger`, `PtpConfigBank`, `PtpPublicationBank` | **Implemented, unmeasured:** select block RAM for pair/history, ledger, protocol/servo configuration and protocol publication (six 128×32 or 256×32 stores per endpoint). Keep one-cycle reads and ownership; retain distributed mapping for the smaller banks. Measure LUTRAM against BRAM use and timing. |
-| **3** | **Share table-scan arithmetic** — `PtpProtocolEngine`, `PtpTxLedger` | **Implemented, unmeasured:** protocol pair/history checks share a 32-bit word ALU with round-robin row arbitration; preserve admission-time ages, full Q3 distance and strict first-slot ties. Ledger association age, response chronology and wire age share one 65-bit subtract/compare at their original live check edges. The added protocol scan cycles fit the existing service allowance; measure mux/control cost and timing. |
-| **4** | **Consolidate interval decoding and preparation** — `PtpProtocolEngine` | **Implemented, unmeasured:** elaborate the 33 supported periods and three-period timeouts; share RX decoding/capping across Sync and Announce. Keep a separate held-response lookup for concurrent Delay_Resp completion. Existing single-site jitter preparation is retained. Preserve rounding, invalid/unspecified fallback and caps. |
-| **5** | **Simplify compact-store byte routing** — `PtpRxFrontend`, then assess `PtpDelayReqObserver` | Replace gap-removing `compactIndex` routing through `compact mod 8` with a sparse, lane-aligned field layout where it reduces muxing. At the default RX depth, five physical banks need 45 groups for the current 65-byte record or 50 for a 78-byte address space; both round to 64-deep lane RAMs. Store only required fields and recheck all supported depths, byte order, decoder/refill latency and minimum-frame-spacing throughput. The RX rounding result is not automatically a TX saving. |
-| **6** | **Further specialize TX observer control** — `PtpDelayReqObserver` | Exploit the fixed 44-byte base Delay_Req message and 13 stored field bytes to simplify length/TLV/decoder control where constants have not already been removed. Preserve legal TLVs, malformed-frame/FCS checks, logical queue capacity, post-MAC physical completion and late completion across logical restart or PHC generation changes. |
-| **7** | **Process TLV payload runs in chunks** — both validators, primarily XGMII | Consume a run of payload bytes with one subtraction, reserving detailed byte transitions for TLV headers. Preserve split headers, zero-length TLVs, multiple transitions per beat, all 16 received length bits before narrowing, truncation rejection and legal partial beats. GMII already processes at most one byte, so removing an eight-byte update chain is an XGMII opportunity. |
+| **1** | **Consolidate protocol counter updates** — `PtpProtocolEngine` | **Implemented; individual attribution open:** nine rejection sites feed a bounded event count and one 33-bit saturating addition. Same-edge multiplicity and reset precedence are preserved; logical restart and AXI reset retain diagnostics. |
+| **2** | **Move selected word memories from LUTRAM to BRAM** — pair/history stores, `PtpTxLedger`, `PtpConfigBank`, `PtpPublicationBank` | **Implemented; individual attribution open:** select block RAM for pair/history, ledger, protocol/servo configuration and protocol publication (six 128×32 or 256×32 stores per endpoint). Keep one-cycle reads and ownership; retain distributed mapping for the smaller banks. Measure LUTRAM against BRAM use and timing. |
+| **3** | **Share table-scan arithmetic** — `PtpProtocolEngine`, `PtpTxLedger` | **Implemented; individual attribution open:** protocol pair/history checks share a 32-bit word ALU with round-robin row arbitration; preserve admission-time ages, full Q3 distance and strict first-slot ties. Ledger association age, response chronology and wire age share one 65-bit subtract/compare at their original live check edges. The added protocol scan cycles fit the existing service allowance; measure mux/control cost and timing. |
+| **4** | **Consolidate interval decoding and preparation** — `PtpProtocolEngine` | **Implemented; individual attribution open:** elaborate the 33 supported periods and three-period timeouts; share RX decoding/capping across Sync and Announce. Keep a separate held-response lookup for concurrent Delay_Resp completion. Existing single-site jitter preparation is retained. Preserve rounding, invalid/unspecified fallback and caps. |
+| **5** | **Simplify compact-store byte routing** — `PtpRxFrontend` | **Implemented and selected:** a 70-byte lane-aligned layout removes the eight-byte Ethernet source/EtherType gap and retains nine groups per physical bank. All queue depths keep their original RAM depth. Compared with the TX-only control, synthesized RX LUTs fall 3,341 -> 3,203 and whole-design LUTs fall by 566. Sync/Delay_Resp refill takes one extra clock; Announce is unchanged. Minimum-gap and depth-boundary checks pass. |
+| **6** | **Further specialize TX observer control** — `PtpDelayReqObserver` | **Implemented and selected:** use a constant 44-byte body boundary, bank-only descriptors and fixed two-group decoding; make identity/version errors sticky at their wire bytes. The TX-only control reduces observer LUTs 2,567 -> 2,193. Legal TLVs, FCS checks, exact queue capacity and physical completion retention are preserved. |
+| **7** | **Process TLV payload runs in chunks** — both validators, primarily XGMII | **Implemented in the timing pass:** consume a run of payload bytes with one subtraction, reserving detailed byte transitions for TLV headers. Preserve split headers, zero-length TLVs, multiple transitions per beat, all 16 received length bits before narrowing, truncation rejection and legal partial beats. GMII already processes at most one byte, so removing an eight-byte update chain is an XGMII opportunity. |
 | **8** | **Factor XGMII CRC alternatives** — both validators | After separating arithmetic from control in the CRC cones, investigate shared intermediates or a prefix network for the one- through eight-byte transforms. Measure XOR depth and timing as well as LUTs; sustain eight bytes per clock and preserve partial/zero-byte termination behavior and CRC residue checks. The GMII cone counts do not establish this opportunity, and no MAC interface change is included. |
 | **Deprioritized** | **Explicit one-byte GMII specialization** — timestamp adapter / validator interfaces | The reported netlist probe resolves the original concern: constant propagation already restricts the copper datapath to one byte despite the wide RTL interface. Revisit only if a different build shows surviving multi-byte logic or there is a separately justified interface-maintenance benefit. |
 
@@ -951,6 +953,75 @@ same counting method. Select focused behavioral tests for each change using the
 preserve existing numerical, packet-validation, queue and cancellation contracts.
 Retain reproducible cell attribution with each experiment. Routed timing and
 hardware acceptance remain separate work.
+
+### October 13 candidates 5-7 follow-up
+
+The selected source is the 70-byte RX layout plus TX specialization, based on
+project `de738ca` and SURF `a37e036d1` plus the recorded source patch.
+Synthesis is the first area gate; all experiments use Vivado 2025.2, the same KU040 part, SFP-only
+configuration, constraints and flattening policy. Matching synthesized checkpoints
+were reopened for utilization/hierarchy reports. Both PHY black boxes are the
+same at this flow stage; routed results are separate evidence.
+
+| Synthesized scope | R4 | TX only | TX + 78-byte RX | TX + 70-byte RX selected |
+| --- | ---: | ---: | ---: | ---: |
+| Whole-design LUTs | 51411 | 51207 | 50884 | 50641 |
+| RX validator including storage | 3098 | 3341 | 3298 | 3203 |
+| TX observer including storage | 2567 | 2193 | 2032 | 2016 |
+| Registers | 56760 | 56741 | 56740 | 56720 |
+
+The selected combination saves 770 LUTs (1.50%) and 40 registers versus R4.
+LUT memory remains 2,108, BRAM 33.5 tiles and DSPs 9. With TX RTL held constant,
+the selected RX layout saves 138 LUTs within RX and 566 across the design versus
+the TX-only control. Unchanged hierarchies also shift under synthesis, so do not
+sum leaf deltas or attribute all whole-design savings to the changed leaf. The
+initial comparison against R4 alone made RX appear to regress; the TX-only
+control is the appropriate reference for selecting between RX implementations.
+
+Candidate 5 removes the eight-byte source/EtherType gap without changing the
+stored bytes' modulo-eight lanes. The remaining five reserved positions are
+ignored. Nine groups per physical bank preserve the original RAM depth at all
+queue depths. Decoder return groups come from the request counter, avoiding an
+address remainder. Sync/Delay_Resp/Announce decode in 7/8/9 groups rather than
+6/7/9. The 78-byte prototype needs 8/9/10 groups and grows memory at depth six;
+its source patch and reports are retained, but it is not the selected source.
+
+Candidate 6 keeps TX's 13-byte key store and two-group decoder. Its bank-only
+descriptor omits a constant length, and the 44-byte Delay_Req body needs no
+variable base selector. EtherType, type and major-version errors become sticky
+at their wire bytes. Full TLV/FCS checks and EOF rejection/admission remain,
+including unusable captures and generation changes. EOF-to-valid remains six
+clocks; reset, flush and overflow contracts are unchanged.
+
+Candidate 7 was already implemented by the timing pass's `ptpTlvBeat`: one
+subtraction consumes payload runs and fixed-lane lookahead handles at most two
+header completions per eight-byte beat. It is retained unchanged. New TX tests
+cover zero/two-length lookahead, split 254/256-byte lengths, payload skipping
+and malformed second headers at every beat width, complementing the RX oracle.
+
+All seven RX configurations pass on the selected layout (90.88 s), including
+GMII/XGMII minimum gaps, queue pressure, resets and depths six/seven. TX storage
+and its added cases pass on the unchanged TX source. Both RTL files pass VSG.
+The 78-byte prototype also passed these leaf checks and real-MAC RX; its longer
+endpoint lifecycle case was interrupted after 27 minutes when superseded, and
+is not a passing result. Final real-MAC RX passes (262.14 s).
+
+The selected source also completes `make bit` and independent routed analysis:
+50,668 LUTs, 58,873 registers, 33.5 BRAM tiles and 9 DSPs. WNS is +0.247 ns,
+hold slack +0.030 ns and pulse-width slack +0.259 ns, with zero failing endpoints
+and routing errors. The current critical path is TX frame-count bit 1 to the
+replicated decoder-control reset through TLV/admission logic: 18 levels and
+7.494 ns data delay. This routed result is separate from the synthesis area gate.
+The full PTP suite and final endpoint lifecycle remain unrun; constraint/CDC
+review and hardware acceptance remain open.
+
+Evidence is in the consuming project's ignored `.planning/remote-builds/`
+directories `20261013-lut-candidates567` (78-byte prototype),
+`20261013-lut-candidates567-r2` (selected source) and
+`20261013-lut-candidates6-control` (TX only), with matching directories under
+`/u1/bareese/agent-builds/ptp-dev/` on rdsrv419. They retain patches, source hashes,
+checkpoint hashes, logs and synthesis comparisons. No MAC, constraint, public
+interface or register-map changes are included. Hardware acceptance remains open.
 
 ### October 13 candidate implementation
 

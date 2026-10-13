@@ -81,7 +81,7 @@ architecture rtl of PtpDelayReqObserver is
 
    constant STORE_ADDR_BITS_C : positive := log2(BANKS_C*STORE_GROUPS_C);
 
-   constant DESCRIPTOR_BITS_C : positive := BANK_BITS_C+7;
+   constant DESCRIPTOR_BITS_C : positive := BANK_BITS_C;
    constant CAPTURE_BITS_C    : positive := 96+64+PTP_TICK_PHASE_BITS_C+32+64+2+32;
    type AddressArray is array (0 to 7) of slv(STORE_ADDR_BITS_C-1 downto 0);
    -- The portable FIFO has a minimum address width of four and reserves one
@@ -99,12 +99,8 @@ architecture rtl of PtpDelayReqObserver is
       active       : sl;
       bad          : sl;
       count        : natural range 0 to MAX_FRAME_G+1;
-      etherType    : slv(15 downto 0);
-      kind         : slv(3 downto 0);
-      version      : slv(3 downto 0);
       length       : slv(15 downto 0);
       crc          : slv(31 downto 0);
-      base         : natural range 0 to PTP_ANNOUNCE_BYTES_C;
       messageEnd   : natural range 0 to MAX_FRAME_G;
       tlvBytes     : natural range 0 to PTP_TLV_HEADER_BYTES_C-1;
       tlvLength    : slv(15 downto 0);
@@ -115,12 +111,8 @@ architecture rtl of PtpDelayReqObserver is
       active       => '0',
       bad          => '0',
       count        => 0,
-      etherType    => (others => '0'),
-      kind         => (others => '0'),
-      version      => (others => '0'),
       length       => (others => '0'),
       crc          => (others => '1'),
-      base         => 0,
       messageEnd   => 0,
       tlvBytes     => 0,
       tlvLength    => (others => '0'),
@@ -154,7 +146,6 @@ architecture rtl of PtpDelayReqObserver is
       captureData        : slv(CAPTURE_BITS_C-1 downto 0);
       decoding           : sl;
       decodeBank         : natural range 0 to BANKS_C-1;
-      decodeBytes        : natural range 0 to STORE_BYTES_C;
       issueGroup         : natural range 0 to STORE_GROUPS_C;
       readEnable         : sl;
       readAddress        : slv(STORE_ADDR_BITS_C-1 downto 0);
@@ -186,7 +177,6 @@ architecture rtl of PtpDelayReqObserver is
       captureData        => (others => '0'),
       decoding           => '0',
       decodeBank         => 0,
-      decodeBytes        => 0,
       issueGroup         => 0,
       readEnable         => '0',
       readAddress        => (others => '0'),
@@ -209,20 +199,9 @@ architecture rtl of PtpDelayReqObserver is
    signal storeReadData : Slv8Array(0 to 7);
 
    signal captureReadData : slv(CAPTURE_BITS_C-1 downto 0);
-   -- Fixed lengths include the 34-byte PTP header: Sync/Follow_Up (44),
-   -- Delay_Resp (54), Announce (64). Delay_Req is TX-only for this receiver.
-   -- Zero marks unsupported types, disabling both TLV walking and admission.
-
-   function baseLength (kind : slv(3 downto 0)) return natural is
-   begin
-
-      if kind = PTP_MSG_DELAY_REQ_C then
-         return PTP_TIMESTAMP_MSG_BYTES_C;
-      end if;
-
-      return 0;
-   end function;
-
+   -- The observer only admits Delay_Req: the fixed body is 44 bytes and
+   -- every descriptor decodes the same 13 stored key bytes. No per-frame body
+   -- selector or descriptor length is needed; legal TLVs are still validated.
    -- Monotone compaction guarantees at most one write per lane in an
    -- eight-byte physical group, even when that group straddles a RAM row.
 
@@ -352,19 +331,17 @@ begin
          empty         => open);          -- [out]
 
    comb : process (r, rst, rxFlush, generation, rxMaster, rxCapture, messageReady, fifoReadData, fifoValid, storeReadData, captureReadData) is
-      variable v               : RegType;
-      variable octet           : slv(7 downto 0);
-      variable base            : natural range 0 to PTP_ANNOUNCE_BYTES_C;
-      variable length          : natural range 0 to 65535;
-      variable offset          : natural range 0 to MAX_FRAME_G+9;
-      variable first           : natural range 0 to MAX_FRAME_G+1;
-      variable last            : natural range 0 to MAX_FRAME_G+9;
-      variable tlvFirst        : natural range 0 to MAX_FRAME_G+9;
-      variable tlvLast         : natural range 0 to MAX_FRAME_G+9;
-      variable compact         : integer range -1 to STORE_BYTES_C-1;
-      variable captureIndex    : natural;
-      variable descriptorBank  : natural range 0 to BANKS_C-1;
-      variable descriptorBytes : natural range 0 to STORE_BYTES_C;
+      variable v              : RegType;
+      variable octet          : slv(7 downto 0);
+      variable length         : natural range 0 to 65535;
+      variable offset         : natural range 0 to MAX_FRAME_G+9;
+      variable first          : natural range 0 to MAX_FRAME_G+1;
+      variable last           : natural range 0 to MAX_FRAME_G+9;
+      variable tlvFirst       : natural range 0 to MAX_FRAME_G+9;
+      variable tlvLast        : natural range 0 to MAX_FRAME_G+9;
+      variable compact        : integer range -1 to STORE_BYTES_C-1;
+      variable captureIndex   : natural;
+      variable descriptorBank : natural range 0 to BANKS_C-1;
       -- Calculations used only during this evaluation.
       variable frameComplete : boolean;
       variable byteCount     : natural range 0 to 8;
@@ -372,7 +349,6 @@ begin
    begin
       v               := r;
       octet           := (others => '0');
-      base            := 0;
       length          := 0;
       offset          := 0;
       first           := 0;
@@ -380,7 +356,6 @@ begin
       compact         := -1;
       captureIndex    := 0;
       descriptorBank  := 0;
-      descriptorBytes := 0;
       frameComplete   := false;
       v.abortNow       := '0';
       v.queueOverflow  := '0';
@@ -403,7 +378,7 @@ begin
       -- Issue one group every clock; the registered request and synchronous
       -- RAM contribute two edges before a returned group updates the head.
       if r.decoding = '1' then
-         if r.issueGroup < (r.decodeBytes+7)/8 then
+         if r.issueGroup < STORE_GROUPS_C then
             v.readEnable := '1';
             v.readAddress := toSlv(r.decodeBank*STORE_GROUPS_C+r.issueGroup, STORE_ADDR_BITS_C);
             v.issueGroup := r.issueGroup+1;
@@ -421,23 +396,19 @@ begin
                assignRecord(captureIndex, captureReadData, v.message.capture.timestamp);
             end if;
             for i in 0 to 7 loop
-               if 8*r.returnGroup+i < r.decodeBytes then
-                  takeByte(v.message, 8*r.returnGroup+i, storeReadData(i));
-               end if;
+               takeByte(v.message, 8*r.returnGroup+i, storeReadData(i));
             end loop;
-            if 8*(r.returnGroup+1) >= r.decodeBytes then
+            if r.returnGroup = STORE_GROUPS_C-1 then
                v.messageValid := '1';
                v.decoding := '0';
             end if;
          end if;
       elsif v.messageValid = '0' and fifoValid = '1' and r.fifoRst = '0' then
          descriptorBank  := to_integer(unsigned(fifoReadData(BANK_BITS_C-1 downto 0)));
-         descriptorBytes := to_integer(unsigned(fifoReadData(DESCRIPTOR_BITS_C-1 downto BANK_BITS_C)));
          v.message := PTP_RX_MESSAGE_INIT_C;
          v.message.messageType := PTP_MSG_DELAY_REQ_C;
          v.decoding := '1';
          v.decodeBank := descriptorBank;
-         v.decodeBytes := descriptorBytes;
          v.issueGroup := 1;
          v.readEnable := '1';
          v.readAddress := toSlv(descriptorBank*STORE_GROUPS_C, STORE_ADDR_BITS_C);
@@ -500,20 +471,27 @@ begin
 
                   case offset is
                      when 12 =>
-                        v.frame.etherType(15 downto 8) := octet;
+                        if octet /= PTP_ETH_TYPE_C(15 downto 8) then
+                           v.frame.bad := '1';
+                        end if;
                      when 13 =>
-                        v.frame.etherType(7 downto 0) := octet;
+                        if octet /= PTP_ETH_TYPE_C(7 downto 0) then
+                           v.frame.bad := '1';
+                        end if;
                      when 14 =>
-                        v.frame.kind := octet(3 downto 0);
+                        if octet(3 downto 0) /= PTP_MSG_DELAY_REQ_C then
+                           v.frame.bad := '1';
+                        end if;
                      when 15 =>
-                        v.frame.version := octet(3 downto 0);
+                        if octet(3 downto 0) /= PTP_MAJOR_VERSION_C then
+                           v.frame.bad := '1';
+                        end if;
                      when 16 =>
                         v.frame.length(15 downto 8) := octet;
                      when 17 =>
                         v.frame.length(7 downto 0) := octet;
-                        v.frame.base := baseLength(v.frame.kind);
                         length := to_integer(unsigned(v.frame.length));
-                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+                        if length < PTP_TIMESTAMP_MSG_BYTES_C or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
                            v.frame.bad := '1';
                         else
                            v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
@@ -523,7 +501,7 @@ begin
                   end case;
 
                   compact := compactIndex(offset);
-                  if compact >= 0 and (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+v.frame.base) then
+                  if compact >= 0 then
                      v.storeWrite(compact mod 8) := '1';
                      v.storeAddress(compact mod 8) := toSlv(r.tail*STORE_GROUPS_C+compact/8, STORE_ADDR_BITS_C);
                      v.storeData(compact mod 8) := octet;
@@ -541,8 +519,8 @@ begin
             -- independently of the sticky bad flag; errors only join at EOF,
             -- avoiding a sideband/header-error path through the TLV arithmetic.
             if first < r.frame.messageEnd and
-               last > PTP_ETH_HEADER_BYTES_C+r.frame.base then
-               tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+r.frame.base);
+               last > PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C then
+               tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C);
                tlvLast := minimum(last, r.frame.messageEnd);
                ptpTlvBeat(rxMaster.tData(63 downto 0), tlvFirst-first,
                   tlvLast-first, r.frame.messageEnd-tlvFirst,
@@ -581,7 +559,6 @@ begin
                -- contain padding/FCS after a short message's meaningful bytes.
                -- Header positions below are Ethernet-frame byte offsets:
                -- EtherType 12..13, type 14, version 15, messageLength 16..17.
-               base := v.frame.base;
                -- Validate framing/FCS, protocol identity, then bounded body/TLV
                -- lengths. Keep the rejection order explicit for first-time readers.
                frameComplete := true;
@@ -591,15 +568,9 @@ begin
                   frameComplete := false;
                elsif v.frame.crc /= ETH_CRC_RESIDUE_C then
                   frameComplete := false;
-               -- IEEE 1588-2019 19.2 accepts every minor version when the
-               -- major version matches. Minor version is not part of a wire key.
-               elsif v.frame.etherType /= PTP_ETH_TYPE_C then
-                  frameComplete := false;
-               elsif v.frame.version /= PTP_MAJOR_VERSION_C then
-                  frameComplete := false;
-               -- Require the fixed body and complete TLVs before the FCS.
-               elsif base = 0 then
-                  frameComplete := false;
+               -- Identity/major-version/length errors were made sticky at
+               -- their wire bytes; any minor version is accepted. Require the
+               -- fixed body and complete TLVs before the FCS.
                elsif v.frame.count < PTP_ETH_FCS_BYTES_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
                   frameComplete := false;
                end if;
@@ -634,7 +605,7 @@ begin
          v.abortNow          := '1';
       elsif frameComplete then
          v.fifoWrite         := '1';
-         v.fifoWriteData := toSlv(STORE_BYTES_C, 7) & toSlv(r.tail, BANK_BITS_C);
+         v.fifoWriteData := toSlv(r.tail, BANK_BITS_C);
          v.tail := (r.tail+1) mod BANKS_C;
          v.fill              := v.fill+1;
          v.counters.accepted := ptpSatInc(r.counters.accepted);

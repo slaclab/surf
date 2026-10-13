@@ -29,11 +29,15 @@ separates simulated behavior from remaining device and interoperability work.
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
 - `test_ptp_rx_storage.py` checks the dedicated two-entry TX observer:
   lossless capture increment/error storage, pointer wrap, generation retention,
-  simultaneous consume/enqueue, compact-store decoding, consumption and
+  simultaneous consume/enqueue, fixed-length compact-store decoding, consumption and
   reset/flush throughout the write/read pipeline, full-before-edge discard
-  and malformed keep/TLV rejection.
-  The RX oracle additionally covers depths one through four
-  and partial normalized beats of every width.
+  and malformed keep/TLV rejection. TLV payload runs, zero/two-length header
+  lookahead and split 254/256-byte lengths are checked at every beat width;
+  identity, major/minor-version, fixed-body length and FCS cases cover the
+  specialized observer's early header checks.
+  The RX oracle additionally covers depths one through four, six and seven
+  (including the sparse-store address-width boundary), and partial normalized
+  beats of every width.
 - `ptp_rx_test_utils.py` supplies independent frame/FCS fixtures and record
   packing for both reference and RTL tests.
 - `test_ptp_wire_vectors.py` anchors the shared Sync builder against four

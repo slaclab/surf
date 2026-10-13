@@ -1455,3 +1455,62 @@ Source hashes match the local RTL. Bitstreams remain remote and were not
 programmed. Existing TIMING-36, overridden CDC max-delay constraints, unused
 GT reference/CFGBVS findings, CDC review, copper and hardware acceptance remain
 open; no constraints were relaxed to obtain this result.
+
+
+## October 13 LUT candidates 5-7
+
+The [area comparison and decisions](lut-optimization.md#october-13-candidates-5-7-follow-up)
+select a 70-byte lane-aligned RX layout and specialize the TX observer around
+its fixed 44-byte Delay_Req body and 13-byte key. Candidate 7's existing chunked
+TLV helper is retained, with added TX boundary coverage. Source is project
+`de738ca`, SURF `a37e036d1` plus the recorded two-file working-tree patch.
+
+Matched Vivado 2025.2 SFP-only synthesis reports 51,411 -> 50,641 LUTs (-770,
+1.50%) and 56,760 -> 56,720 registers. LUT memory, BRAM and DSP use are unchanged.
+The TX-only control uses 51,207 LUTs; adding the selected RX layout saves 566
+overall and 138 within RX. Other hierarchies also shift, so these are observed
+whole-design comparisons, not additive isolated operator costs. Synthesis has
+the same two deferred PHY black boxes; routed timing is checked separately.
+
+Python 3.12.7 / GHDL 6.0.0 verification:
+
+- All seven final RX configurations pass in 90.88 s: direct depths 1/2/3/6/7,
+  XGMII depth four and GMII depth four with active-low asynchronous reset.
+  The independent oracle checks complete records, partial beats, malformed
+  lengths/FCS, TLV runs/lookahead, queue pressure, flush and generation changes.
+  Both physical modes pass continuous minimum-gap bursts.
+- The unchanged specialized TX source passes its two-entry storage fixture,
+  including fixed six-clock publication, full capture fields, pointer wrap,
+  simultaneous consume/admit, reset/flush and full-before-edge overflow. New
+  cases cover all eight beat widths, 254/256-byte payload runs, malformed second
+  TLVs, identity/major-version rejection, arbitrary minor versions and bad FCS.
+- The final real-MAC RX fixture passes in 262.14 s.
+- Both edited RTL files pass VSG. Both changed Python tests pass flake8.
+
+The first 78-byte RX prototype passed its seven leaf configurations and RX/MAC
+fixture. One initial elaboration raced a whitespace edit and passed on rerun.
+Its long endpoint/MAC lifecycle case was interrupted after 27 minutes when
+that prototype was superseded; neither it nor final endpoint integration is
+reported as passing. The full PTP suite and hardware checks were not run.
+
+The RTL review traced byte-lane uniqueness, sparse decode holes, body clipping,
+RAM request/return alignment and bank wrap. Nine groups per physical bank keep
+the original RAM depth at every queue depth. Sync/Follow_Up and Delay_Resp refill
+each gain one clock; Announce is unchanged, and minimum-gap throughput passes.
+Capture, overflow and invalidation edges are preserved. TX header rejection is
+sticky early but counted only at EOF; capture error/generation cannot suppress
+physical completion. No public interface, register map or constraint changes.
+
+The selected source completes `make bit` and independent routed analysis with
+exit zero: 50,668 LUTs, 58,873 registers, 33.5 BRAM tiles and 9 DSPs. Setup WNS
+is +0.247 ns, hold slack +0.030 ns and pulse-width slack +0.259 ns, with zero
+failing endpoints and routing errors. No black boxes or unconstrained internal
+endpoints remain. The critical path is TX frame-count bit 1 through TLV/admission
+logic to the replicated decoder-control reset (18 levels, 7.494 ns data delay).
+Existing constraint/CDC findings and hardware acceptance remain open.
+
+Evidence and exact hashes are in the consuming project's ignored
+`.planning/remote-builds/20261013-lut-candidates567-r2/` and the matching
+`/u1/bareese/agent-builds/ptp-dev/` run on rdsrv419. The sibling
+`20261013-lut-candidates567` preserves the 78-byte prototype, and
+`20261013-lut-candidates6-control` preserves the TX-only control.

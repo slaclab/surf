@@ -9,15 +9,16 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: Direct normalized input, GMII, XGMII lanes 0/4, depth 1/2/3/4,
+# - Sweep: Direct normalized input, GMII, XGMII lanes 0/4, depth 1/2/3/4/6/7,
 #   synchronous active-high and asynchronous active-low reset, signed latency.
 # - Stimulus: Independent one-/two-step wire encoders, malformed/FCS-bad duplicates,
 #   minimum-gap traffic, record pressure, reset/generation during reception.
 # - Checks: Every cycle compares the RTL queue, record fields and abort priority
 #   with the bounded reference model; physical tests also require whole-frame
 #   acceptance and independently calculate the SOF timestamp and byte phase.
-# - Timing: A completion reaches the registered head three clocks after EOF;
-#   logical occupancy includes the FIFO pipeline. Payload/valid/abort hold between edges. An event detected
+# - Timing: With G=7/8/9 sparse groups, head valid follows EOF by G+4 clocks;
+#   logical occupancy includes the FIFO and decoder. Payload/valid/abort hold
+#   between edges. An event detected
 #   on this edge cancels downstream work on the next edge; old-head transfer
 #   may precede that event. Compare post-edge state with the frame/queue oracle.
 
@@ -120,9 +121,9 @@ class Bench:
                             generation=integer(d.generation))
             if self.model.counters["accepted"] > accepted:
                 entry = self.model.entries[-1]
-                # Compact fixed fields: 35 common octets plus the fixed body.
+                # Sparse wire layout: 48 header positions minus an eight-byte gap, then body.
                 body_bytes = {0: 10, 8: 10, 9: 20, 11: 30}[entry.key[0]]
-                groups = (35+body_bytes+7)//8
+                groups = (40+body_bytes+7)//8
                 self.decode_groups[entry.stamp.ticks] = groups
                 self.available_at[entry.stamp.ticks] = self.cycle+groups+5
             if actual_transfer and self.model.entries:
@@ -530,6 +531,8 @@ async def tlv_lane_lookahead(dut):
     ("DIRECT", 1, 1, False, 0),
     ("DIRECT", 2, 1, False, 0),
     ("DIRECT", 3, 1, False, 0),
+    ("DIRECT", 6, 1, False, 0),  # seven banks fill the 64-address lane RAM
+    ("DIRECT", 7, 1, False, 0),  # eight banks cross 64 lane addresses; check wrap
     ("XGMII", 4, 1, False, 475136),  # +7.25 ns ingress subtraction
     ("GMII", 4, 0, True, -229376),  # -3.5 ns, active-low async reset
 ])

@@ -631,8 +631,13 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 
 ## RX queue storage
 
-`PtpRxFrontend` writes 65 compact fixed-field bytes through eight independent
-byte lanes. A beat writes at most one byte per lane, including a row crossing.
+`PtpRxFrontend` writes 65 useful fixed-field bytes in a sparse 70-byte layout
+through eight independent byte lanes. The eight-byte Ethernet source/EtherType
+gap is removed without changing stored bytes' modulo-eight lanes; remaining
+reserved positions are neither written nor decoded. A beat writes at most one
+byte per lane, including a row crossing. Nine groups per physical bank preserve
+the previous compact layout's RAM depth for every logical queue depth; the
+uncompacted 78-byte experiment is not the retained layout.
 CRC, lengths, TLV progress and small common-header fields stay in the stream
 validator; unused prefix bytes and TLV payload are not retained. Physical SOF
 capture metadata is written once to a separate bank. The store has one extra
@@ -641,16 +646,19 @@ active-frame bank beyond the exact logical queue capacity (default four).
 A synchronous SURF FWFT FIFO carries bank/length descriptors after complete
 validation. Logical occupancy includes descriptor pipeline, decoder and held
 head; extra primitive locations do not add capacity. The decoder streams eight
-bytes per clock into the sole public record. With G=ceil((35+fixedBodyBytes)/8),
+wire positions per clock into the sole public record. With G=ceil((40+fixedBodyBytes)/8),
 EOF at N produces registered valid at N+G+4 and first transfer at N+G+5.
 A queued next record takes G+2 clocks after the preceding head transfer. G is
-6 for Sync/Follow_Up, 7 for Delay_Resp and 9 for Announce. These rates fit their
+7 for Sync/Follow_Up, 8 for Delay_Resp and 9 for Announce. These rates fit their
 minimum wire spacing. Dedicated minimum-IFG GMII/XGMII bursts test continuous
 capture and exact capacity with a held prior head.
 
 `PtpDelayReqObserver` is the dedicated TX validator: only 13 key bytes and the
 complete capture are stored, with two logical entries and a two-group decoder.
-It validates actual post-MAC framing, FCS, Delay_Req type and length. PHC generation
+Its descriptor carries only the bank index; the 13-byte decode length and 44-byte
+fixed PTP body are constants. Identity/version errors become sticky at their
+wire bytes, while rejection counting and admission still occur at physical EOF.
+It validates actual post-MAC framing, FCS, Delay_Req type, length and legal TLVs. PHC generation
 changes and capture arithmetic errors cannot erase physical completion identity;
 physical reset/flush retains its distinct meaning. Logical restart never proves
 an unknown queued TX frame vanished.

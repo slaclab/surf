@@ -9,15 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: TX observation with two- and three-entry queues, including wrap.
+# - Sweep: Dedicated two-entry TX observer, all normalized beat widths.
 # - Stimulus: Independent Delay_Req frames with varying partial beat widths,
 #   full capture fields, backpressure, generation changes, overflow and flush;
 #   sparse keeps and overlong TLVs exercise rejection before bounded storage.
 # - Checks: Every decoded field plus capture increment/error survives RAM;
 #   physical completions remain visible even with unusable captures or changing
 #   PHC generations. Full-before-edge overflow discards the queued tail.
-# - Timing: The synchronous FWFT FIFO adds three clocks from EOF to head valid;
-#   a primed queue drains one record per cycle. Consume and invalidate during
+# - Timing: The descriptor FIFO and two-group decoder publish six clocks
+#   after EOF. Consume and invalidate during
 #   the write/read pipeline, checking pointer wrap and stale-data rejection.
 
 from fractions import Fraction
@@ -62,11 +62,14 @@ async def tx_storage(d):
     await edge(rst=1)
     await edge(rst=0)
 
-    async def send(sequence, *, consume_at_eof=False, sparse=False, tlvs=b"", idle_after=True):
+    async def send(sequence, *, consume_at_eof=False, sparse=False, tlvs=b"", idle_after=True,
+                   width=None, mutation=None, corrupt=False):
         # Delay_Req shares the ten-byte timestamp body with Sync. Set its wire
         # kind independently; the RX-only frame helper intentionally excludes it.
         raw = bytearray(frame(sequence=sequence, marker=sequence, two_step=False, tlvs=tlvs))
         raw[14] = 1
+        if mutation is not None:
+            mutation(raw)
         seconds = (1 << 40)+sequence
         nanos = 123456789+sequence
         fraction = sequence*29 & 0xffff
@@ -79,7 +82,7 @@ async def tx_storage(d):
         expected = RxMessage(stamp, int(d.rxEpoch.value), bytes(6),
                              (1, raw[18], bytes(raw[34:44]), sequence), 0,
                              0, 0, 0, 0, 0, 0, bytes(30))
-        for index, beat in enumerate(beats(bytes(raw), width=sequence % 8+1)):
+        for index, beat in enumerate(beats(bytes(raw), width=width or sequence % 8+1, corrupt=corrupt)):
             keep = (1 << len(beat.data))-1
             if sparse and index == 1:
                 keep &= ~1
@@ -103,8 +106,8 @@ async def tx_storage(d):
             await edge(directValid=0)
         assert False, "Delay_Req descriptor exceeded its decode bound"
 
-    # Every completion traverses the FIFO. Alternating errors prove the omitted
-    # legacy bit survives. Once primed, the output drains on consecutive clocks.
+    # Every completion traverses the FIFO and two-group decoder. Alternating
+    # errors prove that unusable captures still retain completion identity.
     for batch in range(4):
         expected = [await send(20+batch*depth+slot) for slot in range(depth)]
         assert int(d.messageValid.value)
@@ -162,6 +165,46 @@ async def tx_storage(d):
     await edge(messageReady=1)
     assert observed[-1] == expected
     await edge(messageReady=0)
+
+    # The fixed-body observer must retain full TLV validation. Sweep every
+    # header split and payload run length, including high-byte length changes.
+    for width in range(1, 9):
+        for length in (0, 2, 4, 6, 14, 254, 256):
+            tlvs = (bytes.fromhex("1234") + length.to_bytes(2, "big") +
+                    bytes((i * 37 + 11) % 256 for i in range(length)) +
+                    bytes.fromhex("567800009abc0002abcddef00000"))
+            expected = await send(200+width, width=width, tlvs=tlvs)
+            await wait_head()
+            assert payload() == expected
+            await edge(messageReady=1)
+            assert observed[-1] == expected
+            await edge(messageReady=0)
+        for tail in ("56780001ab", "5678ffffabcd", "56780004abcd", "567800"):
+            dropped = int(d.droppedCount.value)
+            await send(220+width, width=width, tlvs=bytes.fromhex("12340000"+tail))
+            assert int(d.droppedCount.value) == dropped+1
+            assert not int(d.messageValid.value)
+
+    # Identity and fixed-body guards now reject at the offending header byte.
+    # Invalid input still increments dropped exactly once, at physical EOF.
+    mutations = ((12, 0), (13, 0), (14, 0), (15, 0x11), (17, 43),
+                 (16, 0xff), (17, 0xff))
+    for offset, value in mutations:
+        dropped = int(d.droppedCount.value)
+        await send(240, mutation=lambda raw: raw.__setitem__(offset, value))
+        assert int(d.droppedCount.value) == dropped+1
+        assert not int(d.messageValid.value)
+    dropped = int(d.droppedCount.value)
+    await send(241, corrupt=True)
+    assert int(d.droppedCount.value) == dropped+1
+    assert not int(d.messageValid.value)
+    for minor in (0, 1, 15):
+        expected = await send(242, mutation=lambda raw: raw.__setitem__(15, minor*16+2))
+        await wait_head()
+        assert payload() == expected
+        await edge(messageReady=1)
+        assert observed[-1] == expected
+        await edge(messageReady=0)
 
     # A non-full queue can consume its head and accept a completion on the same
     # EOF edge. The replacement still traverses the FIFO before publication.

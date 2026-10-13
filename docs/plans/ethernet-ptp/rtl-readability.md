@@ -178,7 +178,7 @@ RX overflow/flush detection at N clears the queue and publishes registered
 abort/overflow/epoch after N. A valid old head may transfer at N; consumers give
 the now-visible abort priority at N+1 and discard pending work. The RX queue head
 itself is registered. Its [synchronous FWFT FIFO](autonomous-endpoint.md#rx-queue-storage)
-delivers descriptors to the compact-store decoder. Decoding latency depends
+delivers descriptors to the sparse wire-position decoder. Decoding latency depends
 on fixed body length. Logical occupancy includes the pipeline/decoder/head, preserving configured
 capacity. Invalidation suppresses head capture while the registered FIFO reset
 clears internal validity on the following edge.
