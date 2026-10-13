@@ -41,7 +41,8 @@ insertion remains outside scope.
 - `PtpProtocolEngine`, `PtpTxLedger`, `PtpE2e` retain association, wire fate,
   request scheduling and measurement ownership. Pair rows use 20x32 words;
   history rows use 25x32 words, including reusable normalized Sync/forward
-  values. Ledger entries use 22x32 words. Scans retain only selected fields,
+  values. Ledger entries use 22x32 words. These three stores default to block RAM.
+  Scans retain only selected fields,
   ages and ownership; complete rows are never copied into scan registers.
 - One endpoint-owned `PtpCompute` serves rate, E2E, servo and PHC preparation.
   Persistent addressed workspaces chain results through a 32-bit ALU,
@@ -57,7 +58,9 @@ insertion remains outside scope.
   `PtpConfigBank` freezes and clones candidates before validation completion;
   `PtpPublicationBank` pins immutable results and `PtpSnapshotBank` copies
   changing scalars. The coordinator applies configuration and publishes complete
-  snapshot cohorts through common registered broadcasts. AXI reset preserves
+  snapshot cohorts through common registered broadcasts. Protocol/servo
+  configuration and protocol publication select block RAM; smaller banks remain
+  distributed. AXI reset preserves
   accepted coordination and command work.
 - See the [shared service contract](../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound)
   for arbitration, RAM lifetimes, sequencer ceilings and the 70,347,776-tick

@@ -15,7 +15,8 @@
 # - Checks: Independent nearest-distance/physical-slot oracle; exact exchange
 #   snapshots and 150 ns forward / 100.25 ns delay; no stale publication after
 #   abort; acknowledgement only after search and whole-row replacement;
-#   completed E2E publication cannot be starved by continuous rejected traffic.
+#   completed E2E publication cannot be starved by continuous rejected traffic;
+#   concurrent RX/E2E rejections count twice and only system reset clears them.
 # - Timing: Raw ticks advance between events while ordinary pipeline clocks
 #   continue. Internal ledger ready is observed only to target cancellation and
 #   concurrent traffic at lookup admission; payload/result oracles use public
@@ -35,17 +36,19 @@ from tests.ethernet.PtpCore.test_ptp_port_samples import Bench, NS, capture_time
 
 
 @asynccontextmanager
-async def history_bench(d, *, timeout=None, maximum=None):
+async def history_bench(d, *, timeout=None, maximum=None, path_limit=None):
     b = ExchangeBench(d)
     d.capturePhase.value = 0
     d.wirePhase.value = 0
     try:
         await b.setup()
-        if timeout is not None or maximum is not None:
+        if timeout is not None or maximum is not None or path_limit is not None:
             if timeout is not None:
                 await b.write(0x090, timeout)
             if maximum is not None:
                 await b.write(0x098, maximum)
+            if path_limit is not None:
+                await b.write(0x0B8, path_limit)
             d.prepare.value = 1
             await b.wait()
             d.prepare.value = 0
@@ -216,6 +219,54 @@ async def history_publication_priority(d):
 
 
 @cocotb.test(timeout_time=5, timeout_unit='ms')
+async def concurrent_rejections(d):
+    """Propagation sampling: count RX handshakes at edges and diagnostics after TPD."""
+    # The independent exchange model gives 100.25 ns; a 50 ns cap rejects it.
+    async with history_bench(d, path_limit=50*Q16) as b:
+        request = await b.request()
+        tick = b.last_sync_tick+100
+        await b.wire(request, tick)
+        await b.packet(b.response(request, tick), ticks=b.now+10)
+        await history_admission(b)
+        before = b.counts()[1]
+        accepted = 0
+        previous = before
+        # An unsupported message consumes one RX slot each ready edge, without
+        # pairing or Announce storage. Keep capture provenance valid and stable.
+        d.rxKind.value = 15
+        d.rxValid.value = 1
+        for _ in range(16000):
+            await RisingEdge(d.clk)
+            accepted += int(d.rxReady.value)
+            await Timer(1.1, unit='ns')
+            count = b.counts()[1]
+            if count > before+accepted:
+                assert count == before+accepted+1
+                assert count-previous == 2, 'RX and E2E must count on the same edge'
+                break
+            assert count == before+accepted
+            previous = count
+        else:
+            assert False, 'bounded E2E rejection did not retire'
+        d.rxValid.value = 0
+        await b.wait(4)
+        assert b.counts()[1] == count
+        assert not int(d.measurementValid.value)
+        for cause in ('restart', 'regRst', 'rxAbort'):
+            await b.pulse(cause)
+            assert b.counts()[1] == count, cause
+        # Reset wins even while rejected traffic is offered.
+        d.rxValid.value = 1
+        d.rst.value = 1
+        await b.wait(3)
+        assert b.counts()[1] == 0
+        d.rxValid.value = 0
+        d.rst.value = 0
+        await b.wait(3)
+        assert b.counts()[1] == 0
+
+
+@cocotb.test(timeout_time=5, timeout_unit='ms')
 async def pair_cancellation_and_expiry(d):
     b = Bench(d)
     d.capturePhase.value = 0
@@ -266,7 +317,7 @@ async def pair_cancellation_and_expiry(d):
 
 @pytest.mark.parametrize('memory', ['distributed', 'block'])
 @pytest.mark.parametrize('scenario', ['history_selection', 'history_cancellation', 'history_publication_priority',
-                                    'pair_cancellation_and_expiry'])
+                                    'pair_cancellation_and_expiry', 'concurrent_rejections'])
 def test_protocol_ram(memory, scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',

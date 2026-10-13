@@ -215,6 +215,13 @@ completion, aligned with metadata retained by the caller. Servo math-child
 cancellation is registered too; local cancellation immediately clears the
 parent's transaction and excludes results.
 
+The ledger shares one widened subtract/compare across its mutually exclusive
+association-age, response-chronology and wire-age checks. Modulo-64 age handling
+and the response's nonnegative chronology check remain distinct; every check
+uses the same edge as before. Protocol pair/history scans remain independent
+and can overlap after pair admission. No extra scan stages or shared-compute jobs
+are introduced by the [candidate pass](lut-optimization.md#october-13-candidate-implementation).
+
 ## Configuration and snapshots
 
 `PtpConfigBank` has three 32-bit banks. Prepare pins the current shadow as an
@@ -250,6 +257,13 @@ the same pre-edge rule. Invalidation may defer capture but cannot withdraw an
 issued cohort. Reads select the published bank at admission; an already admitted
 read completes against that bank even if publication occurs while it is pending.
 System reset invalidates ownership without clearing payload RAM.
+
+Configuration and publication banks expose an appended `MEMORY_TYPE_G` selecting
+`distributed` (default) or `block`, both with one synchronous read cycle. Production
+protocol/servo configuration and protocol publication select block RAM; the PHC
+operand and servo publication banks retain distributed mapping. Pair/history and
+ledger default to block RAM through their existing generics. Mapping changes do
+not change initialization, copy, snapshot, cancellation or ownership timing.
 
 ## Shared service bound
 

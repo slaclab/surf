@@ -29,7 +29,9 @@ entity PtpConfigBank is
       TPD_G          : time    := 1 ns;
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false;
-      DEFAULTS_G     : Slv32Array);
+      DEFAULTS_G     : Slv32Array;
+      -- One-cycle inferred RAM; supported values: "distributed" or "block".
+      MEMORY_TYPE_G  : string := "distributed");
    port (
       clk       : in sl;
       rst       : in sl;
@@ -105,6 +107,9 @@ architecture rtl of PtpConfigBank is
 
 begin
 
+   assert MEMORY_TYPE_G = "distributed" or MEMORY_TYPE_G = "block"
+      report "Invalid PTP bank memory type" severity failure;
+
    assert DEFAULTS_G'low = 0 and WORDS_C <= 256 report "Invalid PTP configuration word layout" severity failure;
 
    U_Ram : entity surf.SimpleDualPortRam
@@ -117,7 +122,7 @@ begin
          BYTE_WIDTH_G   => 32,
          ADDR_WIDTH_G   => ADDR_BITS_C,
          COMMON_CLK_G   => true,
-         MEMORY_TYPE_G  => "distributed",
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
          READ_LATENCY_G => 1)
       port map (
          clka  => clk,

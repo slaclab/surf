@@ -564,7 +564,8 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         DEFAULTS_G     => initialWords)
+         DEFAULTS_G     => initialWords,
+         MEMORY_TYPE_G  => "block")
       port map (
          clk       => clk,
          rst       => rst,

@@ -2,14 +2,16 @@
 
 October 13, 2026. Implementation record for the October 12 area-redesign brief,
 against clean SURF baseline `75a49f427`. The complete production design is
-connected in the working tree; nothing is staged or committed. The original
+recorded in SURF `52dfa266f`. The original
 brief is retained at that baseline revision. This record replaces its completed
 execution checklist; enduring interfaces and procedures live in the guides below.
 
-**Halving LUT usage was motivation, not an acceptance threshold.** The result
-must be measured with a matched build. Vivado/VCS are unavailable on `PC100431`,
-so the resource and timing comparison explicitly awaits the build host. GHDL
-results do not establish LUT savings, RAM/DSP mapping or hardware qualification.
+**Halving LUT usage was motivation, not an acceptance threshold.** The first
+[synthesis screenshot](lut-optimization.md#october-13-connected-implementation-synthesis)
+shows the copper endpoint at 18,483 LUTs, 13,618 registers, 0.5 BRAM tile and
+four DSPs, using Vivado 2025.2 and the implementation revision above. Full reports,
+a matched comparison and timing remain outstanding. Vivado/VCS are unavailable
+locally on `PC100431`; synthesis evidence comes from the maintainer's build.
 
 ## Implemented architecture
 
@@ -21,19 +23,32 @@ processors and PHCs; software remains outside the autonomous timing loop.
 
 ```mermaid
 flowchart LR
-    Wire[RX and TX wire observers] --> Queue[Validated frame stores and descriptor queues]
-    Queue --> Protocol[Association and lifecycle control]
-    Protocol <--> State[Word RAM: samples, history, ledger and working values]
-    Protocol --> Compute[One shared measurement processor]
-    Servo[Servo control] --> Compute
-    Commands[Manual and automatic command preparation] --> Compute
+    Wire["RX and TX wire observers<br/>PtpRxTimestampTap / PtpTxTimestampTap"] --> Queue["Validated frame stores and descriptor queues<br/>PtpRxFrontend / PtpDelayReqObserver"]
+    Queue --> Protocol["Association and lifecycle control<br/>PtpProtocolEngine / PtpTxLedger"]
+    Protocol <--> State["Word RAM: samples, history, ledger and working values<br/>PtpProtocolEngine / PtpTxLedger<br/>PtpServo / PtpCompute"]
+    Protocol -->|"Rate sequencer + PtpE2e"| Compute["One shared measurement processor<br/>PtpCompute"]
+    Servo["Servo control<br/>PtpServo"] --> Compute
+    Commands["Manual and automatic command preparation<br/>PtpPhc: manual / PtpServo: automatic"] --> Compute
     Compute <--> State
-    Compute --> Commit[Checked command commit]
-    Commit --> PHC[Independent PHC counter and PPS]
+    Compute --> Commit["Checked command commit<br/>PtpPhc"]
+    Commit --> PHC["Independent PHC counter and PPS<br/>PtpPhc"]
     PHC --> Wire
-    AXI[Local AXI banks and global coordinator] <--> Banks[Word RAM: configuration and snapshots]
+    AXI["Local AXI banks and global coordinator<br/>PtpPhc / PtpProtocolEngine / PtpServo<br/>PtpEndpointControl"] <--> Banks["Word RAM: configuration and snapshots<br/>PtpConfigBank<br/>PtpPublicationBank / PtpSnapshotBank"]
     Banks --> Compute
 ```
+
+Module names refer to the corresponding `.vhd` files in
+[PtpCore/rtl](../../../ethernet/PtpCore/rtl).
+[PtpEndpoint](../../../ethernet/PtpCore/rtl/PtpEndpoint.vhd) connects the core
+modules and routes their AXI banks through `AxiLiteCrossbar`. Boxes group
+responsibilities: repeated names refer to the same module, and the storage boxes
+collect separate local RAM instances. Arrows show functional relationships;
+compute results and configuration words pass through their owning sequencers.
+`PtpE2e` and `PtpTxLedger` are children of `PtpProtocolEngine`.
+[EthMacPtpEndpoint](../../../ethernet/PtpCore/rtl/EthMacPtpEndpoint.vhd) combines
+`PtpEndpoint` with the MAC and both timestamp taps. Each tap uses
+`PtpRxTimestampAdapter` for physical capture; `PtpRxTimestampTap` contains
+`PtpRxFrontend`, and `PtpTxTimestampTap` contains `PtpDelayReqObserver`.
 
 | Contract | Maintained source |
 | --- | --- |
@@ -71,6 +86,12 @@ to a power of two; inference and constant pruning require build-host evidence.
 | RX stream | Eight 64x8 lane RAMs at depth four, a separate 8x293 capture RAM and a narrow bank/length descriptor FIFO. Five frame banks include the active physical frame. |
 | Dedicated TX stream | Eight 8x8 lane RAMs, separate 4x293 capture RAM and a narrow descriptor FIFO. Three frame banks preserve two logical completed entries. |
 
+The subsequent [candidates 1–4 pass](lut-optimization.md#october-13-candidate-implementation)
+selects block RAM for pair/history, ledger, protocol/servo configuration and
+protocol publication. The six selected stores retain their geometry and one-cycle
+read interfaces; the smaller banks remain distributed. These are local mapping
+selections awaiting synthesis, separate from the screenshot of `52dfa266f`.
+
 Necessary full-width state remains visible in the public protocol/servo diagnostic
 records, held measurement/command outputs, physical capture staging, the selected
 E2E producer records and TX packet/beat ownership. Per-clock identity, admission
@@ -88,8 +109,10 @@ Python lint, changed links/anchors and diff whitespace pass. The
 records selections, reruns, tool settings and evidence, including the distinction
 between passing scenarios and deliberately interrupted duplicate runs.
 
-The next implementation-evidence task is a matched baseline/current Vivado
-comparison. Reproduce FPGA part, linked IP, constraints, generics, tool version,
+The first screenshot and its provisional comparison are recorded in the
+[optimization analysis](lut-optimization.md#october-13-connected-implementation-synthesis).
+The next implementation-evidence task is to retain full reports and obtain a
+matched baseline/current Vivado comparison. Reproduce FPGA part, linked IP, constraints, generics, tool version,
 strategy and flow stage; retain source revisions and the working-tree patch.
 Report total LUTs including LUTRAM/SRL, FFs, carry, BRAM, DSPs and timing for each
 complete lane, the pure endpoint and changed hierarchy. Count compute, arbitration,
@@ -97,7 +120,9 @@ RAM and retained boundary staging once. The October 12 reports contain three PHY
 black boxes and cannot be compared directly with a newly linked design.
 
 Use measured hierarchy costs to decide whether control/mux structures merit
-further work. No percentage or 19,000-LUT threshold determines success. Shared
-Ethernet MAC/checksum changes remain deferred. Routed timing, physical CDC,
+further work; the [consolidated exploration list](lut-optimization.md#next-optimization-candidates)
+records candidates and the GMII netlist finding. No percentage or 19,000-LUT
+threshold determines success. Shared Ethernet MAC/checksum changes remain
+deferred. Routed timing, physical CDC,
 calibrated accuracy and external-master interoperability remain separate
 [acceptance work](rtl-review.md#outstanding-acceptance).

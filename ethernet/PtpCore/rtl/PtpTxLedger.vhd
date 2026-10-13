@@ -58,7 +58,7 @@ entity PtpTxLedger is
       DEPTH_G           : positive               := 4;  -- 1..255; occupancy status uses eight bits.
       SEQUENCE_BITS_G   : positive range 1 to 16 := 16;
       PACKET_LIFETIME_G : positive               := 156250000;
-      MEMORY_TYPE_G     : string                 := "distributed");
+      MEMORY_TYPE_G     : string                 := "block");
    port (
       clk              : in  sl;
       rst              : in  sl;
@@ -260,6 +260,11 @@ begin
       variable remoteTime     : slv(95 downto 0);
       variable rejectedEvents : natural range 0 to 2;
       variable pendingInput   : boolean;
+      variable scanLeft       : unsigned(63 downto 0);
+      variable scanRight      : unsigned(63 downto 0);
+      variable scanLimit      : unsigned(63 downto 0);
+      variable scanDifference : unsigned(64 downto 0);
+      variable scanWithin     : boolean;
    begin
       v              := r;
       word           := readData;
@@ -295,6 +300,25 @@ begin
       -- Its next scan may retire a completed association or renew quarantine.
       pendingInput := (wireValid = '1' and v.wireActive = '0') or
                       (responseValid = '1' and v.responseActive = '0');
+
+      -- One age datapath serves mutually exclusive scan phases. Select the
+      -- returning high word before subtraction, including a new response word.
+      -- Live expiry uses modulo-64 subtraction at its original check edge;
+      -- response chronology additionally requires no borrow in bit 64.
+      scanLeft  := unsigned(ticks);
+      scanRight := unsigned(r.scanWireTicks);
+      scanLimit := to_unsigned(PACKET_LIFETIME_G, 64);
+      if r.state = CHECK_S and r.field = 6 then
+         scanRight := unsigned(slv'(readData & r.scanTicks(31 downto 0)));
+         scanLimit := unsigned(config.associationTimeout);
+      elsif r.state = CHECK_S and r.field = 10 then
+         scanLeft := unsigned(slv'(readData & r.scanTicks(31 downto 0)));
+         if r.responseNew = '1' then
+            scanLeft(63 downto 32) := unsigned(response.capture.ticks(63 downto 32));
+         end if;
+      end if;
+      scanDifference := resize(scanLeft,65)-resize(scanRight,65);
+      scanWithin := scanDifference(63 downto 0) <= scanLimit;
 
       case r.state is
          when START_S =>
@@ -349,7 +373,7 @@ begin
                   when 6 =>
                      v.scanTicks(63 downto 32) := word;
                      if r.retired(r.index) = '0' and
-                        unsigned(ticks)-unsigned(v.scanTicks) > unsigned(config.associationTimeout) then
+                        not scanWithin then
                         v.retired(r.index) := '1';
                         v.timeoutCount := ptpSatInc(r.timeoutCount);
                      end if;
@@ -401,8 +425,7 @@ begin
                         v.writeEnable := '1';
                      end if;
                      v.scanTicks(63 downto 32) := word;
-                     v.lifetimeValid := toSl(unsigned(v.scanTicks) >= unsigned(r.scanWireTicks) and
-                        unsigned(v.scanTicks)-unsigned(r.scanWireTicks) <= PACKET_LIFETIME_G);
+                     v.lifetimeValid := toSl(scanDifference(64) = '0' and scanWithin);
                      if r.publish = '1' then
                         v.sample.responseTicks(63 downto 32) := word;
                      end if;
@@ -488,7 +511,7 @@ begin
                if v.retired(r.index) = '0' and v.wireSeen(r.index) = '1' and
                   v.responseSeen(r.index) = '1' and r.publish = '1' and not pendingInput then
                   v.retired(r.index) := '1';
-                  if r.lifetimeValid = '1' and unsigned(ticks)-unsigned(r.scanWireTicks) <= PACKET_LIFETIME_G and
+                  if r.lifetimeValid = '1' and scanWithin and
                      r.entryGeneration = generation then
                      v.sampleValid := '1';
                   else
@@ -496,7 +519,7 @@ begin
                   end if;
                end if;
                if v.retired(r.index) = '1' and v.wireSeen(r.index) = '1' and
-                  unsigned(ticks)-unsigned(r.scanWireTicks) > PACKET_LIFETIME_G and not pendingInput then
+                  not scanWithin and not pendingInput then
                   v.used(r.index) := '0';
                end if;
             end if;
