@@ -108,7 +108,14 @@ including [one-step coverage](rtl-review.md#one-step-receive-acceptance).
   ticks from the committed PHC increment and bounds its phase-divider remainder.
   [E2E sequencing](autonomous-endpoint.md#e2e-arithmetic-sequencing) and
   [PHC/math contracts](autonomous-endpoint.md#phc-increment-and-phase-normalization)
-  preserve numeric widths and ownership. Measured FPGA savings remain pending.
+  preserve numeric widths and ownership. The
+  [October 12 synthesis comparison](lut-optimization.md#october-12-arithmetic-synthesis-comparison)
+  is the first Vivado measurement of this work: each `PtpE2e` drops 12 of 18
+  DSPs and about 1,140 LUTs, servo own logic falls about 1,730 LUTs for 331 more
+  FFs, `U_Phase` falls 234 LUTs, and every math client gains 64 LUTs. Both
+  complete endpoints fall about 26%. The baseline ran on a different Vivado
+  version, so whole-design totals are confounded; placement and timing remain
+  outstanding.
 
 ## PHY composition implementation
 

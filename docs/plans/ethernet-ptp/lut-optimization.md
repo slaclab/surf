@@ -573,6 +573,99 @@ separately from `U_Phase`. A generic structural netlist cannot establish mapped
 LUT/carry/DSP savings or timing. Same-configuration Vivado synthesis and timing
 remain outstanding for all three changes.
 
+## October 12 arithmetic synthesis comparison
+
+First Vivado measurement of the servo, E2E, PHC and `PtpMath` work. Reports are
+retained in the consuming workspace under
+`docs/reference/ptpkcu105-utilization-2026-10-12/`, generated from the
+`PtpKcu105` `synth_1` checkpoint whose `git.hash` records `ptp-dev` `c6be5d9`
+and SURF gitlink `cb5184623`. Synthesis only: 0 errors, three PHY/core black
+boxes retained, no placement, routing or timing. The baseline is the October 11
+23:42 synthesis above.
+
+**The two runs used different Vivado versions**, 2025.2 then 2025.1, with
+otherwise identical part, top, `-flatten_hierarchy none` and
+`GTREFCLK_INDEX_G => 1`. Modules with no source change between the two SURF
+revisions nevertheless moved, so the whole-design totals are not attributable
+to this RTL work:
+
+| Resource | Oct 11 23:42 | Oct 12 | Difference |
+| --- | ---: | ---: | ---: |
+| Total CLB LUTs | 121,455 | 102,977 | -18,478 (-15.21%) |
+| LUT as logic | 117,316 | 96,670 | -20,646 (-17.60%) |
+| LUT as distributed RAM | 3,658 | 5,826 | +2,168 |
+| CLB registers | 105,799 | 104,553 | -1,246 (-1.18%) |
+| CARRY8 | 5,313 | 4,071 | -1,242 (-23.38%) |
+| Block RAM tiles / DSPs | 32 / 101 | 32 / 77 | 0 / -24 |
+
+The clearest confound is `EthMacCore`: its RTL is identical across the two
+revisions, yet each lane's MAC grows 379/380 LUTs and its RX FIFO moves from
+160 to 512 LUTRAMs. `U_Host` grows 230 LUTs and `U_Version` 40 with no PTP
+source change. Of the design-wide +2,168 LUTRAM, only 1,192 belongs to the new
+protocol tables; 704 is MAC RX FIFO mapping, 208 is inside the 10 GbE lane and
+the remaining 64 is spread across other unchanged logic.
+
+### Changed modules, both lanes
+
+These rows cover entities whose source did change, so the differences are
+attributable up to the tool-version caveat. SFP is `U_Ptp`, copper `U_Copper`.
+
+| Module | SFP LUTs | Copper LUTs | SFP FFs | Copper FFs |
+| --- | ---: | ---: | ---: | ---: |
+| Protocol engine, including children | 22,991 -> 15,462 (-32.75%) | 23,532 -> 15,500 (-34.13%) | 16,025 -> 15,185 | 16,035 -> 15,185 |
+| Protocol engine, own logic | 15,281 -> 8,375 (-45.19%) | 15,852 -> 8,415 (-46.92%) | 11,272 -> 9,391 | 11,282 -> 9,391 |
+| `PtpServo`, including `U_Math` | 9,831 -> 8,032 (-18.30%) | 9,828 -> 8,033 (-18.26%) | 4,778 -> 5,109 | 4,778 -> 5,109 |
+| `PtpServo`, own logic | 7,868 -> 6,133 (-22.05%) | 7,865 -> 6,134 (-22.01%) | 3,935 -> 4,266 | 3,935 -> 4,266 |
+| `PtpE2e`, including `U_Math` | 4,094 -> 2,941 (-28.16%) | 4,067 -> 2,940 (-27.71%) | 2,106 -> 2,115 | 2,106 -> 2,115 |
+| `PtpPhc`, including `U_Phase` | 3,216 -> 2,994 (-6.90%) | 3,212 -> 2,993 (-6.82%) | 2,444 -> 2,328 | 2,444 -> 2,328 |
+| `PtpPhc/U_Phase` | 1,436 -> 1,202 (-16.29%) | 1,436 -> 1,202 | 661 -> 576 | 661 -> 576 |
+| `U_RateMath` | 1,812 -> 1,748 (-3.53%) | 1,812 -> 1,748 | 794 -> 794 | 794 -> 794 |
+| `U_Servo/U_Math` | 1,963 -> 1,899 (-3.26%) | 1,963 -> 1,899 | 843 -> 843 | 843 -> 843 |
+| Complete endpoint | 36,693 -> 27,143 (-26.03%) | 37,227 -> 27,181 (-26.99%) | 23,908 -> 23,283 | 23,918 -> 23,283 |
+
+The two lanes agree within about 40 LUTs on every changed block, which is the
+expected result for one reusable source change instantiated twice.
+
+Four separate effects are visible, each matching its intended change:
+
+- **Protocol tables.** This baseline predates the table conversion, so the
+  engine's own-logic drop of 6,906/7,437 LUTs is the `SimpleDualPortRam`
+  conversion rather than the arithmetic pass. The new children appear at
+  `U_PairRam` 316 LUTs (all LUTRAM) / 549 FFs and `U_HistoryRam` 280 (all
+  LUTRAM) / 483 FFs, which is close to the earlier screenshot's 316/280 and
+  confirms distributed mapping with no BRAM. Own logic excludes these children
+  here; including them, the engine still falls to 8,971/9,011 LUTs.
+- **E2E conversion sharing.** Each `PtpE2e` loses 12 of its 18 DSPs and about
+  1,140 LUTs, with FFs up only 9. The surviving 6 DSPs per instance account for
+  the whole design's 101 -> 77 drop. This is the expected signature of folding
+  three parallel seconds-to-Q16 conversions onto one converter: the multiplier
+  count falls while the added sequencing state is nearly free.
+- **Servo clamp and median sharing.** Own logic falls about 1,730 LUTs while FFs
+  rise 331, matching the documented trade of parallel clamp/comparator logic
+  for the scratch history, signed67 correction register and sequencing flags.
+- **`PtpMath` and PHC.** The shared divider change shows up as a uniform small
+  gain in every math client: -64 LUTs in each `U_RateMath` and each
+  `U_Servo/U_Math`. The PHC's narrowed constant divisor is the larger single
+  effect at -234 LUTs and -85 FFs in `U_Phase`, consistent with the 46-bit
+  `DIVISOR_WIDTH_G`. PHC own logic is flat (+12/+15 LUTs, -31 FFs), so the
+  committed-increment change is area-neutral as predicted.
+
+Unchanged PTP blocks confirm the attribution boundary: `U_Ledger` moves by at
+most 2 LUTs with identical 364 LUTRAMs and 1,853 FFs, and `U_Control`,
+`U_Xbar`, `U_Async`, `U_Registers` and the TX/RX validators' own logic are
+flat or within a few LUTs. The RX/TX tap queues each gain 16 LUTs, which is the
+same `surf.Fifo` mapping shift seen in the MAC rather than a PTP source change.
+
+Both PTP lanes are now 79,189 LUTs, 76.90% of the design total, down from
+97,937 and 80.64%. The protocol engines' and servos' exclusive logic is 29,057
+LUTs, 28.22% of the total, down from 46,866 and 38.59%.
+
+Next step: rerun the baseline on Vivado 2025.1 to remove the tool-version
+confound before quoting the whole-design improvement, then place and time this
+revision. The servo's added registers and the serialized median need timing
+evidence specifically, since this pass traded combinational depth for
+sequencing. No LUT result here establishes timing closure or hardware behavior.
+
 ## Evidence and remaining acceptance
 
 The [acceptance record](rtl-review.md#october-9-lut-optimization-checks) owns
