@@ -142,8 +142,8 @@ reporting the previous full-suite result as validation of a later edit.
   committed-state retention. Block/synchronous-high and distributed/asynchronous-low
   reset cases both enforce the derived 4,608-clock operation ceiling. See
   [service ownership and bounds](../../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound).
-- `test_ptp_timing_math.py`: production carry-select sums at 64/66/67 bits
-  and carry-save modulo-tick expiry against Python integers, including every
+- `test_ptp_timing_math.py`: production compatibility-adder sums at 64/66/67 bits
+  and native modulo-tick expiry against Python integers, including every
   word boundary, wrapped/future timestamps, equality and seeded random inputs.
 - `test_ptp_math.py`, `test_ptp_phc.py`: checked arithmetic and cycle-by-cycle PHC
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.

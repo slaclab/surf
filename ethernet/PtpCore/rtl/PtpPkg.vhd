@@ -663,7 +663,7 @@ package PtpPkg is
       value : signed;
       bits  : natural) return signed;
    function ptpSatInc (value : slv) return slv;
-   -- Chunked carry-select arithmetic for cycle-critical clock/timer paths.
+   -- Compatibility adder; native inference beats the former carry-select tree.
    -- Operands have equal widths; the result wraps at that width like numeric_std.
    function ptpAddFast (left, right : unsigned; carry : sl := '0') return unsigned;
    function ptpAgeExpired (nowTicks, thenTicks, timeout : slv(63 downto 0)) return boolean;
@@ -704,54 +704,19 @@ end package PtpPkg;
 package body PtpPkg is
 
    function ptpAddFast (left, right : unsigned; carry : sl := '0') return unsigned is
-      constant WIDTH_C : positive := left'length;
-      constant WORDS_C : positive := (WIDTH_C+15)/16;
-      variable a : unsigned(16*WORDS_C-1 downto 0);
-      variable b : unsigned(16*WORDS_C-1 downto 0);
-      variable result : unsigned(16*WORDS_C-1 downto 0);
-      variable sum0 : unsigned(16 downto 0);
-      variable sum1 : unsigned(16 downto 0);
-      variable carryIn : sl;
+      variable carryValue : unsigned(left'length-1 downto 0);
    begin
-      assert right'length = WIDTH_C report "ptpAddFast operand width mismatch" severity failure;
-      a := resize(left, a'length);
-      b := resize(right, b'length);
-      carryIn := carry;
-      for i in 0 to WORDS_C-1 loop
-         -- Both carry alternatives are independent of the preceding word.
-         sum0 := ('0' & a(16*i+15 downto 16*i)) + ('0' & b(16*i+15 downto 16*i));
-         sum1 := ('0' & a(16*i+15 downto 16*i)) + ('0' & b(16*i+15 downto 16*i)) + 1;
-         if carryIn = '1' then
-            result(16*i+15 downto 16*i) := sum1(15 downto 0);
-         else
-            result(16*i+15 downto 16*i) := sum0(15 downto 0);
-         end if;
-         carryIn := sum0(16) or (carryIn and uAnd(slv(a(16*i+15 downto 16*i) xor b(16*i+15 downto 16*i))));
-      end loop;
-      return result(WIDTH_C-1 downto 0);
+      assert right'length = left'length report "ptpAddFast operand width mismatch" severity failure;
+      carryValue := (others => '0');
+      carryValue(0) := carry;
+      return left+right+carryValue;
    end function;
 
    function ptpAgeExpired (nowTicks, thenTicks, timeout : slv(63 downto 0)) return boolean is
-      variable a         : unsigned(63 downto 0);
-      variable b         : unsigned(63 downto 0);
-      variable c         : unsigned(63 downto 0);
-      variable sumBits   : unsigned(63 downto 0);
-      variable carryBits : unsigned(63 downto 0);
-      variable total     : unsigned(65 downto 0);
    begin
-      -- Carry-save A + ~B + ~limit + 1 avoids a wide subtraction followed
-      -- by another wide comparison. Only the two high carry bits are needed.
-      -- The parallel A>=B test selects the ordinary or wrapped unsigned age.
-      a := unsigned(nowTicks);
-      b := not unsigned(thenTicks);
-      c := not unsigned(timeout);
-      sumBits := a xor b xor c;
-      carryBits := (a and b) or (a and c) or (b and c);
-      total := ptpAddFast(resize(sumBits, 66), shift_left(resize(carryBits, 66), 1), '1');
-      if unsigned(nowTicks) >= unsigned(thenTicks) then
-         return total(65) = '1';
-      end if;
-      return total(64) = '1';
+      -- Subtract at exactly 64 bits before comparing: expiry is strict and the
+      -- elapsed age wraps modulo 2^64, including future capture tick values.
+      return unsigned(nowTicks)-unsigned(thenTicks) > unsigned(timeout);
    end function;
 
    procedure ptpTlvBeat (

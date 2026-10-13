@@ -624,9 +624,8 @@ begin
       -- intermediates until command arithmetic and epoch bounds are checked.
       -- Concatenating nanoseconds and fraction forms one Q32-ns value. Carry
       -- across bit 31 advances integer ns; SECOND_C handles the decimal second.
-      tickNanoseconds := signed(ptpAddFast(
-         resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67),
-         resize(unsigned(r.status.increment), 67)));
+      tickNanoseconds := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67) +
+         resize(unsigned(r.status.increment), 67));
       nextNanoseconds := tickNanoseconds;
       nextSeconds := signed(resize(unsigned(r.timeValue.seconds), 66));
       -- Check epoch bounds in parallel with seconds arithmetic. Do not route
@@ -642,8 +641,8 @@ begin
          -- Detect crossing, not equality: an adjusted increment can skip over
          -- exactly zero ns. PPS is one clk cycle on this edge grid (8 ns at
          -- 125 MHz); final validity/command checks below may suppress it.
-         nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(SECOND_C), '1'));
-         nextSeconds     := signed(ptpAddFast(unsigned(nextSeconds), to_unsigned(1, 66)));
+         nextNanoseconds := nextNanoseconds-SECOND_C;
+         nextSeconds     := nextSeconds+1;
          v.pps           := r.ppsEnable and r.status.timeValid;
          epochError := r.timeValue.seconds = x"FFFFFFFFFFFF";
       end if;
@@ -693,23 +692,23 @@ begin
                      -- Combine the phase with the unnormalized tick. Feeding
                      -- ordinary rollover back through a second normalization
                      -- serializes two wide carry/compare/select paths.
-                     phaseSeconds := signed(ptpAddFast(resize(unsigned(r.timeValue.seconds), 66),
-                        unsigned(resize(signed(r.command.phaseSeconds), 66))));
+                     phaseSeconds := signed(resize(unsigned(r.timeValue.seconds), 66)) +
+                        resize(signed(r.command.phaseSeconds), 66);
                      nextSeconds := phaseSeconds;
                      epochError := phaseSeconds < 0 or phaseSeconds >= EPOCH_LIMIT_C;
-                     nextNanoseconds := signed(ptpAddFast(unsigned(tickNanoseconds),
-                        unsigned(resize(signed(r.command.phaseFraction), 67))));
+                     nextNanoseconds := tickNanoseconds +
+                        resize(signed(r.command.phaseFraction), 67);
                      if nextNanoseconds < 0 then
-                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), unsigned(SECOND_C)));
-                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), (65 downto 0 => '1')));
+                        nextNanoseconds := nextNanoseconds+SECOND_C;
+                        nextSeconds     := phaseSeconds-1;
                         epochError := phaseSeconds < 1 or phaseSeconds >= EPOCH_LIMIT_C+1;
                      elsif nextNanoseconds >= shift_left(SECOND_C, 1) then
-                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(shift_left(SECOND_C, 1)), '1'));
-                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), to_unsigned(2, 66)));
+                        nextNanoseconds := nextNanoseconds-shift_left(SECOND_C, 1);
+                        nextSeconds     := phaseSeconds+2;
                         epochError := phaseSeconds < -2 or phaseSeconds >= EPOCH_LIMIT_C-2;
                      elsif nextNanoseconds >= SECOND_C then
-                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(SECOND_C), '1'));
-                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), to_unsigned(1, 66)));
+                        nextNanoseconds := nextNanoseconds-SECOND_C;
+                        nextSeconds     := phaseSeconds+1;
                         epochError := phaseSeconds < -1 or phaseSeconds >= EPOCH_LIMIT_C-1;
                      end if;
                      v.status.discontinuity := '1';

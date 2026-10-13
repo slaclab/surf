@@ -2,7 +2,7 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Combinational verification boundary for the production clock
--- carry-select adder and modulo-tick expiry predicate. No alternate arithmetic
+-- compatibility adder and modulo-tick expiry predicate. No alternate arithmetic
 -- implementation or protocol state is present in this simulation-only wrapper.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
