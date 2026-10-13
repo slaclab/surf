@@ -1,5 +1,408 @@
 # PTP logic and storage optimization
 
+## Proposed architecture for a further 50 percent reduction
+
+October 12, 2026. **Implementation started; area targets remain unmeasured.**
+The architecture changes how the endpoint computes and stores its state, rather than
+continue with isolated expression rewrites. Target **at most 19,000 total CLB
+LUTs per dedicated KCU105 PTP lane**, including the MAC and currently reported
+wrapper logic. Preserve both independent endpoints and autonomous FPGA control.
+The budgets below require synthesis experiments; they are design allocations,
+not predicted savings or an accuracy/conformance claim.
+
+### Execution status and working assumptions
+
+The maintainer authorized beginning implementation on October 12. The first
+retained increment is shared protocol timestamp conversion. The checksum-offload
+experiment was subsequently deferred at the maintainer's request: keep
+EthMacCore unchanged unless measured benefits justify extending the shared
+Ethernet configuration/verification scope. Its source changes, tests, capability
+register and KCU105 selections were reverted together and preserved as patches in
+the consuming project's `docs/history/ptp-checksum-offload-2026-10-12/`.
+
+Both independent ports, autonomous control, one-/two-step reception, E2E,
+numerical precision, the current servo and full diagnostics remain the reference
+behavior. Additional BRAM/DSP use is acceptable within the allocation below.
+The maintainer authorized committing this preparatory checkpoint on October 12.
+The architectural objective remains one measurement processor per endpoint and
+word-addressed working/configuration/snapshot storage; a converter-only change
+does not satisfy it. Begin the shared arithmetic/RAM prototype next, without
+waiting for synthesis to start that independent development. Mapped area and
+latency remain gates before replacing the production clients.
+
+The maintainer proposed a **10 Hz maximum sustained Sync rate**. Use that as
+the working deployment envelope, with **8 Hz (`logSyncInterval = -3`)** as the
+initial advertised master setting because the interval encoding uses powers of
+two. This is a planning assumption awaiting timing-performance qualification,
+not a new receive rejection rule or a claim of profile compliance. Two-step
+Follow_Up messages add traffic; Delay_Req/Delay_Resp and Announce cadences remain
+independent. Queue and scheduling analysis must include short bursts/reordering,
+not infer 100 ms of spacing between every received message. Maximum burst size
+and acceptable measurement-to-actuation latency remain open for shared-engine
+sizing; neither blocks the first increment. Retain accelerated test traffic.
+
+Local focused simulations and structural checks precede synthesis on the
+maintainer's build host. Vivado is unavailable on this local host. Record
+actual mapped area/timing before claiming savings or accepting later migration
+gates; the 19,000-LUT allocation remains unmeasured.
+
+### First implementation increment: October 12
+
+`PtpProtocolEngine` now selects remote/local timestamp operands before a single
+`ptpTimeQ16` call. Two registered states prepare the corrected remote and local
+forward difference. The rate anchor holds normalized remote time and raw
+tick/phase, and the forward result survives the rate divide. Full epoch,
+correction and fractional widths remain intact. Association age is checked on
+the original completion edge; conversion adds two clocks to publication, with
+RX admission held during conversion. Reset, generation/config changes and port
+cancellation retire pending conversion work.
+
+Focused verification on local GHDL 6.0.0 / cocotb 2.1.0:
+
+| Selection | Result |
+| --- | --- |
+| Direct protocol samples, distributed tables (1 configuration, 4 cocotb scenarios) | Passed: exact full-range conversion/correction, rate qualification, retained publication, new-stage cancellation and inclusive completion age |
+| History/pair RAM scenarios, distributed tables (4 configurations) | Passed in 98.10 s: selection, cancellation, publication priority and expiry |
+| Four real-MAC integration cases with the now-deferred checksum option | Interrupted before any completed result when that work was reverted; no passing integration claim |
+
+`PtpProtocolEngine` passes VSG; changed Python passes flake8. No full-suite or
+block-table rerun was selected because the memory implementations did not change.
+The timestamp converter has no new manifest entry or public interface. The
+checksum experiment's independent validation is recorded with its archived
+patches; it is not evidence of a retained optimization.
+
+No FIFO remapping, shared word ALU, configuration/snapshot RAM migration or
+parser redesign is implemented in this increment. Those remain subsequent gates
+below. A matched synthesis comparison and a default-MAC integration check remain
+next acceptance steps; include total lane LUTs, LUTRAM/SRLs and timing. Vivado is
+unavailable locally. The 19,000-LUT target remains unmeasured.
+
+### Baseline and accounting
+
+Use the retained October 12 post-synthesis reports in the consuming `ptp-dev`
+repository, `docs/reference/ptpkcu105-utilization-2026-10-12/`. They record
+Vivado 2025.1, KU040, and 102,977 whole-design LUTs. The recorded build pins SURF
+`cb5184623`; this plan reviews the RTL at `666613f1c`. The report's three PHY
+black boxes and the difference from the 105,948-LUT screenshot remain explicit
+limits; see the [full-report comparison](#october-12-arithmetic-synthesis-comparison).
+Rebuild an unchanged baseline with the same linked IP and tool as each candidate.
+If a now-linked PHY changes lane totals, retain its identical cost on both sides
+and recalculate the complete-lane target; do not compare a black-box baseline
+with a linked candidate.
+
+The following copper rows are disjoint. The corresponding SFP lane is 39,574
+LUTs. Count LUTRAM and SRLs in the target, and count shared resources exactly once.
+
+| Area bucket | Current LUTs | Proposed LUT budget | What must change |
+| --- | ---: | ---: | --- |
+| Protocol engine excluding ledger, plus servo | 21,732 | 6,500 | One scheduled measurement processor; shared arithmetic, timestamp conversion and word-addressed working/configuration storage |
+| PHC | 2,993 | 1,800 | Keep the real-time counter; move command preparation/normalization onto the shared service |
+| TX ledger | 1,801 | 1,100 | Read and update words instead of repeatedly staging complete 636-bit rows |
+| Endpoint crossbar, control and TX resize | 655 | 600 | Retain coordination; avoid new wide buses and unnecessary format conversion |
+| RX and TX timestamp taps | 6,571 | 3,000 | Specialized streaming parsers, compact completion records and RAM queues |
+| Ethernet MAC | 4,544 | 4,544 | Retain the shared MAC unchanged; no MAC saving assumed |
+| Remaining lane/wrapper accounting | 1,319 | 1,319 | No saving assumed; includes hierarchy residuals |
+| Unallocated margin | 0 | 137 | Integration headroom |
+| **Complete reported copper lane** | **39,615** | **19,000** | **52.0% reduction target** |
+
+The pure `PtpEndpoint` subtotal is 27,181 today and 10,000 in this allocation;
+including both timestamp taps it is 33,752 today and 13,000 in the allocation.
+This avoids meeting the goal merely by deleting a port or moving costs outside
+the endpoint hierarchy. In the existing report, two 19,000-LUT lanes would take
+the whole board to approximately 61,788 LUTs, a **40.0% whole-board reduction**;
+the host link and other board logic are separate costs.
+
+After deferring checksum removal, the MAC allocation retains its full baseline
+cost. The shared protocol/servo allocation is correspondingly tighter at 6,500
+LUTs; this is an unproven design target, not a new savings estimate. Validate it
+with the shared-compute prototype before migrating all clients.
+
+Allow an initial engineering budget of up to 12 additional BRAM36 tiles and
+32 additional DSPs per lane, subject to mapped timing and resource review.
+These are allowances, not consumption estimates. The report uses 32 of 600 BRAM
+tiles and 77 of 1,920 DSPs across the board, so minimizing DSPs is not the goal.
+
+### What profiles can and cannot remove
+
+The current implementation is already a configured-source, Layer-2, E2E
+TimeReceiver. It does **not** implement BMCA, Pdelay, UDP/VLAN PTP transport,
+management/signaling, security, or one-step timestamp insertion on transmit.
+Removing those absent features saves nothing. Do not describe this as a general
+multi-profile stack that can be reduced to the current subset.
+
+Rechecked against the maintainer's [IEEE 1588-2019 text](../../../../../../docs/reference/1588-2019.pdf):
+20.2 and 20.3 permit defined choices of options and attribute ranges, not arbitrary
+exceptions to mandatory behavior. Annex I.3 specifies the default E2E profile;
+17.6 defines the external-port-configuration option and its data sets and state
+behavior. The existing fixed-source implementation has not demonstrated that
+contract. Ethernet mapping is **Annex E in 2019**, versus Annex F in 2008.
+Continue tracking the [specification gaps](../../../tests/ethernet/PtpCore/specification-coverage.md),
+including domain ranges, Delay_Req distribution and time properties. An area
+build preset must not be advertised as a standards profile or cure those gaps.
+
+| Candidate restriction | Recommendation and consequence |
+| --- | --- |
+| Layer-2 E2E, receiver role, configured source | Keep as the deployment scope. Already selected; no fictitious saving from dropping other transports, roles or delay mechanisms. Select/document a conforming profile separately. |
+| Only one-step Sync, removing Follow_Up pairing | Do not use for the main target. Clause 11.2 specifies receiver processing for both twoStepFlag values. Restricting the transmitter to one mode does not remove the receiver obligation; a closed-network experiment would need an explicitly limited compatibility claim. |
+| No Delay_Req/Delay_Resp, TX tap, ledger or E2E calculation | Clause 20.2.1 allows defined alternate-profile cases for frequency-only service or time transfer where path delay can be neglected. This would remove a substantial chain, but it changes the timing service. Exclude from the SPT timing baseline; require a path-delay/error budget before considering it. |
+| No independent raw-clock rate estimator | An algorithm choice, not an unused protocol profile. Retain initially: the present E2E calculation deliberately tolerates PHC rate changes within an exchange. A conventional PHC-difference alternative needs a new derivation and oscillator/transient error budget. |
+| Latest usable Sync instead of nearest of four | Clause 11.3.2 notes flexibility in Sync selection. Offer only after latency/rate-error analysis; the history RAM is already just 280 LUTs, so do not expect this alone to transform area. |
+| Median of five, PI gains, bootstrap policy | Implementation choices; a bypass/shorter filter or controller with shift-based gains is possible. Keep the existing algorithm for the first compact implementation. Alternative filters/controllers require settling, noise and holdover comparisons. |
+| Long diagnostic snapshots and manual software commands | Good build options. Keep operational status, errors, coherent configuration and autonomous acquisition; optional detailed records/manual controls need capability reporting and defined unsupported accesses. |
+| Zero calibration or fewer fractional/epoch bits | Zero calibration already removes work through existing generics. Preserve nonzero calibration support, 48-bit seconds, correction fractions and PHC precision. Representation changes must retain range/rounding or declare a separately validated envelope. |
+| Fewer outstanding messages or weaker replay protection | No saving assumed. Keep current logical capacities and unknown-wire-fate quarantine. Depth changes affect burst/reordering tolerance; they never justify early key reuse. |
+
+For illustration, replacing raw-rate correction by a nominal rate with residual
+fractional error `epsilon` creates an E2E delay error of approximately
+`epsilon * abs(t3 - t2) / 2`. At 100 ppm over one second this is 50 microseconds,
+before other errors. This is an analytical example, not a measured result; it
+is why removing rate estimation is not the first recommendation.
+
+LinuxPTP exposes separate transport, delay mechanism, servo and filter choices;
+use a pinned [ptp4l configuration](https://www.linuxptp.org/documentation/ptp4l/)
+as one interoperability fixture. That implementation's options are not authority
+for IEEE conformance. Do not adopt a telecom, power or gPTP profile just to give
+the reduced build a name.
+
+### Architecture: keep wire timing fast, schedule the calculations
+
+The existing design serializes some operations but retains multiple wide engines
+and wide copies around them. Protocol own logic is 8,415 LUTs, 9,391 FFs and
+30 DSPs; servo own logic is 6,134 LUTs and 4,266 FFs. Rate and servo math add
+1,748 and 1,899 LUTs; PHC phase math adds 1,202. E2E is another 2,940 including
+its math. These figures explain why merely sharing multipliers is insufficient.
+
+```mermaid
+flowchart LR
+    Wire[Physical RX and TX] --> Capture[Timestamp capture and streaming validation]
+    Capture --> Queue[Message and completion queues]
+    Queue --> Protocol[Association and lifecycle control]
+    Protocol <--> Store[Word-addressed RAM and ownership flags]
+    Protocol --> Compute[Shared measurement processor]
+    Compute <--> Store
+    Compute --> Commit[Checked PHC command and acknowledgement]
+    Commit --> PHC[Independent PHC tick and PPS]
+    PHC --> Capture
+    AXI[AXI-Lite configuration and snapshots] <--> Store
+```
+
+The shared processor remains synthesizable RTL inside each endpoint. Software
+only configures and observes it. The two port clocks, PHCs and measurement
+processors remain independent. A general-purpose soft CPU is a fallback study,
+not a prerequisite: it introduces program/boot and worst-case execution work
+without an established advantage over a small, fixed-operation sequencer.
+
+1. **Normalize timestamps once.** `PtpProtocolEngine` calls `ptpTimeQ16` and
+   `ptpWireTimeQ16` through multiple forward/rate paths. Select inputs before
+   one converter, retain a normalized corrected remote time with its sample,
+   and reuse it for anchor, forward and E2E calculations. Preserve provenance
+   and rounding; do not apply correction twice. Cache compact seconds/ns fields
+   where useful, but retain a signed, overflow-checked difference over the full
+   supported epoch range. The 30-DSP own-logic count is evidence of replicated
+   conversion work, not proof that its entire LUT count is removable.
+2. **Share the complete arithmetic service.** Provide multiply, divide,
+   add/subtract, compare, round and range-check operations for protocol rate,
+   E2E, servo and PHC command preparation. Prototype a 32-bit word ALU with
+   carry/borrow and RAM operands, plus a DSP-backed partial-product multiplier.
+   Compare a shared existing-width divider against a word-serial divider; choose
+   based on both area and bounded response time. A slower ALU must not require
+   four clients to retain separate 128-bit operand/result buses and scratch copies.
+   Prototype names such as `PtpCompute` and `PtpComputePkg` are not new public APIs.
+3. **Use narrow, deeper RAM banks.** Store full logical records as words, with
+   ownership/valid/generation controls in registers. The existing four-row pair
+   and history RAMs still expose 549- and 485-bit rows, and their children account
+   for 1,032 FFs together. A 32-bit access path avoids repeatedly latching and
+   multiplexing every field. Extend this treatment to `anchor`, `pendingSync`,
+   E2E operands, median history/scratch and ledger rows. Keep banks separate when
+   concurrent access requires it; do not infer an impossible multiport memory.
+4. **Restructure configuration and diagnostics.** Protocol and servo each keep
+   shadow, candidate and active records plus live/snapshot data. Use word banks
+   and bank ownership for transactional configuration; cache only fields needed
+   every clock. Freeze the old shadow at prepare while writes target a new bank,
+   validate sequentially, and atomically switch the active bank at commit.
+   A sequential snapshot copy alone is not coherent: latch fast-changing fields
+   at the shared strobe and retain immutable/versioned wide result banks until
+   the snapshot is complete. Preserve the published pre-edge snapshot contract,
+   register offsets, byte strobes and AXI-only-reset behavior. Keep any necessary
+   snapshot staging in the area budget; remove it only with an explicit ABI change.
+5. **Keep the PHC real-time path dedicated.** The tick accumulator, rollover,
+   PPS, generation and command-commit checks run every clock. Share expensive
+   PHASE normalization and RATE preparation, not the tick itself. The commit
+   edge still uses the old increment, and subsequent capture metadata reports
+   the new increment. Share both autonomous and manual command preparation;
+   simply disabling manual PHASE does not remove the servo's phase work.
+
+Use SURF [SimpleDualPortRam](../../../base/ram/rtl/SimpleDualPortRam.vhd),
+[TrueDualPortRam](../../../base/ram/rtl/TrueDualPortRam.vhd) and
+[Fifo](../../../base/fifo/rtl/Fifo.vhd) for storage, with explicit read latency,
+collision and occupancy contracts. Prefer block RAM for deeper word stores;
+retain distributed memory for small control tables when mapping justifies it.
+Changing a 4-by-549 memory's style to block without changing its access width
+can spend many BRAMs while preserving its large staging registers.
+SURF's [DspPreSubMult](../../../dsp/generic/fixed/DspPreSubMult.vhd) and
+[SfixedMult](../../../dsp/xilinx/fixed/SfixedMult.vhd) are candidate arithmetic
+building blocks; check signed widths, pipeline semantics and rounding before
+reuse. A fixed-point wrapper's default wrap/truncation is not the PTP checked
+arithmetic contract.
+
+### PTP packet paths and deferred MAC experiments
+
+There is a concrete feature that is present but unnecessary on the dedicated
+board lanes: `EthMacRxCsum` and `EthMacTxCsum` consume **882 + 1,078 = 1,960 LUTs
+per copper lane**. They handle IP/TCP/UDP checksum offload, not Ethernet FCS.
+`EthMacRx` and `EthMacTx` instantiate them unconditionally; runtime enable bits
+do not eliminate their hardware. Both KCU105 PTP application TX inputs are tied
+idle and application RX outputs are discarded. The separate 10 GbE host remains
+outside this optimization.
+
+Deferred experiment only: a compile-time checksum-offload option could default
+enabled for existing SURF users and disabled in dedicated Layer-2 builds. The
+maintainer has requested no such option in the active change; its patch is
+archived in the consuming project for possible later review.
+Retain FCS, padding, pause and underrun/error handling. The TX checksum module
+also owns buffering and `DROP_ERR_PKT_G` behavior: replace those responsibilities
+where needed instead of wiring around them blindly. The 1,960 LUTs are the
+current affected footprint, not guaranteed net savings. Constrain unsupported
+RoCE/offload combinations and expose capabilities consistently to software.
+
+Other packet work:
+
+- **TX observer:** replace reuse of the general RX frontend with a Delay_Req
+  observer that emits only identity, sequence, domain and the capture/status
+  needed by the ledger. Keep actual post-MAC wire observation, frame/FCS/error
+  checks and the two-entry logical completion queue. Do not substitute AXI
+  acceptance for transmission, or discard old-generation completion identities.
+- **RX parser:** stream fields directly into a compact record or word store,
+  replacing the retained 78-byte prefix plus decoded copies. Retain continuous
+  physical input, length/FCS/TLV checks and the four-entry logical queue.
+  Specialize byte processing by PHY width only where synthesis has not already
+  pruned GMII's unused lanes. General XGMII remains a supported configuration.
+- **MAC storage (deferred):** evaluate only if a compelling measured case emerges;
+  keep shared EthMacCore unchanged in the active plan. Possible future studies
+  include block-memory RX FIFOs and separate RX/TX bypass enables. `EthMacPtpEndpoint` currently drains the MAC's duplicate PTP RX output;
+  an RX-disable path may remove a redundant FIFO/filter while retaining TX bypass
+  and PHY-level pause handling. Audit status side effects before omitting it.
+- **Later, higher-risk integration:** a MAC frame token could carry the physical
+  timestamp through CRC validation and eliminate duplicate parsing/FCS. It needs
+  explicit association through drops, pauses, resets and primary traffic. Retain
+  the passive-tap implementation until that contract is proved; no additional
+  saving from this alternative is added to the budget above.
+
+Proposed build controls, with final names settled during interface review:
+
+| Control | Compatible default | Compact deployment choice |
+| --- | --- | --- |
+| `CHECKSUM_EN_G` experiment (deferred/reverted) | Existing offload behavior retained without a new generic | No active compact-build selection; archived for later review |
+| `COMPUTE_IMPL_G` | Existing implementation during comparison | Shared implementation after equivalence/latency qualification; eventually remove redundant experimental paths |
+| `MEMORY_TYPE_G` / established memory controls | Preserve existing defaults | Block-backed word stores and selected FIFOs |
+| `DIAGNOSTICS_G` | Full existing snapshots | Optional summary-only build, after full diagnostics are first moved to RAM |
+| `MANUAL_CONTROL_G` | Existing command set | Optional restricted software controls; retain autonomous acquisition/steering |
+| `DELAY_FILTER_G` | Current median of five | Alternative filter only after performance qualification |
+
+These are elaboration-time implementation/features, not separate protocol
+profiles. Avoid adding one Boolean for every state-machine branch. Report build
+capabilities and minimum supported timings; disabled accesses must have documented
+read values/errors. Update PyRogue and register tests with any ABI extension.
+The principal 19,000-LUT budget assumes full diagnostics and the existing servo
+algorithm; optional reductions are fallback headroom, not double-counted savings.
+
+### Latency and numerical gates
+
+Sharing must pass a scheduling analysis before replacing the independent engines.
+The association timeout **defaults to two seconds**, derived from `CLK_FREQ_G`.
+Its smallest accepted configuration is 2,048 clocks, or 16.384 microseconds at
+125 MHz. This is a legacy admission floor, not a specified processing deadline
+or a demonstrated end-to-end service guarantee. Its introducing revision
+`dc18c9ba2` supplies no latency derivation; the unresolved rationale is recorded
+in the [endpoint envelope](autonomous-endpoint.md#port-policy-and-numerical-envelope).
+Do not spend LUTs merely to preserve that unexplained number. Derive the compact
+implementation's supported minimum from network/message latency, queueing,
+processing time and the required measurement freshness, and document any change
+to configuration acceptance. Servo minimum sample spacing defaults to about
+15.625 milliseconds, but the configurable range is broader. Neither a slow
+default Sync rate nor an average utilization calculation proves that a shared
+engine can meet its contract.
+
+- Inventory every job's operations and RAM accesses. Bound an isolated request
+  and admitted bursts containing Sync/Follow_Up, Delay_Resp, ledger completions,
+  a servo update and a manual command. Include nonzero calibration on both planes,
+  largest operands, AXI contention and output backpressure. A 128-bit multiply
+  built from 16-bit limbs already has 64 partial products before scheduling;
+  a word-serial divide also adds RAM traffic. Measure these costs in cycles.
+- Use per-client ownership and generation tags. Cancel discards only the affected
+  work; it cannot reset another client's accepted job. Bound fairness, reserve
+  progress for E2E publication, and prevent an ACK-waiting servo from blocking a
+  PHC normalization job required to produce that ACK. Invalidity/restart takes
+  effect immediately even while the arithmetic resource is busy.
+- Establish `worst accepted service time + queue wait < remaining validity
+  window` for the admitted traffic envelope. Choose a justified compact-mode
+  timeout minimum; preserving 2,048 cycles is not an acceptance goal by itself.
+  Use a faster shared divider/multiplier or reserved service slot only where
+  the required operating envelope needs it. Expose and validate any changed
+  minimum; do not silently accept configurations that can no longer complete. Finite-queue
+  overflow still follows the existing abort policy, not an unlimited line-rate
+  protocol-processing promise.
+- Retain checked signed128 math, signed truncating remainders, ties-away rounding,
+  correction overflow handling, seconds range, capture increments and cancellation
+  behavior. A 32-bit ALU operating on four limbs does not reduce numerical precision.
+  Smaller mathematical widths require a range proof for each intermediate,
+  including standalone leaf contracts with wider inputs than wire-derived data.
+- Specialize constant divisions only after proving quotient/remainder and rounding
+  equivalence over the accepted range. Reciprocal multiplication with a correction
+  step is a candidate, not permission to substitute an approximate quotient.
+
+An alternative controller operating directly in PHC addend units could precompute
+gain conversions during configuration and remove ppb/seconds conversions from
+every sample. Keep it as a second algorithm experiment if the exact shared design
+misses budget: transformed gains, quantization, saturation, anti-windup and
+holdover need independent numerical and closed-loop acceptance.
+
+### Implementation sequence and decision gates
+
+| Step | Concrete deliverable | Gate before proceeding |
+| --- | --- | --- |
+| 0. Controlled area baseline | Same tool/IP/constraints reports with hierarchy below E2E math, register/mux attribution, exact revisions/generics and timing paths | Reproduce baseline; isolate checksum, snapshot, converter and math costs. Temporary synthesis variants are attribution experiments, not production feature removals. |
+| 1. Shared timestamp conversion | One protocol converter/cache; shared EthMacCore remains unchanged | Focused protocol/consumer checks and mapped net area/timing; retain only demonstrable savings. |
+| 2. Compute prototype | Shared arithmetic plus word RAM exercised through existing leaf wrappers, initially with rate/E2E clients | Bit-exact independent vectors; cancellation/fairness and measured worst-case cycles; synthesize engine plus adapters, not the bare ALU alone. |
+| 3. Protocol/servo/storage migration | Move servo work, working records, configuration/snapshots and ledger words into the new architecture | Protocol-plus-servo allocation of 6,500 LUTs includes RAM, shared math, muxes and arbitration. Meet register/snapshot and message-lifetime contracts. |
+| 4. PHC and packet paths | Shared command normalization; specialized TX observer and streaming RX field store | Preserve uninterrupted PHC, calibrated physical timestamps, wire-fate quarantine, one-/two-step equivalence and overflow/reset behavior. |
+| 5. Integrated acceptance | Both independent lanes; full hierarchy and resource/timing reports; pinned master fixture | Each lane at most 19,000 LUTs on the matched baseline, pure core also at least halved, no failing constraints or unbounded processing latency; then placement/routing and hardware acceptance. |
+
+After each mapped result, update this allocation with actual costs. If the main
+protocol/servo group cannot approach 6,500 LUTs, stop incremental tuning and
+compare a fixed microsequencer with ROM control versus the current state machines.
+The current allocation already retains the full 4,544-LUT MAC cost. If that
+forces the shared-compute target below what the prototype can deliver, record
+the remaining gap and reconsider PTP-local storage/parser architecture before
+reopening shared-MAC changes.
+Do not claim success by dropping compatibility, observability or numerical range
+without recording the selected deployment tradeoff.
+
+Use the [test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests)
+throughout: arithmetic/PHC/E2E/servo leaves for their operations, protocol RAM
+and direct-sample fixtures for association, register fixtures for bank changes,
+and physical RX/real-MAC fixtures for tap changes. Shared scheduling also needs
+mixed-client cancellation/backpressure assertions; leaf equivalence alone is
+insufficient. Select one closed-loop case during integration and expand to all
+affected PHY/mode combinations for final acceptance. Record independent-master
+and hardware timing/holdover results separately from simulation.
+
+All new or reviewed RTL must follow [SURF VHDL conventions](../../vhdl-conventions.md)
+and its checklist: two-process state ownership, registered payload/control timing,
+explicit arithmetic widths, memory primitive exceptions, reset/CDC and AXI/FIFO
+contracts. Reuse the checked-out SURF interfaces and update the nearest ruckus
+manifest for new files. The architecture/budget proposal was documentation-only;
+implementation and focused verification now follow the increment record above.
+No mapped synthesis result exists for this increment.
+
+**First implementation:** shared protocol timestamp conversion, with the measured
+compute-service latency/area prototype next. Checksum elaboration is deferred
+and reverted. Keep both receive modes, E2E, the current servo and full diagnostics
+as the reference behavior. The largest saving depends on completing the shared
+computation/storage redesign.
+
+## Earlier implementation and evidence
+
 October 9, 2026. Goal: reduce combinational logic while preserving numerical,
 packet-validation, queue and cancellation behavior. The maintainer reported
 high LUT use relative to registers; synthesis reports are on another machine.
@@ -14,7 +417,8 @@ The later October 12 synthesis screenshot shows a 28.64% reduction in the
 copper protocol engine after the two table conversions; its analysis below
 includes the RAM children and distinguishes whole-design changes.
 The subsequent servo implementation below shares clamp/rounding arithmetic
-and serializes the median; its FPGA area/timing comparison remains pending.
+and serializes the median; later synthesis evidence is recorded below, while
+the controlled area comparison and mapped timing acceptance remain pending.
 
 ## Implemented changes
 
@@ -746,8 +1150,8 @@ Four patterns support the intended changes, subject to those attribution limits:
 Unchanged PTP blocks help bound the comparison: `U_Ledger` moves by at
 most 2 LUTs with identical 364 LUTRAMs and 1,853 FFs, and `U_Control`,
 `U_Xbar`, `U_Async`, `U_Registers` and the TX/RX validators' own logic are
-flat or within a few LUTs. The RX/TX tap queues each gain 16 LUTs, which is the
-an observed mapping change in unchanged FIFO source, also seen in the MAC.
+flat or within a few LUTs. The RX/TX tap queues each gain 16 LUTs, an observed
+mapping change in unchanged FIFO source, also seen in the MAC.
 
 Both PTP lanes are now 79,189 LUTs, 76.90% of the design total, down from
 97,937 and 80.64%. The protocol engines' and servos' exclusive logic is 29,057

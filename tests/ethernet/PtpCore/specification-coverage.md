@@ -21,6 +21,8 @@ The authoritative 2019 text supplied by the maintainer was reviewed October 9,
 `85bcd0f039c2553337ccf1756c40921b027549d0327eb580d2931e227611274b`.
 The licensed PDF is not bundled in SURF itself; extracted text remains temporary.
 Clause/table numbers below refer to that edition, not carried-over 2008 numbers.
+The October 12 area/profile review corrected the Ethernet transport references
+below to Annex E (2019); Annex F is the Ethernet mapping in the 2008 edition.
 This audit does not yet include separate amendments or corrigenda.
 
 Supporting references:
@@ -51,7 +53,7 @@ relative to this directory.
 
 | ID / subject | Verified 2019 reference and existing evidence | Remaining coverage or implementation gap |
 | --- | --- | --- |
-| PTP-S01: headers and Layer-2 transport | 13.2, 13.3/Table 35, 13.5–13.8, Annex F. Literal Sync/Follow_Up/Delay_Resp/Announce RX records and complete emitted Delay_Req bytes in `test_ptp_specification.py`; shared builder anchors in `test_ptp_wire_vectors.py`; existing FCS/framing tests. | Full message-body semantics and optional-field applicability. TX golden comparison ends before MAC padding/FCS; separate physical observer checks those. |
+| PTP-S01: headers and Layer-2 transport | 13.2, 13.3/Table 35, 13.5–13.8, Annex E. Literal Sync/Follow_Up/Delay_Resp/Announce RX records and complete emitted Delay_Req bytes in `test_ptp_specification.py`; shared builder anchors in `test_ptp_wire_vectors.py`; existing FCS/framing tests. | Full message-body semantics and optional-field applicability. TX golden comparison ends before MAC padding/FCS; separate physical observer checks those. |
 | PTP-S02: versions and domain | 19.2/19.3; 7.1.2.1; 13.3.2.10. All 16 minor values accepted with major 2; major 1/3 rejection in selected fixtures; ignored messageTypeSpecific and minorSdoId in non-isolated operation; both TX versions checked. Existing port fixtures check foreign source/domain rejection. | 7.1.4/Table 2 reserves domains 128–255 for the selected sdoId=000, but configuration currently permits them. No domain-range validation test/fix yet. No profile-isolation option 16.5. |
 | PTP-S03: timestamp point | 7.3.4.1/7.3.4.2: first symbol after SFD at the reference plane, with capture-point and ingress/egress latency corrections. Existing `test_ptp_rx_rtl.py` and wire observers check GMII/XGMII phase, signed calibration and provenance. | Independently map every configured latency sign/plane to these equations. Connector calibration and reset-dependent PHY latency require hardware; MAC-side simulation is insufficient. |
 | PTP-S04: one-/two-step Sync | 11.2; 13.3.2.8/Table 37; 13.6/13.7. `test_ptp_port_samples.py` checks exact mode equivalence; the specification fixture checks reordered Follow_Up, cleared Follow_Up twoStepFlag and reserved-bit tolerance. | Complete per-message applicability of assigned flags under the selected profile; collision/replay policies remain local contracts. |
@@ -93,13 +95,13 @@ See the [execution record](../../../docs/plans/ethernet-ptp/rtl-review.md#octobe
 
 | Scenario | References / observation | Limit |
 | --- | --- | --- |
-| `literal_rx_headers` | S01/S02: 13.3, 13.5–13.8, Annex F; four literal received types, independent decoded fields/body, signed correction/interval, upper seconds, padding outside messageLength, bad length/major/FCS and recovery. | Body preservation does not prove downstream semantics; drop counters are local policy. Legacy nonzero received control values are intentional. |
+| `literal_rx_headers` | S01/S02: 13.3, 13.5–13.8, Annex E; four literal received types, independent decoded fields/body, signed correction/interval, upper seconds, padding outside messageLength, bad length/major/FCS and recovery. | Body preservation does not prove downstream semantics; drop counters are local policy. Legacy nonzero received control values are intentional. |
 | `interpreted_two_step_correction` | S04/S05: 11.2, Table 37 and 2008 interpretations 11/25. Sync +10.5 ns and Follow_Up −2.25 ns, t1=1000 ns/t2=1040 ns, give exactly 31.75 ns forward difference in either arrival order; retains Sync capture. | Rejecting a Follow_Up with twoStepFlag set is local malformed-input policy. |
 | `minor_versions` | S02/S09: 19.2, 7.1.2.1, 13.3.2.10. All minor nibbles, nonzero ignored minorSdoId and messageTypeSpecific. | The selected SDO is non-isolated; no isolation-option claim. |
 | `tlv_suffix` | S09: 5.3.8, 14.1/14.1.2, 14.4.2. Unknown experimental TLV followed by empty/nonempty zero PAD; odd first/second length, partial header and truncated second value rejected with recovery. | Demonstrates structural skipping and local malformed-input policy, not every recognized TLV. |
 | `receive_control` | S04/S09: 13.3.2.13. Values 0/1/2/3/5/ff ignored for Sync/Follow_Up/Delay_Resp/Announce. | Sync pair has exact measurement checks; Delay_Resp/Announce check header admission only. |
 | `reserved_flags` | S04/S09: 13.2, Table 37. Bits masked by 0x9880 ignored individually and together in the four received types. | Assigned unsupported flags remain restricted by endpoint policy. |
-| `delay_request_headers` | S01/S02/S08: 11.3.2, 13.3/13.6, Annex F. Complete 58-byte pre-MAC request in 2019 and selected 2008 modes, including stable data/sidebands under stalls. | Initial sequence only; scheduling distribution, physical timestamp and MAC padding/FCS are separate. |
+| `delay_request_headers` | S01/S02/S08: 11.3.2, 13.3/13.6, Annex E. Complete 58-byte pre-MAC request in 2019 and selected 2008 modes, including stable data/sidebands under stalls. | Initial sequence only; scheduling distribution, physical timestamp and MAC padding/FCS are separate. |
 
 The first four new rule scenarios failed on the previous RTL, exposing minor
 version rejection, control-based rejection, reserved-bit rejection and acceptance
@@ -123,7 +125,7 @@ fields to the actual `PtpProtocolEngine`, `PtpTxLedger` and `PtpE2e`.
   Independent expectations are forward 150 ns and symmetric path delay
   100.25 ns; snapshots assert t1/t2/t3/t4, correction and sequence provenance.
   Results hold under measurement backpressure. See 11.2/11.3.2, 13.3/Table 42,
-  13.5--13.8 and Annex F.
+  13.5--13.8 and Annex E.
 - `sync_overflow`: one-step and either two-step operand, either arrival order,
   same-key finite replay rejection and next-key recovery; `-1` remains finite.
 - `response_overflow`: matching overflow before/after TX observation, no estimate,

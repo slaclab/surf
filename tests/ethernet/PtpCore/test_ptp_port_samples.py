@@ -417,6 +417,48 @@ async def capacity_chronology_and_cancellation(d):
         b.stop()
 
 
+@cocotb.test()
+async def timestamp_conversion_cancellation(d):
+    b = Bench(d)
+    await b.start()
+    try:
+        # Conversion latency must not move the inclusive completion-age check.
+        await b.configure(timeout=2048)
+        capture = b.now+100
+        b.now = capture+2048-10
+        await b.send(0, 58, NS, ticks=capture)
+        b.now += 1
+        d.ticks.value = b.now
+        await b.result(58, 123*Q16+7)
+        await b.drain()
+        await b.configure()
+        # Cancel before either of the two conversion stages publishes. Each
+        # cause must flush the cached remote time as well as the pending sample.
+        for stage in (0, 1):
+            for cause in ('restart', 'rxAbort', 'rxOverflow', 'applyConfig', 'generation', 'rst'):
+                await b.pulse('restart')
+                await b.send(0, 60, 9*NS)
+                await b.wait(stage)
+                assert not int(d.measurementValid.value)
+                if cause == 'generation':
+                    b.generation += 1
+                    d.generation.value = b.generation
+                    await b.wait(4)
+                else:
+                    await b.pulse(cause)
+                await b.wait(150)
+                assert not int(d.measurementValid.value), (stage, cause)
+                if cause == 'rst':
+                    await b.configure()
+                # A smaller new epoch detects accidental reuse of old anchor
+                # or conversion state, not just a missing valid-bit clear.
+                await b.send(0, 61, NS, correction=-19)
+                await b.result(61, 123*Q16+26)
+                await b.drain()
+    finally:
+        b.stop()
+
+
 @pytest.mark.parametrize('memory', ['distributed', 'block'])
 def test_ptp_port_samples(memory):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',

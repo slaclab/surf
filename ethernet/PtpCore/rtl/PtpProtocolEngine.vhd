@@ -315,6 +315,8 @@ architecture rtl of PtpProtocolEngine is
 
    type StateType is (
       IDLE_S,
+      REMOTE_TIME_S,
+      LOCAL_TIME_S,
       RATE_ISSUE_S,
       RATE_WAIT_S);
 
@@ -379,7 +381,10 @@ architecture rtl of PtpProtocolEngine is
       syncLimit           : slv(63 downto 0);
       announceLimit       : slv(63 downto 0);
       lastTicks           : slv(63 downto 0);
-      anchor              : PtpSyncSampleType;
+      -- Retain normalized anchor data rather than reconverting a full sample.
+      anchorRemote        : signed(127 downto 0);
+      anchorPhase         : slv(63+PTP_TICK_PHASE_BITS_C downto 0);
+      ratePending         : sl;
       anchorValid         : sl;
       ratio               : slv(63 downto 0);
       ratioCount          : natural range 0 to RATIO_QUALIFY_COUNT_C;
@@ -469,7 +474,9 @@ architecture rtl of PtpProtocolEngine is
       lastTicks           => (others => '0'),
       syncLimit           => (others => '0'),
       announceLimit       => (others => '0'),
-      anchor              => PTP_SYNC_SAMPLE_INIT_C,
+      anchorRemote        => (others => '0'),
+      anchorPhase         => (others => '0'),
+      ratePending         => '0',
       anchorValid         => '0',
       ratio               => slv(NOMINAL_C),
       ratioCount          => 0,
@@ -629,16 +636,6 @@ architecture rtl of PtpProtocolEngine is
       for i in bytes'range loop
          resultValue(8*i+7 downto 8*i) := bytes(i);
       end loop;
-      return resultValue;
-   end function;
-
-   function forwardMeasurement (item : PtpSyncSampleType) return PtpMeasurementType is
-      variable resultValue : PtpMeasurementType := PTP_MEASUREMENT_INIT_C;
-   begin
-      resultValue.generation   := item.capture.generation;
-      resultValue.ticks        := item.capture.ticks;
-      resultValue.syncSequence := item.sequenceId;
-      resultValue.forward      := slv(ptpTimeQ16(item.capture.timestamp)-ptpWireTimeQ16(item.remoteTime)-signed(item.correction));
       return resultValue;
    end function;
 
@@ -804,6 +801,8 @@ begin
       variable maximumSeparation : signed(127 downto 0);
       variable historyAge        : unsigned(63 downto 0);
       variable remoteTime        : signed(127 downto 0);
+      variable timestamp         : slv(95 downto 0);
+      variable convertedTime     : signed(127 downto 0);
       variable rateSpan          : signed(127 downto 0);
       variable completedSync     : PtpSyncSampleType;
    begin
@@ -815,6 +814,14 @@ begin
       v.historyReadEnable  := '0';
       v.historyWriteEnable := '0';
       policyFlags          := rxMessage.flags and not RESERVED_FLAGS_MASK_C;
+
+      -- One seconds-to-Q16 converter serves remote and local timestamps.
+      -- Select before arithmetic; each completed sample visits both states.
+      timestamp := r.pendingSync.capture.timestamp;
+      if r.state = REMOTE_TIME_S then
+         timestamp := r.pendingSync.remoteTime & x"0000";
+      end if;
+      convertedTime := ptpTimeQ16(timestamp);
 
       -- Requests retain their complete payload until the child accepts them.
       -- The RAM ledger scans the held response before accepting it. Retain
@@ -1330,42 +1337,64 @@ begin
                                                      resize(signed(pair.followCorrection), 128));
                   end if;
 
-                  remoteTime := ptpWireTimeQ16(completedSync.remoteTime)+signed(completedSync.correction);
-
-                  if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) or
-                     (r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(completedSync.capture.ticks) <= unsigned(r.lastTicks))) then
+                  -- Check age at completion, before conversion adds latency.
+                  if unsigned(phcStatus.ticks)-unsigned(completedSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
                      v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                   else
-                     v.portStatus.active                 := '1';
-                     v.lastSync                          := completedSync;
-                     v.lastRemote                        := remoteTime;
-                     v.lastTicks                         := completedSync.capture.ticks;
-                     v.historyWriteEnable                := '1';
-                     v.historyWriteAddress               := toSlv(r.historyPtr, TABLE_ADDR_WIDTH_C);
-                     v.historyValid(r.historyPtr)        := '1';
-                     v.historyPtr                        := (r.historyPtr+1) mod HISTORY_DEPTH_C;
-                     v.portStatus.syncCount              := ptpSatInc(v.portStatus.syncCount);
-                     v.measurementMaster.data            := forwardMeasurement(completedSync);
-                     v.measurementMaster.data.ratio      := r.ratio;
-                     v.measurementMaster.data.ratioValid := qualifiedRatio;
-                     v.measurementMaster.valid           := '1';
-
-                     if r.anchorValid = '0' then
-                        v.anchor      := completedSync;
-                        v.anchorValid := '1';
-                     else
-                        rateSpan := ptpTickPhase(completedSync.capture)-ptpTickPhase(r.anchor.capture);
-                        if rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), PTP_TICK_PHASE_BITS_C) and rateSpan > 0 then
-                           v.rateA                   := slv(shift_left(remoteTime-ptpWireTimeQ16(r.anchor.remoteTime)-signed(r.anchor.correction), RATE_RATIO_SHIFT_C));
-                           v.rateB                   := slv(rateSpan);
-                           v.pendingSync             := completedSync;
-                           v.anchor                  := completedSync;
-                           v.state                   := RATE_ISSUE_S;
-                           v.measurementMaster.valid := '0';
-                        end if;
-                     end if;
+                     v.pendingSync := completedSync;
+                     v.state       := REMOTE_TIME_S;
                   end if;
                end if;
+            end if;
+
+         when REMOTE_TIME_S =>
+            remoteTime := convertedTime+signed(r.pendingSync.correction);
+            v.state    := IDLE_S;
+            if r.portStatus.active = '1' and (remoteTime <= r.lastRemote or unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks)) then
+               v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
+            else
+               v.portStatus.active          := '1';
+               v.lastSync                   := r.pendingSync;
+               v.lastRemote                 := remoteTime;
+               v.lastTicks                  := r.pendingSync.capture.ticks;
+               v.historyWriteEnable         := '1';
+               v.historyWriteAddress        := toSlv(r.historyPtr, TABLE_ADDR_WIDTH_C);
+               v.historyValid(r.historyPtr) := '1';
+               v.historyPtr                 := (r.historyPtr+1) mod HISTORY_DEPTH_C;
+               v.portStatus.syncCount       := ptpSatInc(v.portStatus.syncCount);
+               v.ratePending                := '0';
+               v.state                      := LOCAL_TIME_S;
+
+               if r.anchorValid = '0' then
+                  v.anchorRemote := remoteTime;
+                  v.anchorPhase  := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
+                  v.anchorValid  := '1';
+               else
+                  rateSpan := ptpTickPhase(r.pendingSync.capture)-signed(resize(unsigned(r.anchorPhase), 128));
+                  if rateSpan >= shift_left(signed(resize(unsigned(r.activeConfig.minRateSpan), 128)), PTP_TICK_PHASE_BITS_C) and rateSpan > 0 then
+                     v.rateA        := slv(shift_left(remoteTime-r.anchorRemote, RATE_RATIO_SHIFT_C));
+                     v.rateB        := slv(rateSpan);
+                     v.anchorRemote := remoteTime;
+                     v.anchorPhase  := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
+                     v.ratePending  := '1';
+                  end if;
+               end if;
+            end if;
+
+         when LOCAL_TIME_S =>
+            -- Keep this forward result while the optional rate divide runs.
+            v.measurementMaster.data              := PTP_MEASUREMENT_INIT_C;
+            v.measurementMaster.data.generation   := r.pendingSync.capture.generation;
+            v.measurementMaster.data.ticks        := r.pendingSync.capture.ticks;
+            v.measurementMaster.data.syncSequence := r.pendingSync.sequenceId;
+            v.measurementMaster.data.forward      := slv(convertedTime-r.lastRemote);
+            v.measurementMaster.data.ratio        := r.ratio;
+            v.measurementMaster.data.ratioValid   := qualifiedRatio;
+            v.measurementMaster.valid             := '1';
+            v.state                               := IDLE_S;
+            if r.ratePending = '1' then
+               v.measurementMaster.valid := '0';
+               v.state                   := RATE_ISSUE_S;
             end if;
 
          when RATE_ISSUE_S =>
@@ -1390,7 +1419,6 @@ begin
                else
                   v.portStatus.rejectedCount := ptpSatInc(v.portStatus.rejectedCount);
                end if;
-               v.measurementMaster.data            := forwardMeasurement(r.pendingSync);
                v.measurementMaster.data.ratio      := v.ratio;
                v.measurementMaster.data.ratioValid := '0';
                if v.ratioCount = RATIO_QUALIFY_COUNT_C and unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
@@ -1453,6 +1481,7 @@ begin
          v.syncLimit               := r.activeConfig.syncTimeout;
          v.announceLimit           := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
          v.anchorValid             := '0';
+         v.ratePending             := '0';
          v.ratioCount              := 0;
          v.state                   := IDLE_S;
          v.measurementMaster.valid := '0';

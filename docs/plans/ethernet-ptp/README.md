@@ -15,7 +15,7 @@ acceptance remain open.
 | What was checked, and what remains to approve? | [Review and acceptance record](rtl-review.md), [test procedures/fixtures](../../../tests/ethernet/PtpCore/README.md) |
 | How do tests relate to IEEE 1588? | [Specification coverage and gaps](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
-| What changed for ledger/servo/RX area, and what remains to measure? | [LUT optimization implementation and follow-ups](lut-optimization.md) |
+| How do we halve PTP area, and what savings are already measured? | [Architecture, implementation, budgets and earlier evidence](lut-optimization.md#proposed-architecture-for-a-further-50-percent-reduction) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
@@ -157,9 +157,16 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
 4. Select physical reference/cleanup and application epoch-transfer requirements
    through [physical-clock integration](physical-clock-integration.md). Numerical
    time, physical frequency/phase and application events remain distinct.
-5. Measure the [remaining arithmetic candidates](lut-optimization.md#october-12-e2e-servo-and-phc-arithmetic-audit)
-   as separate patches on the synthesis host, starting with the servo. Retain
-   matching configuration/stage and timing evidence for each comparison.
+5. Continue the [50% area-reduction plan](lut-optimization.md#proposed-architecture-for-a-further-50-percent-reduction):
+   a shared measurement processor with word-addressed RAM, specialized timestamp
+   paths while retaining the shared Ethernet MAC. The allocation targets at most
+   19,000 LUTs per dedicated lane while preserving independent PHCs and autonomous
+   control; the target remains unmeasured. Shared protocol timestamp conversion
+   is implemented in the working tree; checksum changes were deferred/reverted. See the
+   [first increment](lut-optimization.md#first-implementation-increment-october-12).
+   The working Sync ceiling is 10 Hz, initially configured at 8 Hz. Obtain a
+   matched synthesis baseline and qualify compute latency before migrating the
+   remaining arithmetic clients.
    Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.

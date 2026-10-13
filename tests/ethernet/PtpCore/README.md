@@ -188,7 +188,8 @@ reporting the previous full-suite result as validation of a later edit.
   exact independent Q16 forward expectations, one-/two-step correction equivalence,
   signed64 boundaries/widened sums, upper seconds bits, timestamp/flag rejection,
   mixed-mode collisions, capacity/expiry/sequence wrap, rate qualification,
-  measurement stalls and lifecycle cancellation. The thin wrapper adds observation
+  measurement stalls and lifecycle cancellation, including cancellation in both
+  timestamp-conversion stages and the inclusive completion-age boundary. The thin wrapper adds observation
   and backpressure at the port boundary; it contains no alternate protocol model.
   Distributed and block RAM settings exercise the same pairing/history contract.
 - `test_ptp_protocol_ram.py`: both table RAM settings, nearest selection on either

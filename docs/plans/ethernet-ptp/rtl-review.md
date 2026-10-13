@@ -835,7 +835,28 @@ the same package twice. The recorded GHDL options were
 `ghdl -m` were used. Compile/link does not exercise run-time assertions.
 Use static Python parsing/lint for checks that do not need execution.
 
+## October 12 shared timestamp converter
+
+The [area-plan increment](lut-optimization.md#first-implementation-increment-october-12)
+records the implementation and focused checks. Review retained the registered
+publication/cancellation priority, held measurement ownership, full-width
+correction arithmetic, completion-edge association age and RAM-write alignment.
+A normalized anchor replaces the retained full sample; the converter selects
+remote/local inputs before arithmetic. The checksum-option experiment and its
+capability ABI were reverted at the maintainer’s request; shared MAC logic stays
+unchanged. Its independent checks and patches are archived in the consuming
+project. The interrupted real-MAC batch produced no completed passing result.
+No new timing-accuracy or mapped-area claim follows from simulation or lint.
+
 ## Outstanding acceptance
+
+- Existing MAC RX IPv4 error handling: a successful IP/transport checksum check
+  can overwrite an incoming EOFE. Observed in the default-enabled checksum
+  fixture while testing this increment; native-L2 error propagation and the
+  experimental disabled-offload path passed. That experiment is now reverted.
+  Fix and test combined FCS/checksum failures in a
+  separate MAC correctness change; this finding does not authorize a broader
+  MAC rewrite as part of PTP area optimization.
 
 Document and justify the existing 2048-cycle association floor and 200,000-ppb
 actuator cap before treating them as qualified bounds. The
