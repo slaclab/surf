@@ -110,7 +110,9 @@ architecture rtl of GigEthGthUltraScalePhy is
          -- fabric clock on gt0_gtgrefclk_in, low a dedicated reference.
          -- gt0_userefclk1_in then names the dedicated input, gtrefclk on
          -- GTREFCLK0 or gt0_gtrefclk1_in on GTREFCLK1. A .dcp carries no VHDL
-         -- defaults, so all four are driven explicitly below.
+         -- defaults, so all four are driven explicitly below. Only the fabric
+         -- input may carry a fabric clock; an unselected dedicated input takes
+         -- a constant, since MGTREFCLK pins do not reach interconnect fabric.
          gt0_usegtgrefclk_in    : in  std_logic;
          gt0_gtgrefclk_in       : in  std_logic;
          gt0_userefclk1_in      : in  std_logic;
@@ -127,16 +129,21 @@ begin
    -- Every mode requires related 125/62.5 MHz user clocks and a stretched reset.
    -- The dedicated clock drives only the channel input GTREFCLK_INDEX_G
    -- selects: routing one net to both MGTREFCLK inputs of a quad is not
-   -- possible, so the unselected dedicated input is tied low instead. The
-   -- fabric input is always connected, so the selected source is a real clock
-   -- and no GT input is left floating.
+   -- possible, so the unselected dedicated input is tied low instead. Both
+   -- GTREFCLK0 and GTREFCLK1 reach interconnect fabric only from the quad's
+   -- MGTREFCLK pins, so an unselected one must take a constant and never a
+   -- fabric clock. Only GTGREFCLK accepts a fabric clock, and it is driven
+   -- unconditionally on gt0_gtgrefclk_in below.
    U_GigEthGthUltraScaleCore : GigEthGthUltraScaleCore
       port map (
          -- Clocks and Resets
-         -- Dedicated reference on GTREFCLK0 when selected, else the fabric
-         -- clock, so this input is driven by a real clock in every mode.
+         -- Dedicated reference on GTREFCLK0 when selected, else tied low. A
+         -- fabric clock here is unroutable: route_design reports it as
+         -- "[Route 35-7] Design has 1 unroutable pin" with unroute type
+         -- BUFG_GT.CLK_OUT->GTHE3_CHANNEL.MGTREFCLK0. Synthesis cannot detect
+         -- it. The fabric path uses GTGREFCLK instead.
          gtrefclk               => ite(USE_GTREFCLK_G and GTREFCLK_INDEX_G = 0,
-                                       gtRefClk, sysClk125),
+                                       gtRefClk, '0'),
          independent_clock_bufg => sysClk62,                      -- [in]
          txoutclk               => open,                          -- [out]
          rxoutclk               => open,                          -- [out]

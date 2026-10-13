@@ -24,8 +24,23 @@ both `MGTREFCLK` inputs of a quad. `GigEthGthUltraScalePhy` drives all four
 ports from its `USE_GTREFCLK_G` and `GTREFCLK_INDEX_G` generics: `false` takes
 the fabric 125 MHz clock, `true` the dedicated GT buffer output on its
 `gtRefClk` port, with the index selecting `GTREFCLK0` or `GTREFCLK1` and tying
-off the other. The fabric input stays connected in every mode, so the selected
-source is always a real clock and no GT input is left floating.
+off the other.
+
+**An unselected dedicated input must be tied to a constant, not to a fabric
+clock.** `GTREFCLK0` and `GTREFCLK1` are reachable only from the quad's
+`MGTREFCLK` pins, so a fabric clock on either is unroutable even when
+`CPLLREFCLKSEL` does not select it: the net still exists and the router must
+route it. A constant tie-off is not a floating input. Only `GTGREFCLK`, driven
+from `gt0_gtgrefclk_in`, accepts a fabric clock; that port is connected
+unconditionally and carries the fabric path in `"111"` mode.
+
+Driving `gtrefclk` with the fabric clock when it was not selected caused a
+`route_design` failure in the `PtpKcu105` target on October 13, 2026, reported
+as `[Route 35-7] Design has 1 unroutable pin` with unroute type
+`BUFG_GT.CLK_OUT->GTHE3_CHANNEL.MGTREFCLK0`. Note this differs from the
+wrong-index signature above: the driver is a `BUFG_GT`, not a `GTHE3_COMMON`.
+Synthesis, including out-of-context synthesis of this wrapper, cannot detect
+either condition; only a full implementation run can.
 
 A synthesized checkpoint does not carry VHDL port defaults, so a design binding
 this `.dcp` must drive all four ports explicitly even when it only wants the
