@@ -1278,3 +1278,112 @@ and packet-delay variation. Record hardware-calibrated versus compile-supported
 status per wrapper. Physical clock/output qualification additionally follows the
 [clock requirements](physical-clock-integration.md#qualification-and-next-steps).
 Live PyRogue transport is a separate acceptance item from static map checks.
+
+## October 13 critical-path implementation
+
+The consuming KCU105 SFP-only routed baseline at SURF `8c97ed404` failed
+setup timing (WNS -8.039 ns, TNS -12062.381 ns). Its worst paths ended in
+TX/RX validation, protocol rejection counting, PHC time state and servo
+cancellation. The changes address the validator, protocol, PHC and servo paths:
+
+- `PtpDelayReqObserver` and `PtpRxFrontend` use shared TLV header lookahead.
+  An eight-byte beat can finish at most two four-byte headers and begin a
+  third; body bytes skip in one operation. The full 16-bit length, even-length
+  rule, message bounds and partial-header state are retained. No extra input
+  or publication latency is introduced. Contiguous keep masks decode directly;
+  malformed masks remain rejected. Sticky validation errors join at EOF rather
+  than gating the TLV arithmetic.
+- A valid completion that overflows the logical queue no longer vetoes a
+  simultaneous FWFT descriptor pop. That descriptor's decoder ownership is
+  canceled on the same edge; registered FIFO reset discards the remainder
+  next edge. This removes frame validation from FIFO ready without delaying
+  its acknowledgement or changing pre-edge overflow/capture/abort semantics.
+- Protocol rejection multiplicity is registered before the saturating sum.
+  All same-edge events retire together one clock later. Logical cancellation
+  and AXI reset preserve both pending events and accumulated diagnostics;
+  system reset clears both. Register addresses and widths are unchanged.
+- The PHC combines a PHASE remainder with the unnormalized ordinary tick and
+  normalizes once, including a possible two-second carry. Carry-select word
+  arithmetic shortens wide additions. SET/PHASE admission-to-commit latency,
+  RATE commit-edge semantics, exact captures and fault policy are unchanged.
+  Epoch validity is checked in parallel with the seconds sums, so late
+  normalization selection does not feed back through seconds arithmetic to
+  every time register enable.
+- Protocol/servo unsigned age differences use the same bounded carry-select
+  helper. A carry-save reduction evaluates age against the limit without
+  cascading a full subtraction and comparison. Modulo age, inclusive timeout
+  boundaries and cancellation edges are
+  unchanged. The passing shared compute datapath is unchanged.
+
+The implementation is recorded in SURF commits `95072a228` (PHC and age
+arithmetic), `f61c53dc1` (rejection diagnostics), and `807a52346` (wire validators).
+All 18 selected final-pass regression configurations pass: RX/observer (6),
+PHC (2), concurrent rejections (2), timing math (3), protocol expiry/word
+boundaries (2), block-RAM port samples (1), signed Announce intervals (1), and
+125 MHz servo (1). PHC coverage includes every normalization branch at both
+epoch limits, mixed-sign whole/remainder operands, and ordinary epoch exhaustion.
+Counter coverage checks delayed double increments and pending-event survival
+across abort. Math uses independent integer boundary/random oracles.
+
+Three RX compiles initially raced a source edit and passed on rerun. First-pass
+counter/interval assertions were updated for the documented diagnostic latency
+and passed. VSG reports zero violations in the six edited RTL files and new
+wrapper; the normal ruckus GHDL import passes. The compliance audit still reports
+pre-existing helper/test findings, including two PHC findings reproduced against
+HEAD before these changes. The full PTP suite and final-pass endpoint/MAC
+integration have not run. Previously launched first-pass endpoint simulations
+were still running at this handoff and are not counted as passing evidence.
+
+Both isolated comparisons use `rdsrv419`, Vivado 2025.2, `COPPER_EN=false`, and
+four synthesis workers. Each starts from a clean recursive clone at consuming
+project `6adf1d076` and SURF `8c97ed404`, then applies a recorded six-file RTL
+patch. Run directories are
+`/u1/bareese/agent-builds/ptp-dev/20261013-timing-fixes-r1` and
+`/u1/bareese/agent-builds/ptp-dev/20261013-timing-fixes-r2`; local raw evidence is
+under the consuming project's ignored `.planning/remote-builds/` with matching
+run names. All six final RTL hashes match the second-pass source manifest;
+committing the files did not change their contents. No clock constraints or PHY
+implementations were changed. These are combined-pass comparisons, not isolated
+per-commit timing attribution.
+
+| Routed metric | Baseline | First pass | Final pass |
+| --- | ---: | ---: | ---: |
+| Setup WNS (ns) | -8.039 | -2.472 | -2.829 |
+| Setup TNS (ns) | -12062.381 | -3204.606 | -3123.079 |
+| Failing setup endpoints | 4120 | 3117 | 3587 |
+| Hold WHS / THS (ns) | +0.030 / 0 | +0.030 / 0 | +0.030 / 0 |
+| LUTs | 51824 | 53100 | 52066 |
+| Registers | 58857 | 58840 | 58844 |
+| BRAM tiles / DSPs | 33.5 / 9 | 33.5 / 9 | 33.5 / 9 |
+
+Worst setup slack by destination hierarchy (paths can originate elsewhere):
+
+| Destination | Baseline (ns) | First pass (ns) | Final pass (ns) |
+| --- | ---: | ---: | ---: |
+| TX validator | -8.039 | -2.472 | -2.715 |
+| RX validator | -7.497 | -2.445 | -2.829 |
+| Protocol | -4.675 | -2.429 | -2.482 |
+| PHC | -1.477 | -1.258 | -0.599 |
+| Servo | -0.248 | +0.005 | +0.134 |
+| Compute | +1.107 | +0.933 | +1.095 |
+| Host | +0.619 | +0.344 | +0.508 |
+
+The final pass improves WNS by 5.210 ns and reduces TNS magnitude by 74.1%
+against baseline, with 242 additional routed LUTs (0.47%). It improves PHC and
+servo slack and reduces LUT count relative to the first pass, but worsens overall
+WNS by 0.357 ns and increases failing endpoint count. **Timing remains failing**
+(make exit 2); all 96,546 routable nets route with no routing errors or black
+boxes. The final routed checkpoint SHA-256 is
+`3bdd3b827c40a8edc4fcb68eb2b5ccea6fab565c4d5cc8257a801feb26af24e5`.
+The native and independently generated routed timing summaries agree.
+
+Next timing work is still validator completion/control: the worst RX path runs
+from frame count to accepted-counter enable (36 logic levels, 10.576 ns data
+delay), and TX from frame count to the FIFO-write register reset (33 levels).
+Protocol's worst path now starts at the compute memory cursor and ends at
+`announceValid` (24 levels); PHC still has a fraction-to-raw-tick-enable path
+(17 levels). These are candidates for further control/arithmetic separation,
+with the existing capture, cancellation and overflow contracts preserved.
+`ptpAddFast` uses fabric arithmetic; DSP inference has not been implemented or
+benchmarked. Constraint/CDC/DRC review, copper-enabled implementation, external
+interoperability and hardware acceptance remain open.

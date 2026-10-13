@@ -23,6 +23,13 @@ acceptance remain open.
 
 ## Current validation
 
+The October 13 [critical-path implementation](rtl-review.md#october-13-critical-path-implementation)
+addresses the routed KCU105 setup failures in both wire validators, protocol
+rejection diagnostics, PHC normalization and servo age checks. Focused behavioral
+verification passes in 18 selected final-pass configurations. The isolated
+SFP-only routed comparison improves WNS from -8.039 to -2.829 ns but still fails
+setup timing; final-pass endpoint/MAC integration remains unrun.
+
 The October 13 connected compute/storage redesign has passed all 171
 regression configurations across focused batches, including both PHYs and both
 receive modes in the endpoint and real-MAC lifecycle fixtures, and raw/normalized
