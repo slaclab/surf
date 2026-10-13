@@ -706,7 +706,7 @@ begin
       v.commandMaster.stale := '0';
 
       if r.state /= IDLE_S and r.holding = '0' and
-         unsigned(phcStatus.ticks)-unsigned(r.sampleTicks) > unsigned(sharedConfig.associationTimeout) then
+         ptpAgeExpired(phcStatus.ticks, r.sampleTicks, sharedConfig.associationTimeout) then
          v.commandMaster.stale := '1';
       end if;
 
@@ -721,8 +721,8 @@ begin
       v.abortSeen  := measurementMaster.abort;
       v.generation := phcStatus.generation;
       stale := r.haveSample = '1' and (measurementMaster.abort = '1' or unsigned(r.status.filterCount) = 0 or
-         unsigned(phcStatus.ticks)-unsigned(r.delayTicks) > unsigned(r.activeConfig.maxDelayAge) or
-         unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(sharedConfig.syncTimeout));
+         ptpAgeExpired(phcStatus.ticks, r.delayTicks, r.activeConfig.maxDelayAge) or
+         ptpAgeExpired(phcStatus.ticks, r.lastTicks, sharedConfig.syncTimeout));
       -- Sample expiry as a registered level. The PHC consumes it on the
       -- following edge; both assertion and release have one cycle of latency.
       v.expireTime := '0';
@@ -730,7 +730,7 @@ begin
       if r.status.state = PTP_SERVO_FAULT_C then
          v.expireTime := '1';
       elsif servoEnable = '1' and r.haveSample = '1' then
-         if unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(r.activeConfig.holdoverTimeout) then
+         if ptpAgeExpired(phcStatus.ticks, r.lastTicks, r.activeConfig.holdoverTimeout) then
             v.expireTime := '1';
          end if;
       end if;
@@ -760,7 +760,7 @@ begin
                   v.measurementSlave.ready := '1';
                   if measurementMaster.data.generation /= phcStatus.generation or
                      unsigned(measurementMaster.data.ticks) > unsigned(phcStatus.ticks) or
-                     unsigned(phcStatus.ticks)-unsigned(measurementMaster.data.ticks) > unsigned(sharedConfig.associationTimeout) then
+                     ptpAgeExpired(phcStatus.ticks, measurementMaster.data.ticks, sharedConfig.associationTimeout) then
                      v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                   elsif measurementMaster.data.isDelay = '1' then
                      if signed(measurementMaster.data.delayValue) >= 0 and signed(measurementMaster.data.delayValue) <= signed(sharedConfig.maxPathDelay) and
@@ -780,7 +780,7 @@ begin
                         v.status.rejectedCount := ptpSatInc(v.status.rejectedCount);
                      end if;
                   elsif unsigned(r.status.filterCount) /= 0 and measurementMaster.data.ratioValid = '1' and
-                     unsigned(phcStatus.ticks)-unsigned(r.delayTicks) <= unsigned(r.activeConfig.maxDelayAge) and
+                     not ptpAgeExpired(phcStatus.ticks, r.delayTicks, r.activeConfig.maxDelayAge) and
                      (r.haveSample = '0' or unsigned(measurementMaster.data.ticks) > unsigned(r.lastTicks)) then
                      sampleTickDelta := signed(resize(unsigned(measurementMaster.data.ticks), 128))-signed(resize(unsigned(r.lastTicks), 128));
                      if r.tracking = '1' and (sampleTickDelta < signed(resize(unsigned(r.activeConfig.minSampleTicks), 128)) or

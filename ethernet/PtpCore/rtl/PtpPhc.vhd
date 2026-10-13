@@ -129,6 +129,7 @@ architecture rtl of PtpPhc is
    -- same scale, so adding it changes ns/tick directly, without a ppb conversion.
    constant NOMINAL_C : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
    constant SECOND_C  : signed(66 downto 0)   := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
+   constant EPOCH_LIMIT_C : signed(65 downto 0) := shift_left(to_signed(1, 66), 48);
    -- Capture consumers need the nominal increment even before the first tick.
    function initialStatus return PtpPhcStatusType is
       variable retVar : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
@@ -279,8 +280,11 @@ begin
       variable wordMask    : slv(31 downto 0);
       -- Preserve carry/sign bits until normalization and range checks finish.
       variable nextNanoseconds : signed(66 downto 0);
+      variable tickNanoseconds : signed(66 downto 0);
       variable nextSeconds     : signed(65 downto 0);
       variable nextIncrement   : signed(64 downto 0);
+      variable phaseSeconds    : signed(65 downto 0);
+      variable epochError      : boolean;
    begin
       -- r is pre-edge state. v collects the state to register next; ordinary
       -- ticking happens even while command preparation or arbitration is busy.
@@ -620,9 +624,15 @@ begin
       -- intermediates until command arithmetic and epoch bounds are checked.
       -- Concatenating nanoseconds and fraction forms one Q32-ns value. Carry
       -- across bit 31 advances integer ns; SECOND_C handles the decimal second.
-      nextNanoseconds := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67)) +
-                         signed(resize(unsigned(r.status.increment), 67));
+      tickNanoseconds := signed(ptpAddFast(
+         resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67),
+         resize(unsigned(r.status.increment), 67)));
+      nextNanoseconds := tickNanoseconds;
       nextSeconds := signed(resize(unsigned(r.timeValue.seconds), 66));
+      -- Check epoch bounds in parallel with seconds arithmetic. Do not route
+      -- the late nanosecond carry through a seconds sum and then a wide fault
+      -- comparison back to every time register's enable.
+      epochError := false;
       -- Raw ticks deliberately ignore numerical rate and phase corrections.
       -- They count oscillator edges, not calibrated nanoseconds; physically
       -- steering clk would also change their relationship to real elapsed time.
@@ -632,9 +642,10 @@ begin
          -- Detect crossing, not equality: an adjusted increment can skip over
          -- exactly zero ns. PPS is one clk cycle on this edge grid (8 ns at
          -- 125 MHz); final validity/command checks below may suppress it.
-         nextNanoseconds := nextNanoseconds - SECOND_C;
-         nextSeconds     := nextSeconds + 1;
+         nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(SECOND_C), '1'));
+         nextSeconds     := signed(ptpAddFast(unsigned(nextSeconds), to_unsigned(1, 66)));
          v.pps           := r.ppsEnable and r.status.timeValid;
+         epochError := r.timeValue.seconds = x"FFFFFFFFFFFF";
       end if;
 
       -- The admission-to-commit cycle allows registered servo cancellation
@@ -667,6 +678,7 @@ begin
                      nextSeconds     := signed(resize(unsigned(r.command.setTime.seconds), 66));
                      nextNanoseconds := signed(resize(unsigned(slv'(r.command.setTime.nanoseconds & r.command.setTime.fraction)), 67));
                      v.status.discontinuity := '1';
+                     epochError := false;
                   end if;
                when PTP_CMD_PHASE_C =>
                   -- The producer supplies whole seconds and a signed remainder
@@ -678,14 +690,27 @@ begin
                       (signed(r.command.phaseSeconds) = 0 and signed(r.command.phaseFraction) < 0)) then
                      v.status.error := '1';
                   else
-                     nextSeconds     := nextSeconds + resize(signed(r.command.phaseSeconds), 66);
-                     nextNanoseconds := nextNanoseconds + resize(signed(r.command.phaseFraction), 67);
+                     -- Combine the phase with the unnormalized tick. Feeding
+                     -- ordinary rollover back through a second normalization
+                     -- serializes two wide carry/compare/select paths.
+                     phaseSeconds := signed(ptpAddFast(resize(unsigned(r.timeValue.seconds), 66),
+                        unsigned(resize(signed(r.command.phaseSeconds), 66))));
+                     nextSeconds := phaseSeconds;
+                     epochError := phaseSeconds < 0 or phaseSeconds >= EPOCH_LIMIT_C;
+                     nextNanoseconds := signed(ptpAddFast(unsigned(tickNanoseconds),
+                        unsigned(resize(signed(r.command.phaseFraction), 67))));
                      if nextNanoseconds < 0 then
-                        nextNanoseconds := nextNanoseconds + SECOND_C;
-                        nextSeconds     := nextSeconds - 1;
+                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), unsigned(SECOND_C)));
+                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), (65 downto 0 => '1')));
+                        epochError := phaseSeconds < 1 or phaseSeconds >= EPOCH_LIMIT_C+1;
+                     elsif nextNanoseconds >= shift_left(SECOND_C, 1) then
+                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(shift_left(SECOND_C, 1)), '1'));
+                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), to_unsigned(2, 66)));
+                        epochError := phaseSeconds < -2 or phaseSeconds >= EPOCH_LIMIT_C-2;
                      elsif nextNanoseconds >= SECOND_C then
-                        nextNanoseconds := nextNanoseconds - SECOND_C;
-                        nextSeconds     := nextSeconds + 1;
+                        nextNanoseconds := signed(ptpAddFast(unsigned(nextNanoseconds), not unsigned(SECOND_C), '1'));
+                        nextSeconds     := signed(ptpAddFast(unsigned(phaseSeconds), to_unsigned(1, 66)));
+                        epochError := phaseSeconds < -1 or phaseSeconds >= EPOCH_LIMIT_C-1;
                      end if;
                      v.status.discontinuity := '1';
                   end if;
@@ -726,7 +751,7 @@ begin
 
       -- Epoch/tick exhaustion cannot wrap into plausible time. A generation
       -- fault alone does not freeze raw ticks; retain the existing tick policy.
-      if nextSeconds < 0 or shift_right(nextSeconds, 48) /= 0 or unsigned(r.status.ticks) = x"FFFFFFFFFFFFFFFF" then
+      if epochError or unsigned(r.status.ticks) = x"FFFFFFFFFFFFFFFF" then
          v.status.fault := '1';
          v.status.error := '1';
          v.status.ticks := r.status.ticks;

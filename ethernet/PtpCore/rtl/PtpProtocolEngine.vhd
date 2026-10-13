@@ -1202,7 +1202,7 @@ begin
          policyValid := '0';
       elsif unsigned(phcStatus.ticks) < unsigned(rxMessage.capture.ticks) then
          policyValid := '0';
-      elsif unsigned(phcStatus.ticks)-unsigned(rxMessage.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
+      elsif ptpAgeExpired(phcStatus.ticks, rxMessage.capture.ticks, r.activeConfig.associationTimeout) then
          policyValid := '0';
       end if;
 
@@ -1231,7 +1231,7 @@ begin
       elsif rxQueueOverflow = '1' or txAbort = '1' or announceChange = '1' then
          externalAbort := '1';
       elsif r.portStatus.active = '1' then
-         if unsigned(phcStatus.ticks)-unsigned(r.lastTicks) > unsigned(r.syncLimit) then
+         if ptpAgeExpired(phcStatus.ticks, r.lastTicks, r.syncLimit) then
             externalAbort := '1';
          end if;
       end if;
@@ -1260,7 +1260,7 @@ begin
       qualifiedRatio := '0';
 
       if r.ratioCount = RATIO_QUALIFY_COUNT_C and
-         unsigned(phcStatus.ticks)-unsigned(r.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+         not ptpAgeExpired(phcStatus.ticks, r.ratioTicks, r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
       end if;
 
@@ -2027,7 +2027,7 @@ begin
             if r.pairState = PAIR_ACK_S and v.rxReady = '1' and rxValid = '1' then
                v.pairState := PAIR_IDLE_S;
                if r.pairPublish = '1' then
-                  if unsigned(phcStatus.ticks)-unsigned(r.pendingSync.capture.ticks) > unsigned(r.activeConfig.associationTimeout) then
+                  if ptpAgeExpired(phcStatus.ticks, r.pendingSync.capture.ticks, r.activeConfig.associationTimeout) then
                      rejectedEvents := rejectedEvents+1;
                   else
                      v.rateWord := 0;
@@ -2331,7 +2331,7 @@ begin
             v.measurementMaster.data.ratioValid := '0';
 
             if v.ratioCount = RATIO_QUALIFY_COUNT_C and
-               unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+               not ptpAgeExpired(phcStatus.ticks, v.ratioTicks, r.activeConfig.maxRateAge) then
                v.measurementMaster.data.ratioValid := '1';
             end if;
 
@@ -2448,13 +2448,13 @@ begin
       v.portStatus.ratioValid := '0';
 
       if v.ratioCount = RATIO_QUALIFY_COUNT_C and
-         unsigned(phcStatus.ticks)-unsigned(v.ratioTicks) <= unsigned(r.activeConfig.maxRateAge) then
+         not ptpAgeExpired(phcStatus.ticks, v.ratioTicks, r.activeConfig.maxRateAge) then
          v.portStatus.ratioValid := '1';
       end if;
 
       v.portStatus.announceValid := '0';
 
-      if unsigned(phcStatus.ticks)-unsigned(v.announceTicks) <= unsigned(v.announceLimit) then
+      if not ptpAgeExpired(phcStatus.ticks, v.announceTicks, v.announceLimit) then
          v.portStatus.announceValid := v.announceSeen;
       end if;
 

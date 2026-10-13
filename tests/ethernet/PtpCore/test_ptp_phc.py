@@ -12,7 +12,8 @@
 # - Sweep: 125/156.25 MHz, synchronous high and asynchronous low reset.
 # - Stimulus: AXI policy setup, full-epoch acquisition, signed phase/rate commands,
 #   rollover, invalid/monotonic operations, registered cancellation/expiry,
-#   and independent snapshot resets.
+#   and independent snapshot resets, including double-second phase carry
+#   and all normalization branches at both epoch limits.
 # - Checks: Every PHC cycle against the split-integer model; snapshot time/ticks
 #   are coherent, old sessions cancel, and read reset preserves the PHC.
 #   Cancellation after admission rejects commit; expiry overrides VALID commands.
@@ -206,6 +207,93 @@ async def phc_commands(d):
     assert int(d.commandAck.value) and int(d.commandError.value)
     await b.command("rate", -b.model.nominal, rejected=True)
     assert int(d.commandError.value)
+
+@cocotb.test()
+async def phase_normalization_limits(d):
+    # A near-one-second rate plus a positive remainder can carry two seconds.
+    # Exercise chunk carry/borrow boundaries and both signs using the same
+    # independent integer clock oracle as every ordinary PHC cycle.
+    b = Bench(d)
+    await b.reset()
+    await b.set_monotonic(False)
+    for increment in (1, (1 << 32)-1, (1 << 48)+1, NS*Q32-1):
+        await b.command("rate", increment-b.model.nominal)
+        for remainder in (NS*Q16-1, -NS*Q16+1, 1, -1):
+            await b.command("set", ((0xFFFF*NS+NS-1)*Q32)+0xFFFF)
+            await b.command("phase", remainder)
+            for _ in range(3):
+                await b.step()
+
+
+@cocotb.test()
+async def phase_epoch_bounds(d):
+    # Exercise every normalization branch at both epoch limits. Deliberately
+    # use legal mixed-sign whole/remainder operands as well as normal producer
+    # encodings, so the fault check cannot assume their signs match.
+    b = Bench(d)
+    second = NS*Q32
+    limit = 1 << 48
+
+    async def edge():
+        """Real-time timing: drive one complete manual PHC clock cycle."""
+        d.clk.value = 0
+        await Timer(b.half, unit="ns")
+        d.clk.value = 1
+        await Timer(b.half, unit="ns")
+
+    def time_value():
+        return (int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value))*Q32+int(d.timeFraction.value)
+
+    for increment, subsecond, remainder in (
+            (1, 0, -second+Q32),       # Borrow one second.
+            (1, second//2, 0),         # No normalization carry.
+            (1, second-1, second-Q32), # Carry one second.
+            (second-1, second-1, second-Q32)):  # Carry two seconds.
+        for base in (-2, -1, 0, 1, limit-3, limit-2, limit-1, limit, limit+1):
+            await b.reset()
+            await b.set_monotonic(False)
+            await b.command("rate", increment-b.model.nominal)
+            await b.command("set", 10*second+subsecond)
+            for _ in range(5):
+                if int(d.commandReady.value):
+                    break
+                await b.step()
+            assert int(d.commandReady.value)
+            initial = time_value()
+            # The command commits after one admission edge. Pick the whole
+            # seconds operand so the unnormalized commit base hits this bound.
+            whole = base-(initial+increment)//second
+            d.commandKind.value = KINDS["phase"]
+            d.commandGeneration.value = int(d.timeGeneration.value)
+            d.phaseSeconds.value = whole & ((1 << 64)-1)
+            d.phaseFraction.value = remainder & ((1 << 64)-1)
+            d.commandValid.value = 1
+            await edge()
+            assert time_value() == initial+increment
+            d.commandValid.value = 0
+            before = time_value()
+            ticks = int(d.timeTicks.value)
+            generation = int(d.timeGeneration.value)
+            expected = before+increment+whole*second+remainder
+            fault = not 0 <= expected < limit*second
+            await edge()
+            assert int(d.commandAck.value)
+            assert bool(int(d.fault.value)) == fault, (base, increment, remainder)
+            assert bool(int(d.commandError.value)) == fault
+            assert time_value() == (before if fault else expected)
+            assert int(d.timeTicks.value) == ticks+(not fault)
+            assert int(d.timeGeneration.value) == generation+1
+            assert not int(d.timeValid.value)
+            assert int(d.captureAbort.value)
+            if not fault and expected+increment >= limit*second:
+                # The next ordinary tick must also fault closed at rollover.
+                ticks = int(d.timeTicks.value)
+                await edge()
+                assert int(d.fault.value)
+                assert time_value() == expected
+                assert int(d.timeTicks.value) == ticks
+                assert int(d.captureAbort.value)
+
 
 @cocotb.test()
 async def registered_command_lifecycle(d):

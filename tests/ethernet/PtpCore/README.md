@@ -94,6 +94,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Standalone shared word processor | `test_ptp_compute.py` block/distributed configurations. | Add rate/E2E and endpoint fixtures when production clients migrate; standalone arithmetic is not endpoint equivalence. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| PHC carry/normalization or unsigned age arithmetic | `test_ptp_timing_math.py` for integer boundary/random oracles; `test_ptp_phc.py` for cycle semantics and epoch faults. | Add protocol expiry and servo cancellation cases when the shared age predicate changes. |
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
@@ -141,6 +142,9 @@ reporting the previous full-suite result as validation of a later edit.
   committed-state retention. Block/synchronous-high and distributed/asynchronous-low
   reset cases both enforce the derived 4,608-clock operation ceiling. See
   [service ownership and bounds](../../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound).
+- `test_ptp_timing_math.py`: production carry-select sums at 64/66/67 bits
+  and carry-save modulo-tick expiry against Python integers, including every
+  word boundary, wrapped/future timestamps, equality and seeded random inputs.
 - `test_ptp_math.py`, `test_ptp_phc.py`: checked arithmetic and cycle-by-cycle PHC
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.
   Math cancellation checks also assert that result-valid stays stable before
