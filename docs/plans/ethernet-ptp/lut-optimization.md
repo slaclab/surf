@@ -1,14 +1,21 @@
 # PTP logic and storage optimization
 
-## Proposed architecture for a further 50 percent reduction
+## Proposed architecture for substantial LUT reduction
 
-October 12, 2026. **Implementation started; area targets remain unmeasured.**
-The architecture changes how the endpoint computes and stores its state, rather than
-continue with isolated expression rewrites. Target **at most 19,000 total CLB
-LUTs per dedicated KCU105 PTP lane**, including the MAC and currently reported
-wrapper logic. Preserve both independent endpoints and autonomous FPGA control.
-The budgets below require synthesis experiments; they are design allocations,
-not predicted savings or an accuracy/conformance claim.
+October 12, 2026. **Implementation started; integrated area remains unmeasured.**
+The architecture changes how the endpoint computes and stores its state.
+The maintainer clarified that **halving LUT usage is motivation, not a hard
+requirement**. Implement the shared processor and word-storage design, then
+measure how much it saves. Preserve both independent endpoints and autonomous
+FPGA control. The earlier 19,000-LUT allocation below remains an illustrative
+planning exercise, not an acceptance threshold, predicted saving or conformance
+claim. Count complete lanes, including MAC and wrapper logic.
+
+The [full implementation brief](lut-implementation.md) is the execution handoff
+for another agent: final architecture, ownership, changes across all modules,
+correctness requirements and verification. It supersedes the staged rollout and
+hard numeric area gates previously proposed here. This analysis retains the
+design reasoning and historical evidence.
 
 ### Execution status and working assumptions
 
@@ -29,7 +36,7 @@ The architectural objective remains one measurement processor per endpoint and
 word-addressed working/configuration/snapshot storage; a converter-only change
 does not satisfy it. The subsequent standalone `PtpCompute` prototype below
 begins that redesign. Production clients and their configuration/snapshot banks
-have **not** migrated. Mapped area and latency remain migration gates.
+have **not** migrated. Mapped area and bounded latency still need verification.
 
 The maintainer proposed a **10 Hz maximum sustained Sync rate**. Use that as
 the working deployment envelope, with **8 Hz (`logSyncInterval = -3`)** as the
@@ -44,8 +51,8 @@ sizing; neither blocks the first increment. Retain accelerated test traffic.
 
 Local focused simulations and structural checks precede synthesis on the
 maintainer's build host. Vivado is unavailable on this local host. Record
-actual mapped area/timing before claiming savings or accepting later migration
-gates; the 19,000-LUT allocation remains unmeasured.
+actual mapped area/timing before claiming savings; the earlier allocation
+remains an unmeasured planning example, not a requirement.
 
 ### First implementation increment: October 12
 
@@ -73,10 +80,10 @@ checksum experiment's independent validation is recorded with its archived
 patches; it is not evidence of a retained optimization.
 
 No FIFO remapping, shared word ALU, configuration/snapshot RAM migration or
-parser redesign is implemented in this increment. Those remain subsequent gates
-below. A matched synthesis comparison and a default-MAC integration check remain
-next acceptance steps; include total lane LUTs, LUTRAM/SRLs and timing. Vivado is
-unavailable locally. The 19,000-LUT target remains unmeasured.
+parser redesign is implemented in this increment. Those remain part of the
+implementation brief. A matched synthesis comparison and a default-MAC integration
+check remain outstanding; include total lane LUTs, LUTRAM/SRLs and timing.
+Vivado is unavailable locally. Integrated area remains unmeasured.
 
 ### Shared word processor prototype: October 12
 
@@ -158,7 +165,91 @@ PHC command preparation while leaving PHC ticks independent. Move actual
 working records, configuration banks, coherent snapshots, median history and
 ledger entries to word storage in the owning migrations; do not recreate four
 wide operand/result staging banks around this RAM. The standalone foundation
-does not complete acceptance gate 2 below or the 19,000-LUT target.
+does not complete the production integration or storage redesign.
+
+### Divide and multiply audit: October 12
+
+The maintainer requested avoiding divisions wherever practical before migrating
+the clients. The shared word processor is the architectural foundation; its
+general divide operation permits exact results with serialized hardware.
+Preserve intermediate overflow rejection, nearest/ties-away rounding and signed
+truncation remainders. **LUT reduction is the objective; lower cycle count is
+only useful when required by the service deadline.** Skipping an operation does
+not save its hardware when other operations still need that shared resource.
+Extra detection, muxes, barrel shifters and dispatch states can increase area.
+
+IEEE 1588-2019 clause 11.3.2 specifies E2E delay arithmetic, including division
+by two; clause 12.3 leaves the synchronization mechanism to the implementation.
+Neither mandates general signed128 divider hardware. This audit used the
+maintainer's local standard and the production RTL at `8ff8333b0`.
+
+| Owner / operation | Denominator | Required implementation or optimization |
+| --- | --- | --- |
+| E2E mean path delay | 2 | Already a rounded shift; keep signed/fractional behavior. |
+| Protocol raw-clock rate | Measured raw tick/phase span | Genuinely variable. Retain shared exact division initially; a nominal 8 Hz Sync source does not make captures exactly periodic. Default minimum span is 0.5 s, so at most about two rate updates per second. |
+| E2E calibration, each nonzero plane | That capture's PHC increment, shifted to Q48 | Already removed for zero calibration. Evaluate reciprocal caching keyed to the captured increment; RX/TX may straddle RATE, so the current increment cannot replace either historical value. |
+| Servo bootstrap | Constant nominal Q32 increment | At 125 MHz this is `8*2^32 = 2^35`: a signed rounded shift is exact. Implement only if integrated area falls; bypassing a retained shared divider alone is insufficient. Other clocks require their actual elaborated constant. |
+| Servo integral interval | `1_000_000_000` | Exact constant division candidate; preserve the existing interval rounding before the later integral product. |
+| Servo ppb-to-addend | `1_000_000_000*2^16` | Exact constant conversion candidate. At 125 MHz, algebra reduces the complete conversion to `round(ratePpbQ16*1024/1953125)`. The validated +/-200000 ppb numerator fits signed45. |
+| Servo acquisition / PHC manual phase | `1_000_000_000*2^16` | Share a constant quotient/remainder operation outside the PHC tick path. Preserve full epoch range and truncation toward zero. |
+| Generic-derived clock/timeout constants | Elaborated constants | No runtime divider; do not count these as recoverable logic. |
+
+The protocol ratio is master nanoseconds per unsteered local cycle, not a
+dimensionless rate. It reconstructs elapsed time independently of numerical
+PHC steering. Removing it requires a different error/control derivation.
+The PHC tick/PPS path already uses addition, comparison and conditional
+subtraction; it does not wait for a divider.
+
+Constant division can use precomputed integer reciprocals, multiplication,
+shifts and correction; see the primary
+[LLVM constant-division implementation](https://llvm.org/doxygen/DivisionByConstantInfo_8cpp_source.html)
+for the arithmetic technique. This is not evidence of FPGA area. Bound the
+approximate quotient error and correct it before deriving the exact remainder
+and rounding decision. A fixed-point reciprocal without that proof does not
+establish equivalence. Compare mapped cost with a small shared iterative path.
+
+Multiplication deserves the same operation-by-operation treatment:
+
+| Product | Exact opportunity and constraint |
+| --- | --- |
+| Servo elapsed ticks times nominal increment | A constant shift is exact at power-of-two nominal increments, but the shared multiplier remains for other jobs. Defer bypass logic without net area evidence. The accepted interval is below `2^62` ticks; preserve the full product. |
+| Servo clamped ppb times nominal increment | Same area gate as interval scaling. The clamped ppb term is signed35; a proposed shifted product must still fit signed128. |
+| Shared word-engine products with a power-of-two operand | Defer runtime detection and shift paths: the general multiplier remains and new control/shifters cost LUTs. Any later proposal must preserve overflow, negative signs and `abs(MIN_SIGNED128)`. |
+| Offset times configurable Kp/Ki | Gains are runtime unsigned Q30, not generally powers of two. Favor proven operand-width reductions over runtime shortcuts; never reinterpret units or silently restrict allowed gains. |
+| Integral gain product times elapsed interval | Preserve the signed128 intermediate overflow rejection before the final shift. Factoring/reordering rounded stages can change behavior even when the real-valued equations are equal. |
+| Seconds times one billion and fixed ppb scales | Factor powers of two and evaluate constant DSP/shift-add implementations using the shared multiplier. Do not duplicate a wide adder tree at every call site. |
+| General word products | Skip provably zero high limbs and exploit known operand widths only with exact overflow checks; compare control overhead with the existing 16 partial products. |
+
+Bootstrap conversion is currently recomputed during tracking, although tracking
+normally uses retained frequency plus integral feedback. Skipping it is a later
+candidate: first check expiry/reacquisition transitions during an admitted job,
+as well as rejection and diagnostics. Likewise, precomputing gains in PHC-addend
+units could remove more ppb/seconds conversions, but requires separate
+quantization, saturation, anti-windup and closed-loop validation.
+
+**Area-first implementation decision:** leave the shared processor's iterative
+operation paths unchanged and remove the unmeasured servo arithmetic bypasses.
+Bound the existing servo divider at elaboration to its actual constant operands:
+46 bits at 125/156.25 MHz, expanding for lower-frequency standalone instances.
+This reduces the remainder register and subtraction widths without adding
+states or changing latency, dividend/result precision or rounding. Validate
+the clock-dependent bound, cancellation, held commands and overflow behavior.
+Mapped net LUT savings remain unmeasured until Vivado synthesis.
+
+The architectural priority remains one shared measurement processor and narrow
+word-addressed state. Prefer removing duplicated engines, wide register banks
+and their muxes. An arithmetic specialization must reduce integrated engine
+plus adapter/control LUTs, not merely shorten a simulation or reduce the number
+of issued jobs. Constant shifts can be useful when they replace physical logic;
+do not add parallel paths to accelerate an already adequate shared datapath.
+The prototype's 196-cycle multiply and observed 4,443-cycle divide are service
+budget inputs, not performance targets. End-to-end burst/timeout analysis is
+still required. This local width change does not complete the architecture.
+
+The focused servo regression passed all three clock configurations (six cocotb
+scenarios) in 213.43 s. VSG and Python lint pass; see the
+[divisor-bound review and evidence](rtl-review.md#october-12-servo-divisor-bound).
+No mapped-area or full endpoint result is claimed for this increment.
 
 ### Baseline and accounting
 
@@ -170,13 +261,14 @@ black boxes and the difference from the 105,948-LUT screenshot remain explicit
 limits; see the [full-report comparison](#october-12-arithmetic-synthesis-comparison).
 Rebuild an unchanged baseline with the same linked IP and tool as each candidate.
 If a now-linked PHY changes lane totals, retain its identical cost on both sides
-and recalculate the complete-lane target; do not compare a black-box baseline
+and recalculate the complete-lane comparison; do not compare a black-box baseline
 with a linked candidate.
 
 The following copper rows are disjoint. The corresponding SFP lane is 39,574
-LUTs. Count LUTRAM and SRLs in the target, and count shared resources exactly once.
+LUTs. Count LUTRAM and SRLs, and count shared resources exactly once. These
+allocations are retained for orientation; none is a pass/fail requirement.
 
-| Area bucket | Current LUTs | Proposed LUT budget | What must change |
+| Area bucket | Reported baseline LUTs | Illustrative LUT allocation | Intended change |
 | --- | ---: | ---: | --- |
 | Protocol engine excluding ledger, plus servo | 21,732 | 6,500 | One scheduled measurement processor; shared arithmetic, timestamp conversion and word-addressed working/configuration storage |
 | PHC | 2,993 | 1,800 | Keep the real-time counter; move command preparation/normalization onto the shared service |
@@ -186,7 +278,7 @@ LUTs. Count LUTRAM and SRLs in the target, and count shared resources exactly on
 | Ethernet MAC | 4,544 | 4,544 | Retain the shared MAC unchanged; no MAC saving assumed |
 | Remaining lane/wrapper accounting | 1,319 | 1,319 | No saving assumed; includes hierarchy residuals |
 | Unallocated margin | 0 | 137 | Integration headroom |
-| **Complete reported copper lane** | **39,615** | **19,000** | **52.0% reduction target** |
+| **Complete reported copper lane** | **39,615** | **19,000** | **52.0% illustrative reduction, not a requirement** |
 
 The pure `PtpEndpoint` subtotal is 27,181 today and 10,000 in this allocation;
 including both timestamp taps it is 33,752 today and 13,000 in the allocation.
@@ -197,8 +289,8 @@ the host link and other board logic are separate costs.
 
 After deferring checksum removal, the MAC allocation retains its full baseline
 cost. The shared protocol/servo allocation is correspondingly tighter at 6,500
-LUTs; this is an unproven design target, not a new savings estimate. Validate it
-with the shared-compute prototype before migrating all clients.
+LUTs in that planning exercise. This is not a savings estimate or a limit on
+completing the redesign. Use measured costs to assess the actual result.
 
 Allow an initial engineering budget of up to 12 additional BRAM36 tiles and
 32 additional DSPs per lane, subject to mapped timing and resource review.
@@ -386,8 +478,9 @@ These are elaboration-time implementation/features, not separate protocol
 profiles. Avoid adding one Boolean for every state-machine branch. Report build
 capabilities and minimum supported timings; disabled accesses must have documented
 read values/errors. Update PyRogue and register tests with any ABI extension.
-The principal 19,000-LUT budget assumes full diagnostics and the existing servo
-algorithm; optional reductions are fallback headroom, not double-counted savings.
+The illustrative allocation assumes full diagnostics and the existing servo
+algorithm. Optional feature reductions are separate studies, not requirements
+to reach a numeric LUT threshold or double-counted savings.
 
 ### Latency and numerical gates
 
@@ -436,30 +529,24 @@ engine can meet its contract.
 
 An alternative controller operating directly in PHC addend units could precompute
 gain conversions during configuration and remove ppb/seconds conversions from
-every sample. Keep it as a second algorithm experiment if the exact shared design
-misses budget: transformed gains, quantization, saturation, anti-windup and
-holdover need independent numerical and closed-loop acceptance.
+every sample. Keep it as a separate algorithm experiment if measured costs later
+justify it: transformed gains, quantization, saturation, anti-windup and holdover
+need independent numerical and closed-loop acceptance.
 
-### Implementation sequence and decision gates
+### Implementation handoff
 
-| Step | Concrete deliverable | Gate before proceeding |
-| --- | --- | --- |
-| 0. Controlled area baseline | Same tool/IP/constraints reports with hierarchy below E2E math, register/mux attribution, exact revisions/generics and timing paths | Reproduce baseline; isolate checksum, snapshot, converter and math costs. Temporary synthesis variants are attribution experiments, not production feature removals. |
-| 1. Shared timestamp conversion | One protocol converter/cache; shared EthMacCore remains unchanged | Focused protocol/consumer checks and mapped net area/timing; retain only demonstrable savings. |
-| 2. Compute prototype | Shared arithmetic plus word RAM exercised through existing leaf wrappers, initially with rate/E2E clients | Bit-exact independent vectors; cancellation/fairness and measured worst-case cycles; synthesize engine plus adapters, not the bare ALU alone. |
-| 3. Protocol/servo/storage migration | Move servo work, working records, configuration/snapshots and ledger words into the new architecture | Protocol-plus-servo allocation of 6,500 LUTs includes RAM, shared math, muxes and arbitration. Meet register/snapshot and message-lifetime contracts. |
-| 4. PHC and packet paths | Shared command normalization; specialized TX observer and streaming RX field store | Preserve uninterrupted PHC, calibrated physical timestamps, wire-fate quarantine, one-/two-step equivalence and overflow/reset behavior. |
-| 5. Integrated acceptance | Both independent lanes; full hierarchy and resource/timing reports; pinned master fixture | Each lane at most 19,000 LUTs on the matched baseline, pure core also at least halved, no failing constraints or unbounded processing latency; then placement/routing and hardware acceptance. |
+Execute the [complete design brief](lut-implementation.md), starting with the
+endpoint-owned service and rate/E2E clients, then carrying the same word-storage
+architecture through the remaining owners. Check behavior as changes land and
+measure the integrated result. There is no required percentage reduction or
+per-module LUT acceptance threshold, and no need to pause for approval or
+synthesis after every client.
 
-After each mapped result, update this allocation with actual costs. If the main
-protocol/servo group cannot approach 6,500 LUTs, stop incremental tuning and
-compare a fixed microsequencer with ROM control versus the current state machines.
-The current allocation already retains the full 4,544-LUT MAC cost. If that
-forces the shared-compute target below what the prototype can deliver, record
-the remaining gap and reconsider PTP-local storage/parser architecture before
-reopening shared-MAC changes.
-Do not claim success by dropping compatibility, observability or numerical range
-without recording the selected deployment tradeoff.
+Use actual hierarchy costs to identify remaining duplicated datapaths, register
+banks or control muxes. Fixed ROM-based sequencing is an option if control cost
+dominates, not a mandatory fallback triggered by a guessed allocation. Preserve
+compatibility, diagnostics and numerical range. Shared EthMacCore remains out of
+scope; its measured cost stays in the complete-lane accounting.
 
 Use the [test-selection guide](../../../tests/ethernet/PtpCore/README.md#selecting-tests)
 throughout: arithmetic/PHC/E2E/servo leaves for their operations, protocol RAM

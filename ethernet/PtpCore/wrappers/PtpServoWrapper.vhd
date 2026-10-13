@@ -6,11 +6,11 @@
 --
 -- Builds measurement and PHC-status records from test-controlled forward/delay
 -- values, raw ticks and rate ratio, then exposes the production servo's
--- filter, offset, frequency, quality and command outputs. The fixture uses
--- 125 MHz, enables the servo and supplies valid time and ratio flags. The
--- standard AXI adapter exposes the local bank so Python can program sample
--- and age limits, then drive prepare/apply strobes. The shared configuration
--- record supplies the port-owned timeout limits for this isolated fixture.
+-- filter, offset, frequency, quality and command outputs. The fixture selects
+-- the nominal clock frequency, enables the servo and supplies valid time and
+-- ratio flags. The standard AXI adapter exposes the local bank so Python can
+-- program sample and age limits, then drive prepare/apply strobes. The shared
+-- configuration record supplies the port-owned timeout limits for this fixture.
 --
 -- The wrapper contains no PHC. Cocotb independently drives command readiness,
 -- acknowledgement and error to test command holding, cancellation and when a
@@ -38,6 +38,9 @@ use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
 
 entity PtpServoWrapper is
+   generic (
+      CLK_FREQ_G : positive := 125000000);
+
    port (
       clk                  : in  sl;
       rst                  : in  sl;
@@ -130,7 +133,7 @@ begin
          ADDR_WIDTH    => 32,
          EN_ERROR_RESP => true,
          HAS_WSTRB     => 1,
-         FREQ_HZ       => 125000000)
+         FREQ_HZ       => CLK_FREQ_G)
       port map (
          S_AXI_ACLK      => clk,             -- [in]
          S_AXI_ARESETN   => resetN,          -- [in]
@@ -162,7 +165,7 @@ begin
 
    U_DUT : entity surf.PtpServo
       generic map (
-         CLK_FREQ_G => 125000000)
+         CLK_FREQ_G => CLK_FREQ_G)
       port map (
          clk                        => clk,             -- [in]
          rst                        => rst,             -- [in]

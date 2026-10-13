@@ -19,6 +19,8 @@
 #   maximum, circular replacement and abort/restart of partially filled history.
 #   Cancel each median phase and the shared arithmetic transition windows;
 #   check stalled inputs, AXI-only reset, stale work and coherent snapshots.
+#   Clock cases cover both MAC nominal increments and a standalone nominal
+#   divisor wider than the seconds/ppb constants (47 rather than 46 bits).
 # - Stimulus: AXI configuration and independent rational PI oracle; intervals are injected
 #   directly so numerical seconds do not require millions of simulator cycles.
 # - Checks: Every applied rate addend, full-width offset/filter state, and held
@@ -30,14 +32,18 @@ from fractions import Fraction
 from collections import deque
 from itertools import permutations
 import cocotb
+import pytest
 from cocotb.triggers import Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import env_int, run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_reference import nearest, Q16, Q32, NS
 from tests.ethernet.PtpCore.ptp_endpoint_reference import PiController, Q48
 
 @cocotb.test()
 async def numerical_control(d):
+    frequency = env_int("CLK_FREQ_G", default=125000000)
+    nominal = nearest(Fraction(NS*Q32, frequency))
+
     async def edge(check_registered=False, **values):
         registered = ("commandValid", "cancelCommand", "expireTime")
         before = tuple(int(getattr(d, name).value) for name in registered) if check_registered else None
@@ -96,7 +102,7 @@ async def numerical_control(d):
 
     async def collect(expected_ppb):
         await wait_command()
-        expected_rate = nearest(Fraction(8*Q32*expected_ppb, NS*Q16))
+        expected_rate = nearest(Fraction(nominal*expected_ppb, NS*Q16))
         assert int(d.ratePpb.value) == expected_ppb & ((1 << 64)-1)
         assert int(d.commandKind.value) == 2
         assert int(d.commandRate.value) == expected_rate & ((1 << 64)-1)
@@ -117,8 +123,8 @@ async def numerical_control(d):
         await configure(limits, kp, ki)
         model = PiController(kp=Fraction(kp, 1 << 30), ki=Fraction(ki, 1 << 30),
                              max_frequency=limits[0], max_slew=limits[1], max_rate=limits[2])
-        ratio = nearest(8*(1+Fraction(ppm, 1000000))*Q48)
-        bootstrap = nearest(Fraction((ratio-8*Q48)*NS, 8*Q32))
+        ratio = nearest(Fraction(NS, frequency)*(1+Fraction(ppm, 1000000))*Q48)
+        bootstrap = nearest(Fraction((ratio-(nominal << 16))*NS, nominal))
         now = 100
         for index, delay in enumerate([100, 101, 500, 99, 100]):
             await edge(ticks=now+1, sampleTicks=now, isDelay=1, delayValue=delay*Q16, inputValid=1)
@@ -132,7 +138,9 @@ async def numerical_control(d):
             interval = (Fraction(1, 8), Fraction(1, 4), Fraction(1))[index % 3]
             if ppm in (0, 1):
                 interval = Fraction(1)
-            now = last_sample + int(interval*125000000)
+            now = last_sample + int(interval*frequency)
+            # The controller quantizes elapsed seconds to Q32 before PI work.
+            interval = Fraction(nearest(Fraction((now-last_sample)*nominal, NS)), Q32)
             offsets = (1000, -500, 100, -20, 0)
             if abs(ppm) == 200:
                 # Bootstrap minus opposite slew can reach +/-400000 ppb.
@@ -163,7 +171,7 @@ async def numerical_control(d):
             # truncated product or update the acknowledged frequency.
             rejected = int(d.rejectedCount.value)
             previous_rate = int(d.ratePpb.value)
-            now = last_sample+187500000
+            now = last_sample+frequency*3//2
             await edge(ticks=now+100, sampleTicks=now, isDelay=0,
                        forwardValue=(100*Q16-(1 << 63)) & ((1 << 128)-1), inputValid=1)
             await edge(inputValid=0)
@@ -203,18 +211,18 @@ async def numerical_control(d):
             await edge(rst=0)
             await configure((100000, 50000, 150000))
             model = PiController()
-            ratio = nearest(8*(1+Fraction(100, 1000000))*Q48)
-            bootstrap = nearest(Fraction((ratio-8*Q48)*NS, 8*Q32))
+            ratio = nearest(Fraction(NS, frequency)*(1+Fraction(100, 1000000))*Q48)
+            bootstrap = nearest(Fraction((ratio-(nominal << 16))*NS, nominal))
             await edge(ticks=100, sampleTicks=100, isDelay=1, delayValue=100*Q16, inputValid=1)
             await edge(inputValid=0)
             await wait_input()
-            now = 125000000
+            now = frequency
             if tracking:
                 await edge(ticks=now, sampleTicks=now, isDelay=0, forwardValue=101*Q16,
                            ratio=ratio, inputValid=1)
                 await edge(inputValid=0)
                 await collect(model.sample(Q16, Fraction(1), bootstrap))
-                now += 125000000
+                now += frequency
             await edge(ticks=now, sampleTicks=now, isDelay=0, forwardValue=200*Q16,
                        ratio=ratio, inputValid=1)
             for _ in range(cutoff):
@@ -374,5 +382,8 @@ async def median_history(d):
         assert await read(0x3FC, 4) == phase+100
 
 
-def test_ptp_servo():
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpservowrapper")
+@pytest.mark.parametrize("frequency", [125000000, 156250000, 31250],
+                         ids=["125MHz", "156MHz", "wide-divisor"])
+def test_ptp_servo(frequency):
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpservowrapper",
+                      parameters={"CLK_FREQ_G": frequency})

@@ -29,6 +29,8 @@
 -- only acknowledged rate commands update the retained frequency estimate.
 -- A shared local adder/clamp and rounded correction path sequence the work
 -- around PtpMath; cancellation and expiry remain active in every state.
+-- The divider is bounded to the largest constant denominator used by this
+-- controller; full dividend/result precision and scheduling are unchanged.
 --
 -- Lock/unlock thresholds and counters provide quality hysteresis. Loss of
 -- fresh measurements enters holdover, removes phase slew and preserves the
@@ -201,6 +203,25 @@ architecture rtl of PtpServo is
    constant SECOND_Q16_C : signed(127 downto 0)  := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C);
 
    constant PPB_Q16_SCALE_C : signed(127 downto 0) := shift_left(to_signed(PTP_PPB_SCALE_C, 128), PTP_PPB_FRAC_BITS_C);
+
+   -- Elaboration only: the encoded increment exceeds the VHDL integer range.
+   function nominalWidth return positive is
+      variable width : positive := 1;
+   begin
+      for i in NOMINAL_C'range loop
+         if NOMINAL_C(i) = '1' then
+            width := maximum(width, i+1);
+         end if;
+      end loop;
+
+      return width;
+   end function;
+
+   -- All divisions use nominal increment, seconds or ppb scaling constants.
+   -- Derive the bound so standalone low-frequency instances remain supported.
+   constant DIVISOR_WIDTH_C : positive := maximum(nominalWidth,
+      maximum(bitSize(PTP_NANOSECONDS_PER_SECOND_C)+PTP_TIME_FRAC_BITS_C,
+              bitSize(PTP_PPB_SCALE_C)+PTP_PPB_FRAC_BITS_C));
 
    -- Offset Q16 * gain Q30 -> ppb Q16. Integration additionally multiplies
    -- by elapsed seconds with the PHC addend's fractional precision (Q32).
@@ -393,9 +414,10 @@ begin
 
    U_Math : entity surf.PtpMath
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
+         TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
+         DIVISOR_WIDTH_G => DIVISOR_WIDTH_C)
       port map (
          clk             => clk,            -- [in]
          rst             => rst,            -- [in]

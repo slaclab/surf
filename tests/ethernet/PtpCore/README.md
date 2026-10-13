@@ -169,6 +169,10 @@ reporting the previous full-suite result as validation of a later edit.
   calibration, raw-tick rate estimator and PI models; operating-envelope sweeps.
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
+  Clock parameters cover 125 MHz, 156.25 MHz and a standalone 31.25 kHz
+  arithmetic corner that needs a 47-bit nominal divisor; the MAC clocks need
+  46-bit seconds/ppb divisors. Injected raw ticks keep numerical intervals
+  independent of simulation runtime; the low-clock case is not a PHY mode.
   Direct median checks cover every ordering of five distinct values, each
   startup population, duplicates, signed64 maximum, circular replacement and
   rejected samples. They check nine comparison clocks, input backpressure,

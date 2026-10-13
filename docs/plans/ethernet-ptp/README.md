@@ -15,7 +15,8 @@ acceptance remain open.
 | What was checked, and what remains to approve? | [Review and acceptance record](rtl-review.md), [test procedures/fixtures](../../../tests/ethernet/PtpCore/README.md) |
 | How do tests relate to IEEE 1588? | [Specification coverage and gaps](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | How can numerical time drive a physical clock? | [Physical-clock requirements](physical-clock-integration.md) |
-| How do we halve PTP area, and what savings are already measured? | [Architecture, implementation, budgets and earlier evidence](lut-optimization.md#proposed-architecture-for-a-further-50-percent-reduction) |
+| How do we implement the full compute/storage redesign? | [Implementation brief for the executing agent](lut-implementation.md) |
+| Why this area architecture, and what savings are already measured? | [Architecture, planning allocations and earlier evidence](lut-optimization.md#proposed-architecture-for-substantial-lut-reduction) |
 | Why were earlier designs rejected, and what did older tests establish? | [Historical experiments and milestones](history/verification.md), [September 8 design review](history/review-2026-09-08.md) |
 | What unimplemented options were studied? | [Application timing, co-simulation and clock/PHY studies](history/design-studies.md) |
 
@@ -157,11 +158,12 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
 4. Select physical reference/cleanup and application epoch-transfer requirements
    through [physical-clock integration](physical-clock-integration.md). Numerical
    time, physical frequency/phase and application events remain distinct.
-5. Continue the [50% area-reduction plan](lut-optimization.md#proposed-architecture-for-a-further-50-percent-reduction):
-   a shared measurement processor with word-addressed RAM, specialized timestamp
-   paths while retaining the shared Ethernet MAC. The allocation targets at most
-   19,000 LUTs per dedicated lane while preserving independent PHCs and autonomous
-   control; the target remains unmeasured. Shared protocol timestamp conversion
+5. Execute the [compute and word-storage implementation brief](lut-implementation.md):
+   a shared measurement processor, RAM working/configuration/snapshot state and
+   specialized timestamp paths, retaining the shared Ethernet MAC, independent
+   PHCs and autonomous control. The maintainer clarified that halving LUT usage
+   is motivation, not an acceptance requirement; report the measured result of
+   the completed design. Shared protocol timestamp conversion
    is committed at `3f0daa750`; checksum changes were deferred/reverted. See the
    [first increment](lut-optimization.md#first-implementation-increment-october-12).
    The standalone [word processor prototype](lut-optimization.md#shared-word-processor-prototype-october-12)
@@ -170,8 +172,8 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
    engine-plus-adapter area and actual configuration/snapshot/median/ledger word
    storage remain next work, followed by servo/PHC preparation migration.
    The working Sync ceiling is 10 Hz, initially configured at 8 Hz. Obtain a
-   matched synthesis baseline and qualify compute latency before migrating the
-   remaining arithmetic clients.
+   matched synthesis comparison and qualify complete compute-service latency.
+   These are evidence requirements, not per-module approval or area thresholds.
    Additional PHYs, a timed-event
    scheduler, shared simulator timing, one-step transmit, VLAN/UDP, BMCA and
    White Rabbit remain optional future scope, not first-endpoint dependencies.

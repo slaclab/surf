@@ -881,6 +881,38 @@ contracts, service deadlines/cancellation under bursts, engine-plus-adapter
 area, and comparison with a shared existing-width divider. Configuration,
 snapshots, median and ledger word storage remain unimplemented.
 
+## October 12 servo divisor bound
+
+The [arithmetic audit and area decision](lut-optimization.md#divide-and-multiply-audit-october-12)
+retains only an elaboration-time bound on the servo's existing `PtpMath`
+divider. Review traced every divide operand: nominal Q32 increment, one billion,
+seconds Q16 and ppb Q16 scaling. The largest sets `DIVISOR_WIDTH_G`; normal
+125/156.25 MHz clocks select 46 bits, while the standalone 31.25 kHz case
+needs 47. The divisor bound reduces the remainder and trial-subtraction widths.
+Full dividend/quotient precision, rounding, intermediate overflow checks and
+the 128-iteration schedule remain intact. Servo `comb`, `seq` and output
+publication are byte-identical to the preceding implementation. No runtime
+shortcut, new state, public production interface, register-map or CDC change
+is included.
+
+Focused GHDL 6.0.0 / cocotb 2.1.0 verification on October 12:
+
+- `test_ptp_servo.py`: **3 clock configurations / 6 cocotb scenarios passed**
+  in 213.43 s with two workers. Independent rational PI checks cover both
+  oscillator signs, rounded elapsed intervals, maximum gains/offsets, actuator
+  limits and rejected integral overflow. Held commands, acknowledgement,
+  cancellation, median history, AXI-only reset and snapshots also passed.
+  The fixture now accepts the nominal frequency as a generic; raw ticks remain
+  injected, so the low-frequency case is arithmetic coverage, not a PHY mode.
+- VSG passes both edited VHDL files (689 rules each); Python flake8 and diff
+  whitespace pass. The existing ruckus import resolves both files to current
+  source. Temporary batch evidence: `/private/tmp/ptp-servo-divisor-20261012.log`
+  and `/private/tmp/ptp-servo-divisor-20261012.xml`.
+
+No endpoint/full-suite rerun was selected for this static width change. Vivado
+is unavailable locally; mapped LUT/FF/DSP savings and timing remain unmeasured.
+The shared-processor client and word-state migrations remain outstanding.
+
 ## Outstanding acceptance
 
 - Existing MAC RX IPv4 error handling: a successful IP/transport checksum check
