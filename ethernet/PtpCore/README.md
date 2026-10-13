@@ -78,6 +78,11 @@ insertion remains outside scope.
   acceptance edge to reject the pending command before it takes effect.
   Expiry assertion and release reach the PHC one clock after the servo samples
   the condition; measurement readiness remains combinational backpressure.
+- `PtpCompute` is a standalone prototype for replacing the separate arithmetic
+  engines and wide staging records. Four contexts share a 32-bit word RAM and
+  arithmetic datapath. It is not instantiated by `PtpEndpoint`; current clients,
+  PHC ticks and register banks retain their existing implementations. See the
+  [prototype contract, checks and migration gates](../../docs/plans/ethernet-ptp/lut-optimization.md#shared-word-processor-prototype-october-12).
   Servo status and RX counters are authoritative registered records, shared
   by their output ports and local state updates.
 - Configuration defaults live in `PTP_PORT_CONFIG_INIT_C` and

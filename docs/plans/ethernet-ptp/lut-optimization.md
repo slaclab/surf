@@ -23,12 +23,13 @@ the consuming project's `docs/history/ptp-checksum-offload-2026-10-12/`.
 Both independent ports, autonomous control, one-/two-step reception, E2E,
 numerical precision, the current servo and full diagnostics remain the reference
 behavior. Additional BRAM/DSP use is acceptable within the allocation below.
-The maintainer authorized committing this preparatory checkpoint on October 12.
+The maintainer authorized committing this preparatory checkpoint on October 12;
+it is SURF `3f0daa750`, recorded by consuming-project commit `e79b730`.
 The architectural objective remains one measurement processor per endpoint and
 word-addressed working/configuration/snapshot storage; a converter-only change
-does not satisfy it. Begin the shared arithmetic/RAM prototype next, without
-waiting for synthesis to start that independent development. Mapped area and
-latency remain gates before replacing the production clients.
+does not satisfy it. The subsequent standalone `PtpCompute` prototype below
+begins that redesign. Production clients and their configuration/snapshot banks
+have **not** migrated. Mapped area and latency remain migration gates.
 
 The maintainer proposed a **10 Hz maximum sustained Sync rate**. Use that as
 the working deployment envelope, with **8 Hz (`logSyncInterval = -3`)** as the
@@ -76,6 +77,88 @@ parser redesign is implemented in this increment. Those remain subsequent gates
 below. A matched synthesis comparison and a default-MAC integration check remain
 next acceptance steps; include total lane LUTs, LUTRAM/SRLs and timing. Vivado is
 unavailable locally. The 19,000-LUT target remains unmeasured.
+
+### Shared word processor prototype: October 12
+
+`rtl/PtpCompute.vhd` implements the first arithmetic/storage foundation of the
+new architecture. It is a standalone synthesizable unit in the normal ruckus
+source inventory, **not yet instantiated by `PtpEndpoint`**. No production
+`PtpMath` instance, timestamp converter, configuration bank or snapshot bank
+has been removed by this prototype. The PHC tick path is unchanged.
+
+Four contexts share one 128-by-32 `surf.SimpleDualPortRam`, a 32-bit data ALU
+with carry/borrow and a single 32-by-32 partial-product multiplication site.
+The latter is intended for DSP mapping; actual primitive mapping is unmeasured.
+Operands, full 256-bit multiplication scratch, division trials, quotient and
+remainder live in RAM. Only word-sized working registers, a 64-bit partial
+product and small ownership/descriptor fields remain in registers. There are
+no 128-bit arithmetic operand/result ports; the wide tag port carries four
+independent 32-bit provenance tags. The final production storage layout and
+client adapter interfaces are still to be designed.
+
+| Word locations | Ownership and meaning |
+| --- | --- |
+| `16*client + 0..3` | Signed128 operand A, least-significant word first |
+| `16*client + 4..7` | Signed128 operand B, least-significant word first |
+| `16*client + 8..11` | Wrapped signed128 result |
+| `16*client + 12..15` | Signed truncation remainder, zero for non-division |
+| `64..89` | Shared magnitude/product/remainder/trial scratch; inaccessible to clients |
+| `90..127` | Unused physical depth padding |
+
+Operation codes 0/1/2/3 select add/subtract/multiply/divide. All eight operand
+words must be written before job admission. Signed128 overflow reports error
+and retains the wrapped result. Divide by zero reports zero result/remainder
+and error. Optional division rounding is nearest with ties away from zero;
+remainder always refers to the unrounded, truncated quotient, matching `PtpMath`.
+Precision/range have not been reduced to make the word datapath smaller.
+
+Each context admits one queued or completed job. A round-robin scheduler shares
+the nonpreemptive arithmetic engine. Word accesses and jobs alternate when both
+are eligible; the RAM port is serviced between arithmetic jobs. A completed
+context can hold its result while other contexts progress. Result acknowledgement
+releases unread result words; an accepted read still completes and prevents slot
+reuse until its held response is consumed. Reset and per-context cancellation
+invalidate ownership without resetting RAM. Cancellation wins over transfers,
+and tags/result-valid/read-valid are registered. Client adapters must provide
+the correct generation/cancellation association; tags alone do not enforce it.
+
+The focused `test_ptp_compute.py` fixture exercises the real unit with block and
+distributed RAM. Its independent integer oracle covers 185 arithmetic requests
+per configuration, including full signed128 extrema, carries across words,
+overflow, zero divisors, both rounding modes and signed remainders. Additional
+scenarios check four queued clients, held result/read responses, partial operand
+admission, tags, continuous memory contention, reset and cancellation during
+queued/active/completed work and result-word writes. Both memory configurations
+pass all three scenarios. VSG and Python lint pass. These are standalone checks,
+not equivalence of a migrated endpoint or evidence of mapped LUT savings.
+GHDL synthesis completes and recognizes the 32-bit-by-128 RAM; it ignores
+vendor memory attributes, so Vivado RAM/DSP mapping and area remain unmeasured.
+
+| Operation | Largest observed admission-to-result latency, isolated context |
+| --- | ---: |
+| Add / subtract | 26 clocks |
+| Multiply | 196 clocks |
+| Divide, including optional rounding | 4,443 clocks |
+
+The test bounds are 7,000 clocks per isolated job and 28,000 for a four-job
+batch; the observed maxima are from directed/seeded vectors, not an exhaustive
+proof. At 125 MHz, 4,443 clocks is 35.544 microseconds and the four-job test bound
+is 224 microseconds. These conversions exclude operand transfer, complete
+measurement instruction sequences and packet bursts. A divide alone exceeds
+the existing 2,048-clock minimum association setting; migration must derive
+the compact service/timeout contract instead of silently preserving that floor.
+The default two-second timeout and proposed 10 Hz sustained Sync ceiling do not
+remove the need to bound burst load and measurement-to-command latency.
+
+**Next implementation:** connect protocol-rate/E2E operations to one shared
+instance through word accesses and test their existing numerical/provenance
+contracts. Measure engine **plus adapters**, compare the existing-width divider
+alternative, and budget complete operation sequences. Then migrate servo and
+PHC command preparation while leaving PHC ticks independent. Move actual
+working records, configuration banks, coherent snapshots, median history and
+ledger entries to word storage in the owning migrations; do not recreate four
+wide operand/result staging banks around this RAM. The standalone foundation
+does not complete acceptance gate 2 below or the 19,000-LUT target.
 
 ### Baseline and accounting
 
@@ -395,8 +478,9 @@ manifest for new files. The architecture/budget proposal was documentation-only;
 implementation and focused verification now follow the increment record above.
 No mapped synthesis result exists for this increment.
 
-**First implementation:** shared protocol timestamp conversion, with the measured
-compute-service latency/area prototype next. Checksum elaboration is deferred
+**Current implementation:** shared protocol timestamp conversion and a standalone
+[word processor prototype](#shared-word-processor-prototype-october-12).
+Rate/E2E integration and mapped engine-plus-adapter area are next. Checksum elaboration is deferred
 and reverted. Keep both receive modes, E2E, the current servo and full diagnostics
 as the reference behavior. The largest saving depends on completing the shared
 computation/storage redesign.

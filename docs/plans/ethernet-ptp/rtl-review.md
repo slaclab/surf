@@ -848,6 +848,39 @@ unchanged. Its independent checks and patches are archived in the consuming
 project. The interrupted real-MAC batch produced no completed passing result.
 No new timing-accuracy or mapped-area claim follows from simulation or lint.
 
+## October 12 shared word processor prototype
+
+`PtpCompute` is a standalone foundation for the
+[shared measurement processor](lut-optimization.md#shared-word-processor-prototype-october-12),
+not yet a production replacement. Review checked the single data ALU,
+word-addressed operands/results/scratch, signed magnitude restoration and
+overflow, registered RAM strobes/read latency, per-context cancellation and
+result/read ownership. There is no endpoint or register ABI change.
+
+Focused GHDL 6.0.0 / cocotb 2.1.0 verification on October 12:
+
+- `test_ptp_compute.py`: **2 RAM configurations, 6 cocotb scenarios passed**
+  in 30.57 s with two workers. Each configuration exercises 185 independent
+  integer-oracle requests plus ownership, contention and cancellation cases.
+  Result acknowledgement honors ready/valid even with an outstanding read;
+  that read blocks context reuse until consumed. Reset and queued/active/held
+  cancellation invalidate old operand ownership; other contexts continue.
+- Largest isolated admission-to-result observations: add/subtract 26 clocks,
+  multiply 196, divide 4,443. Tests impose conservative bounds, not an exhaustive
+  maximum proof. Queueing, operand transport and complete measurement sequences
+  still require budget/timeout analysis before client migration.
+- VSG, Python flake8, ruckus import and diff whitespace pass. GHDL synthesis
+  recognizes one 32-bit-by-128 RAM and completes; vendor memory attributes are
+  ignored by that tool. Whole-word write configuration uses `BYTE_WIDTH_G=32`,
+  also avoiding GHDL's inactive byte-enable branch width diagnostic.
+
+Vivado is unavailable locally. No mapped LUT/BRAM/DSP or timing result exists
+for the prototype, and no migrated-client, endpoint or full-suite regression
+was run. Next acceptance includes rate/E2E adapters and existing leaf numerical
+contracts, service deadlines/cancellation under bursts, engine-plus-adapter
+area, and comparison with a shared existing-width divider. Configuration,
+snapshots, median and ledger word storage remain unimplemented.
+
 ## Outstanding acceptance
 
 - Existing MAC RX IPv4 error handling: a successful IP/transport checksum check

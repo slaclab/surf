@@ -91,6 +91,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Ordinary master traffic | `test_ptp_exchange.py::test_master_headers` and affected `test_ordinary_master` edition/mode nodes. | Add a continuous PHY/PHC/servo run only when that interaction changes; raw-tick fixture results do not qualify hardware rates. |
 | Sourced header, version, TLV or two-step checks | The relevant node/scenario in `test_ptp_specification.py` (RX or protocol). | Expand for affected PHY timing or normative cases absent from that fixture; the selected cases are not the whole standards audit. |
 | Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
+| Standalone shared word processor | `test_ptp_compute.py` block/distributed configurations. | Add rate/E2E and endpoint fixtures when production clients migrate; standalone arithmetic is not endpoint equivalence. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
@@ -133,6 +134,11 @@ reporting the previous full-suite result as validation of a later edit.
 
 ## Autonomous endpoint tests
 
+- `test_ptp_compute.py`: standalone `PtpCompute` prototype, not yet instantiated
+  by the endpoint. Block/distributed RAM cases check full signed128 arithmetic
+  using an independent Python integer oracle, four contexts, ownership/tags,
+  read/result stalls, contention, cancellation/reset and bounded job service.
+  See the [prototype contract and latency evidence](../../../docs/plans/ethernet-ptp/lut-optimization.md#shared-word-processor-prototype-october-12).
 - `test_ptp_math.py`, `test_ptp_phc.py`: checked arithmetic and cycle-by-cycle PHC
   comparison, command/reset ordering, PPS and independent-clock snapshot sessions.
   Math cancellation checks also assert that result-valid stays stable before

@@ -162,8 +162,13 @@ tracked in the [review record](rtl-review.md#phy-and-hardware-acceptance).
    paths while retaining the shared Ethernet MAC. The allocation targets at most
    19,000 LUTs per dedicated lane while preserving independent PHCs and autonomous
    control; the target remains unmeasured. Shared protocol timestamp conversion
-   is implemented in the working tree; checksum changes were deferred/reverted. See the
+   is committed at `3f0daa750`; checksum changes were deferred/reverted. See the
    [first increment](lut-optimization.md#first-implementation-increment-october-12).
+   The standalone [word processor prototype](lut-optimization.md#shared-word-processor-prototype-october-12)
+   now shares arithmetic and 32-bit RAM across four contexts; both memory modes
+   pass focused checks. It is not integrated into the endpoint. Rate/E2E migration,
+   engine-plus-adapter area and actual configuration/snapshot/median/ledger word
+   storage remain next work, followed by servo/PHC preparation migration.
    The working Sync ceiling is 10 Hz, initially configured at 8 Hz. Obtain a
    matched synthesis baseline and qualify compute latency before migrating the
    remaining arithmetic clients.

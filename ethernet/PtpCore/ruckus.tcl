@@ -12,7 +12,8 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 source $::env(RUCKUS_PROC_TCL)
-# Includes PtpEndpointControl (formerly PtpReg) and the RX tap/leaf blocks.
+# Includes PtpEndpointControl, RX tap/leaf blocks and the standalone PtpCompute
+# word-arithmetic prototype. PtpEndpoint does not instantiate the prototype yet.
 loadSource -lib surf -dir "$::DIR_PATH/rtl"
 # Includes the direct PtpProtocolEngine fixture (PtpProtocolEngineWrapper) and PHY fixtures.
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers"
