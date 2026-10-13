@@ -313,11 +313,12 @@ async def rx_contract(dut):
 
     if mode == "DIRECT":
         # Prefix rotation must handle arbitrary partial beats, not just the
-        # fixed eight-byte cadence used by the physical XGMII producer.
+        # fixed eight-byte cadence used by the physical XGMII producer. Three
+        # headers exercise two length completions plus a partial third header.
         for width in range(1, 9):
             before = len(bench.received)
             await bench.direct(frame(kind=11, marker=width,
-                                     tlvs=bytes.fromhex("1234000056780002abcd")), width=width)
+                                     tlvs=bytes.fromhex("12340000567800009abc0002abcd")), width=width)
             await bench.wait()
             assert len(bench.received) == before+1
             assert int.from_bytes(bench.received[-1].body[:10], "big") == width

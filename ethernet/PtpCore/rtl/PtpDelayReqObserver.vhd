@@ -359,6 +359,8 @@ begin
       variable offset          : natural range 0 to MAX_FRAME_G+9;
       variable first           : natural range 0 to MAX_FRAME_G+1;
       variable last            : natural range 0 to MAX_FRAME_G+9;
+      variable tlvFirst        : natural range 0 to MAX_FRAME_G+9;
+      variable tlvLast         : natural range 0 to MAX_FRAME_G+9;
       variable compact         : integer range -1 to STORE_BYTES_C-1;
       variable captureIndex    : natural;
       variable descriptorBank  : natural range 0 to BANKS_C-1;
@@ -367,7 +369,6 @@ begin
       variable frameComplete : boolean;
       variable byteCount     : natural range 0 to 8;
       variable crcData       : slv(63 downto 0);
-      variable keepGap       : boolean;
    begin
       v               := r;
       octet           := (others => '0');
@@ -388,7 +389,6 @@ begin
       v.fifoRst        := '0';
       byteCount := 0;
       crcData   := (others => '0');
-      keepGap   := false;
       v.storeWrite := (others => '0');
       v.captureWrite := '0';
       v.readEnable := '0';
@@ -466,14 +466,22 @@ begin
          if v.frame.active = '1' then
             -- Keep errors until EOF, even if a later beat has clean sidebands.
             v.frame.bad := v.frame.bad or ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, rxMaster);
+            case rxMaster.tKeep(7 downto 0) is
+               when x"00" => byteCount := 0;
+               when x"01" => byteCount := 1;
+               when x"03" => byteCount := 2;
+               when x"07" => byteCount := 3;
+               when x"0F" => byteCount := 4;
+               when x"1F" => byteCount := 5;
+               when x"3F" => byteCount := 6;
+               when x"7F" => byteCount := 7;
+               when x"FF" => byteCount := 8;
+               when others =>
+                  -- A sparse mask is consumed but can never publish a frame.
+                  v.frame.bad := '1';
+            end case;
             for i in 0 to 7 loop
                if rxMaster.tKeep(i) = '1' then
-                  if keepGap then
-                     -- Sparse keeps violate the normalized physical interface.
-                     -- Continue consuming, but never publish this frame.
-                     v.frame.bad := '1';
-                  end if;
-                  byteCount := byteCount+1;
                   octet     := rxMaster.tData(8*i+7 downto 8*i);
                   -- CrcPkg expects the first byte at the high end and reversed
                   -- bit order within each octet. Ethernet arrives low AXI byte
@@ -481,8 +489,6 @@ begin
                   for b in 0 to 7 loop
                      crcData(63-8*i-b) := octet(b);
                   end loop;
-               else
-                  keepGap := true;
                end if;
             end loop;
             first := v.frame.count;
@@ -530,39 +536,18 @@ begin
             else
                v.frame.count := last;
             end if;
-            -- Only TLV header transitions need byte ordering. Prefix writes,
-            -- byte counting and header bounds no longer feed an eight-stage
-            -- chain. Keep the parser able to finish a value and start another
-            -- header in the same beat, including zero-length TLVs.
-            for i in 0 to 7 loop
-               if i < byteCount and v.frame.bad = '0' then
-                  offset := first+i;
-                  octet  := rxMaster.tData(8*i+7 downto 8*i);
-                  if offset >= PTP_ETH_HEADER_BYTES_C+r.frame.base and offset < r.frame.messageEnd then
-                     if v.frame.tlvRemaining /= 0 then
-                        v.frame.tlvRemaining := v.frame.tlvRemaining-1;
-                     else
-                        if v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C then
-                           v.frame.tlvLength(15 downto 8) := octet;
-                        elsif v.frame.tlvBytes = PTP_TLV_LENGTH_OFFSET_C+1 then
-                           v.frame.tlvLength(7 downto 0) := octet;
-                           -- offset is the last TLV-header byte. A declared
-                           -- value may not extend past the PTP message end.
-                           -- IEEE 1588-2019 5.3.8 requires even TLV lengths.
-                           if v.frame.tlvLength(0) = '1' or
-                              to_integer(unsigned(v.frame.tlvLength)) > r.frame.messageEnd-offset-1 then
-                              v.frame.bad := '1';
-                           else
-                              -- Validate all 16 wire bits before narrowing
-                              -- the remaining-byte counter to frame capacity.
-                              v.frame.tlvRemaining := to_integer(unsigned(v.frame.tlvLength));
-                           end if;
-                        end if;
-                        v.frame.tlvBytes := (v.frame.tlvBytes+1) mod PTP_TLV_HEADER_BYTES_C;
-                     end if;
-                  end if;
-               end if;
-            end loop;
+            -- Intersect this beat with the declared TLV region. Header
+            -- lookahead bounds the feedback to two length completions. Run
+            -- independently of the sticky bad flag; errors only join at EOF,
+            -- avoiding a sideband/header-error path through the TLV arithmetic.
+            if first < r.frame.messageEnd and
+               last > PTP_ETH_HEADER_BYTES_C+r.frame.base then
+               tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+r.frame.base);
+               tlvLast := minimum(last, r.frame.messageEnd);
+               ptpTlvBeat(rxMaster.tData(63 downto 0), tlvFirst-first,
+                  tlvLast-first, r.frame.messageEnd-tlvFirst,
+                  v.frame.tlvBytes, v.frame.tlvLength, v.frame.tlvRemaining, v.frame.bad);
+            end if;
             -- One parallel CRC update per physical group. SURF uses the
             -- unreversed register convention; good Ethernet residue is below.
             -- CRC covers the entire frame including padding and FCS. A zero-
@@ -635,7 +620,9 @@ begin
       if frameComplete and r.fill = FIFO_DEPTH_G then
          v.fill              := 0;
          v.messageValid      := '0';
-         v.fifoRead          := '0';
+         -- A simultaneous descriptor pop is harmless: decoder ownership is
+         -- revoked here and the registered FIFO reset discards all remaining
+         -- descriptors next edge. Do not feed frame validation into FWFT ready.
          v.fifoRst           := '1';
          v.tail := 0;
          v.decoding := '0';

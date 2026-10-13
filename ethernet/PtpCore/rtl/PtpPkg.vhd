@@ -667,6 +667,18 @@ package PtpPkg is
    -- Operands have equal widths; the result wraps at that width like numeric_std.
    function ptpAddFast (left, right : unsigned; carry : sl := '0') return unsigned;
    function ptpAgeExpired (nowTicks, thenTicks, timeout : slv(63 downto 0)) return boolean;
+   -- Walk at most two complete TLV headers per normalized eight-byte beat.
+   -- Only the bytes in [firstByte, endByte) belong to the TLV stream.
+   procedure ptpTlvBeat (
+      constant data        : in slv(63 downto 0);
+      constant firstByte   : in natural;
+      constant endByte     : in natural;
+      constant messageLeft : in natural;
+      variable headerBytes : inout natural;
+      variable length      : inout slv(15 downto 0);
+      variable remaining   : inout natural;
+      variable bad         : inout sl);
+
    -- Timeout comparisons use unsigned tick differences. Restrict configured
    -- intervals to nonzero values below 2^62 so wrap/ordering stays unambiguous.
    function ptpValidTimeout (value : slv(63 downto 0)) return boolean;
@@ -741,6 +753,57 @@ package body PtpPkg is
       end if;
       return total(64) = '1';
    end function;
+
+   procedure ptpTlvBeat (
+      constant data        : in slv(63 downto 0);
+      constant firstByte   : in natural;
+      constant endByte     : in natural;
+      constant messageLeft : in natural;
+      variable headerBytes : inout natural;
+      variable length      : inout slv(15 downto 0);
+      variable remaining   : inout natural;
+      variable bad         : inout sl) is
+      variable count : natural range 0 to 8;
+      variable start : integer range -3 to PTP_ETH_MAX_FRAME_C+8;
+      variable lowByte : integer range 0 to PTP_ETH_MAX_FRAME_C+11;
+      variable value : natural range 0 to 65535;
+   begin
+      count := endByte-firstByte;
+      start := remaining-integer(headerBytes);
+      if remaining >= count then
+         remaining := remaining-count;
+      else
+         remaining := 0;
+      end if;
+      -- Four header bytes make two length completions the maximum in a beat.
+      -- A third header can only contribute its first three bytes. No per-byte
+      -- decrement/length/bounds feedback chain is needed.
+      for i in 0 to 2 loop
+         lowByte := start+3;
+         if lowByte >= 1 and lowByte-1 < count then
+            length(15 downto 8) := data(8*(firstByte+lowByte-1)+7 downto 8*(firstByte+lowByte-1));
+         end if;
+         if i < 2 and lowByte < count then
+            length(7 downto 0) := data(8*(firstByte+lowByte)+7 downto 8*(firstByte+lowByte));
+            value := to_integer(unsigned(length));
+            if length(0) = '1' or value > messageLeft-lowByte-1 then
+               bad := '1';
+               -- No subsequent header is reachable after an invalid length.
+               start := PTP_ETH_MAX_FRAME_C+8;
+            else
+               start := lowByte+1+value;
+               remaining := 0;
+               if start > count then
+                  remaining := start-count;
+               end if;
+            end if;
+            headerBytes := 0;
+         elsif start < count then
+            headerBytes := count-start;
+         end if;
+      end loop;
+   end procedure;
+
 
    function ptpMessageTimestamp (message : PtpRxMessageType) return slv is
    begin
