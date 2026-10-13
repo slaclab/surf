@@ -449,6 +449,7 @@ architecture rtl of PtpProtocolEngine is
       e2eTake    : sl;
       -- Live diagnostic state; AXI snapshots below have a separate lifetime.
       portStatus : PtpPortStatusType;
+      rejectedPending : natural range 0 to 9;
       -- Local management state shares the core reset and register process.
       readSlave        : AxiLiteReadSlaveType;
       writeSlave       : AxiLiteWriteSlaveType;
@@ -573,6 +574,7 @@ architecture rtl of PtpProtocolEngine is
       delayReady          => '0',
       e2eTake             => '0',
       portStatus          => PTP_PORT_STATUS_INIT_C,
+      rejectedPending     => 0,
       readSlave           => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
       candidate           => initialCache,
@@ -2436,10 +2438,12 @@ begin
       -------------------------------------------------------------------------
       -- Sample derived diagnostic summaries after all protocol updates and
       -- cancellation. Counters, metadata and exchange already live in portStatus.
-      -- Count every same-edge rejection with one full-width saturating add.
+      -- Register the event multiplicity before full-width saturation. Counts
+      -- become visible one cycle after rejection; simultaneous events are kept.
       -- Logical cancellation preserves diagnostics; system reset below wins.
+      v.rejectedPending := rejectedEvents;
       rejectedSum := resize(unsigned(r.portStatus.rejectedCount), rejectedSum'length) +
-                     to_unsigned(rejectedEvents, rejectedSum'length);
+                     to_unsigned(r.rejectedPending, rejectedSum'length);
       v.portStatus.rejectedCount := slv(rejectedSum(31 downto 0));
       if rejectedSum(32) = '1' then
          v.portStatus.rejectedCount := (others => '1');

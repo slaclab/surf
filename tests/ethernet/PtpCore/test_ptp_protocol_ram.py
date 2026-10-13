@@ -16,7 +16,8 @@
 #   snapshots and 150 ns forward / 100.25 ns delay; no stale publication after
 #   abort; acknowledgement only after search and whole-row replacement;
 #   completed E2E publication cannot be starved by continuous rejected traffic;
-#   concurrent RX/E2E rejections count twice and only system reset clears them;
+#   concurrent RX/E2E rejections count twice one edge after detection;
+#   pending increments survive logical cancellation; only system reset clears them;
 #   word carries/borrows, modulo age, strict ties, and inclusive distance limits;
 #   overlapping pair/history scans preserve both owners and bounded progress.
 # - Timing: Raw ticks advance between events while ordinary pipeline clocks
@@ -245,6 +246,7 @@ async def concurrent_rejections(d):
         await history_admission(b)
         before = b.counts()[1]
         accepted = 0
+        pending_rx = 0
         previous = before
         # An unsupported message consumes one RX slot each ready edge, without
         # pairing or Announce storage. Keep capture provenance valid and stable.
@@ -252,7 +254,9 @@ async def concurrent_rejections(d):
         d.rxValid.value = 1
         for _ in range(16000):
             await RisingEdge(d.clk)
-            accepted += int(d.rxReady.value)
+            # Diagnostics retire the preceding edge's registered events.
+            accepted += pending_rx
+            pending_rx = int(d.rxReady.value)
             await Timer(1.1, unit='ns')
             count = b.counts()[1]
             if count > before+accepted:
@@ -264,7 +268,13 @@ async def concurrent_rejections(d):
         else:
             assert False, 'bounded E2E rejection did not retire'
         d.rxValid.value = 0
-        await b.wait(4)
+        # A final RX event is still in the diagnostic pipeline. A logical
+        # abort on its retirement edge must neither lose nor double-count it.
+        d.rxAbort.value = 1
+        await b.wait(1)
+        d.rxAbort.value = 0
+        count += pending_rx
+        await b.wait(3)
         assert b.counts()[1] == count
         assert not int(d.measurementValid.value)
         for cause in ('restart', 'regRst', 'rxAbort'):

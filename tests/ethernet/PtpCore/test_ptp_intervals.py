@@ -17,6 +17,7 @@
 #   invalid intervals use the cap, and 0x7f does not increment rejections.
 # - Timing: No idle seconds are simulated. Frozen raw time isolates receipt
 #   policy; production RAM, AXI, configuration and arithmetic clocks still run.
+#   Rejection diagnostics retire one clock after their admission event.
 
 import cocotb
 
@@ -58,6 +59,8 @@ async def receipt_intervals(d):
                         await b.result(exponent & 255, 123*Q16+7)
                         await b.drain()
                     valid = -10 <= exponent <= 22
+                    # Port rejection events cross one diagnostic register stage.
+                    await b.wait(1)
                     assert b.counts()[1] == before+int(not valid and exponent != 127)
                     period = HZ*(1 << exponent) if exponent >= 0 else HZ//(1 << -exponent)
                     deadline = min(3*period, limit) if valid else limit

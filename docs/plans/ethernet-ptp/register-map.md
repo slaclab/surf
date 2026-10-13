@@ -255,7 +255,7 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x2200` | `RxAccepted` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x2204` | `RxDropped` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x2208` | `RxOverflow` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
-| `0x220C` | `PortRejected` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
+| `0x220C` | `PortRejected` | 31:0 | RO | Saturating diagnostic counter snapshot; events accumulate one clock after rejection. Reset by system reset. |
 | `0x2210` | `SyncCompleted` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x2214` | `DelayCompleted` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x2218` | `RequestTimeout` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
