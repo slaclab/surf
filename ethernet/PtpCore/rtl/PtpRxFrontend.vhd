@@ -41,6 +41,11 @@ entity PtpRxFrontend is
       RST_ASYNC_G    : boolean                   := false;
       TX_OBSERVE_G   : boolean                   := false;
       FIFO_DEPTH_G   : positive                  := 4;
+      -- When false, accept only messages whose declared length equals the
+      -- fixed body for their type, rejecting any suffix instead of walking
+      -- it. IEEE 1588-2019 14.1 expects a receiver to skip well-formed
+      -- unsupported TLVs, so a build that disables this narrows conformance.
+      TLV_EN_G       : boolean                   := true;
       MAX_FRAME_G    : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
    port (
       clk        : in  sl;
@@ -526,7 +531,12 @@ begin
                         v.frame.length(7 downto 0) := octet;
                         v.frame.base := baseLength(v.frame.kind);
                         length := to_integer(unsigned(v.frame.length));
-                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+                        -- With TLVs enabled a longer message carries a suffix
+                        -- the parser walks. With them disabled the declared
+                        -- length must equal the fixed body exactly, which
+                        -- rejects every suffix here instead.
+                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C or
+                           (not TLV_EN_G and length /= v.frame.base) then
                            v.frame.bad := '1';
                         else
                            v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
@@ -558,7 +568,10 @@ begin
             -- lookahead bounds the feedback to two length completions. Run
             -- independently of the sticky bad flag; errors only join at EOF,
             -- avoiding a sideband/header-error path through the TLV arithmetic.
-            if first < r.frame.messageEnd and
+            -- With TLVs disabled the admitted length already equals the fixed
+            -- body, so there is no suffix region to walk and the parser is
+            -- elaborated away. Rejection moves to the length test above.
+            if TLV_EN_G and first < r.frame.messageEnd and
                last > PTP_ETH_HEADER_BYTES_C+r.frame.base then
                tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+r.frame.base);
                tlvLast := minimum(last, r.frame.messageEnd);

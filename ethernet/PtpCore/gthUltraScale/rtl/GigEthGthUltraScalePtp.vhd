@@ -23,14 +23,15 @@ use surf.PtpPkg.all;
 
 entity GigEthGthUltraScalePtp is
    generic (
-      TPD_G            : time              := 1 ns;
-      AXIL_BASE_ADDR_G : slv(31 downto 0)  := (others => '0');
+      TPD_G             : time                 := 1 ns;
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
       -- Relative offsets allow a board to retain an existing register map.
-      ETH_OFFSET_G      : slv(31 downto 0) := x"00000000";
-      PTP_OFFSET_G      : slv(31 downto 0) := x"00004000";
-      COMMON_CLK_G      : boolean          := false;
+      ETH_OFFSET_G      : slv(31 downto 0)     := x"00000000";
+      PTP_OFFSET_G      : slv(31 downto 0)     := x"00004000";
+      COMMON_CLK_G      : boolean              := false;
       PACKET_LIFETIME_G : positive             := 125000000;
       FIFO_ADDR_WIDTH_G : positive             := 9;
+      TLV_EN_G          : boolean              := true;
       MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C;
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
@@ -101,6 +102,7 @@ begin
          COMMON_CLK_G      => COMMON_CLK_G,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         TLV_EN_G          => TLV_EN_G,
          MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)

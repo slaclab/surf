@@ -41,6 +41,7 @@ entity PtpRxTimestampTap is
       PHY_TYPE_G        : string               := "XGMII";
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
       FIFO_DEPTH_G      : positive             := 4;
+      TLV_EN_G          : boolean              := true;
       MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C);
    port (
       -- Common Ethernet/PHC clock domain.
@@ -105,6 +106,7 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
          FIFO_DEPTH_G   => FIFO_DEPTH_G,
+         TLV_EN_G       => TLV_EN_G,
          MAX_FRAME_G    => MAX_FRAME_G)
       port map (
          clk           => clk,                   -- [in]

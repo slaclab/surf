@@ -166,16 +166,22 @@ Execution and known-bad evidence belong in the
    assigned flags/optional TLVs and time-property/timeout cases identified above.
 5. **Qualification:** external-master compatibility, calibrated reference-plane
    timestamps, hardware timing/CDC and accuracy remain separate acceptance.
-6. **Configured frame capacity:** `MAX_FRAME_G` bounds the total Ethernet bytes
-   each validator accepts, defaulting to `PTP_ETH_MAX_FRAME_C` (1518) so TLVs
-   fit. A board may lower it to shrink the validators' byte counters; at the
+6. **Optional TLV support:** `TLV_EN_G` defaults true, walking any suffix to
+   confirm the message ends before the FCS. Setting it false omits the walker
+   and requires the declared length to equal the fixed body for the message
+   type, so every TLV-bearing frame is rejected at admission. This departs from
+   14.1, which has a receiver skip well-formed unsupported TLVs and continue
+   parsing; a deployment disabling TLVs owns that restriction and restores
+   conformance by setting the generic true. `tlv_suffix` covers the enabled
+   default and `tlv_disabled` covers the omitted parser.
+7. **Configured frame capacity:** `MAX_FRAME_G` bounds the total Ethernet bytes
+   each validator accepts, defaulting to `PTP_ETH_MAX_FRAME_C` (1518). A board
+   may lower it to narrow the validators' byte counters; at the
    `PtpFrameCapacityType` floor of 82 (one Announce plus Ethernet overhead) a
-   TLV-bearing or padded frame is rejected on capacity before any TLV rule
-   applies. That departs from 14.1, which has a receiver skip well-formed
-   unsupported TLVs and continue parsing. `tlv_suffix` covers the default
-   capacity and `tlv_capacity_floor` covers the 82-byte bound; a deployment
-   selecting a reduced capacity owns that restriction, and raising the generic
-   at the instantiation restores TLV-skip behavior.
+   TLV-bearing or padded frame is rejected on capacity. `tlv_capacity_floor`
+   covers that bound. Note this overlaps item 6: disabling TLVs already rejects
+   TLV-bearing frames and removes more logic, so a reduced capacity is mainly
+   useful for bounding padded-frame acceptance.
 
 Run only the affected cases from the [selection guide](README.md#selecting-tests).
 The complete suite is reserved for substantial integration or release validation.

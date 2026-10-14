@@ -72,11 +72,15 @@ class RxFrontend:
     BASE_LENGTH = {0: 44, 8: 44, 9: 54, 11: 64}
     PREFIX_BYTES = 78  # Ethernet header + largest fixed body (Announce).
 
-    def __init__(self, depth=4, max_frame=1518):
+    def __init__(self, depth=4, max_frame=1518, tlv_en=True):
         if depth < 1 or not 82 <= max_frame <= 1518:
             raise ValueError("unsupported bounded RX storage configuration")
         self.depth = depth
         self.max_frame = max_frame  # Includes four FCS bytes, excludes preamble.
+        # Mirrors TLV_EN_G. When false the suffix walker is absent from the
+        # RTL and admission requires the declared length to equal the fixed
+        # body, so any TLV-bearing message is rejected as a length error.
+        self.tlv_en = tlv_en
         self.generation = 0
         self.rx_epoch = 0
         self.entries = deque()
@@ -132,6 +136,7 @@ class RxFrontend:
             self.counters["unsupported"] += 1
             return None
         if (not base <= length <= self.max_frame - 18 or
+                (not self.tlv_en and length != base) or
                 self.count - 4 < 14 + length or self.tlv_header or self.tlv_remaining):
             self.counters["length"] += 1
             return None

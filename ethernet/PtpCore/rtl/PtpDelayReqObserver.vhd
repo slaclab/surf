@@ -43,6 +43,10 @@ entity PtpDelayReqObserver is
       TPD_G          : time                      := 1 ns;
       RST_POLARITY_G : sl                        := '1';
       RST_ASYNC_G    : boolean                   := false;
+      -- When false, accept only a Delay_Req whose declared length equals the
+      -- fixed timestamp body, rejecting any suffix instead of walking it.
+      -- See PtpRxFrontend for the conformance note.
+      TLV_EN_G       : boolean                   := true;
       MAX_FRAME_G    : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
    port (
       clk        : in  sl;
@@ -491,7 +495,11 @@ begin
                      when 17 =>
                         v.frame.length(7 downto 0) := octet;
                         length := to_integer(unsigned(v.frame.length));
-                        if length < PTP_TIMESTAMP_MSG_BYTES_C or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C then
+                        -- With TLVs disabled the declared length must equal the
+                        -- fixed timestamp body exactly, rejecting every suffix
+                        -- here rather than walking it below.
+                        if length < PTP_TIMESTAMP_MSG_BYTES_C or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C or
+                           (not TLV_EN_G and length /= PTP_TIMESTAMP_MSG_BYTES_C) then
                            v.frame.bad := '1';
                         else
                            v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
@@ -518,7 +526,9 @@ begin
             -- lookahead bounds the feedback to two length completions. Run
             -- independently of the sticky bad flag; errors only join at EOF,
             -- avoiding a sideband/header-error path through the TLV arithmetic.
-            if first < r.frame.messageEnd and
+            -- Disabled TLVs leave no suffix region, so the parser elaborates
+            -- away and rejection happens at the length test above.
+            if TLV_EN_G and first < r.frame.messageEnd and
                last > PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C then
                tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C);
                tlvLast := minimum(last, r.frame.messageEnd);

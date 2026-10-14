@@ -195,7 +195,8 @@ async def tlv_suffix(d):
     # well-formed TLVs and continue parsing the suffix. Odd-length rejection
     # is our malformed-input policy; the standard defines valid encodings.
     # This scenario runs at the default MAX_FRAME_G, where TLV-bearing frames
-    # fit. tlv_capacity_floor below covers a capacity-bounded configuration.
+    # fit. tlv_capacity_floor covers a capacity-bounded configuration and
+    # tlv_disabled covers TLV_EN_G=false, which removes the parser entirely.
     b = RxBench(d)
     await b.reset()
     await b.wait(messageReady=0)
@@ -259,6 +260,45 @@ async def tlv_capacity_floor(d):
     # Recovery: the parser must not latch the capacity rejection.
     before = int(d.acceptedCount.value)
     await b.direct(bytearray(WIRE_VECTORS[3][1]))
+    await b.wait()
+    assert int(d.acceptedCount.value) == before+1, 'parser must recover'
+
+
+@cocotb.test(timeout_time=1, timeout_unit='ms',
+             skip='TLV_DISABLED' not in os.environ)
+async def tlv_disabled(d):
+    # A build may set TLV_EN_G=false when the deployment carries no TLVs. The
+    # suffix walker is then elaborated away and admission requires the declared
+    # length to equal the fixed body, so every TLV-bearing frame is rejected at
+    # the length test. This narrows 14.1 TLV-skip conformance by configuration;
+    # tlv_suffix covers the default enabled build.
+    b = RxBench(d)
+    await b.reset()
+    # RxBench.reset() rebuilds the oracle with TLVs enabled; mirror the DUT's
+    # TLV_EN_G=false so the per-cycle scoreboard agrees.
+    b.model.tlv_en = False
+    await b.wait(messageReady=0)
+    # Bare Sync, no suffix: must still be accepted.
+    before = int(d.acceptedCount.value)
+    await b.direct(bytearray(WIRE_VECTORS[0][1]))
+    await b.wait()
+    assert int(d.acceptedCount.value) == before+1, 'bare message must be accepted'
+    await b.wait(1, messageReady=1)
+    await b.wait(messageReady=0)
+    # The same suffixes tlv_suffix accepts at the default must now be rejected,
+    # including the well-formed ones; malformed cases stay rejected too.
+    for suffix in ('20040002234580080000', '200400022345800800020000',
+                   '80080000', '200400012380080000'):
+        packet = bytearray(WIRE_VECTORS[1][1][:58]) + bytes.fromhex(suffix)
+        packet[16:18] = (len(packet)-14).to_bytes(2, 'big')
+        before = int(d.acceptedCount.value), int(d.droppedCount.value)
+        await b.direct(packet)
+        await b.wait()
+        assert int(d.acceptedCount.value) == before[0], suffix
+        assert int(d.droppedCount.value) == before[1]+1, suffix
+    # Recovery: a bare message after the rejections is still accepted.
+    before = int(d.acceptedCount.value)
+    await b.direct(bytearray(WIRE_VECTORS[0][1]))
     await b.wait()
     assert int(d.acceptedCount.value) == before+1, 'parser must recover'
 
@@ -400,9 +440,21 @@ def test_ptp_specification_rx_rules(scenario):
     )
 
 
+def test_ptp_specification_rx_tlv_disabled():
+    run_surf_vhdl_test(
+        test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
+                    'TLV_EN_G': False},
+        extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
+                                       'TLV_DISABLED': '1'},
+                                      cocotb_test_filter('tlv_disabled')),
+    )
+
+
 def test_ptp_specification_rx_capacity_floor():
     # 82 = PTP_ETH_OVERHEAD_BYTES_C + PTP_ANNOUNCE_BYTES_C, the floor of
-    # PtpFrameCapacityType and the value the KCU105 target selects.
+    # PtpFrameCapacityType. No current target selects it; this covers the
+    # bound itself, which stays a supported configuration.
     capacity = 82
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
