@@ -3,10 +3,11 @@
 SimLink lets Rogue and PyRogue software communicate with an HDL simulation
 through the same Stream, Memory, and SideBand interfaces used for hardware.
 SURF provides interchangeable adapters for GHDL/VHPIDIRECT, Synopsys
-VCS/VHPI, Vivado xsim/DPI, Icarus Verilog/VPI, and Verilator/DPI-C. The
-downstream `Rogue*Wrap` interfaces are common; only the simulator leaf and
-foreign-function boundary change. Verilog-only designs (Icarus, Verilator)
-instantiate the flat wrappers in `sv/` instead of the VHDL wrappers in `sim/`.
+VCS/VHPI, Vivado xsim/DPI, Icarus Verilog/VPI, and Verilator/DPI-C. GHDL,
+VCS, and xsim share the downstream VHDL `Rogue*Wrap` interfaces in `sim/`.
+Verilog-only designs (Icarus, Verilator) use the separate flat
+[SystemVerilog wrapper API](sv/README.md) in `sv/`. Both wrapper families
+use the same shared models and wire protocol.
 
 ## Start here
 
@@ -34,16 +35,20 @@ are integration or test implementation details.
 
 ## Public interfaces
 
-| Link | Backend VHDL leaf | Public SURF wrapper | DUT-facing role |
+| Link | Backend leaf | Public SURF wrapper | DUT-facing role |
 | --- | --- | --- | --- |
 | Stream | `RogueTcpStream` | `RogueTcpStreamWrap` | Bidirectional AXI Stream/SSI frames |
 | Memory | `RogueTcpMemory` | `RogueTcpMemoryWrap` | AXI-Lite master driven by Rogue memory transactions |
 | SideBand | `RogueSideBand` | `RogueSideBandWrap` | Eight-bit opcode events and remote-data state |
 
-The leaves are backend integration details. The public simulation interfaces
-retain one API across simulators, derive Stream width from `AXIS_CONFIG_G`,
-enforce complete port-pair ownership, and provide optional aggregate Stream
-pacing.
+The leaves are backend integration details. The VHDL wrappers share one API
+across GHDL, VCS, and xsim, derive Stream width from `AXIS_CONFIG_G`, and
+provide optional aggregate Stream pacing. The flat SystemVerilog wrappers
+share one API across Icarus and Verilator and use `TDATA_BYTES_G` for Stream
+width. They omit pacing, channel mux/demux, metadata resizing, `TDEST`,
+`TID`, `TSTRB`, and `TPD_G`; see the [SV wrapper guide](sv/README.md) for
+their ports and feature limits. Both families enforce complete port-pair
+ownership.
 
 ## Backend summary
 
@@ -66,7 +71,7 @@ environment variables.
 Use `RUCKUS_SIM_BACKEND` to select explicitly. The
 [getting-started guide](docs/getting-started.md) covers setup and automatic
 selection; the [architecture reference](docs/architecture.md) compares the
-three adapter and lifecycle implementations.
+adapter and lifecycle implementations.
 
 ## Source layout
 
