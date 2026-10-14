@@ -47,7 +47,6 @@ use surf.PtpComputePkg.all;
 
 entity PtpEndpoint is
    generic (
-      -- Keep the established order for positional generic-map compatibility.
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       TPD_G             : time             := 1 ns;
       RST_POLARITY_G    : sl               := '1';
@@ -56,7 +55,6 @@ entity PtpEndpoint is
       PACKET_LIFETIME_G : positive         := 156250000;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
-      -- Appended to preserve positional generic maps and the default TX format.
       TX_AXIS_CONFIG_G : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C);
    port (
       -- Shared endpoint clock domain and lifecycle controls.

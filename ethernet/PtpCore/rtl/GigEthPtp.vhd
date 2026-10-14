@@ -32,10 +32,11 @@ entity GigEthPtp is
       ETH_OFFSET_G      : slv(31 downto 0) := x"00000000";
       PTP_OFFSET_G      : slv(31 downto 0) := x"00004000";
       COMMON_CLK_G      : boolean          := false;
-      PACKET_LIFETIME_G : positive         := 125000000;
-      FIFO_ADDR_WIDTH_G : positive         := 9;
-      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      PACKET_LIFETIME_G : positive             := 125000000;
+      FIFO_ADDR_WIDTH_G : positive             := 9;
+      MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C;
+      INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
+      EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0'));
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -198,6 +199,7 @@ begin
          CLK_FREQ_G        => 125000000,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (

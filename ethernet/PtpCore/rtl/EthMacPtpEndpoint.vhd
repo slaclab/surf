@@ -44,16 +44,16 @@ use surf.PtpPkg.all;
 
 entity EthMacPtpEndpoint is
    generic (
-      -- Keep the established order for positional generic-map compatibility.
-      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      TPD_G             : time             := 1 ns;
-      RST_POLARITY_G    : sl               := '1';
-      PHY_TYPE_G        : string           := "XGMII";
-      CLK_FREQ_G        : positive         := 156250000;  -- Hz: 125000000 GMII, 156250000 XGMII.
-      PACKET_LIFETIME_G : positive         := 156250000;
-      FIFO_ADDR_WIDTH_G : positive         := 9;
-      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
+      TPD_G             : time                 := 1 ns;
+      RST_POLARITY_G    : sl                   := '1';
+      PHY_TYPE_G        : string               := "XGMII";
+      MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C;
+      CLK_FREQ_G        : positive             := 156250000;  -- Hz: 125000000 GMII, 156250000 XGMII.
+      PACKET_LIFETIME_G : positive             := 156250000;
+      FIFO_ADDR_WIDTH_G : positive             := 9;
+      INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
+      EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0'));
    port (
       -- Common Ethernet/PHC clock domain.
       clk            : in  sl;
@@ -235,6 +235,7 @@ begin
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          PHY_TYPE_G        => PHY_TYPE_G,
+         MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G)
       port map (
          clk           => clk,                -- [in]
@@ -261,6 +262,7 @@ begin
          TPD_G            => TPD_G,
          RST_POLARITY_G   => RST_POLARITY_G,
          PHY_TYPE_G       => PHY_TYPE_G,
+         MAX_FRAME_G      => MAX_FRAME_G,
          EGRESS_LATENCY_G => EGRESS_LATENCY_G)
       port map (
          clk             => clk,           -- [in]

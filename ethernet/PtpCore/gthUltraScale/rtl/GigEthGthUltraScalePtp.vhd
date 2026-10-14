@@ -29,10 +29,11 @@ entity GigEthGthUltraScalePtp is
       ETH_OFFSET_G      : slv(31 downto 0) := x"00000000";
       PTP_OFFSET_G      : slv(31 downto 0) := x"00004000";
       COMMON_CLK_G      : boolean          := false;
-      PACKET_LIFETIME_G : positive         := 125000000;
-      FIFO_ADDR_WIDTH_G : positive         := 9;
-      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
+      PACKET_LIFETIME_G : positive             := 125000000;
+      FIFO_ADDR_WIDTH_G : positive             := 9;
+      MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C;
+      INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
+      EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
       -- Select dedicated gtRefClk instead of the legacy sysClk125 reference.
       USE_GTREFCLK_G    : boolean              := false;
       -- Dedicated channel input gtRefClk arrives on: 0 for GTREFCLK0, 1 for
@@ -100,6 +101,7 @@ begin
          COMMON_CLK_G      => COMMON_CLK_G,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+         MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
