@@ -23,7 +23,9 @@ use surf.SsiPkg.all;
 
 entity AxiStreamRingBufferIpIntegrator is
    generic (
-      TPD_G : time := 1 ns);
+      TPD_G          : time     := 1 ns;
+      COMMON_CLK_G   : boolean  := true;
+      TRIG_TIMEOUT_G : positive := 2**20);
    port (
       dataClk       : in  sl;
       dataRst       : in  sl;
@@ -157,9 +159,10 @@ begin
    U_DUT : entity surf.AxiStreamRingBuffer
       generic map (
          TPD_G               => TPD_G,
-         COMMON_CLK_G        => true,
+         COMMON_CLK_G        => COMMON_CLK_G,
          DATA_BYTES_G        => 2,
          RAM_ADDR_WIDTH_G    => 4,
+         TRIG_TIMEOUT_G      => TRIG_TIMEOUT_G,
          GEN_SYNC_FIFO_G     => true,
          AXI_STREAM_CONFIG_G => AXIS_CONFIG_C)
       port map (
