@@ -169,8 +169,8 @@ class TB:
             self.sink = AxiStreamSink(AxiStreamBus.from_prefix(self.dut, "M_AXIS"), self.dut.axisClk, self.dut.axisRst)
 
     def start_ramp(self, start: int):
-        """Lifetime agent: advance dataValue by one on every dataClk cycle."""
         async def drive(value):
+            """Lifetime agent: advance dataValue by one on every dataClk cycle."""
             while True:
                 self.dut.dataValue.value = value & 0xFFFF
                 await sample_after_tpd(self.dut.dataClk)
