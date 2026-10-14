@@ -31,7 +31,7 @@ import cocotb
 from cocotb.triggers import Timer
 import pytest
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cocotb_filtered_env, cocotb_test_filter, run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_rx_reference import RxFrontend, RxBeat, RxStamp
 from tests.ethernet.PtpCore.ptp_rx_test_utils import frame, beats, unpack_time, pack_record
 from tests.ethernet.PtpCore.ptp_wire_utils import xgmii_words, IDLE
@@ -544,3 +544,46 @@ def test_ptp_rx_rtl(mode, depth, polarity, async_reset, latency):
                     "INGRESS_LATENCY_G": format(latency & ((1 << 64)-1), "064b")},
         extra_env={"PHY_TYPE_G": mode, "FIFO_DEPTH_G": depth, "POLARITY": polarity, "LATENCY_Q16": latency},
     )
+
+
+@pytest.mark.parametrize("capacity,size,accepted", [
+    (82, 82, True),    # exact-capacity Announce
+    (82, 83, False),   # one byte over capacity
+])
+def test_ptp_rx_capacity_boundary(capacity, size, accepted):
+    run_surf_vhdl_test(
+        test_file=__file__, toplevel="surf.ptprxfrontendwrapper",
+        parameters={"PHY_TYPE_G": "DIRECT", "FIFO_DEPTH_G": 4,
+                    "MAX_FRAME_G": capacity},
+        extra_env=cocotb_filtered_env(
+            {"PHY_TYPE_G": "DIRECT", "FIFO_DEPTH_G": 4,
+             "CAPACITY": capacity, "FRAME_SIZE": size,
+             "EXPECT_ACCEPTED": int(accepted)},
+            cocotb_test_filter("capacity_boundary"),
+        ),
+    )
+
+
+@cocotb.test(timeout_time=1, timeout_unit='ms', skip="CAPACITY" not in os.environ)
+async def capacity_boundary(d):
+    # MAX_FRAME_G bounds total Ethernet bytes including padding and FCS.
+    # An exact-capacity frame is accepted; one byte more is rejected.
+    capacity = int(os.environ["CAPACITY"])
+    size = int(os.environ["FRAME_SIZE"])
+    expect = bool(int(os.environ["EXPECT_ACCEPTED"]))
+    b = Bench(d)
+    await b.reset()
+    # Bench.reset() rebuilds the Python oracle at its 1518-byte default;
+    # resync it with this test's MAX_FRAME_G so the per-cycle scoreboard in
+    # Bench.step() does not diverge from the DUT's configured capacity.
+    b.model.max_frame = capacity
+    packet = bytearray(frame(kind=0xB))
+    # direct()/beats() appends the 4-byte FCS that MAX_FRAME_G also counts;
+    # pad only the pre-FCS bytes so the total on-wire length equals FRAME_SIZE.
+    raw_size = size - 4
+    packet += bytes(raw_size - len(packet))
+    before = int(d.acceptedCount.value), int(d.droppedCount.value)
+    await b.direct(bytes(packet))
+    await b.wait()
+    assert int(d.acceptedCount.value) == before[0] + expect
+    assert int(d.droppedCount.value) == before[1] + (not expect)

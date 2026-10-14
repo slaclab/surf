@@ -41,11 +41,12 @@ use surf.PtpPkg.all;
 
 entity PtpTxTimestampTap is
    generic (
-      TPD_G            : time             := 1 ns;
-      RST_POLARITY_G   : sl               := '1';
-      RST_ASYNC_G      : boolean          := false;
-      PHY_TYPE_G       : string           := "XGMII";
-      EGRESS_LATENCY_G : slv(63 downto 0) := (others => '0'));
+      TPD_G            : time                  := 1 ns;
+      RST_POLARITY_G   : sl                    := '1';
+      RST_ASYNC_G      : boolean               := false;
+      PHY_TYPE_G       : string                := "XGMII";
+      MAX_FRAME_G      : PtpFrameCapacityType  := PTP_ETH_MAX_FRAME_C;
+      EGRESS_LATENCY_G : slv(63 downto 0)      := (others => '0'));
    port (
       clk             : in  sl;
       rst             : in  sl;
@@ -109,7 +110,8 @@ begin
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MAX_FRAME_G    => MAX_FRAME_G)
       port map (
          clk          => clk,                   -- [in]
          rst          => rst,                   -- [in]
