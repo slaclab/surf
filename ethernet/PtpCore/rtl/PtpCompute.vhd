@@ -241,18 +241,19 @@ begin
          doutb => ramData);
 
    comb : process (r, rst, masters, ramData) is
-      variable v          : RegType;
-      variable alu        : unsigned(32 downto 0);
-      variable carryIn    : unsigned(32 downto 0);
-      variable address    : natural range 0 to PTP_COMPUTE_WORDS_C-1;
-      variable selected   : integer range -1 to 3;
-      variable memorySlot : integer range -1 to 3;
-      variable candidate  : natural range 0 to 3;
-      variable aSlot      : natural range 0 to 15;
-      variable bSlot      : natural range 0 to 15;
-      variable memoryOk   : boolean;
-      variable unary      : boolean;
-      variable data       : unsigned(31 downto 0);
+      variable v              : RegType;
+      variable alu            : unsigned(32 downto 0);
+      variable carryIn        : unsigned(32 downto 0);
+      variable address        : natural range 0 to PTP_COMPUTE_WORDS_C-1;
+      variable selected       : integer range -1 to 3;
+      variable memorySlot     : integer range -1 to 3;
+      variable candidate      : natural range 0 to 3;
+      variable aSlot          : natural range 0 to 15;
+      variable bSlot          : natural range 0 to 15;
+      variable memoryOk       : boolean;
+      variable memoryEligible : BooleanArray(0 to 3);
+      variable unary          : boolean;
+      variable data           : unsigned(31 downto 0);
    begin
       v := r;
       v.ramRead  := '0';
@@ -321,21 +322,33 @@ begin
                end if;
 
             end loop;
+            -- Qualify every owner at its own constant index, then choose among
+            -- the four results by rotation. Reading r.loaded(i)(address) with a
+            -- rotated candidate index would build a 64:1 select per owner over
+            -- a dynamically chosen bank; a constant i leaves one select per
+            -- owner against its own bank and lets unused words fold away.
+            -- Round-robin order, single grant and cancel/reset priority are
+            -- unchanged: only where the rotation is applied moves.
+            for i in 0 to 3 loop
+               address  := to_integer(unsigned(masters(i).memWord));
+               memoryOk := address < PTP_COMPUTE_OWNER_WORDS_C(i) and r.pending(i) = '0' and
+                           r.responses(i).readValid = '0';
+
+               if masters(i).memWrite = '1' then
+                  memoryOk := memoryOk and r.responses(i).resultValid = '0';
+               else
+                  memoryOk := memoryOk and r.loaded(i)(address) = '1';
+               end if;
+
+               memoryEligible(i) := memoryOk and masters(i).memValid = '1' and
+                                    masters(i).cancel = '0';
+            end loop;
+
             memorySlot := -1;
             for i in 0 to 3 loop
                candidate := (r.memoryCursor+i) mod 4;
-               address   := to_integer(unsigned(masters(candidate).memWord));
-               memoryOk  := address < PTP_COMPUTE_OWNER_WORDS_C(candidate) and r.pending(candidate) = '0' and
-                           r.responses(candidate).readValid = '0';
 
-               if masters(candidate).memWrite = '1' then
-                  memoryOk := memoryOk and r.responses(candidate).resultValid = '0';
-               else
-                  memoryOk := memoryOk and r.loaded(candidate)(address) = '1';
-               end if;
-
-               if memorySlot = -1 and memoryOk and masters(candidate).memValid = '1' and
-                  masters(candidate).cancel = '0' then
+               if memorySlot = -1 and memoryEligible(candidate) then
                   memorySlot := candidate;
                end if;
 
