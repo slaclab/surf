@@ -33,6 +33,9 @@ entity AxiStreamRingBuffer is
       COMMON_CLK_G        : boolean  := false;  -- true if dataClk=axilClk
       DATA_BYTES_G        : positive := 16;
       RAM_ADDR_WIDTH_G    : positive := 9;
+      -- axilClk cycles a local trigger waits for its read request before the
+      -- data side is cleared and the trigger is re-armed
+      TRIG_TIMEOUT_G      : positive := 2**20;
       -- AXI Stream Configurations
       INT_PIPE_STAGES_G   : natural  := 1;
       PIPE_STAGES_G       : natural  := 1;
@@ -129,6 +132,7 @@ architecture rtl of AxiStreamRingBuffer is
       dataStateIdx   : slv(1 downto 0);
       trigState      : TrigStateType;
       trigStateIdx   : slv(1 downto 0);
+      trigTimer      : natural range 0 to TRIG_TIMEOUT_G-1;
    end record;
 
    constant AXIL_REG_INIT_C : AxilRegType := (
@@ -145,7 +149,8 @@ architecture rtl of AxiStreamRingBuffer is
       dataState      => IDLE_S,
       dataStateIdx   => (others => '0'),
       trigState      => IDLE_S,
-      trigStateIdx   => (others => '0'));
+      trigStateIdx   => (others => '0'),
+      trigTimer      => 0);
 
    signal axilR   : AxilRegType := AXIL_REG_INIT_C;
    signal axilRin : AxilRegType;
@@ -433,6 +438,9 @@ begin
          when IDLE_S =>
             v.trigStateIdx := "00";
 
+            -- Reset the timer
+            v.trigTimer := 0;
+
             -- Check for software trigger request
             if ((axilR.trigCnt /= 0) or (axilR.continuous = '1')) and (axilR.dataState = IDLE_S) then
 
@@ -460,7 +468,24 @@ begin
          ----------------------------------------------------------------------
          when WAIT_S =>
             v.trigStateIdx := "10";
-            null;
+
+            -- Check if the data side has not answered the trigger with a read request.
+            -- A lost read request leaves the data side with logging stopped, where it
+            -- ignores every later trigger, so clear the data side through CLEARED_S
+            -- rather than only re-arming.
+            if (axilR.dataState = IDLE_S) and (readReq = '0') then
+               if (axilR.trigTimer = TRIG_TIMEOUT_G-1) then
+                  -- Reset the flag
+                  v.softTrig    := '0';
+                  -- Set the clear flag
+                  v.bufferClear := '1';
+                  -- Next state
+                  v.dataState   := CLEARED_S;
+               else
+                  -- Increment the counter
+                  v.trigTimer := axilR.trigTimer + 1;
+               end if;
+            end if;
       ----------------------------------------------------------------------
       end case;
 
