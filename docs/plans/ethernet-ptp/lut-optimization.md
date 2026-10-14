@@ -942,6 +942,8 @@ Ethernet FCS calculation, not a separate PTP CRC.
 | **5** | **Simplify compact-store byte routing** — `PtpRxFrontend` | **Implemented and selected:** a 70-byte lane-aligned layout removes the eight-byte Ethernet source/EtherType gap and retains nine groups per physical bank. All queue depths keep their original RAM depth. Compared with the TX-only control, synthesized RX LUTs fall 3,341 -> 3,203 and whole-design LUTs fall by 566. Sync/Delay_Resp refill takes one extra clock; Announce is unchanged. Minimum-gap and depth-boundary checks pass. |
 | **6** | **Further specialize TX observer control** — `PtpDelayReqObserver` | **Implemented and selected:** use a constant 44-byte body boundary, bank-only descriptors and fixed two-group decoding; make identity/version errors sticky at their wire bytes. The TX-only control reduces observer LUTs 2,567 -> 2,193. Legal TLVs, FCS checks, exact queue capacity and physical completion retention are preserved. |
 | **7** | **Process TLV payload runs in chunks** — both validators, primarily XGMII | **Implemented in the timing pass:** consume a run of payload bytes with one subtraction, reserving detailed byte transitions for TLV headers. Preserve split headers, zero-length TLVs, multiple transitions per beat, all 16 received length bits before narrowing, truncation rejection and legal partial beats. GMII already processes at most one byte, so removing an eight-byte update chain is an XGMII opportunity. |
+| **9** | **Index compute memory owners at constant indices** — `PtpCompute` | **Implemented and measured:** the memory-transfer arbiter read `r.loaded(candidate)(address)` with a rotated `candidate`, building two chained dynamic selects per owner. Qualify each owner at its own constant index into a `BooleanArray`, then rotate when selecting. Whole-design LUTs 59,145 -> 58,342 (-803); `PtpCompute` 2,495 -> 1,695 (-32.1%); shared memory-ready cone 788 -> 71. Round-robin order, single grant, `memTurn`, cancel/reset priority and bounds checking unchanged; `memReady` stays combinational. See [the October 13 pass](#october-13-compute-arbiter-frame-capacity-and-optional-tlvs). |
+| **10** | **Bound validator frame capacity; optional TLV suffix walking** — both validators and the instantiation chain | **Implemented; 128 bytes selected:** `MAX_FRAME_G` was unreachable, so it had always been 1518. Plumbed through the endpoint chain and the RX fixture, defaulting unchanged. 128 bytes measures -1,176 whole-design LUTs and accepts White Rabbit's 96-byte Announce. `TLV_EN_G=false` additionally omits the suffix walker for -2,754 LUTs but rejects TLV-bearing messages outright, so it is implemented and **not** selected. |
 | **8** | **Factor XGMII CRC alternatives** — both validators | After separating arithmetic from control in the CRC cones, investigate shared intermediates or a prefix network for the one- through eight-byte transforms. Measure XOR depth and timing as well as LUTs; sustain eight bytes per clock and preserve partial/zero-byte termination behavior and CRC residue checks. The GMII cone counts do not establish this opportunity, and no MAC interface change is included. |
 | **Deprioritized** | **Explicit one-byte GMII specialization** — timestamp adapter / validator interfaces | The reported netlist probe resolves the original concern: constant propagation already restricts the copper datapath to one byte despite the wide RTL interface. Revisit only if a different build shows surviving multi-byte logic or there is a separately justified interface-maintenance benefit. |
 
@@ -1129,6 +1131,134 @@ Use `0d27ddbba` as the matched comparison baseline for this increment. Local
 ignored `.planning/lut-scan-2026-10-13/05-protocol-scan.patch` reproduces this RTL
 change; `source-manifest.json` records the baseline and patch/RTL/test hashes.
 Applying the patch to the baseline was verified byte-for-byte.
+
+## October 13 compute arbiter, frame capacity and optional TLVs
+
+Based on `2933fe8c7`, merged to `ethernet-ptp` as `016771843`. Candidates 9 and
+10 above. Every figure here is **synthesis stage** with both PHY black boxes
+unbound, on `rdsrv419` with Vivado 2025.2, `xcku040-ffva1156-2-e`, SFP-only
+(`COPPER_EN=false`), matched constraints and `-flatten_hierarchy none`. They are
+not comparable to the consuming project's routed records and establish no
+timing result.
+
+| Change | Synthesis delta | Behavioral cost | Selected |
+| --- | ---: | --- | --- |
+| Compute memory-arbiter indexing | -803 LUTs | none | yes |
+| 128-byte frame capacity | -1,176 LUTs | TLV suffixes over ~30 bytes rejected | yes |
+| `TLV_EN_G => false` | -2,754 LUTs | rejects all TLV-bearing messages | **no** |
+
+### Compute memory-arbiter indexing
+
+Cell-level attribution of the baseline routed checkpoint found 512 of the 788
+LUTs in the shared memory-ready cone reading `r_reg[loaded]` directly, with 66
+MUXF cells in the block. `r.loaded(candidate)(address)` selected a bit by a
+runtime address from a bank chosen by a runtime index, across an unrolled
+four-owner loop. Qualifying each owner at a constant index and rotating only
+when selecting removes that structure.
+
+Two attribution errors are recorded because both were initially believed. The
+cone is **not** owner-specific: its loads include `slaves[3][memReady]_INST_0`
+and `slaves[2][memReady]_INST_0`, so one shared cone drives all four outputs and
+Vivado attributed it to owner 0's name; the apparent 788/1/1/2 split was that
+naming artifact, while `jobReady`'s 30/30/30/4 is the honest per-owner picture.
+Neither the next-state (`v`) publication nor owner 0's priority position caused
+the cost, though both were plausible from the cone sizes alone. A netlist probe
+settled the cause before any RTL changed.
+
+**Why not `ArbiterPkg`.** `base/general/rtl/ArbiterPkg.vhd` is the idiomatic
+home for round-robin selection and ten modules use it, but it cannot address
+this cost: it consumes a `req` vector, and the LUTs were in the upstream
+eligibility computation that builds that vector, so constant-index
+qualification is required either way. It also sets `nextSelected` whenever any
+request is present, while this block advances `memoryCursor` only on a taken
+grant — and the `memTurn` interlock can decline a valid memory grant in favor
+of a job, so wiring the procedure's output directly would rotate the cursor on
+an ungranted cycle and change fairness. Its `slv`/one-hot interface also does
+not match the surrounding `integer range -1 to 3` sentinels. The maintainer
+decided against adoption on October 13, 2026.
+
+### Frame capacity
+
+`MAX_FRAME_G` sizes `frame.count`, `messageEnd`, `tlvRemaining` and the parser's
+offset variables. It was **unreachable**: `PtpRxTimestampTap` forwarded it, but
+`PtpTxTimestampTap` omitted it from its `PtpDelayReqObserver` instantiation and
+the modules above did not expose it, so it had always been 1518. It now runs
+through `PtpTxTimestampTap`, `EthMacPtpEndpoint`, `GigEthPtp`,
+`GigEthGthUltraScalePtp` and `PtpRxFrontendWrapper`, every declaration keeping
+the `PTP_ETH_MAX_FRAME_C` default. `PtpEndpoint` needs no capacity generic: it
+instantiates the protocol, PHC and servo cores rather than the taps.
+
+| Capacity | Design LUTs | vs 1518 | RX validator | TX observer | Frame fields |
+| ---: | ---: | ---: | ---: | ---: | ---: |
+| 1518 | 59,145 | — | 3,514 | 2,356 | 2,400 |
+| 512 | 58,683 | -462 | 3,076 | 2,181 | 1,978 |
+| 256 | 58,912 | -233 | 3,180 | 2,064 | 1,823 |
+| **128** | **57,969** | **-1,176** | 2,677 | 1,946 | 1,456 |
+| 82 | 58,361 | -784 | 2,832 | 1,979 | 1,606 |
+
+The curve is not monotonic: 256 measures worse than 512 despite strictly
+narrower counters. Treat whole-design differences under roughly 250 LUTs as
+noise; the validator-local columns are monotonic and more trustworthy.
+
+82 equals `PTP_ETH_OVERHEAD_BYTES_C + PTP_ANNOUNCE_BYTES_C`, a bare Announce. It
+is both worse on area than 128 and worse behaviorally, and it would exclude
+White Rabbit: WR signals through a fixed 14-byte `ORGANIZATION_EXTENSION` TLV
+(`WR_TLV_TYPE 0x2004`, CERN OUI `080030`, 10-byte value) per
+[ppsi's `wr-constants.h`](https://gitlab.com/ohwr/project/ppsi/-/raw/master/proto-ext-whiterabbit/wr-constants.h),
+making its Announce 96 wire bytes and its Signaling messages 76. A consuming
+board selecting a capacity should keep those above its bound if WR is a possible
+follow-on.
+
+Three comments in `EthMacPtpEndpoint.vhd` and `PtpEndpoint.vhd` claimed the
+generic order had to be preserved for positional generic-map compatibility. No
+positional generic map exists under `ethernet/PtpCore`, all instantiation sites
+use named association, and [the conventions](../../vhdl-conventions.md#instantiations)
+mandate it; the comments were removed.
+
+### Optional TLV suffix walking
+
+Both validators walk any TLV suffix to confirm the message ends before the FCS.
+That walk is what lets a receiver accept messages carrying TLVs it does not
+interpret, which is IEEE 1588-2019 14.1 skipping; nothing in this design reads a
+TLV's contents. `TLV_EN_G` defaults true. When false the walker is omitted and
+admission requires the declared length to equal the fixed body, reducing the TLV
+fields to zero cells.
+
+It is implemented and **not selected** for the KCU105 target, because skipping
+and rejecting differ: with it false a Sync carrying any TLV is dropped and its
+timestamp lost, so a master appending a TLV to every Sync would leave an
+endpoint synchronizing to nothing with a rising `droppedCount`. It would also
+foreclose a White Rabbit follow-on, which is built on the TLV mechanism. Risk is
+not uniform by message type: `announceValid` is an AXI status bit and does not
+gate `servoEnable`, so TLVs on Announce — including PATH_TRACE, the most common
+real case — degrade diagnostics rather than breaking synchronization, while
+TLVs on Sync, Follow_Up or Delay_Resp break it. A deployment selecting false
+owns that restriction; see
+[specification coverage](../../../tests/ethernet/PtpCore/specification-coverage.md).
+
+### Verification
+
+48 focused configurations pass across `test_ptp_rx_rtl.py`,
+`test_ptp_specification.py`, `test_ptp_rx_storage.py`,
+`test_ptp_rx_reference.py` and `test_ptp_compute.py`, including both compute
+memory types. New coverage: `test_ptp_rx_capacity_boundary` (exact-82 accepted,
+83 rejected), `tlv_capacity_floor` and `tlv_disabled`. Each has a negative
+control confirming it fails when its generic is left at the default, so none
+passes vacuously. The RX reference model gained matching `max_frame` and
+`tlv_en` options, since it encoded TLV-skip admission. VSG is clean on every
+changed file; `GigEthPtp.vhd` and `GigEthGthUltraScalePtp.vhd` improved from
+five pre-existing violations to two, both in untouched port blocks.
+
+Endpoint lifecycle, real-MAC integration and the full suite are unrun. A routed
+build of the combined source is outstanding and owned by the consuming project.
+Evidence directories are recorded in the
+[consuming project's October 13 record](../../../../../../docs/reference/ptpkcu105-implementation-2026-10-13/README.md).
+
+Deferred, no interop cost: the PHC owner's `loaded` bank is 64 bits where
+`PTP_COMPUTE_OWNER_WORDS_C(3)` is 16, leaving 482 LUTs in that structure. The
+`r.target mod PTP_COMPUTE_WORDS_C` expressions on those lines are
+arithmetically dead — `r.target` is `64*selected + 4*slot`, so the modulo
+reduces to the low six bits — and are a readability item for the same change.
 
 ## Earlier implementation and evidence
 

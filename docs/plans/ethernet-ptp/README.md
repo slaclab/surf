@@ -23,6 +23,16 @@ acceptance remain open.
 
 ## Current validation
 
+The [October 13 arbiter, capacity and TLV pass](lut-optimization.md#october-13-compute-arbiter-frame-capacity-and-optional-tlvs)
+restructures `PtpCompute`'s memory arbitration to index owners at constant
+indices, makes the previously unreachable `MAX_FRAME_G` settable through the
+endpoint chain, and adds `TLV_EN_G` for deployments that carry no TLVs. Matched
+synthesis measures -803 LUTs for the arbiter change and -1,176 for a 128-byte
+capacity; disabling TLVs measures a further -2,754 but rejects TLV-bearing
+messages and is not selected. 48 focused configurations pass. These are
+synthesis-stage figures with the PHY black boxes unbound; a routed build of the
+combined source is outstanding.
+
 The [LUT candidates 5-7 follow-up](rtl-review.md#october-13-lut-candidates-5-7)
 selects a 70-byte lane-aligned RX store and specialized TX observer, retaining
 the existing chunked TLV helper. Matched synthesis saves 770 LUTs (1.50%) with
