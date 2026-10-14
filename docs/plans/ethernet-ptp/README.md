@@ -55,9 +55,24 @@ belong in project target guides.
 ## Open decisions and next work
 
 The [acceptance backlog](acceptance.md#next-acceptance-work) owns remaining
-integration, normative, timing/CDC, external-master and hardware checks. Its
-immediate next step is final endpoint/MAC integration for the latest source,
-followed by the consuming project's matched routed build and qualification.
+integration, normative, timing/CDC, external-master and hardware checks.
+The October 14 [review response and simplification plan](acceptance.md#review-response-and-simplification-plan)
+sets the development order. The [compute boundary review](../../../ethernet/PtpCore/architecture.md#compute-boundary-review)
+now traces all four clients and sketches local algorithm state with shared
+multiply/divide requests. The [math inventory](../../../ethernet/PtpCore/architecture.md#math-inventory-by-module)
+separates actual operations and constant/variable divisions. The consuming
+project's October 14 isolated arithmetic experiment now records width proofs,
+exact converters and routed primitive/sharing measurements in
+`firmware/benchmarks/ptp-constant-divide/`. The
+[prototype sequence](acceptance.md#arithmetic-prototype-sequence) selects local
+DSP products, serial constant converters, shared SECOND and a positive-divisor
+restoring divider as its starting boundary. Next is the servo forward-update
+slice through PHC ACK. Production adoption awaits connected behavioral and
+matched resource/timing evidence; no production RTL or service floor changed.
+LUT savings alone do not settle the architecture choice; reviewability,
+ownership/cancellation complexity, service latency and timing also matter.
+Final endpoint/MAC integration and a matched routed build remain acceptance
+requirements for the resulting source.
 The 200,000-ppb actuator cap still needs physical/control rationale; the shared
 service minimum has a documented derivation but needs deployment qualification.
 

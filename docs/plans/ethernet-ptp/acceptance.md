@@ -10,6 +10,9 @@ October 9, 2026; use the [focused selection policy](../../../tests/ethernet/PtpC
 
 ## Next acceptance work
 
+Development order is tracked in the [review response plan](#review-response-and-simplification-plan).
+The following qualification obligations remain open across that work.
+
 1. Validate final endpoint and real-MAC lifecycle integration after the latest
    arbiter/capacity/TLV changes (`016771843`); the 171-case connected-design run
    predates those changes. Preserve both receive modes and both PHY fixtures.
@@ -23,6 +26,168 @@ October 9, 2026; use the [focused selection policy](../../../tests/ethernet/PtpC
    master, calibration, settling/error and holdover acceptance at a named plane.
 5. Keep MAC checksum/EOFE correctness separate from PTP area work. Physical-clock
    integration and additional protocol modes remain future scope.
+
+## Review response and simplification plan
+
+Opened October 14, 2026, from the supplied code review and maintainer feedback.
+Starting source: SURF `4d3439185`. Item 1's source trace and alternative-interface
+sketch are complete in the [compute boundary review](../../../ethernet/PtpCore/architecture.md#compute-boundary-review).
+The follow-up [math inventory](../../../ethernet/PtpCore/architecture.md#math-inventory-by-module)
+itemizes operations, constant versus variable divides and DSP candidates.
+The consuming project's October 14 arithmetic experiment now supplies exact
+constant-conversion proofs, per-site widths and matched isolated RTL measurements;
+see its `firmware/benchmarks/ptp-constant-divide/README.md` and `specification.md`.
+The selected prototype boundary uses local fixed-function arithmetic, a shared
+SECOND converter and a shared positive-divisor restoring divider. Connected
+servo/PHC and endpoint validation, final area/timing choice and items 2--8 remain
+pending. Isolated fixture results do not qualify production RTL. The goal is
+an understandable autonomous endpoint with acceptable resource use and bounded service, including reconsideration of the
+centralized compute architecture. Saving LUTs does not by itself justify the
+resulting sequencing, workspace and cancellation complexity.
+
+Keep capture bound to its frame, rate estimation based on unsteered ticks, PHC
+generation separate from RX epoch, and TX keys retained until physical fate is
+resolved. Preserve numerical precision, rounding/overflow behavior and public
+interfaces unless a specific change is explicitly justified. The arithmetic
+prototype direction is selected; production adoption and RX overflow policy
+remain open.
+
+1. **Reassess the shared compute boundary first.** Trace one rate, E2E, servo
+   and manual-PHC transaction through `PtpEndpoint`, `PtpProtocolEngine`,
+   `PtpE2e`, `PtpServo`, `PtpPhc` and `PtpCompute`. Identify complexity caused
+   by word storage, operand movement, arbitration and cancellation separately
+   from the control algorithm itself. Use the math inventory to remove
+   unnecessary calculations, specialize constant divisions and derive operand
+   widths before selecting a general compute interface. Prioritize DSP-backed
+   products and suitable registered add/subtract stages, measuring mapped
+   resources and timing. Preserve intermediate rounding and overflow rejection.
+   Compare the current service with
+   operation-level sharing (local state/simple arithmetic, shared expensive
+   operations) and dedicated arithmetic per functional block. Use the
+   [earlier studies](history/design-studies.md) and measured area evidence as
+   inputs, not as a requirement to retain the current design. Produce a concrete
+   interface/ownership sketch, identify the smallest representative prototype,
+   and select focused behavioral and matched resource/timing comparisons.
+   Record acceptable tradeoffs before choosing a replacement; state counts or
+   source line counts alone are insufficient. **Done when:** the proposed
+   boundary and its evidence requirements are reviewable, followed by a
+   measured choice before broad migration.
+
+2. **Make servo control math auditable.** Map the PI/bootstrap/phase equations,
+   units, rounding, clamps and anti-windup rules to the current states and
+   workspace values. Separate median/filter responsibility from PI and PHC
+   command sequencing where it yields a clear interface, using the compute
+   boundary selected in item 1. Keep candidate-versus-committed frequency,
+   acknowledgement, cancellation, expiry and snapshot ownership explicit.
+   Use the independent rational PI oracle and median tests; extend focused
+   boundary coverage where the refactor changes ownership. **Done when:** a
+   reviewer can follow each equation and lifecycle without reconstructing a
+   90-state program, with numerical and cancellation behavior checked.
+
+3. **Qualify service demand and association limits.** Establish a current-source
+   baseline before changing compute, then repeat the relevant cases on the
+   chosen implementation. Measure accepted-frame-to-result latency, queue
+   occupancy, expiry, overflow and recovery under nominal 8/10 Hz Sync,
+   bounded bursts and continuing competing traffic. Exercise reachable owner
+   combinations; manual PHC steering and automatic servo operation are not
+   freely concurrent. Extend endpoint tests beyond isolated compute arbitration.
+   Keep analytical ceilings, observed maxima and hardware results distinct.
+   Re-derive the association floor for changed scheduling/storage; do not lower
+   it merely because measured cases are faster. **Done when:** supported traffic
+   and stall assumptions have explicit bounds and executable checks at both
+   endpoint clock rates. This baseline supports item 1's architecture decision.
+
+4. **Decide RX overload behavior.** Compare current whole-cohort flush with
+   dropping only the arriving complete record. Check frame-bank ownership,
+   stalled-head stability, simultaneous consume/completion, partial Sync pairs,
+   replay/expiry handling and downstream cancellation. Dropping an advertised
+   head is a different policy and must not violate ready/valid stability.
+   Use overload and recovery cases from item 3 to compare lost useful work and
+   reacquisition. **Done when:** the owning architecture/interface guides explain
+   the selected policy and tests exercise its detection/publication edges.
+
+5. **Resolve composition options and reset guarantees.** Inventory leaf versus
+   composition support for RX/ledger depth, `MAX_FRAME_G`, `TLV_EN_G` and
+   `RST_ASYNC_G`. Expose useful deployment settings consistently or document
+   fixed values; deeper queues require revisiting item 3's bound. Trace
+   stopped-clock reset through KCU105 clock control, domain reset stretching,
+   PHY/MAC and endpoint state, including outputs observed by running domains.
+   Test stop/restart, reset held across clock resumption and PHC invalidation;
+   retain hardware qualification as a separate gate. The existing asynchronous
+   reset generator plus synchronous endpoint reset is not itself a demonstrated
+   defect. **Done when:** supported configurations and reset obligations are
+   explicit and focused composition tests cover them.
+
+6. **Remove obsolete RX mode and reduce validator drift.** Check callers before
+   removing `PtpRxFrontend.TX_OBSERVE_G`; retain TX observation in the adapter
+   and dedicated `PtpDelayReqObserver`. Identify common pure framing/length/TLV
+   validation that can be shared without merging RX/TX storage or flush policy.
+   Use common malformed-frame vectors and focused RX/TX tests to protect both
+   paths. **Done when:** the unreachable RX mode is removed and shared rules
+   have one implementation where practical, with intentional differences clear.
+
+7. **Finish localized maintenance.** Repair `PtpPkg`'s dead guide references;
+   name PHC derived word-index windows without changing addresses or strobes.
+   Prefer `process(all)` in touched combinational processes and check explicit
+   lists for omissions; avoid an unrelated repository-wide formatting pass.
+   Decide whether `PtpMath` remains a supported reusable leaf or should be
+   retired after checking users; absence from this endpoint alone is not enough.
+   **Done when:** references resolve, register-map checks preserve the ABI, and
+   each retained helper/mode has a stated purpose.
+
+8. **Integrate and close the affected acceptance items.** After focused checks,
+   validate the changed endpoint/MAC interactions in both receive modes and PHY
+   fixtures. Obtain matched synthesis/routed evidence for the selected source
+   and configuration before claiming area or timing benefits. Update the
+   architecture, interfaces and this backlog with actual outcomes; preserve
+   outstanding normative, external-master and hardware qualification work.
+   Follow the test-selection policy rather than replaying the full suite after
+   every edit. **Done when:** the implemented changes and their evidence agree,
+   with remaining limits explicitly recorded.
+
+### Arithmetic prototype sequence
+
+The consuming project's October 14 isolated measurements select these starting
+points: serial constant converters (power-of-two specialization at 125 MHz),
+one shared SECOND128 service for PHC/servo, a four-clock local E2E DSP product pipeline, a reused PI limb multiplier,
+and one shared signed128-by-
+unsigned80 quotient-only restoring divider for E2E/rate. Keep simple arithmetic
+local, and retain native 156.25 MHz clocking. These choices need complete-client
+cost and lifecycle validation before production adoption.
+
+1. **Build the servo forward-update slice.** Use named candidate/committed state,
+   frozen configuration and operation-level requests through real PHC rate ACK.
+   Reuse the rational PI oracle at both clocks; cover clamps, anti-windup,
+   pre-shift signed128 overflow, held commands, cancellation and holdover.
+   Evaluate bootstrap only on the nonintegrating branch at the documented
+   qualification edge; sweep stale transitions around that edge. Reuse local
+   products across PI equations rather than adding a new instruction engine.
+2. **Measure matching harnesses.** Compare the slice with the current
+   servo/compute boundary, including identical configuration, publication and
+   response storage. Count actual operand muxes and constant converters. Keep
+   filter extraction and register restructuring separately attributable. The
+   fresh consuming-project SFP-only synthesis baseline is an area reference;
+   its unbound PHYs and unconstrained synthesis timing do not qualify a board.
+3. **Verify shared ownership and remaining callers.** Add the E2E/rate divider
+   owner wrapper and PHC/servo SECOND wrapper with held per-owner responses,
+   owner-local cancel and no circular wait on PHC ACK. SECOND's two-owner fixture
+   is measured; divider arbitration and full-client operand selection are not.
+   Retain full128 servo phase; manual PHASE uses checked four-word submission
+   with signed96 admission, rejecting high-word mismatch before narrowing.
+   Update register map, PyRogue and schema tests together when that behavior is
+   implemented; representable late epoch faults remain distinct.
+4. **Re-derive service and decide migration.** Include converter serialization,
+   product pipeline latency, divider arbitration and client chains. Run focused
+   competing-traffic/expiry cases and obtain connected synthesis/routed evidence
+   before claiming an endpoint resource win or changing the association floor.
+   If acceptable, split median/filter, PI and PHC command ownership and migrate
+   clients in small attributable changes, retiring unused workspace plumbing
+   only after all callers are converted.
+
+The existing review items retain endpoint/MAC, normative, CDC and hardware gates.
+Items 5--7 can proceed independently where they do not depend on the arithmetic
+choice. Fold completed rationale into owning guides; this remains the sole
+active acceptance backlog.
 
 ## Outstanding acceptance
 
