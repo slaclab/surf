@@ -132,6 +132,16 @@ architecture rtl of RssiCore is
    -- proportional threshold instead of going non-positive.
    constant FIFO_PAUSE_THRESH_C : positive := (2**SEGMENT_ADDR_SIZE_G) - minimum(16, 2**(SEGMENT_ADDR_SIZE_G-1));
 
+   type RegType is record
+      busyEnable : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      busyEnable => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
+
    -- Busy Flags
    signal s_localBusy : sl;
 
@@ -806,9 +816,39 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
-   -- Advertise the same backpressure that stops RX application delivery.
-   -- A higher occupancy threshold can be unreachable once pause is asserted.
-   s_localBusy      <= s_mAppAxisCtrl.pause;
+
+   combBusy : process (r, s_mAppAxisCtrl, s_rstFifo) is
+      variable v         : RegType;
+      variable localBusy : sl;
+   begin
+      v := r;
+
+      -- FIFO reset asserts pause, with implementation-dependent recovery time.
+      -- RX cannot fill the FIFO until pause clears, so first observe it low
+      -- before advertising later pressure as BUSY for this connection.
+      if s_mAppAxisCtrl.pause = '0' then
+         v.busyEnable := '1';
+      end if;
+
+      -- Preserve the direct pause-to-header/monitor timing once armed. A
+      -- combinational reset override also prevents FIFO reset from being
+      -- sampled as pressure on the first disconnected clock edge.
+      localBusy := r.busyEnable and s_mAppAxisCtrl.pause;
+      if s_rstFifo = '1' then
+         v         := REG_INIT_C;
+         localBusy := '0';
+      end if;
+
+      rin         <= v;
+      s_localBusy <= localBusy;
+   end process combBusy;
+
+   seqBusy : process (clk_i) is
+   begin
+      if rising_edge(clk_i) then
+         r <= rin after TPD_G;
+      end if;
+   end process seqBusy;
 
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);

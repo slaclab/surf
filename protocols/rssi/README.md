@@ -17,6 +17,12 @@ threshold can be unreachable after RX pauses: at `SEGMENT_ADDR_SIZE_G=5`,
 pause asserts at 16 words while the former BUSY count bit required 32 words.
 The receive window holds accepted DATA until application delivery resumes.
 
+FIFO reset also asserts pause. BUSY advertisement is therefore disabled while
+disconnected and until pause is first observed low after connection. Once
+armed, BUSY follows pause until the connection closes. RX still observes raw
+pause throughout reset recovery. This avoids a reset-generated BUSY pulse or
+sticky LocalBusy indication without assuming a fixed FIFO recovery latency.
+
 The existing monitor advertises BUSY on outgoing headers and repeats ACKs
 while pressure persists. After draining, a subsequent header communicates
 BUSY=0; an immediate falling-edge notification is not implemented. The

@@ -135,10 +135,13 @@ It stops DATA on the first BUSY header, checks repeated BUSY ACKs with stable
 sequence/ACK values, drains and compares every payload/SSI beat, probes release
 with NULL, resumes DATA, and checks that periodic ACKs stop. It also checks
 application beat stability under backpressure and wire header checksums.
+Before filling, it checks LocalBusy=0 during disconnected startup, quiet
+connection establishment and a clean close/reconnect. After draining, it
+checks that real LocalBusy history survives close and clears on reconnect.
 
 The entire bounded scenario fits inside the negotiated 8192-clock NULL
-timeout. It therefore runs independently of pending #1489's ACK/BUSY liveness
-fix. The unused RTL client stays closed. The test does not execute Rogue,
+timeout, so it does not depend on ACK/BUSY keepalive refresh of the NULL
+timer. The unused RTL client stays closed. The test does not execute Rogue,
 assume unsolicited BUSY-release notification, or establish hardware timing.
 
 ```bash
@@ -149,3 +152,14 @@ For a negative comparison, use the same test in an isolated source tree with
 only `RssiCore.vhd` restored to the old occupancy-bit BUSY condition. The
 `pause16` case must fail waiting for a reply during FIFO filling, before the
 periodic/release checks. This verifies the test detects the threshold mismatch.
+
+To reproduce reset-induced BUSY separately, retain the current test and restore
+only `RssiCore.vhd` from PR #1496's reviewed head `5b649db5e`. The startup
+LocalBusy=0 assertion must fail before connection establishment. The default
+GHDL regression exercises inferred FIFOs; it does not validate the vendor XPM
+model or FPGA reset timing.
+
+Before release, run Rogue + UDP + FPGA with a slow application consumer.
+Observe BUSY assertion and release, verify payload integrity and throughput,
+and require the connection to remain up through repeated BUSY transitions.
+This hardware acceptance remains separate from the cocotb regression.

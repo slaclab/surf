@@ -20,11 +20,13 @@
 #   release with NULL; resume DATA; check cessation of periodic ACKs.
 # - Checks: Exact payload/SSI delivery, stalled-beat stability, header checksum,
 #   sequence/ACK progress, persistent BUSY advertisement and BUSY=0 recovery.
+#   Reset/connection startup and clean close must not latch false LocalBusy or
+#   emit unsolicited ACKs. Real BUSY history survives drain/close until reconnect.
 #   An explicit NULL probe is used; unsolicited falling-edge notification and
 #   execution of a real Rogue peer are outside this regression.
 # - Timing: One timeout unit per clock. NULL timeout exceeds the entire bounded
-#   scenario so this test does not depend on pending #1489's ACK-based liveness
-#   fix. Sources drive on falling edges and sample accepting rising edges;
+#   scenario so this test does not depend on ACK/BUSY keepalive refresh of the
+#   NULL timer. Sources drive on falling edges and sample accepting rising edges;
 #   status samples wait beyond TPD_G. TB owns and cancels all lifetime tasks.
 
 from collections import deque
@@ -42,6 +44,7 @@ from tests.common.regression_utils import (
 from tests.protocols.rssi.rssi_test_utils import (
     RSSI_FLAG_ACK,
     RSSI_FLAG_BUSY,
+    RSSI_FLAG_RST,
     RSSI_FLAG_SYN,
     RssiParams,
     build_ack_header,
@@ -68,6 +71,7 @@ PARAMETERS = {
     "MAX_CUM_ACK_CNT_G": 1,
 }
 CLIENT_SEQUENCE = 0x20
+LOCAL_BUSY_MASK = 1 << 7
 
 
 class TB:
@@ -104,7 +108,16 @@ class TB:
         ]
         await self.cycle(16)
         self.dut.axisRst.value = 0
-        await self.cycle(16)
+        for _ in range(16):
+            await self.cycle()
+            assert not int(self.dut.srvConnected_o.value)
+            self.check_local_busy(0)
+
+    def check_local_busy(self, expected):
+        status = int(self.dut.srvStatusReg_o.value)
+        assert bool(status & LOCAL_BUSY_MASK) == bool(expected), (
+            f"Expected sticky LocalBusy={expected} at cycle {self.tick}; status=0x{status:x}"
+        )
 
     async def cycle(self, count=1):
         for _ in range(count):
@@ -174,6 +187,8 @@ class TB:
         raise AssertionError("Server did not emit the expected RSSI segment")
 
     async def connect(self):
+        self.dut.srvOpen_i.value = 1
+        await self.cycle(4)
         params = RssiParams(
             max_outs_seg=4, max_seg_size=32, retrans_tout=256,
             cumul_ack_tout=4, null_seg_tout=PARAMETERS["NULL_TOUT_G"], max_retrans=16,
@@ -194,7 +209,34 @@ class TB:
         else:
             raise AssertionError("Server did not accept the final handshake ACK")
         self.require_connected = True
+        # Allow the monitor and header pipeline to expose any reset-induced
+        # BUSY pulse. A completed SYN handshake needs no unsolicited ACK.
+        for _ in range(32):
+            await self.cycle()
+            self.check_local_busy(0)
+            assert not self.frames, "Unexpected frame after connection setup"
         return (header.sequence + 1) & 0xFF
+
+    async def close(self, expected_busy_history):
+        assert not self.frames, "Unexpected frame before close"
+        self.require_connected = False
+        self.dut.srvOpen_i.value = 0
+        self.dut.srvClose_i.value = 1
+        header, beats = await self.receive()
+        assert header.flags == RSSI_FLAG_RST and len(beats) == 1, header
+        for _ in range(128):
+            await self.cycle()
+            self.check_local_busy(expected_busy_history)
+            if not int(self.dut.srvConnected_o.value):
+                break
+        else:
+            raise AssertionError("Server did not close the connection")
+        self.dut.srvClose_i.value = 0
+        for _ in range(32):
+            await self.cycle()
+            assert not int(self.dut.srvConnected_o.value)
+            self.check_local_busy(expected_busy_history)
+            assert not self.frames, "Unexpected frame while disconnected"
 
     async def ack(self, sequence):
         # A pure ACK does not consume the peer's next DATA sequence number.
@@ -208,6 +250,10 @@ async def sustained_local_busy_ack_and_release_preserves_data(dut):
     tb = TB(dut)
     try:
         await tb.start()
+        # Closing a connection that never experienced pressure must not create
+        # BUSY history as its application FIFO re-enters reset.
+        await tb.connect()
+        await tb.close(expected_busy_history=0)
         server_next = await tb.connect()
         scenario_start = tb.tick
         dut.srvMAppTReady.value = 0
@@ -268,6 +314,7 @@ async def sustained_local_busy_ack_and_release_preserves_data(dut):
             # the 128-cycle policy from the 4-cycle cumulative-ACK timeout.
             assert half_retrans <= gap <= half_retrans + 48, gap
         assert not tb.received_app, "Application backpressure was not held"
+        tb.check_local_busy(1)
 
         # Drain every buffered frame and check no loss, duplication or damage.
         dut.srvMAppTReady.value = 1
@@ -308,6 +355,9 @@ async def sustained_local_busy_ack_and_release_preserves_data(dut):
         assert len(tb.wire_history) == quiet_start, "Periodic ACKs continued after BUSY cleared"
         assert tb.received_app == expected
         assert tb.tick - scenario_start < PARAMETERS["NULL_TOUT_G"], "BUSY scenario exceeded its liveness margin"
+        tb.check_local_busy(1)
+        await tb.close(expected_busy_history=1)
+        await tb.connect()
         dut._log.info("Checked %d periodic BUSY ACKs and %d application beats through release",
                       len(repeats), len(expected))
     finally:
