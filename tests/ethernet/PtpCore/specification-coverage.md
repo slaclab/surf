@@ -166,6 +166,16 @@ Execution and known-bad evidence belong in the
    assigned flags/optional TLVs and time-property/timeout cases identified above.
 5. **Qualification:** external-master compatibility, calibrated reference-plane
    timestamps, hardware timing/CDC and accuracy remain separate acceptance.
+6. **Configured frame capacity:** `MAX_FRAME_G` bounds the total Ethernet bytes
+   each validator accepts, defaulting to `PTP_ETH_MAX_FRAME_C` (1518) so TLVs
+   fit. A board may lower it to shrink the validators' byte counters; at the
+   `PtpFrameCapacityType` floor of 82 (one Announce plus Ethernet overhead) a
+   TLV-bearing or padded frame is rejected on capacity before any TLV rule
+   applies. That departs from 14.1, which has a receiver skip well-formed
+   unsupported TLVs and continue parsing. `tlv_suffix` covers the default
+   capacity and `tlv_capacity_floor` covers the 82-byte bound; a deployment
+   selecting a reduced capacity owns that restriction, and raising the generic
+   at the instantiation restores TLV-skip behavior.
 
 Run only the affected cases from the [selection guide](README.md#selecting-tests).
 The complete suite is reserved for substantial integration or release validation.

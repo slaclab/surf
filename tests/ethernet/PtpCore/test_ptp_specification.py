@@ -27,6 +27,8 @@
 #   See specification-coverage.md#source-backed-directed-checks for scope and
 #   receiver policies. No default-profile conformance is claimed.
 
+import os
+
 import cocotb
 import pytest
 
@@ -192,6 +194,8 @@ async def tlv_suffix(d):
     # 5.3.8 / 14.1 / 14.1.2: even TLV value lengths; skip unsupported
     # well-formed TLVs and continue parsing the suffix. Odd-length rejection
     # is our malformed-input policy; the standard defines valid encodings.
+    # This scenario runs at the default MAX_FRAME_G, where TLV-bearing frames
+    # fit. tlv_capacity_floor below covers a capacity-bounded configuration.
     b = RxBench(d)
     await b.reset()
     await b.wait(messageReady=0)
@@ -218,6 +222,45 @@ async def tlv_suffix(d):
             assert got['length'] == len(packet)-14
             await b.wait(1, messageReady=1)
             await b.wait(messageReady=0)
+
+
+@cocotb.test(timeout_time=1, timeout_unit='ms',
+             skip='CAPACITY' not in os.environ)
+async def tlv_capacity_floor(d):
+    # A board may bound MAX_FRAME_G to one Announce plus Ethernet overhead
+    # (18+64 = 82) to shrink the validator's byte counters. At that floor a
+    # TLV-bearing frame cannot fit, so it is rejected on capacity before any
+    # TLV rule applies. That is a deployment restriction, not conformance:
+    # 14.1 would have a receiver skip well-formed unsupported TLVs. Raising
+    # MAX_FRAME_G at the instantiation restores tlv_suffix's behavior.
+    capacity = int(os.environ['CAPACITY'])
+    b = RxBench(d)
+    await b.reset()
+    # RxBench.reset() rebuilds the oracle at its 1518-byte default; resync it
+    # so the per-cycle scoreboard in RxBench.step() matches this capacity.
+    b.model.max_frame = capacity
+    # A bare Announce occupies the whole 82-byte budget and is still accepted.
+    before = int(d.acceptedCount.value)
+    await b.direct(bytearray(WIRE_VECTORS[3][1]))
+    await b.wait()
+    assert int(d.acceptedCount.value) == before+1, 'bare Announce must fit'
+    await b.wait(1, messageReady=1)
+    await b.wait(messageReady=0)
+    # The same Announce plus the smallest legal TLV exceeds the budget. This
+    # suffix is accepted at the default capacity by tlv_suffix above, so the
+    # rejection here is attributable to MAX_FRAME_G and nothing else.
+    before = int(d.acceptedCount.value), int(d.droppedCount.value)
+    packet = bytearray(WIRE_VECTORS[3][1]) + bytes.fromhex('80080000')
+    packet[16:18] = (len(packet)-14).to_bytes(2, 'big')
+    await b.direct(packet)
+    await b.wait()
+    assert int(d.acceptedCount.value) == before[0], 'TLV frame must not fit'
+    assert int(d.droppedCount.value) == before[1]+1
+    # Recovery: the parser must not latch the capacity rejection.
+    before = int(d.acceptedCount.value)
+    await b.direct(bytearray(WIRE_VECTORS[3][1]))
+    await b.wait()
+    assert int(d.acceptedCount.value) == before+1, 'parser must recover'
 
 
 @cocotb.test(timeout_time=1, timeout_unit='ms')
@@ -354,6 +397,20 @@ def test_ptp_specification_rx_rules(scenario):
         parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
         extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
                                       cocotb_test_filter(scenario)),
+    )
+
+
+def test_ptp_specification_rx_capacity_floor():
+    # 82 = PTP_ETH_OVERHEAD_BYTES_C + PTP_ANNOUNCE_BYTES_C, the floor of
+    # PtpFrameCapacityType and the value the KCU105 target selects.
+    capacity = 82
+    run_surf_vhdl_test(
+        test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
+                    'MAX_FRAME_G': capacity},
+        extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
+                                       'CAPACITY': capacity},
+                                      cocotb_test_filter('tlv_capacity_floor')),
     )
 
 
