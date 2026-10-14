@@ -137,7 +137,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make python3 python3-pip tclsh ghdl libzmq3-dev valgrind
+          sudo apt-get install -y make python3 python3-pip tclsh ghdl libzmq3-dev valgrind iverilog verilator
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
@@ -148,6 +148,16 @@ jobs:
             git clone https://github.com/slaclab/ruckus.git ruckus
           fi
           python -m pip install -r ruckus/scripts/pip_requirements.txt
+
+      - name: Verify Icarus and Verilator
+        # Fail before any suite runs if either simulator is missing or below
+        # the SimLink test floor. The Icarus and Verilator suites skip when
+        # their tools are absent, so without this step a broken install
+        # would pass the SimLink step as silent skips.
+        run: |
+          iverilog -V
+          verilator --version
+          python -c "import sys, tests.simlink.iverilog.iverilog_test_utils as iu, tests.simlink.verilator.verilator_test_utils as vu; sys.exit(None if iu.tools_available() and vu.tools_available() else iu.SKIP_REASON + '; ' + vu.SKIP_REASON)"
 
       - name: Determine run mode
         id: mode
@@ -292,7 +302,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev
+          sudo apt-get install -y make tclsh ghdl pkg-config libzmq3-dev iverilog verilator
           python -m pip install --upgrade pip
           python -m pip install -r pip_requirements.txt
           if [ -L ruckus ] && [ ! -d ruckus ]; then
@@ -311,6 +321,16 @@ jobs:
         run: |
           python -c "import rogue, pyrogue; print(rogue.Version.current())"
 
+      - name: Verify Icarus and Verilator
+        # Fail before any suite runs if either simulator is missing or below
+        # the SimLink test floor. The Icarus and Verilator suites skip when
+        # their tools are absent, so without this step a broken install
+        # would pass the SimLink step as silent skips.
+        run: |
+          iverilog -V
+          verilator --version
+          python -c "import sys, tests.simlink.iverilog.iverilog_test_utils as iu, tests.simlink.verilator.verilator_test_utils as vu; sys.exit(None if iu.tools_available() and vu.tools_available() else iu.SKIP_REASON + '; ' + vu.SKIP_REASON)"
+
       - name: Import HDL sources
         # Required by the SimLink contract, which builds from build/SRC_VHDL.
         # Inert for the pure-PyRogue suites.
@@ -321,6 +341,16 @@ jobs:
         run: |
           SIMLINK_ROGUE_PYTHON="$(command -v python)" \
             python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
+
+      - name: SimLink Rogue contract (Icarus)
+        run: |
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueIverilogRogue.py
+
+      - name: SimLink Rogue contract (Verilator)
+        run: |
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
+            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueVerilatorRogue.py
 
       - name: ADC DDR Rogue tests
         # PYTHONPATH exposes the in-repo python/surf package: these tests

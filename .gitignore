@@ -30,6 +30,7 @@ xsc.pb
 /simlink/xsim/xsc.jou
 /simlink/xsim/xelab.jou
 /simlink/xsim/xelab.pb
+/simlink/iverilog/RogueSimLink.vpi
 
 # Local editor/agent state
 .vscode/
