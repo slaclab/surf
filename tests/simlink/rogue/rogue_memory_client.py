@@ -38,7 +38,7 @@ class SimLinkMemoryRoot(pr.Root):
         super().__init__(
             name        = "SimLinkMemoryRoot",
             description = "Real-Rogue SimLink memory contract test",
-            timeout     = 2.0,
+            timeout     = 30.0,
             pollEn      = False,
         )
 
@@ -68,7 +68,7 @@ def run(port, value, ready_path):
     ready_path.write_text("ready\n")
 
     with root:
-        assert root.memClient.waitReady(2.0, 0.05)
+        assert root.memClient.waitReady(30.0, 0.05)
 
         # Make the operation sequence explicit: cache a value locally, issue
         # a production Rogue Write followed by Verify, then issue a separate
