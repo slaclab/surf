@@ -1,12 +1,46 @@
-# Autonomous PTP endpoint contract
+# PTP architecture and design decisions
 
-Implemented fixed-source, one-/two-step Layer-2 E2E TimeReceiver on GMII/XGMII.
-Behavioral verification was authorized October 9, 2026; current results and
-remaining acceptance belong in the [review record](rtl-review.md);
-[historical milestones](history/verification.md) do not validate the current
-source. This contract describes source behavior, not hardware-qualified accuracy.
-Application scheduling, shared simulator timing and physical clock control are
-future work.
+The implemented endpoint is an autonomous, fixed-source Layer-2 E2E
+TimeReceiver with per-message one-/two-step Sync reception. Software configures
+and observes it; FPGA logic captures timestamps, associates exchanges, estimates
+rate and delay, runs the servo and commits PHC commands.
+
+This guide describes the source architecture reviewed at SURF `68e5dbfaa`
+(October 13, 2026). It is the maintained design record, not a hardware accuracy
+claim. [Interface contracts](interfaces.md) own exact clock-edge, handshake,
+RAM and service bounds; the [register map](register-map.md) owns software
+transactions. [Validation and outstanding acceptance](../../docs/plans/ethernet-ptp/README.md)
+are tracked separately. Board routes and calibration belong to the consuming
+project; [physical-clock integration](physical-clock.md) remains future work.
+
+## Design decisions at a glance
+
+| Choice | Reason and consequence |
+| --- | --- |
+| Autonomous endpoint with a dedicated PHC tick path | Packet-rate arithmetic can wait for a shared service; counting, PPS and physical capture cannot. Host scheduling never determines a timestamp or servo update. |
+| Passive, independently validated wire observation | Keeps each capture with its own bytes before any lossy queue and preserves the existing MAC. It costs duplicate framing/FCS logic; header-key joins after independent loss were rejected. |
+| Fixed source and L2 E2E scope | Bounds policy and association state. It does not imply BMCA, VLAN/UDP, Pdelay, one-step transmit or full profile conformance. |
+| Raw-tick rate estimation and capture-specific calibration | PHC steering must not feed back into the oscillator estimate or change the units of an earlier capture. E2E needs a qualified rate even before valid path delay exists. |
+| One word processor and narrow RAM stores per endpoint | Removes replicated wide arithmetic, muxes and working copies while retaining full precision. Costs bounded scheduling latency, explicit ownership and a larger minimum association window. |
+| Physical TX fate retained across logical restart | A queued MAC frame can still reach the wire after timeout or reconfiguration. Freeing its key early risks associating a late completion/response with a new exchange. |
+| Registered publication and explicit cancellation edges | Makes payload, validity and lifecycle observable together. Cancellation can veto pending work but cannot retroactively undo a consumed sample or committed clock command. |
+| Local register ownership with coordinated commit/snapshot | Each core owns its settings and diagnostics. Frozen candidates and versioned result banks provide atomic transactions without central wide copies. |
+| Integer/fixed-point time and checked arithmetic | Keeps epoch differences, correction fields, rounding and overflow explicit. Narrow storage must not reduce public precision or change which measurements are rejected. |
+| Numerical time separate from physical clock and application epoch | A valid PHC and a PPS edge do not qualify downstream jitter, oscillator discipline or destination-domain time transfer. |
+
+## Reading map
+
+- [Composition and ownership](#composition-and-ownership)
+- [Shared compute, storage and mapping rationale](#shared-compute-and-storage)
+- [RX capture and validation](#rx-message-and-capture-boundary),
+  [capacity/TLV options](#frame-capacity-and-tlvs) and [queue storage](#rx-queue-storage)
+- [TX ledger and physical fate](#tx-ledger-storage)
+- [Time and lifecycle](#time-arithmetic-and-lifecycle-contracts)
+- [Protocol associations](#protocol-association-storage) and
+  [policy, estimator and servo envelope](#port-policy-and-numerical-envelope)
+- [Arithmetic units and sequencing](#arithmetic-units-and-sign-conventions)
+- [Register transactions](#axi-lite-register-map) and [snapshot CDC](#optional-snapshot-cdc)
+- [Physical clock/application boundary](#physical-clock-and-application-boundary)
 
 ## Composition and ownership
 
@@ -70,6 +104,111 @@ configuration cancellation remains separate from the PHC's own capture-abort
 path, preventing a phase step from canceling itself. Held link loss cancels
 old work once and permits subsequent frequency-only holdover control.
 
+## Shared compute and storage
+
+`PtpEndpoint` owns one [PtpCompute](rtl/PtpCompute.vhd). Rate estimation, E2E,
+servo and manual PHC preparation have persistent workspaces of 64/64/64/16
+little-endian 32-bit words. Descriptors address four-word signed128 slots;
+add/subtract, multiplication, division, copy, shifts and comparison share the
+word datapath. A result acknowledgement releases the descriptor, not the stored
+value, so successive operations chain in RAM without reloading wide results.
+
+```mermaid
+flowchart TD
+    Wire["Physical RX / TX"] --> Capture["Timestamp adapters + validated frame stores"]
+    Capture --> Protocol["Protocol association / TX ledger"]
+    Protocol --> Measurement["Rate estimation / E2E"]
+    Measurement --> Servo["Servo"]
+    Measurement <--> Compute["Shared PtpCompute + owner workspaces"]
+    Servo <--> Compute
+    Manual["Frozen manual operands"] --> Compute
+    Servo --> PHC["PHC command arbitration / commit"]
+    Compute -->|"prepared manual operands"| PHC
+    PHC --> Tick["Dedicated tick / PPS / generation"]
+    Tick --> Capture
+    AXI["Local AXI banks + endpoint coordinator"] --> Manual
+    AXI --> Protocol
+    AXI --> Servo
+```
+
+Arrows show functional flow; sequencers own requests and consume results.
+`PtpE2e` and `PtpTxLedger` are children of `PtpProtocolEngine`. The physical taps
+belong to `EthMacPtpEndpoint`, outside `PtpEndpoint`. Each instantiated endpoint
+has its own processor and PHC; independent port clocks do not share a timing loop.
+
+Sharing only multipliers would leave wide operand/result staging, repeated
+conversions and muxes. The selected design therefore stores working values,
+protocol tables, configuration and snapshots as addressed words. Normalized
+corrected Sync/forward values are reused by rate, history and E2E. Ownership and
+valid flags remain registers; reset invalidates them without clearing payload
+RAM. Full-width physical captures, public records, held outputs and per-clock
+policy caches remain where their interface requires them.
+
+A general-purpose soft CPU was considered but has no demonstrated advantage
+here and would add program/boot and worst-case execution obligations. The
+implemented processor is a fixed-operation RTL service. Round-robin word/job
+arbitration, owner-local cancellation and independent held responses prevent a
+stalled client from blocking the others. Waiting for PHC acknowledgement holds
+no compute slot, preventing circular waits during command preparation.
+
+The derived minimum association window is **70,347,776 raw ticks**, exposed as
+`MinimumAssociationTicks`; the two-second default remains valid at both endpoint
+clock rates. The working sustained Sync envelope is 10 Hz, initially advertised
+at 8 Hz. This is a deployment/service-demand assumption, not an RX rejection
+rule or measured performance. The [service derivation](interfaces.md#shared-service-bound)
+includes finite bursts, word movement, arbitration and publication, with explicit
+exclusions for future packet arrival and unbounded stalls.
+
+### Mapping and timing choices
+
+Deeper protocol pair/history, ledger, protocol/servo configuration and protocol
+publication stores select block RAM. Smaller banks retain distributed RAM.
+Changing geometry to word access removes wide staging; simply changing a very
+wide, shallow RAM's style would retain that cost and waste block RAM capacity.
+The [bank contract](interfaces.md#configuration-and-snapshots) preserves read
+latency, initialization, copy and snapshot ownership across mappings.
+
+Protocol pair/history row checks share a separate 32-bit ALU so overlapping
+scans have bounded arbitration without adding shared-compute jobs. Ledger live
+expiry checks retain local arithmetic because their observation edge matters.
+Compute memory eligibility is evaluated at constant owner indices before grant
+rotation: the earlier nested runtime owner/address selection created a large
+mux. The cursor advances only on a taken grant; simply replacing it with
+`ArbiterPkg` selection would neither remove eligibility cost nor preserve that
+rule under the memory/job interlock.
+
+Native inferred add/subtract is retained on the critical wide paths. Matched
+KU040 experiments favored it over handwritten carry-select/carry-save forms;
+DSP versions reduced LUTs but lengthened those operators. Streaming TLV validation
+uses payload-run skipping and parallel fixed-lane header checks to avoid a serial
+variable-byte chain without adding a capture/admission edge. These are selected
+implementation choices, not portable device-wide performance guarantees.
+
+The quotient-based raw-rate estimator remains. Feedback estimation was studied,
+but changing convergence/filtering and rate qualification would affect E2E, while
+removing its divide would leave other divider clients in place. Floating-point
+servo arithmetic is also deferred; epoch differences should still be formed in
+integer/fixed point before any future conversion. See the
+[rate-estimator study](../../docs/plans/ethernet-ptp/history/design-studies.md#arithmetic-alternatives)
+and [floating-point study](../../docs/plans/ethernet-ptp/history/design-studies.md#arithmetic-alternatives).
+
+### Storage inventory
+
+This is source geometry, not synthesized utilization. Primitive depth rounds up
+to a power of two; inference and constant pruning require build-host evidence.
+
+| Owner | Addressed payload storage per endpoint |
+| --- | --- |
+| Shared compute | 208 persistent + 26 scratch words; 256x32 physical RAM. |
+| Protocol pair/history | Four 20-word pair rows and four 25-word history rows; each RAM is 128x32. History includes eight normalized words per sample. |
+| TX ledger | Four 22-word rows; 128x32 RAM. Depth generic retains 1–255 logical slots. |
+| Servo median | Five two-word history samples in 16x32 RAM; padded sorting scratch uses compute slots. |
+| Local configuration | Three banks of 48 protocol, 34 servo and 10 PHC operand words, including address-map holes; physical RAMs are 256x32, 128x32 and 32x32. |
+| Immutable result snapshots | Protocol records have 12 Announce body/metadata and 20 exchange words; servo records have 4 offset, 4 median and 2 rate words. Five versions per record require 256x32 and 64x32 physical RAMs. |
+| Changing-scalar snapshots | Two banks of 7 protocol counter, 10 PHC and 1 servo words; scalar cohorts are latched together before copying. |
+| RX stream | Eight 64x8 lane RAMs at depth four, a separate 8x293 capture RAM and a narrow bank/length descriptor FIFO. Five frame banks include the active physical frame. |
+| Dedicated TX stream | Eight 8x8 lane RAMs, separate 4x293 capture RAM and a narrow descriptor FIFO. Three frame banks preserve two logical completed entries. |
+
 ## RX message and capture boundary
 
 A passive adapter binds capture and bytes at the first destination-MAC octet,
@@ -93,8 +232,8 @@ would require proving identical admission, loss, and reset behavior again.
 
 `PtpRxTimestampTap` structurally composes `PtpRxTimestampAdapter` and
 `PtpRxFrontend` without added state or latency. The adapter handles GMII/XGMII
-normalization; `PtpTxTimestampTap` reuses the same leaves for separate TX
-completion. There is no combined
+normalization; `PtpTxTimestampTap` reuses the adapter and a dedicated
+`PtpDelayReqObserver` for separate TX completion. There is no combined
 RX/TX timestamp-tap entity or separate RX timestamp/frame join.
 
 | Boundary | Contract |
@@ -124,15 +263,16 @@ candidate; recovery is permitted at a subsequent clean SOF.
 
 The frontend owns these structural checks:
 
-- Complete frame length of 64–1518 bytes, destination MAC through FCS.
-  Jumbo and tagged PTP are outside this first contract.
+- Complete frame length of 64 through `MAX_FRAME_G` bytes, destination MAC
+  through FCS; the default maximum is 1518. Jumbo and tagged PTP are outside
+  this contract.
 - Ethernet FCS across the complete frame, including legal padding. Nothing is
   queued before the final CRC result and framing status are known.
 - Outer EtherType `88 F7`, major version 2 with any minor version, and a supported
   RX message type. The byte-order convention remains distinct from `x"F788"`
   in the MAC bypass generic.
 - `messageLength` covers the fixed body (44/44/54/64 bytes respectively), fits
-  the received frame, and is at most 1500. Padding beyond that length is
+  the received frame, and is at most `MAX_FRAME_G - 18` (1500 by default). Padding beyond that length is
   excluded from PTP decode, but included in CRC.
 - Optional TLVs walk exactly to `messageLength`; reject odd value lengths,
   partial headers and values extending beyond it. Structurally valid unknown TLVs are skipped.
@@ -153,7 +293,8 @@ reject conflicting live content; this design does not prove which of two
 conflicting, CRC-valid Follow_Up messages a sender intended. No oracle wire ID
 is carried in the interface or used by the reference model.
 
-Storage is bounded independently of frame termination: at most 78 prefix bytes,
+Storage is bounded independently of frame termination: 65 useful bytes in a
+70-byte sparse layout,
 saturating length counters, CRC and streaming TLV state, one SOF capture and a
 configured complete-record queue (default four). The Python oracle holds four
 trailing FCS bytes; RTL instead proves the declared body ends before the FCS.
@@ -168,13 +309,79 @@ Otherwise the old head may retire before a valid completion enqueues; new record
 do not fall through on arrival. Restart/generation changes discard partial and
 queued work. RX overflow never steps the PHC or releases unknown TX wire keys.
 
-The [registered timing contract](rtl-readability.md#registered-lifecycle-and-queue-boundaries)
+The [registered timing contract](interfaces.md#registered-lifecycle-and-queue-boundaries)
 is authoritative: a detection-edge old-head transfer can precede publication of
 abort, and the consumer cancels pending work when that registered event arrives.
 This supersedes the original reference model's immediate-abort timing. Pipeline
 capture, completion, generation and abort together; an independent reset or CDC
 would need coordinated invalidation before admitting new work. The current
 physical producer boundary has no CDC.
+
+### Frame capacity and TLVs
+
+`MAX_FRAME_G` bounds the complete frame, including Ethernet header and FCS.
+Its default is 1518 and its supported range is 82–1518 bytes. The narrow counters
+and TLV offsets derive from this capacity; the fixed-field stores do not retain
+an entire maximum-length frame. `EthMacPtpEndpoint`, `GigEthPtp` and the GTH
+composition expose it to both observers. GTY/copper wrappers currently retain
+the defaults rather than exposing these generics.
+
+`TLV_EN_G=true` is the default: structurally valid unknown TLVs are skipped.
+False removes the suffix walker and requires each supported message's exact
+fixed-body `messageLength`; legal Ethernet padding remains allowed. This is an
+implemented restricted mode, not equivalent interoperability. A master appending
+a TLV to Sync/Follow_Up/Delay_Resp would lose those measurements. Announce TLV
+rejection loses metadata; `announceValid` itself does not gate servo enable.
+A deployment must establish that its profile/master traffic permits the restriction.
+
+The KCU105 area study selected 128-byte capacity with TLVs enabled. The 82-byte
+minimum gave worse mapped area and less message headroom; smaller counters did
+not produce monotonically lower whole-design LUT counts. That board selection
+is not the reusable default, and support for structural TLV skipping does not
+implement TLV semantics or White Rabbit. Selection evidence is in the
+[capacity/TLV experiment](../../docs/plans/ethernet-ptp/history/verification.md#capacity-and-arbiter-follow-up).
+
+## RX queue storage
+
+`PtpRxFrontend` writes 65 useful fixed-field bytes in a sparse 70-byte layout
+through eight independent byte lanes. The eight-byte Ethernet source/EtherType
+gap is removed without changing stored bytes' modulo-eight lanes; remaining
+reserved positions are neither written nor decoded. A beat writes at most one
+byte per lane, including a row crossing. Nine groups per physical bank preserve
+the previous compact layout's RAM depth for every logical queue depth; the
+uncompacted 78-byte experiment is not the retained layout.
+CRC, lengths, TLV progress and small common-header fields stay in the stream
+validator; unused prefix bytes and TLV payload are not retained. Physical SOF
+capture metadata is written once to a separate bank. The store has one extra
+active-frame bank beyond the exact logical queue capacity (default four).
+
+A synchronous SURF FWFT FIFO carries bank/length descriptors after complete
+validation. Logical occupancy includes descriptor pipeline, decoder and held
+head; extra primitive locations do not add capacity. The decoder streams eight
+wire positions per clock into the sole public record. With G=ceil((40+fixedBodyBytes)/8),
+EOF at N produces registered valid at N+G+4 and first transfer at N+G+5.
+A queued next record takes G+2 clocks after the preceding head transfer. G is
+7 for Sync/Follow_Up, 8 for Delay_Resp and 9 for Announce. These rates fit their
+minimum wire spacing. Dedicated minimum-IFG GMII/XGMII bursts test continuous
+capture and exact capacity with a held prior head.
+
+`PtpDelayReqObserver` is the dedicated TX validator: only 13 key bytes and the
+complete capture are stored, with two logical entries and a two-group decoder.
+Its descriptor carries only the bank index; the 13-byte decode length and 44-byte
+fixed PTP body are constants. Identity/version errors become sticky at their
+wire bytes, while rejection counting and admission still occur at physical EOF.
+It validates actual post-MAC framing, FCS, Delay_Req type, length and legal TLVs. PHC generation
+changes and capture arithmetic errors cannot erase physical completion identity;
+physical reset/flush retains its distinct meaning. Logical restart never proves
+an unknown queued TX frame vanished.
+
+Reset/flush invalidates ownership and registered FIFO state without clearing RAM.
+Full-before-edge overflow flushes the entire queue and publishes the existing
+abort/epoch event. Invalid frames overwrite only the current uncommitted bank.
+The public message and capture stay atomic and stable under backpressure. The
+809-bit pack/unpack utilities retain their public verification layout but no
+longer define the physical descriptor FIFO width. Resource mapping and timing
+still require matched Vivado evidence; simulation does not measure LUT savings.
 
 ## TX ledger storage
 
@@ -242,11 +449,11 @@ registered write may finish on a reset edge but cannot regain valid ownership.
   E2E converts each latency to master-time units using that capture's increment
   and the qualified master-time/raw-tick ratio. A PHC rate change between t2 and
   t3 therefore cannot silently change the calibration plane.
-- `PtpMath` provides signed128 multiplication/division, explicit overflow/divide
-  errors, ready/valid output holding, and cancellation. Work takes 128 iterations.
-  Division can round nearest with ties away from zero; the separately returned
-  remainder always follows truncation toward zero. E2E, rate estimation, servo,
-  and manual phase normalization own separate serialized engines.
+- `PtpCompute` shares exact signed128 operations between rate, E2E, servo and
+  manual PHC preparation. Word-serial work has variable arbitration latency;
+  division can round nearest with ties away from zero while its remainder
+  follows truncation toward zero. Each client retains its own workspace and
+  cancellation ownership. `PtpMath` is a standalone leaf, outside production.
 - PHC command acceptance latches an immutable operand; commit is the following
   edge. SET specifies commit-edge time; PHASE applies after normal advancement;
   RATE changes the next increment. A discontinuity clears validity, suppresses
@@ -298,7 +505,7 @@ last registered write drains. Lookup pins the table, excluding append/pair
 admission until the selected words transfer. E2E retains its input ownership
 through result retirement. Completed E2E output takes priority over a new pair
 scan, including under continuing rejected traffic. Local scan and shared-service
-latencies are included in the [service bound](rtl-readability.md#shared-service-bound).
+latencies are included in the [service bound](interfaces.md#shared-service-bound).
 
 ## Port policy and numerical envelope
 
@@ -376,9 +583,7 @@ is exposed, including all 30 body octets; UTC/leap flags never step the PHC.
 The three-point schedule is a known departure from IEEE 1588-2019
 9.5.11.2(c)(1)'s default multicast uniform distribution. The selected sdoId=000
 also reserves domains 128–255, which configuration does not yet prohibit.
-The correction overflow encoding `0x7fffffffffffffff` still follows ordinary
-arithmetic and needs explicit receiver policy. These and configured-port/profile
-requirements remain in the [specification audit](../../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work).
+Those departures and configured-port/profile requirements remain in the [specification audit](../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work).
 
 The servo uses the median of only populated delay samples (up to five), then
 local-minus-master offset = forward − filteredDelay − asymmetry. While invalid,
@@ -401,19 +606,16 @@ Maximum path delay is 1 ms.
 
 The shared word processor requires an association window of at least
 70,347,776 raw ticks, advertised by `MinimumAssociationTicks`. Its
-[finite-burst derivation](rtl-readability.md#shared-service-bound) includes
+[finite-burst derivation](interfaces.md#shared-service-bound) includes
 movement, arbitration, computation and publication. Original capture ages are
 unchanged. The configurable actuator cap remains 200,000 ppb and still requires
 an explicit control/actuator rationale and qualification, independently of the
 ±200 ppm oscillator envelope and default 150,000 ppb total correction limit.
 
-Independent rational PI sweeps cover ±100 ppm, initial ±10 µs, and Sync periods
-1/8, 1/4 and 1 s. For those cases, peak error is below 12 µs and every sampled
-error after 120 s is below 100 ns. Separate estimator sweeps include ±100 ns
-packet delay variation. These are stated model cases, not a hardware accuracy
-guarantee or a combined arbitrary-jitter stability proof. The physical endpoint
-regressions accelerate packet intervals with exact fractional correction fields;
-they verify state/command composition rather than long-duration default settling.
+Model sweeps and accelerated endpoint fixtures exercise different envelopes;
+neither establishes hardware accuracy or arbitrary-jitter stability. See the
+[recorded model envelope](../../docs/plans/ethernet-ptp/history/verification.md#recorded-servo-model-envelope)
+and [acceptance backlog](../../docs/plans/ethernet-ptp/acceptance.md#outstanding-acceptance).
 
 ## Arithmetic units and sign conventions
 
@@ -511,86 +713,7 @@ Abort/restart, generation change and stale work cancel immediately, clearing
 population and replacement ownership while retaining the prior median payload.
 AXI reset preserves active work. Snapshot capture on median publication includes
 the previous pre-edge value; capture on the next edge includes the new value.
-See the [service contract](rtl-readability.md#shared-service-bound) for bounds.
-
-### Fixed-point width audit
-
-The pre-shared-service October 2026 source audit below sized stored values from the accepted configuration
-and interface ranges, including standalone clock-frequency generics. Its named
-registers and declared-bit savings describe that earlier implementation; current
-working values occupy 128-bit RAM slots. The numerical bounds still apply and do not
-assume that every Sync arrives one second apart or that every offset is small.
-The first reduction preserves all fractional bits, register/command formats,
-rounding points, overflow rejection and the 128-iteration arithmetic schedule.
-Behavioral equivalence is assessed through the [width acceptance checks](rtl-review.md#fixed-point-width-acceptance).
-
-| Quantity | Bound and implementation decision |
-| --- | --- |
-| Stored servo frequency, candidate frequency, slew and bootstrap | Each is clamped to at most +/-200,000 ppb. With 16 fractional bits, `200000 * 2^16 < 2^34`: **35 signed bits** suffice. `RatePpbType` replaces four signed128 registers. |
-| Sum/difference of two clamped rate terms | Can reach +/-400,000 ppb before clamping, requiring at least **36 signed bits**. The shared servo adder now uses signed67 for these sums and the integral update, preserving the carry/sign before saturation and anti-windup decisions. |
-| Tracking offset and gain product | Tracking admission requires the offset to fit signed64 Q16 ns; Kp/Ki are unsigned32 Q2.30. Their exact product fits **signed96**. The shared engine still publishes signed128 because other operations need the wider contract. |
-| Elapsed sample time | Validated timeouts are nonzero and below `2^62` raw ticks. For any positive `CLK_FREQ_G`, nominal Q32 ns/tick is at most `1e9 * 2^32`. Thus the rounded interval in Q32 seconds is below `2^94`: **95 signed bits** suffice for `interval`, formerly signed128. |
-| Integral update | Multiplying the offset/gain product by the permitted interval can exceed signed128 before the existing 62-bit rounded shift. Retain checked128 overflow rejection; a narrower engine or an earlier rounding shift could change which samples are rejected or change the PI result. |
-| Rounded servo correction and frequency candidate | After the checked integral product is rounded right by 62, its magnitude is at most `2^65`. Negation and addition of a clamped frequency below `2^34` fit **signed67**. The proportional signed96 product shifted by 30 also fits this width. `CorrectionType` and the shared adder expose these bounds after the existing rounding points. |
-| Rate-to-PHC conversion | The clamped signed35 rate times the nominal increment fits signed97 for all positive clock-frequency generics. At 125 MHz, the exact nominal increment is `2^35`, so signed70 suffices for this product. The shared engine retains its wider interface. |
-| Epoch and manual phase adjustment | A full 48-bit seconds epoch expressed in Q16 ns needs about 95 signed bits. The software phase operand and measurement/normalization interfaces accept signed128; phase division must retain that public input range and its quotient-fit checks. |
-| E2E and raw-rate estimation | Raw ticks/phase, unsigned64 ratios, correction fields and calibration conversions have separate bounds. The E2E tick-span/ratio product can exceed signed128 and is checked. Do not infer smaller operands merely from the subsequently qualified oscillator or path-delay range. |
-
-The narrow servo state relies on the existing coordinated configuration contract:
-the endpoint applies a candidate only after all banks vote valid. Changing the
-actuator cap or timeout policy requires revisiting these bounds. The cap remains
-an implementation policy awaiting qualification, as recorded above; this audit
-does not establish its physical suitability.
-
-`PtpMath` now stores the low 128 bits of its product and shifted multiplicand,
-with two sticky flags in place of their previous 256-bit registers. A 129-bit
-addition detects carry. A shifted-out high bit contributes to product overflow
-only when a subsequent multiplier bit selects that partial product. Because
-the engine multiplies unsigned magnitudes, all partial products are nonnegative:
-discarded high bits cannot cancel later. The final sign-dependent range check
-still distinguishes `-2^127` from the overflowing positive `+2^127`, and the low
-result bits on overflow are preserved. Division uses the
-[bounded remainder and trial subtraction](#phc-increment-and-phase-normalization),
-retaining its nearest-rounding option and truncation remainder semantics.
-
-These changes remove 405 declared state bits from the servo and 254 from each
-multiply-capable math instance before synthesis optimization. These are source
-width counts, not measured FPGA savings; constant divide-only instances may
-already prune multiplication logic. LUT/FF/DSP use and critical paths require
-Vivado evidence. Operation-specific multiplier/divider widths or DSP mapping
-remain later options after behavioral acceptance and a measured resource need.
-
-### Deferred floating-point servo option
-
-Floating-point arithmetic is a future option for the message-rate PI servo's
-gain, proportional and integral calculations. It could simplify experiments
-with controller equations and scaling. The current implementation remains
-fixed point; this is an investigation idea, not an implementation commitment
-or an expected accuracy improvement.
-
-An experiment should convert already-formed, bounded offset and elapsed-time
-values to floating point and keep frequency corrections separate from the
-nominal clock increment. Evaluate binary64 first rather than assuming binary32
-has sufficient precision. Floating point provides approximately constant
-relative precision, so its absolute resolution depends on magnitude: a small
-integral update can disappear when added to a large retained state. Form epoch
-differences in integer/fixed point before conversion; converting large absolute
-timestamps first can lose the small difference the controller needs.
-
-Integer/fixed-point arithmetic remains the preferred choice for the rest of
-the timing chain: PHC accumulation, timestamp capture and subtraction, correction
-fields, E2E delay and raw-rate estimation, phase normalization, and final PHC
-commands. These paths benefit from explicit absolute resolution, exact counters
-and predictable rounding/overflow behavior. A floating-point servo would still
-return a bounded fixed-point correction through the existing command interface,
-with explicit conversion, rounding, saturation and non-finite-result handling.
-
-Compare any prototype with the appropriately sized fixed-point baseline for
-numerical error, small accumulated corrections, acquisition/holdover behavior,
-FPGA resources and latency. Message-rate computation offers time to serialize
-operations, but does not establish a resource or precision advantage. Existing
-configuration, cancellation and command-acknowledgement contracts must remain
-intact; behavioral evaluation remains subject to the repository verification policy.
+See the [service contract](interfaces.md#shared-service-bound) for bounds.
 
 ## AXI-Lite register map
 
@@ -629,48 +752,30 @@ that deasserted full proves the peer domain is ready. Consumers accept only
 `readValid` responses in their current reset session.
 
 
-## RX queue storage
 
-`PtpRxFrontend` writes 65 useful fixed-field bytes in a sparse 70-byte layout
-through eight independent byte lanes. The eight-byte Ethernet source/EtherType
-gap is removed without changing stored bytes' modulo-eight lanes; remaining
-reserved positions are neither written nor decoded. A beat writes at most one
-byte per lane, including a row crossing. Nine groups per physical bank preserve
-the previous compact layout's RAM depth for every logical queue depth; the
-uncompacted 78-byte experiment is not the retained layout.
-CRC, lengths, TLV progress and small common-header fields stay in the stream
-validator; unused prefix bytes and TLV payload are not retained. Physical SOF
-capture metadata is written once to a separate bank. The store has one extra
-active-frame bank beyond the exact logical queue capacity (default four).
+## Physical clock and application boundary
 
-A synchronous SURF FWFT FIFO carries bank/length descriptors after complete
-validation. Logical occupancy includes descriptor pipeline, decoder and held
-head; extra primitive locations do not add capacity. The decoder streams eight
-wire positions per clock into the sole public record. With G=ceil((40+fixedBodyBytes)/8),
-EOF at N produces registered valid at N+G+4 and first transfer at N+G+5.
-A queued next record takes G+2 clocks after the preceding head transfer. G is
-7 for Sync/Follow_Up, 8 for Delay_Resp and 9 for Announce. These rates fit their
-minimum wire spacing. Dedicated minimum-IFG GMII/XGMII bursts test continuous
-capture and exact capacity with a held prior head.
+The exported PHC time/status, applied increment, PPS and servo state describe
+numerical time in the endpoint clock domain. A waveform generator must use the
+applied increment, not a computed servo diagnostic that may precede command ACK.
+A destination clock domain needs coherent transfer and explicit rate conversion;
+a snapshot mailbox is not a continuously advancing, latency-compensated clock.
 
-`PtpDelayReqObserver` is the dedicated TX validator: only 13 key bytes and the
-complete capture are stored, with two logical entries and a two-group decoder.
-Its descriptor carries only the bank index; the 13-byte decode length and 44-byte
-fixed PTP body are constants. Identity/version errors become sticky at their
-wire bytes, while rejection counting and admission still occur at physical EOF.
-It validates actual post-MAC framing, FCS, Delay_Req type, length and legal TLVs. PHC generation
-changes and capture arithmetic errors cannot erase physical completion identity;
-physical reset/flush retains its distinct meaning. Logical restart never proves
-an unknown queued TX frame vanished.
+External PLL/VCXO cleanup, physical actuator ownership, epoch transfer and event
+scheduling remain separate design work. Clock-health, PTP synchronization and
+application timing validity need independent qualification. The
+[physical-clock requirements](physical-clock.md) retain the proposed reference,
+recovery and measurement contracts without claiming an implemented actuator.
 
-Reset/flush invalidates ownership and registered FIFO state without clearing RAM.
-Full-before-edge overflow flushes the entire queue and publishes the existing
-abort/epoch event. Invalid frames overwrite only the current uncommitted bank.
-The public message and capture stay atomic and stable under backpressure. The
-809-bit pack/unpack utilities retain their public verification layout but no
-longer define the physical descriptor FIFO width. Resource mapping and timing
-still require matched Vivado evidence; simulation does not measure LUT savings.
+## Validation and evolution
 
-Validation history is retained in [historical evidence](history/verification.md);
-all current acceptance and device/interoperability gates belong in the
-[review record](rtl-review.md#outstanding-acceptance).
+[Current status and acceptance](../../docs/plans/ethernet-ptp/README.md) distinguish
+passing source revisions, focused follow-ups, synthesis-only measurements and
+routed board results. Historical private engines, width savings and area budgets
+are not current resource claims; the
+[width audit](../../docs/plans/ethernet-ptp/history/decisions.md#preserve-numerical-semantics-before-narrowing-hardware)
+retains useful range proofs with their original implementation context.
+Halving LUT use was motivation, not an acceptance threshold. Shared MAC/checksum
+changes, feedback rate estimation and floating-point servo work remain deferred.
+Update this guide and the interface/register contracts when behavior changes;
+append measured outcomes to history and keep unfinished acceptance in its owner.

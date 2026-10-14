@@ -4,14 +4,14 @@ The maintainer selected **IEEE 1588-2019 with IEEE 1588-2008 compatibility**
 on October 9, 2026. This page maps the implemented subset to verified clauses,
 directed checks and remaining gaps. It is not a declaration of IEEE or profile
 conformance. Execution results belong in the
-[acceptance record](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-directed-specification-checks).
+[acceptance record](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-specification-and-exchange-fixes).
 
 ## Scope and source authority
 
 The implemented scope is a configured-source Layer-2 E2E TimeReceiver, with
 one-/two-step Sync reception and Delay_Req transmission. BMCA, management/signaling,
 Pdelay, VLAN/UDP, security and one-step transmission are outside the current
-[endpoint contract](../../../docs/plans/ethernet-ptp/autonomous-endpoint.md#port-policy-and-numerical-envelope).
+[endpoint contract](../../../ethernet/PtpCore/architecture.md#port-policy-and-numerical-envelope).
 A named deployment profile has not been selected. A fixed source alone does
 not establish conformance to the external port configuration option in 17.6.
 
@@ -91,7 +91,7 @@ so no conformance percentage is meaningful.
 `test_ptp_specification.py` provides seven separately selectable cocotb cases.
 Existing benches supply transport/transaction mechanics; golden packets and
 arithmetic remain independent of the shared encoder and model.
-See the [execution record](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-directed-specification-checks).
+See the [execution record](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-specification-and-exchange-fixes).
 
 | Scenario | References / observation | Limit |
 | --- | --- | --- |
@@ -144,7 +144,7 @@ It does not establish continuous-time PHY/PHC/servo operation at these rates,
 external-master interoperability, BMCA/profile conformance or the default
 request distribution. The older accelerated master remains separate.
 Execution and known-bad evidence belong in the
-[acceptance record](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-master-and-exchange-checks).
+[acceptance record](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-specification-and-exchange-fixes).
 
 ## Remaining normative work
 

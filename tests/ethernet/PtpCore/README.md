@@ -2,7 +2,7 @@
 
 This suite contains independent reference models, leaf RTL scoreboards,
 physical protocol tests and autonomous endpoint/MAC regressions. The
-[implementation record](../../../docs/plans/ethernet-ptp/autonomous-endpoint.md)
+[implementation record](../../../ethernet/PtpCore/architecture.md)
 separates simulated behavior from remaining device and interoperability work.
 
 - `test_ptp_mac_association.py` drives real XGMII frames through `EthMacTop`
@@ -62,8 +62,8 @@ separates simulated behavior from remaining device and interoperability work.
   See [exchange coverage](specification-coverage.md#ordinary-master-and-exchange-checks).
 
 **Current authorization:** the maintainer lifted the simulation/pytest pause on
-October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
-and [one-step acceptance checklist](../../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
+October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-baseline)
+and [one-step acceptance checklist](../../../docs/plans/ethernet-ptp/acceptance.md#one-step-receive-acceptance).
 The selected standards baseline is IEEE 1588-2019 with 2008 compatibility;
 the [specification coverage matrix](specification-coverage.md) distinguishes
 normative requirements, endpoint restrictions and implementation checks.
@@ -72,13 +72,13 @@ The counterexample tests pass when they demonstrate the rejected algorithm's
 failure. They must not be mistaken for successful timestamp-association RTL.
 Large simulator logs stay in `tests/sim_build` or temporary storage; durable
 historical results are in the
-[Phase 0 record](../../../docs/plans/ethernet-ptp/history/verification.md#phase-0-counterexamples).
+[Phase 0 record](../../../docs/plans/ethernet-ptp/history/verification.md#capture-boundary-experiments).
 Follow the [test guidance](../../README.md) for changes and new regressions.
 
-The [RX design decision](../../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-message-and-capture-boundary)
+The [RX design decision](../../../ethernet/PtpCore/architecture.md#rx-message-and-capture-boundary)
 records the selected replacement and its physical producer contract.
 Historical RTL results and synthesis limits are in the
-[RX evidence record](../../../docs/plans/ethernet-ptp/history/verification.md#rx-rtl-proof).
+[RX evidence record](../../../docs/plans/ethernet-ptp/history/verification.md#capture-boundary-experiments).
 
 ## Selecting tests
 
@@ -110,7 +110,7 @@ GMII/XGMII and one-/two-step cases are not interchangeable when serialization,
 capture timing or message association changes. A single case is useful during
 iteration, but does not close acceptance for affected configurations left unrun.
 
-The October 9 [runtime evidence](../../../docs/plans/ethernet-ptp/rtl-review.md#october-9-behavioral-verification)
+The October 9 [runtime evidence](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-baseline)
 shows why selection matters: direct protocol samples took about 25 seconds,
 math/servo together about 65 seconds, and eight endpoint configurations about
 39 minutes with six workers. These are observed batch times with concurrent
@@ -145,7 +145,7 @@ reporting the previous full-suite result as validation of a later edit.
   four-owner arbitration, stalled readers, active/queued/held cancellation and
   committed-state retention. Block/synchronous-high and distributed/asynchronous-low
   reset cases both enforce the derived 4,608-clock operation ceiling. See
-  [service ownership and bounds](../../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound).
+  [service ownership and bounds](../../../ethernet/PtpCore/interfaces.md#shared-service-bound).
 - `test_ptp_timing_math.py`: production compatibility-adder sums at 64/66/67 bits
   and native modulo-tick expiry against Python integers, including every
   word boundary, wrapped/future timestamps, equality and seeded random inputs.
@@ -185,7 +185,7 @@ reporting the previous full-suite result as validation of a later edit.
   phase/rate feedback estimators against the current ratio oracle. Run with
   `python -m tests.ethernet.PtpCore.rate_feedback_study`; optional `--csv` saves
   traces. This is not a production oracle or RTL regression. Assumptions and
-  results are in the [feedback study](../../../docs/plans/ethernet-ptp/lut-optimization.md#feedback-rate-estimator-study-october-13).
+  results are in the [feedback study](../../../docs/plans/ethernet-ptp/history/design-studies.md#arithmetic-alternatives).
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
   Clock parameters cover 125 MHz, 156.25 MHz and a standalone 31.25 kHz

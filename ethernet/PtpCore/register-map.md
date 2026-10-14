@@ -20,7 +20,7 @@ servo prepare completion is explicit; ConfigBusy remains high through sequential
 validation. Snapshot capture freezes common pre-edge state; SnapshotBusy remains
 high until every bank is ready and the common publish edge advances all sequences.
 Previous snapshot values remain readable during copying. See
-[bank timing and shared-service bounds](rtl-readability.md#configuration-and-snapshots).
+[bank timing and shared-service bounds](interfaces.md#configuration-and-snapshots).
 
 ## Register ownership
 
@@ -294,6 +294,6 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x3200` | `ServoRejected` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x33FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
 
-See [historical register checks](history/verification.md#register-ownership-milestone)
-and [current acceptance](rtl-review.md#outstanding-acceptance). Cycle-level
-broadcast contracts and record ownership are in the [timing guide](rtl-readability.md).
+See [historical register checks](../../docs/plans/ethernet-ptp/history/verification.md#early-endpoint-and-ownership-milestones)
+and [current acceptance](../../docs/plans/ethernet-ptp/acceptance.md#outstanding-acceptance). Cycle-level
+broadcast contracts and record ownership are in the [timing guide](interfaces.md).

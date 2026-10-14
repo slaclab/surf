@@ -3,7 +3,7 @@
 ## Scope and status
 
 This note records reusable physical-clock integration requirements alongside the
-[Ethernet PTP plan](README.md). Physical reference generators, external oscillator
+[Ethernet PTP plan](../../docs/plans/ethernet-ptp/README.md). Physical reference generators, external oscillator
 control and precise destination-domain time transfer remain future work. These
 requirements do not change the implemented endpoint interface or make physical
 clock discipline a prerequisite for the initial plain-PTP endpoint.
@@ -17,9 +17,9 @@ project's historical notes. The source calculations are not hardware results.
 
 ## Use applied time and rate
 
-[EthMacPtpEndpoint](../../../ethernet/PtpCore/rtl/EthMacPtpEndpoint.vhd) exports
+[EthMacPtpEndpoint](rtl/EthMacPtpEndpoint.vhd) exports
 `phcTime`, `phcStatus`, `pps` and `servoState`. Their records are defined in
-[PtpPkg](../../../ethernet/PtpCore/rtl/PtpPkg.vhd). For a generator driven from
+[PtpPkg](rtl/PtpPkg.vhd). For a generator driven from
 the same clock domain as the PHC:
 
 | Value | Interpretation |
@@ -53,7 +53,7 @@ responsibilities. Device configuration over SPI and the continuous fine-frequenc
 actuator may be different interfaces.
 
 A fabric phase accumulator is a candidate alongside the
-[MMCM phase-stepping approach](history/design-studies.md#experimental-fpga-generated-frequency-output).
+[MMCM phase-stepping approach](../../docs/plans/ethernet-ptp/history/design-studies.md#physical-frequency-output-and-advanced-timing).
 In the PHC domain, its phase advance is:
 
 ```text
@@ -106,10 +106,10 @@ The integration must define:
 - Recovery after source changes, PHC generation changes, time steps and resets.
 - Ownership of shared PLL configuration, alignment controls and resets.
 
-[PtpPhcRead](../../../ethernet/PtpCore/rtl/PtpPhcRead.vhd) supplies coherent
+[PtpPhcRead](rtl/PtpPhcRead.vhd) supplies coherent
 snapshots. A snapshot does not provide continuously advancing or
 latency-compensated time in the receiving clock domain. The
-[existing CDC and application plan](autonomous-endpoint.md#optional-snapshot-cdc)
+[existing CDC and application plan](architecture.md#optional-snapshot-cdc)
 already distinguishes these uses. A precise consumer must define its reference
 edge, time-transfer latency, epoch/timescale conversion, divider alignment and
 common event/counter origin. Frequency lock alone cannot establish those values.
@@ -140,5 +140,4 @@ oscillator. The hardware qualification plan must cover:
 
 Use independent measurements: endpoint self-reported offset and PLL lock alone
 cannot establish timing accuracy. Next work is requirements selection, actuator/
-loop design, implementation and qualification, subject to the existing RTL-review
-approval gate. No physical-clock implementation or hardware result is claimed here.
+loop design, implementation and qualification, subject to the consuming project's scope and acceptance criteria. No physical-clock implementation or hardware result is claimed here.

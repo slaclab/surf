@@ -1,172 +1,60 @@
 # Ethernet PTP endpoint
 
-This area implements a fixed-source Layer-2 E2E PTP TimeReceiver with one-step
-and two-step Sync reception.
-`EthMacPtpEndpoint` combines the existing MAC with passive timestamp/validation
-paths and an autonomous PHC/servo. Software configures and observes it; software
-is not in the timing loop. See the [implementation contract](../../docs/plans/ethernet-ptp/autonomous-endpoint.md)
-for current validation, register ABI, numerical limits and remaining qualification.
+Fixed-source Layer-2 E2E PTP TimeReceiver with one-/two-step Sync reception,
+passive physical timestamping and an autonomous PHC/servo. Software configures
+and observes it; software is outside the timing loop. Standards/profile and
+hardware qualification remain open.
 
-After ignoring reserved flag bits, Sync flags select the receive mode per
-message: `0x0000` uses the Sync origin timestamp and correction; `0x0200` waits for Follow_Up and uses
-its timestamp plus both signed corrections. Both use the same capture, rate
-estimator, history and E2E path. No software mode switch or register change is
-required. Mixed-mode collisions follow the conservative
-[association policy](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#port-policy-and-numerical-envelope).
-Both receive modes passed the October 9 baseline direct, physical and endpoint
-fixtures. Subsequent header fixes have focused verification;
-see the [October 9 results](../../docs/plans/ethernet-ptp/rtl-review.md#october-9-directed-specification-checks)
-and remaining [one-step acceptance](../../docs/plans/ethernet-ptp/rtl-review.md#one-step-receive-acceptance).
-Standards/profile conformance and hardware qualification remain open. One-step transmit
-insertion remains outside scope.
+## Guides and sources
 
-- `rtl/PtpPkg.vhd`: shared time, capture, configuration, command and measurement records.
-  It also owns wire encodings/lengths, message-body accessors,
-  fixed-point format definitions and distinct nanoseconds/ppb conversion scales.
-  These describe fixed interface contracts rather than configurable precision.
-  Table/filter depths and implementation policies remain local to their owners.
-- [PtpRxTimestampTap](rtl/PtpRxTimestampTap.vhd): RX physical capture and bounded
-  FCS/message validation, composing `PtpRxTimestampAdapter` and `PtpRxFrontend`
-  without additional state or latency. The adapter/frontend register boundary
-  keeps frame bytes and their start capture aligned. The leaf blocks remain
-  independently testable. `PtpTxTimestampTap` shares physical normalization/capture and uses its
-  dedicated Delay_Req validator for actual TX wire completion.
-- `PtpRxFrontend` streams compact fields into eight byte lanes of dedicated
-  frame RAM. A descriptor FIFO retains four logical records, including the
-  decoder and held head. Capture metadata is written once at physical SOF.
-  `PtpTxTimestampTap` uses the dedicated `PtpDelayReqObserver`, retaining only
-  identity/sequence/domain and capture, with two logical entries. Both validate
-  FCS/framing/length and preserve physical timestamp provenance. See
-  [queue storage](../../docs/plans/ethernet-ptp/autonomous-endpoint.md#rx-queue-storage).
-- `PtpProtocolEngine`, `PtpTxLedger`, `PtpE2e` retain association, wire fate,
-  request scheduling and measurement ownership. Pair rows use 20x32 words;
-  history rows use 25x32 words, including reusable normalized Sync/forward
-  values. Ledger entries use 22x32 words. These three stores default to block RAM.
-  Scans retain only selected fields,
-  ages and ownership; complete rows are never copied into scan registers.
-  Pair/history age, Q3 distance and ordering share a 32-bit word ALU with
-  round-robin row arbitration and admission-time ticks. Cancellation invalidates
-  the active job immediately; table reads keep their one-cycle RAM interface.
-- One endpoint-owned `PtpCompute` serves rate, E2E, servo and PHC preparation.
-  Persistent addressed workspaces chain results through a 32-bit ALU,
-  partial-product multiplier and exact iterative divider. Separate held
-  responses prevent a stalled owner from blocking the engine. `PtpMath`
-  remains a standalone tested leaf and has no production PTP instantiation.
-- `PtpServo` stores median history and sorting scratch in word RAM and uses the
-  shared processor for comparisons, clamps, PI, rounding and phase preparation.
-  Retained frequency changes only on successful command ACK. `PtpPhc` keeps
-  counter rollover, increment, PPS, generation and command checks independent
-  of compute; manual PHASE uses a frozen operand bank and the shared processor.
-- `PtpPhc`, `PtpProtocolEngine` and `PtpServo` own their local AXI banks.
-  `PtpConfigBank` freezes and clones candidates before validation completion;
-  `PtpPublicationBank` pins immutable results and `PtpSnapshotBank` copies
-  changing scalars. The coordinator applies configuration and publishes complete
-  snapshot cohorts through common registered broadcasts. Protocol/servo
-  configuration and protocol publication select block RAM; smaller banks remain
-  distributed. AXI reset preserves
-  accepted coordination and command work.
-- See the [shared service contract](../../docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound)
-  for arbitration, RAM lifetimes, sequencer ceilings and the 70,347,776-tick
-  minimum association window. The two-second default remains. Area/timing
-  comparison against the prior implementation still requires Vivado evidence.
-- Configuration defaults live in `PTP_PORT_CONFIG_INIT_C` and
-  `PTP_SERVO_CONFIG_INIT_C`, with units and derivations beside each value.
-  `PtpTxLedger.config` accepts the port's active `PtpPortConfigType` directly;
-  the former aggregate `PtpConfigType` and `PTP_CONFIG_INIT_C` are removed.
-  The servo receives port-owned shared limits through `PtpSharedConfigType`.
-- `PtpMeasurementMasterType`/`PtpMeasurementSlaveType` in `PtpPkg`: directional
-  measurement transfer. `PtpPortLifecycleType` carries registered command abort
-  and MAC-change restart; `PtpPortStatusType` carries registered diagnostics.
-  The port's live record owns counters, Announce metadata and the completed
-  exchange directly. Local AXI snapshots freeze pre-edge state separately.
-  Summary validity, ledger reporting, measurement and lifecycle outputs are
-  registered. Local admission checks reject work before publication; consumers
-  act on a published cancellation on the following edge.
-- `PtpEndpointControl` (formerly `PtpReg`) owns common commit/snapshot
-  coordination, global enables, registered restart/RX flush, IRQ-event staging
-  and combinational AXI reset. `PtpEndpoint` connects it to the functional cores
-  through the standard SURF crossbar and otherwise remains structural. [development register map](../../docs/plans/ethernet-ptp/register-map.md)
-  has four 4 KiB banks in a 16 KiB-aligned window at `AXIL_BASE_ADDR_G`.
-  Port and servo freeze candidate settings on prepare; sequential validation
-  completion qualifies apply. Later shadow writes target the next candidate.
-  Prepare/apply/busy and IRQ remain registered. System reset resets the coordinator and every bank.
-- `PtpPrimaryGuard`, `EthMacPtpEndpoint`: exclusive PTP TX ownership and common-clock
-  GMII/XGMII composition, using existing SURF stream adapters.
-- `PtpPhcRead`: optional, separately instantiated coherent snapshot CDC mailbox.
-- `GigEthPtp`: common 1G Ethernet management, MAC/PTP composition and one
-  AXI-Lite crossing before register fanout. The single-lane
-  [UltraScale GTH](gthUltraScale/rtl/GigEthGthUltraScalePtp.vhd) and
-  [UltraScale+ GTY](gtyUltraScale+/rtl/GigEthGtyUltraScalePlusPtp.vhd)
-  compositions live here beside the common PTP code; their reusable PHY-only
-  adapters live in [GigEthCore](../GigEthCore/README.md).
-- `wrappers/`: thin flattened simulation adapters. Executable stimulus and
-  independent models live in the [cocotb suite](../../tests/ethernet/PtpCore/README.md).
-- [PyRogue map](../../python/surf/ethernet/ptp/_PtpEndpoint.py): development register map with Phc/ProtocolEngine/Servo child devices.
+| Need | Start here |
+| --- | --- |
+| Data flow, numerical behavior, storage and design rationale | [Architecture](architecture.md) |
+| Exact handshake, lifecycle, RAM and service bounds | [Interface contracts](interfaces.md) |
+| AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |
+| Future waveform/oscillator/epoch integration | [Physical-clock requirements](physical-clock.md) |
+| Current results and unfinished acceptance | [Workstream](../../docs/plans/ethernet-ptp/README.md) |
+| Fixtures, independent oracles and focused test selection | [PTP tests](../../tests/ethernet/PtpCore/README.md) |
 
-Use one continuously running clock: full-rate GMII at 125 MHz or XGMII at
-156.25 MHz. `EthMacPtpEndpoint` asserts that `CLK_FREQ_G` matches the selected
-`PHY_TYPE_G`; set both generics when selecting GMII. GMII 10/100 operation is
-unsupported. `PtpTxLedger` supports depths 1 through 255 so its eight-bit
-occupancy and unresolved counts remain representable. The primary MAC stream uses
-`EMAC_AXIS_CONFIG_C` and a full first beat with SSI SOF. Untagged EtherType
-`0x88F7` is reserved for the endpoint; other primary traffic passes through.
-Latency calibration is signed Q16 local-PHC nanoseconds in elaboration-time
-`INGRESS_LATENCY_G`/`EGRESS_LATENCY_G` generics, readable in software.
+`rtl/` contains the common endpoint, packages, MAC composition and `GigEthPtp`.
+`PtpEndpoint` connects `PtpEndpointControl`, `PtpProtocolEngine`, `PtpServo`,
+`PtpPhc`, `PtpCompute`, TX adaptation and the AXI crossbar. `PtpProtocolEngine`
+owns the TX ledger and E2E child. `EthMacPtpEndpoint` adds `EthMacTop`, the
+primary-stream guard and passive RX/TX taps. The RX tap composes the timestamp
+adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
 
-`PtpEndpoint.TX_AXIS_CONFIG_G` selects the private Delay_Req output format.
-Its default `PTP_RX_AXIS_CONFIG_C` preserves the eight-byte stream and direct
-ready/valid connection from `PtpProtocolEngine`. Other formats use an internal
-`AxiStreamResize`; `EthMacPtpEndpoint` selects the MAC's 16-byte
-`EMAC_AXIS_CONFIG_C`. The resize uses system reset only, preserving queued
-data across port and register resets. Supported conversions follow
-`AxiStreamResize`'s stream-configuration constraints; downstream framing must
-interpret the selected configuration's SSI SOF/EOFE bits.
+`wrappers/` contains thin simulation adapters; stimulus lives in the test tree.
+The family directories below contain PHY compositions. Reusable PHY-only
+adapters live in [GigEthCore](../GigEthCore/README.md). The
+[PyRogue endpoint](../../python/surf/ethernet/ptp/_PtpEndpoint.py) exposes
+`Phc`, `ProtocolEngine` and `Servo` children. `ruckus.tcl` owns the source
+inventory, including RTL and wrappers.
 
-System reset must reset the entire MAC/endpoint TX pipeline. A port restart
-preserves PHC time and unknown physical TX reservations; an AXI-only reset also
-preserves accepted commands. Configure a defensible `PACKET_LIFETIME_G` before
-integration: sequence reuse relies on that finite network-lifetime bound.
-RX records transfer only when valid, ready and no abort; consumers give abort
-priority. These records are not themselves a CDC interface.
+## Integration essentials
 
-Arithmetic results (`PtpMath`, `PtpE2e`) and ledger samples also have registered
-valid outputs. Cancellation does not lower valid between clock edges: a transfer
-requires valid and ready with the shared cancel/restart low and system reset
-inactive. Both producer and consumer give cancellation priority at the edge.
-RX head selection, overflow, port lifecycle and measurement outputs are
-registered. A cause detected at edge N is consumed at N+1; already committed
-work is not retroactively revoked. `PtpEndpointControl` registers restart/flush
-assembly as another hop, using the already published configuration apply. IRQ
-status consumes its prior registered event stage, preserving event latency. PHC SET/PHASE admission announces capture inhibition before the
-following commit edge, including conservative inhibition of rejected commands.
+- Use a continuously running Ethernet/PHC clock: GMII at 125 MHz or XGMII at
+  156.25 MHz. Set both `PHY_TYPE_G` and `CLK_FREQ_G`; the composition asserts
+  the pair. GMII 10/100 operation is unsupported.
+- Assign a unique `localMac`. The primary stream uses `EMAC_AXIS_CONFIG_C`
+  with a full first SSI beat. Untagged EtherType `0x88F7` is reserved for the
+  endpoint; its private Delay_Req stream is resized to the MAC bypass format.
+- Set signed Q16 local-PHC nanosecond ingress/egress calibration and a defensible
+  `PACKET_LIFETIME_G`. Zero calibration is uncalibrated; finite key reuse relies
+  on the declared network lifetime.
+- System reset must reach the entire MAC/resize/endpoint pipeline. Logical
+  restart preserves offered TX frames and unresolved wire reservations;
+  AXI-only reset preserves active configuration and accepted commands.
+- `MAX_FRAME_G` defaults to 1518 and `TLV_EN_G` to true. Reduced capacity and
+  TLV rejection restrict accepted traffic; see the
+  [capacity contract](architecture.md#frame-capacity-and-tlvs).
+- RX records, captures and PHC outputs are local-domain signals, not CDC
+  interfaces. `PtpPhcRead` is an optional coherent snapshot mailbox; it does
+  not create a continuously advancing remote PHC.
 
-Port-to-ledger requests and complete E2E operands are registered. TX begins only
-after a reservation handshake and then survives logical restart. E2E owns its
-frozen exchange through result consumption. Ledger response acceptance returns
-one cycle after submission; the port retains the associated response metadata.
-Snapshots issue a registered capture/sequence broadcast; every bank freezes
-pre-edge state, then the coordinator publishes after all copies finish. Issued snapshots
-are not withdrawn by later invalidation. The CDC mailbox registers FIFO strobes
-and read-valid, retaining asynchronous session reset for stopped clocks.
-
-Reverse ready remains combinational where current arbitration/cancellation can
-remove capacity and no extra input slot is reserved. See the
-[timing guide](../../docs/plans/ethernet-ptp/rtl-readability.md#output-ownership-and-exceptions)
-for specific exceptions and detection, publication and consumption edges. These changes deliberately
-revise interface latencies; the software register layout is unchanged.
-
-Build manifests load `rtl/` and `wrappers/`. Run `make MODULES="$PWD" import`
-before the focused [tests](../../tests/ethernet/PtpCore/README.md). Device timing,
-resources, physical CDC, GT integration and hardware latency calibration remain
-open. The broader [plan](../../docs/plans/ethernet-ptp/README.md) covers later
-application timing and FPGA-family integration. See the parent
-[Ethernet index](../README.md) for neighboring cores.
-
-The shared [SURF VHDL conventions](../../docs/vhdl-conventions.md) apply to these
-modules. The [PTP supplement](../../docs/plans/ethernet-ptp/rtl-readability.md)
-documents the local timing contracts. See
-[current validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
-for build results and the maintainer VHDL approval gate on regressions.
+Follow [SURF VHDL conventions](../../docs/vhdl-conventions.md) and the
+[PTP interface supplement](interfaces.md) when changing these modules.
+Use the normal ruckus import and [focused test procedures](../../tests/ethernet/PtpCore/README.md)
+for implementation work. See the parent [Ethernet index](../README.md).
 
 ## 1G PHY compositions
 

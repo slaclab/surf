@@ -1,11 +1,11 @@
-# PTP RTL and interface contracts
+# PTP interface and service contracts
 
-Apply the shared [SURF VHDL conventions](../../vhdl-conventions.md), especially
-[registered boundaries](../../vhdl-conventions.md#registered-boundaries-are-the-default).
+Apply the shared [SURF VHDL conventions](../../docs/vhdl-conventions.md), especially
+[registered boundaries](../../docs/vhdl-conventions.md#registered-boundaries-are-the-default).
 The boundary ownership, justified exceptions and timing contracts below
 supersede the previous immediate-control implementation. Progress and verification
 remain in
-[current validation](README.md#current-validation).
+[current validation](../../docs/plans/ethernet-ptp/README.md#current-validation).
 
 ## Parameter and implementation contracts
 
@@ -16,8 +16,8 @@ acquisition envelope. This restriction does not set the clocks for standalone
 PHC/arithmetic tests. `PtpTxLedger` supports depths 1 through 255 so its eight-bit
 occupancy and unresolved fields remain representable, including depth one.
 
-Preserve public generic order for positional users. Calculation-only values
-belong in fully assigned local variables; retained diagnostics and snapshots
+Use named generic association under PtpCore, following SURF conventions.
+Calculation-only values belong in fully assigned local variables; retained diagnostics and snapshots
 remain state. Resolve synchronous reset before `rin <= v` and publication,
 without changing asynchronous reset templates or adding output pipeline stages
 as a style edit. The remaining reverse-ready paths resolve through `v` beside
@@ -26,8 +26,8 @@ still drains measurements. Registering reverse ready requires a capacity and
 buffering design, not a mechanical replacement of `v` with `r`.
 
 These rules retain the decisions from the
-[completed RTL reviews](rtl-review.md#implemented-decisions); their implementation
-does not lift the behavioral approval gate.
+[ownership and publication decisions](../../docs/plans/ethernet-ptp/history/decisions.md#keep-ownership-local-and-publish-at-explicit-edges).
+Dated check results do not establish acceptance of later source.
 
 ## Numeric definitions and layouts
 
@@ -60,8 +60,8 @@ one-outstanding-request contract. AXI aperture constants also drive alignment
 checks. `PtpMath`'s documented 128-step dimensions and `PtpTxTimestampTap`'s
 signed-minimum check remain justified literals. Naming cleanup must preserve
 values, accepted traffic, register maps, synthesis structure and handshake timing.
-The [endpoint numerical envelope](autonomous-endpoint.md#port-policy-and-numerical-envelope)
-records the two policy limits whose rationale remains unresolved.
+The [endpoint numerical envelope](architecture.md#port-policy-and-numerical-envelope)
+distinguishes the derived service floor from the actuator cap awaiting qualification.
 
 ## Output ownership and exceptions
 
@@ -177,7 +177,7 @@ registered level; its consumption overrides validity-setting commands and PPS.
 RX overflow/flush detection at N clears the queue and publishes registered
 abort/overflow/epoch after N. A valid old head may transfer at N; consumers give
 the now-visible abort priority at N+1 and discard pending work. The RX queue head
-itself is registered. Its [synchronous FWFT FIFO](autonomous-endpoint.md#rx-queue-storage)
+itself is registered. Its [synchronous FWFT FIFO](architecture.md#rx-queue-storage)
 delivers descriptors to the sparse wire-position decoder. Decoding latency depends
 on fixed body length. Logical occupancy includes the pipeline/decoder/head, preserving configured
 capacity. Invalidation suppresses head capture while the registered FIFO reset
@@ -230,7 +230,7 @@ comparisons are inclusive, while best/oldest comparisons are strict to retain
 the first physical slot on ties. Invalid rows skip the ALU. Cancellation clears
 both clients and ALU ownership on the same edge, with final priority over DONE;
 stale scratch cannot publish after a restart. There are no additional
-`PtpCompute` jobs. See the [implementation record](lut-optimization.md#protocol-scan-word-arithmetic).
+`PtpCompute` jobs. See the [implementation record](../../docs/plans/ethernet-ptp/history/decisions.md#share-computation-and-word-storage-preserve-real-time-capture).
 
 ## Configuration and snapshots
 
