@@ -199,6 +199,22 @@ and drains normally. E2E operands and the exchange diagnostic tag are frozen
 until result consumption or cancellation. The port does not admit replacement
 work while the registered child cancellation is being consumed.
 
+The rate estimator captures the complete Sync sample and minimum span on input
+acceptance. Its registered `resultValid`, `sampleAccepted` and `ratioUpdate`
+remain held until `resultReady`; input acceptance alone does not publish a
+measurement. The protocol engine waits for completion, stores the combined
+signed128 correction in history, and acknowledges after forwarding the result.
+Rejected samples publish no history/forward measurement. A rejected rate
+candidate still permits an otherwise accepted Sync to publish the retained
+ratio; only `ratioUpdate` renews ratio freshness.
+
+Chronology compares against the last accepted Sync, independently of the rate
+anchor. A span shorter than `minimumSpan` raw cycles retains the anchor. Every
+attempted rate interval advances the anchor, even if its candidate fails the
+oscillator margin. Tick/phase spans use Q3 units; the minimum span is shifted by
+three before comparison. Cancellation discards held completion and qualification
+without changing the retained ratio payload.
+
 The exact multi-hop boundaries are:
 
 | Transfer | Detection and consumption edges |

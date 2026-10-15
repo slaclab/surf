@@ -574,6 +574,9 @@ architecture rtl of PtpProtocolEngine is
       historyPhase       : slv(PTP_TICK_PHASE_BITS_C-1 downto 0);
       rateWord           : natural range 0 to 7;
       rateInput          : sl;
+      rateTake           : sl;
+      rateRejectedSeen   : slv(31 downto 0);
+      ratioQualified     : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -665,6 +668,9 @@ architecture rtl of PtpProtocolEngine is
       state               => IDLE_S,
       rateWord            => 0,
       rateInput           => '0',
+      rateTake            => '0',
+      rateRejectedSeen    => (others => '0'),
+      ratioQualified      => '0',
       pendingSync         => PTP_SYNC_SAMPLE_INIT_C,
       measurementMaster   => PTP_MEASUREMENT_MASTER_INIT_C,
       lifecycle           => PTP_PORT_LIFECYCLE_INIT_C,
@@ -709,6 +715,7 @@ architecture rtl of PtpProtocolEngine is
    signal e2eReady         : sl;
    signal e2eSync          : PtpSyncSampleType;
    signal rateReady      : sl;
+   signal rateValid      : sl;
    signal rateRatio      : slv(63 downto 0);
    signal rateQualified  : sl;
    signal rateUpdate     : sl;
@@ -1082,6 +1089,8 @@ begin
          cancel             => abortNow,                -- [in]
          inputValid         => r.rateInput,             -- [in]
          inputReady         => rateReady,               -- [out]
+         resultValid        => rateValid,               -- [out]
+         resultReady        => r.rateTake,              -- [in]
          syncSample         => r.pendingSync,           -- [in]
          minimumSpan        => r.activeConfig.minRateSpan,  -- [in]
          ratio              => rateRatio,               -- [out]
@@ -1151,6 +1160,11 @@ begin
          v.portStatus.announceValid := r.announceSeen;
       end if;
       rejectedEvents := 0;
+      v.rateTake := '0';
+      v.rateRejectedSeen := rateRejected;
+      if rateRejected /= r.rateRejectedSeen then
+         rejectedEvents := rejectedEvents+1;
+      end if;
       v.publicationPort.write := '0';
       v.publicationPort.commit := '0';
       pair        := PAIR_INIT_C;
@@ -1282,7 +1296,7 @@ begin
       -- this consumer is the separate age test.
       qualifiedRatio := '0';
 
-      if rateQualified = '1' and
+      if r.ratioQualified = '1' and
          not ptpAgeExpired(phcStatus.ticks, r.ratioTicks, r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
       end if;
@@ -1435,7 +1449,7 @@ begin
                v.delayReady := '1';
                v.e2eBusy := '1';
                v.e2eDelay := delaySample;
-               v.e2eRatio := rateRatio;
+               v.e2eRatio := r.ratio;
                v.e2eMaximum := r.activeConfig.maxPathDelay;
                v.historyTicks := phcStatus.ticks;
                v.historyQualified := qualifiedRatio;
@@ -2079,28 +2093,32 @@ begin
             end if;
 
          when RATE_ACCEPT_S =>
-
             if rateReady = '1' then
                v.rateInput := '0';
-               v.portStatus.active := '1';
-               v.lastTicks := r.pendingSync.capture.ticks;
-               v.portStatus.syncCount := ptpSatInc(v.portStatus.syncCount);
-               v.historyWriteBusy := '1';
-               v.historyWriteWord := 0;
-               v.state := RATE_HISTORY_BEGIN_S;
-            end if;
-
-         when RATE_HISTORY_BEGIN_S =>
-
-            if r.historyWriteWord = 17 and r.historyWriteEnable = '0' then
-               v.rateWord := 0;
                v.state := RATE_WAIT_S;
             end if;
 
          when RATE_WAIT_S =>
-            -- Wait for the estimator to finish this sample. It publishes the
-            -- forward value whether or not the sample also yields a new ratio.
-            if rateAccepted = '1' then
+            -- The child holds the complete result, including ratio freshness,
+            -- while this owner writes history and publishes the measurement.
+            if rateValid = '1' then
+               if rateAccepted = '1' then
+                  v.pendingSync.correction := rateCorrection;
+                  v.portStatus.active := '1';
+                  v.lastTicks := r.pendingSync.capture.ticks;
+                  v.portStatus.syncCount := ptpSatInc(v.portStatus.syncCount);
+                  v.historyWriteBusy := '1';
+                  v.historyWriteWord := 0;
+                  v.state := RATE_HISTORY_BEGIN_S;
+               else
+                  v.rateTake := '1';
+                  v.state := IDLE_S;
+               end if;
+            end if;
+
+         when RATE_HISTORY_BEGIN_S =>
+            if r.historyWriteWord = 17 and r.historyWriteEnable = '0' then
+               v.rateWord := 0;
                v.state := RATE_HISTORY_READ_S;
             end if;
 
@@ -2129,6 +2147,9 @@ begin
             v.state := RATE_PUBLISH_S;
 
          when RATE_PUBLISH_S =>
+            v.rateTake := '1';
+            v.ratio := rateRatio;
+            v.ratioQualified := rateQualified;
 
             if rateUpdate = '1' then
                v.ratioTicks := r.pendingSync.capture.ticks;
@@ -2229,6 +2250,8 @@ begin
          v.configMaster.valid := '0';
          v.configMaster.cancel := '1';
          v.rateInput               := '0';
+         v.rateTake                := '0';
+         v.ratioQualified          := '0';
          v.state                   := IDLE_S;
          v.measurementMaster.valid := '0';
          v.requestStarted          := '0';
@@ -2267,7 +2290,7 @@ begin
 
       v.portStatus.ratioValid := '0';
 
-      if rateQualified = '1' and
+      if v.ratioQualified = '1' and
          not ptpAgeExpired(phcStatus.ticks, v.ratioTicks, r.activeConfig.maxRateAge) then
          v.portStatus.ratioValid := '1';
       end if;

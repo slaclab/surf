@@ -26,7 +26,8 @@
 -- The ratio shift and the IIR divide-by-four are constant shifts.
 --
 -- All ports use clk. Input ready is combinational; the published ratio, its
--- validity and the rejection counter are registered. Cancellation clears
+-- validity and the rejection counter are registered. A completion and its
+-- acceptance/update flags are held until resultReady. Cancellation clears
 -- pending work and the anchor without disturbing the published ratio payload.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -63,15 +64,17 @@ entity PtpRateEstimator is
       cancel : in sl;
 
       -- One accepted Sync sample with its local capture.
-      inputValid : in  sl;
-      inputReady : out sl;
-      syncSample : in  PtpSyncSampleType;
+      inputValid  : in  sl;
+      inputReady  : out sl;
+      resultValid : out sl;
+      resultReady : in  sl;
+      syncSample  : in  PtpSyncSampleType;
 
       -- Minimum anchor span, in raw cycles, before a ratio is estimated.
       minimumSpan : in slv(63 downto 0);
 
       -- Published measurement. ratioValid gates consumers; ratioUpdate is a
-      -- one-cycle strobe on an accepted new estimate.
+      -- held flag on an accepted new estimate, qualified by resultValid.
       ratio       : out slv(63 downto 0);
       ratioValid  : out sl;
       ratioUpdate : out sl;
@@ -119,7 +122,7 @@ architecture rtl of PtpRateEstimator is
       IDLE_S, EPOCH_REMOTE_S, EPOCH_LOCAL_S, EPOCH_WAIT_S,
       CORRECT_S, FORWARD_S, ACCEPT_S, ANCHOR_S,
       SPAN_S, ELAPSED_S, SHIFT_S, DIVIDE_S, DIVIDE_WAIT_S,
-      QUALIFY_S, FILTER_S, PUBLISH_S);
+      QUALIFY_S, FILTER_S, PUBLISH_S, COMPLETE_S, RESULT_S);
 
    type EpochSelectType is (REMOTE_E, LOCAL_E);
 
@@ -131,6 +134,12 @@ architecture rtl of PtpRateEstimator is
       epochSeconds : slv(47 downto 0);
       epochSubsecond : slv(47 downto 0);
 
+      remoteTime : slv(79 downto 0);
+      localTimestamp : slv(95 downto 0);
+      minSpan : unsigned(66 downto 0);
+      lastTime : signed(127 downto 0);
+      lastRaw : unsigned(66 downto 0);
+      valid : sl;
       currentTime : signed(127 downto 0);
       localTime   : signed(127 downto 0);
       forward     : signed(127 downto 0);
@@ -165,6 +174,12 @@ architecture rtl of PtpRateEstimator is
       epochValid     => '0',
       epochSeconds   => (others => '0'),
       epochSubsecond => (others => '0'),
+      remoteTime     => (others => '0'),
+      localTimestamp => (others => '0'),
+      minSpan        => (others => '0'),
+      lastTime       => (others => '0'),
+      lastRaw        => (others => '0'),
+      valid          => '0',
       currentTime    => (others => '0'),
       localTime      => (others => '0'),
       forward        => (others => '0'),
@@ -178,7 +193,7 @@ architecture rtl of PtpRateEstimator is
       anchorValid    => '0',
       accepted       => '0',
       ratioCount     => 0,
-      ratio          => (others => '0'),
+      ratio          => slv(NOMINAL_C),
       ratioValid     => '0',
       ratioUpdate    => '0',
       normalized     => (others => '0'),
@@ -223,7 +238,6 @@ begin
       v := r;
       v.inputReady := '0';
       v.divReady := '0';
-      v.ratioUpdate := '0';
 
       span := (others => '0');
       magnitude := (others => '0');
@@ -235,9 +249,13 @@ begin
       case r.state is
          when IDLE_S =>
             v.inputReady := '1';
-            v.accepted := '0';
 
             if inputValid = '1' then
+               v.accepted := '0';
+               v.ratioUpdate := '0';
+               v.remoteTime := syncSample.remoteTime;
+               v.localTimestamp := syncSample.capture.timestamp;
+               v.minSpan := unsigned(minimumSpan) & "000";
                v.currentRaw := unsigned(syncSample.capture.ticks) &
                                unsigned(syncSample.capture.tickPhase);
                -- The record carries the Sync and Follow_Up corrections as
@@ -250,16 +268,16 @@ begin
 
          when EPOCH_REMOTE_S =>
             -- Master origin: wire nanoseconds become Q16 by placement.
-            v.epochSeconds := syncSample.remoteTime(79 downto 32);
-            v.epochSubsecond := syncSample.remoteTime(31 downto 0) & x"0000";
+            v.epochSeconds := r.remoteTime(79 downto 32);
+            v.epochSubsecond := r.remoteTime(31 downto 0) & x"0000";
             v.epochSelect := REMOTE_E;
             v.epochValid := '1';
             v.state := EPOCH_WAIT_S;
 
          when EPOCH_LOCAL_S =>
             -- Local Sync RX capture, already a Q16 subsecond.
-            v.epochSeconds := syncSample.capture.timestamp(95 downto 48);
-            v.epochSubsecond := syncSample.capture.timestamp(47 downto 0);
+            v.epochSeconds := r.localTimestamp(95 downto 48);
+            v.epochSubsecond := r.localTimestamp(47 downto 0);
             v.epochSelect := LOCAL_E;
             v.epochValid := '1';
             v.state := EPOCH_WAIT_S;
@@ -286,38 +304,40 @@ begin
             v.state := ACCEPT_S;
 
          when ACCEPT_S =>
-            -- The sample is published to the servo regardless of whether it
-            -- also produces a new ratio estimate; ratioValid reports the
-            -- separate freshness of the rate measurement.
-            v.accepted := '1';
-            v.state := ANCHOR_S;
+            -- Compare with the last accepted sample, independently of the
+            -- longer-lived rate anchor. Duplicate raw ticks remain invalid
+            -- even if their fractional capture phase differs.
+            if r.anchorValid = '1' and
+               (r.currentTime <= r.lastTime or
+                r.currentRaw(66 downto 3) <= r.lastRaw(66 downto 3)) then
+               v.rejected := ptpSatInc(r.rejected);
+               v.state := COMPLETE_S;
+            else
+               v.accepted := '1';
+               v.lastTime := r.currentTime;
+               v.lastRaw := r.currentRaw;
+               v.normalized := slv(r.currentTime);
+               v.combined := slv(r.correction);
+               v.state := ANCHOR_S;
+            end if;
 
          when ANCHOR_S =>
-            v.normalized := slv(r.currentTime);
-            v.combined := slv(r.correction);
-
-            -- Chronology: corrected master time and raw capture must both
-            -- advance. An out-of-order sample is rejected, not anchored.
-            if r.anchorValid = '1' and
-               (r.currentTime <= r.anchorTime or r.currentRaw <= r.anchorRaw) then
-               v.rejected := ptpSatInc(r.rejected);
-               v.state := IDLE_S;
-            elsif r.anchorValid = '0' then
+            if r.anchorValid = '0' then
                v.anchorTime := r.currentTime;
                v.anchorRaw := r.currentRaw;
                v.anchorValid := '1';
-               v.state := IDLE_S;
+               v.state := COMPLETE_S;
             else
                v.state := SPAN_S;
             end if;
 
          when SPAN_S =>
-            -- A span below the configured minimum carries the anchor forward
-            -- without estimating; this is not a rejection.
+            -- Retain the anchor below the configured minimum. Both operands
+            -- use Q3 raw cycles; this is not a rejected sample.
             span := r.currentRaw-r.anchorRaw;
 
-            if span < resize(unsigned(minimumSpan), 67) then
-               v.state := IDLE_S;
+            if span < r.minSpan then
+               v.state := COMPLETE_S;
             else
                v.state := ELAPSED_S;
             end if;
@@ -335,6 +355,10 @@ begin
             v.divOperandA := slv(r.scaled);
             v.divOperandB := slv(resize(r.currentRaw-r.anchorRaw, 80));
             v.divValid := '1';
+            -- Every attempted interval advances the anchor, even if its ratio
+            -- is rejected. Only a qualified estimate renews ratio freshness.
+            v.anchorTime := r.currentTime;
+            v.anchorRaw := r.currentRaw;
             v.state := DIVIDE_WAIT_S;
 
          when DIVIDE_WAIT_S =>
@@ -342,15 +366,15 @@ begin
                v.divValid := '0';
             end if;
 
-            v.divReady := '1';
+            v.divReady := not r.divValid;
 
-            if divideResultValid = '1' then
+            if r.divValid = '0' and divideResultValid = '1' then
                v.candidate := signed(divideResultValue);
                v.state := QUALIFY_S;
 
                if divideResultError = '1' then
                   v.rejected := ptpSatInc(r.rejected);
-                  v.state := IDLE_S;
+                  v.state := COMPLETE_S;
                end if;
             end if;
 
@@ -360,7 +384,7 @@ begin
             if r.candidate < resize(signed('0' & (NOMINAL_C-MARGIN_C)), 128) or
                r.candidate > resize(signed('0' & (NOMINAL_C+MARGIN_C)), 128) then
                v.rejected := ptpSatInc(r.rejected);
-               v.state := IDLE_S;
+               v.state := COMPLETE_S;
             elsif r.ratioCount = 0 then
                -- The first accepted estimate initializes the filter.
                v.ratio := slv(resize(r.candidate, 64));
@@ -379,10 +403,6 @@ begin
             v.state := PUBLISH_S;
 
          when PUBLISH_S =>
-            -- Advance the anchor only on an accepted estimate, so freshness
-            -- and the anchor stay consistent.
-            v.anchorTime := r.currentTime;
-            v.anchorRaw := r.currentRaw;
             v.ratioUpdate := '1';
 
             if r.ratioCount < QUALIFY_COUNT_G then
@@ -393,7 +413,17 @@ begin
                v.ratioValid := '1';
             end if;
 
-            v.state := IDLE_S;
+            v.state := COMPLETE_S;
+
+         when COMPLETE_S =>
+            v.valid := '1';
+            v.state := RESULT_S;
+
+         when RESULT_S =>
+            if resultReady = '1' then
+               v.valid := '0';
+               v.state := IDLE_S;
+            end if;
       end case;
 
       if cancel = '1' then
@@ -405,6 +435,8 @@ begin
          v.ratioValid := '0';
          v.ratioUpdate := '0';
          v.accepted := '0';
+         v.valid := '0';
+         v.divReady := '0';
          v.inputReady := '0';
       end if;
 
@@ -418,6 +450,7 @@ begin
 
       rin <= v;
 
+      resultValid <= r.valid;
       ratio <= r.ratio;
       ratioValid <= r.ratioValid;
       ratioUpdate <= r.ratioUpdate;

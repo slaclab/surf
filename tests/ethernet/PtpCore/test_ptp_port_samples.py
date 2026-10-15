@@ -487,6 +487,47 @@ async def timestamp_conversion_cancellation(d):
 
 
 @cocotb.test()
+async def rate_span_chronology_and_rejected_anchor(d):
+    """Keep sample chronology, the rate anchor and ratio freshness distinct."""
+    b = Bench(d)
+    await b.start()
+    try:
+        await b.configure(min_span=1000)
+        # The configured minimum is in whole ticks, while the divider uses Q3.
+        # Short intervals must not count toward ratio qualification.
+        for seq, ticks in enumerate((1000, 1200, 1400, 2000, 3000)):
+            await b.send(0, seq, ticks*8, ticks=ticks)
+            got = await b.result(seq, 123*Q16+7, ticks)
+            assert got[5] == int(seq == 4), (seq, got)
+            if got[5]:
+                assert got[4] == 8 << 48
+            await b.drain()
+
+        # A short-span sample advances chronology without advancing the anchor.
+        await b.send(0, 5, 24800, ticks=3100)
+        await b.result(5, 123*Q16+7, 3100)
+        await b.drain()
+        accepted, rejected = b.counts()
+        await b.send(0, 6, 24799, ticks=3200)
+        await b.no_result()
+        assert b.counts() == (accepted, rejected+1)
+
+        # A 16 ns/tick candidate is outside the oscillator envelope. It still
+        # publishes forward using the retained 8 ns/tick ratio, and advances
+        # the attempted-interval anchor. The next 8 ns/tick interval must pass.
+        for seq, ticks, remote, rejects in ((7, 4000, 40000, 1),
+                                           (8, 5000, 48000, 0)):
+            accepted, rejected = b.counts()
+            await b.send(0, seq, remote, ticks=ticks)
+            got = await b.result(seq, 123*Q16+7, ticks)
+            assert got[4:] == (8 << 48, 1), got
+            await b.drain()
+            assert b.counts() == (accepted+1, rejected+rejects)
+    finally:
+        b.stop()
+
+
+@cocotb.test()
 async def announce_snapshot_cohorts(d):
     b = Bench(d)
     await b.start()
