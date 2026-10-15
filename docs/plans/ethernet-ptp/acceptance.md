@@ -152,8 +152,10 @@ points: serial constant converters (power-of-two specialization at 125 MHz),
 one shared SECOND128 service for PHC/servo, a four-clock local E2E DSP product pipeline, a reused PI limb multiplier,
 and one shared signed128-by-
 unsigned80 quotient-only restoring divider for E2E/rate. Keep simple arithmetic
-local, and retain native 156.25 MHz clocking. These choices need complete-client
-cost and lifecycle validation before production adoption.
+local, and retain native 156.25 MHz clocking. The consuming-project exploration now includes matched servo and connected
+client fixtures. Keep this boundary and move toward production integration;
+resolve concrete implementation failures without another broad operator study.
+Resource/timing evidence still gates adoption, not the decision to stop exploring.
 
 1. **Build the servo forward-update slice.** Use named candidate/committed state,
    frozen configuration and operation-level requests through real PHC rate ACK.
@@ -162,27 +164,44 @@ cost and lifecycle validation before production adoption.
    Evaluate bootstrap only on the nonintegrating branch at the documented
    qualification edge; sweep stale transitions around that edge. Reuse local
    products across PI equations rather than adding a new instruction engine.
+   **Initial consuming-project slice complete:** six focused tests pass at
+   125/156.25 MHz through the real PHC. It injects known filtered delay and
+   validated configuration, uses a local SECOND converter, and leaves median,
+   phase acquisition and production interfaces unchanged. Complete matching
+   harnesses and shared-service integration remain gates below.
 2. **Measure matching harnesses.** Compare the slice with the current
    servo/compute boundary, including identical configuration, publication and
-   response storage. Count actual operand muxes and constant converters. Keep
-   filter extraction and register restructuring separately attributable. The
+   response storage. Count actual operand muxes and constant converters. Record
+   the included filter/configuration/publication boundary explicitly. The
+   consuming project has implemented this pair with real PHC and equal dynamic
+   configuration/known-filter boundaries. Initial connected PI equations failed
+   timing; registered clamp/add/anti-windup stages are the targeted correction.
+   Finish existing matched runs and retain their failed-revision evidence. The
    fresh consuming-project SFP-only synthesis baseline is an area reference;
    its unbound PHYs and unconstrained synthesis timing do not qualify a board.
 3. **Verify shared ownership and remaining callers.** Add the E2E/rate divider
    owner wrapper and PHC/servo SECOND wrapper with held per-owner responses,
    owner-local cancel and no circular wait on PHC ACK. SECOND's two-owner fixture
-   is measured; divider arbitration and full-client operand selection are not.
+   is measured. Shared/manual/servo lifecycle tests, representative E2E/rate
+   equations and a connected arithmetic-chain fixture now pass. Actual PHC ticks
+   drive expiry and conditional service-bound assertions. Packet/history/median
+   admission remains outside that fixture; do not call it endpoint acceptance.
    Retain full128 servo phase; manual PHASE uses checked four-word submission
    with signed96 admission, rejecting high-word mismatch before narrowing.
    Update register map, PyRogue and schema tests together when that behavior is
    implemented; representable late epoch faults remain distinct.
-4. **Re-derive service and decide migration.** Include converter serialization,
-   product pipeline latency, divider arbitration and client chains. Run focused
-   competing-traffic/expiry cases and obtain connected synthesis/routed evidence
-   before claiming an endpoint resource win or changing the association floor.
-   If acceptable, split median/filter, PI and PHC command ownership and migrate
-   clients in small attributable changes, retiring unused workspace plumbing
-   only after all callers are converted.
+4. **Implement and validate the complete architecture in one pass.** The
+   maintainer chose no intermediate approval or commit checkpoints. Convert
+   servo filtering/PI/acquisition, E2E/rate and manual PHC preparation together;
+   wire both shared services and remove the obsolete production compute
+   engine/workspaces. Update affected registers, software, tests and docs in
+   the same implementation. Focused checks may run during development; final
+   acceptance requires the numerical/lifecycle and endpoint regressions plus
+   a matched whole-endpoint synthesis/routing comparison. Reconcile queue,
+   history, filter, configuration and command costs with the retained floor;
+   keep70,347,776 ticks and defer any reduction. The consuming project's main
+   arithmetic design document owns the concrete implementation work list;
+   no further prototype campaign or per-client approval gate is required.
 
 The existing review items retain endpoint/MAC, normative, CDC and hardware gates.
 Items 5--7 can proceed independently where they do not depend on the arithmetic

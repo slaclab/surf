@@ -390,8 +390,15 @@ selects local arithmetic with shared SECOND and variable division as its startin
 boundary. Manual PHASE's proposed signed96 admission retains four 32-bit submission
 words so hardware can detect a high-word mismatch; servo phase retains128 bits.
 Bootstrap may move to the nonintegrating branch only after accounting for stale
-changing tracking during arithmetic. No production division elimination, width
-reduction, register behavior or service floor changes in this experiment.
+changing tracking during arithmetic. The consuming-project connected study now tests matched servo slices, shared
+SECOND/manual lifetime and E2E/rate publication through real PHC ticks/ACKs.
+The first local PI implementation failed timing through combined clamps and
+anti-windup; the revised prototype registers these equations. Keep the selected
+boundary and implement the complete conversion in one pass, with final endpoint
+validation and no intermediate approval checkpoints. Whole-harness resource results and endpoint acceptance remain
+necessary; isolated savings do not imply an endpoint reduction. No production
+division elimination, width reduction, register behavior or service floor changes
+in this experiment.
 
 #### Alternative boundaries
 
@@ -442,7 +449,7 @@ remain distinguishable.
 
 #### Smallest representative prototype and decision evidence
 
-With isolated arithmetic choices available, next prototype the
+The consuming project's initial prototype now exercises the
 **servo forward-update path through PHC rate acknowledgement**:
 offset formation, bootstrap, proportional/integral terms, clamps/anti-windup,
 rate conversion and local candidate/committed frequency. Feed a known filtered
@@ -450,6 +457,10 @@ delay and frozen settings; keep the same independent PI oracle. Include holdover
 and cancellation before/after command admission. This exercises the expensive
 operations and the persistent-state problem together. A median-only extraction
 would be a useful later simplification but would not test this central tradeoff.
+Its six focused numerical/lifecycle tests pass at both endpoint clocks; new
+epoch-normalize and shared-divider fixtures also pass isolated tests. These
+results are recorded in the consuming project's benchmark guide. Matched
+complete-harness resource/timing measurements are next.
 Phase-command preparation, median implementation and production migration remain
 outside this initial slice and require their own follow-through.
 
