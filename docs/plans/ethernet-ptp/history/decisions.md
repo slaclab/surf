@@ -220,3 +220,105 @@ The shared MAC checksum-offload experiment was also deferred and reverted.
 Keep Ethernet changes separate unless measured benefits justify their wider
 compatibility scope; the independent checksum/EOFE correctness finding remains
 in [acceptance](../acceptance.md#outstanding-acceptance).
+
+## Fixed-function arithmetic architecture
+
+Recorded October 14–15, 2026. Production is converted; integrated endpoint
+acceptance and the replacement service proof remain open in the
+[acceptance backlog](../acceptance.md#arithmetic-prototype-sequence).
+
+### What changed and why
+
+The retired architecture shared a word-serial arithmetic processor among rate,
+E2E, servo and manual PHC clients. It reduced replication, but algorithm code also
+had to maintain slot addresses, operand uploads, descriptor return states,
+loaded-word validity and retained-cancellation lifetimes. Even a small operand
+transfer could wait behind another client's division. The aim of this change was
+to make ownership and equations understandable while measuring the area cost.
+
+| Decision | Reason and resulting implementation |
+| --- | --- |
+| Keep named algorithm state in each client | Candidates, committed frequency, anchors and measurement lifetimes belong to the algorithm. Arithmetic completion does not commit controller state. |
+| Split servo filter and PI | Median history has a different lifetime from PI/PHC commands. `PtpServo` retains configuration, snapshot and publication ownership; its two children perform the algorithms. |
+| Extract the rate estimator | Master-time normalization, chronology, rate qualification and filtering are separate from packet association and protocol policy. Completion is held through parent history/publication. |
+| Use serial exact constant converters | They used fewer LUTs and DSPs than the reciprocal alternatives. Preserve discarded low bits for exact rounding; the 125 MHz NOMINAL divisor takes a power-of-two bypass. |
+| Share SECOND between manual PHC and servo | A measured complete sharing wrapper saved area while keeping independent held responses and owner-local cancellation. Manual preparation and servo have different command lifetimes. |
+| Share one positive-divisor variable divider between rate and E2E | Both need full-range measured/captured divisors. E2E sequences its two calibration planes through one owner. Sharing saves duplication without restoring an instruction engine. |
+| Reuse a serial limb product in PI | PI does not require one result per clock. One wide-A-by-17 multiplier is reused across limbs and equations; full-product overflow is checked before shifting. |
+| Use a registered product tree in E2E | One-cycle wide products failed timing. Merely adding output registers did not pipeline internal partial-product sums; an explicit tree did. |
+| Keep native clocks and the dedicated PHC/capture path | Packet arithmetic may wait; tick/PPS and physical capture must preserve their edge semantics. No new clock-domain crossing was introduced. |
+| Retain local native adds/comparisons where appropriate | Isolated DSP forms saved LUTs but often added 1.6–2.5 ns versus native carry chains. A blanket DSP directive was not justified. |
+
+The choice deliberately avoids a replacement general instruction engine or
+cross-client operand RAM. Feedback-rate estimation, floating-point control and
+another broad operator study were deferred. E2E remains a distinct owner because
+its calibration, input capture and cancellation still form a coherent boundary.
+
+### Numerical and lifetime decisions
+
+The maintained [arithmetic contracts](../../../../ethernet/PtpCore/interfaces.md#arithmetic-primitive-contracts)
+own exact widths, rounding and PHASE admission. The important decisions are:
+
+- Nearest division uses the exact remainder and ties away from zero; truncating
+  division returns a remainder with the dividend's sign. A rounded quotient and
+  truncation remainder are not a reconstructable division pair.
+- Preserve signed128 overflow rejection on full E2E/integral products **before**
+  rounded shifts. Narrowing after a shift would admit inputs previously rejected.
+- Manual PHASE retains four submission words, checks sign extension into signed96,
+  then prepares through SECOND. Oversized submissions reject early; representable
+  adjustments that fail at the live commit epoch retain their late-fault behavior.
+  Servo phase remains signed128 because its input contract is wider.
+- RATE accepts operator-installed increments outside the oscillator envelope.
+  E2E calibration therefore uses each capture's full increment, not a nominal or
+  cached divisor. Zero calibration planes omit their work.
+- Servo frequency/history commits only on successful PHC ACK. Waiting for ACK
+  holds no arithmetic service. Cancellation, expiry and generation checks remain live.
+- Corrected Sync time uses the widened sum of the two raw signed64 correction
+  halves. Chronology follows the last accepted Sync; the rate anchor advances on
+  each attempted interval, including rejected candidates. Only an accepted new
+  estimate renews ratio freshness.
+
+### Evidence and limits
+
+The [evidence index](arithmetic.md)
+records the October 13 operator study, October 14 primitive/connected comparisons,
+failed alternatives, source provenance and October 15 matched production results.
+Primitive and prototype savings cannot be extrapolated to the complete endpoint.
+
+Early PI prototypes failed timing through a 14.09 ns rounding/clamp/anti-windup
+path. Registered stages and exact signed rounding repaired that path. At
+156.25 MHz the matched servo slice still cost 6,258 LUTs versus 3,692 for the
+legacy slice, while routing at +0.817 ns versus +1.022 ns. The complete endpoint
+comparison confirms an area premium; no percentage-reduction target was met.
+
+Production testing found and repaired handshake retraction, operands read after
+acceptance, stale held-result reuse, odd-divisor rounding, and a rate completion
+lost while the parent copied history. Production regressions retain the assertions
+that caught those failures. The latest follow-up passed 25 focused configurations;
+that is not full endpoint or hardware acceptance. Matched routing has no black
+boxes or failing setup/hold/pulse endpoints, but I/O, CDC and DRC findings remain.
+
+### Source and experiment retirement
+
+The baseline is SURF `4d3439185`; compute removal is `63f6cfade`; production
+repairs and regression/source-loading changes run through `44c85ff35`.
+The consuming ptp-dev project `d135a02` contains the last pre-cleanup experiment
+trees and original long design/specification documents. Recovery locations for the exact tested dirty snapshots are listed in the
+[evidence record](arithmetic.md#sources-and-recovery).
+
+The maintainer chose to retire experiment-only HDL, Python models/tests, case
+matrices and synthesis runners once their choices were implemented. Production
+regressions remain. Raw Vivado reports, CSV/JSON exports and manifests are build artifacts; key
+results, limitations, source revisions and recovery locations are retained here. No legacy
+compute directory or second maintained control algorithm remains.
+
+From a **ptp-dev project checkout**, recover the retired code into scratch:
+
+```sh
+git archive d135a02 firmware/benchmarks/ptp-arithmetic \
+    firmware/benchmarks/ptp-constant-divide | tar -x -C /path/to/scratch
+```
+
+Earlier measured snapshots may differ from that final tree. Recover the original source
+manifest when reproducing an experiment; the Git recovery point alone does not
+establish the source used by every historical run.

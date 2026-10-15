@@ -32,8 +32,8 @@ project; [physical-clock integration](physical-clock.md) remains future work.
 
 - [Composition and ownership](#composition-and-ownership)
 - [Shared compute, storage and mapping rationale](#shared-compute-and-storage)
-- [Compute ownership review and proposed alternatives](#compute-boundary-review)
-- [Math inventory by module and division/DSP candidates](#math-inventory-by-module)
+- [Compute ownership and selected boundary](#compute-boundary-review)
+- [Math inventory by module](#math-inventory-by-module)
 - [RX capture and validation](#rx-message-and-capture-boundary),
   [capacity/TLV options](#frame-capacity-and-tlvs) and [queue storage](#rx-queue-storage)
 - [TX ledger and physical fate](#tx-ledger-storage)
@@ -155,337 +155,49 @@ endpoint validation remain open.
 
 ### Compute boundary review
 
-Source review on October 14, 2026, at SURF `4d3439185`, for
-[review response item 1](../../docs/plans/ethernet-ptp/acceptance.md#review-response-and-simplification-plan).
-The traces and arithmetic inventory below describe that retired source revision,
-not the current endpoint. They preserve the reasons for replacing descriptors
-and addressed workspaces with local state and specialized services. Recover the
-reviewed source from Git if needed; no legacy copy is maintained.
+The October 14 review of SURF `4d3439185` found that shared word storage made
+algorithm code manage slot addresses, operand transfers, descriptor return states
+and cancellation lifetimes. The implemented replacement keeps named algorithm
+state local and shares only two expensive fixed operations. The
+[decision history](../../docs/plans/ethernet-ptp/history/decisions.md#fixed-function-arithmetic-architecture)
+records the rejected boundaries; [measured evidence](../../docs/plans/ethernet-ptp/history/arithmetic.md)
+records the area premium and timing results. No legacy compute copy is retained.
 
-#### Current transaction and ownership map
+| Owner | Local responsibility | Shared request | Publication/commit |
+| --- | --- | --- | --- |
+| `PtpRateEstimator` | Normalize corrected Sync time; track chronology, anchor and qualified ratio | Positive-divisor rate quotient | Hold completion until protocol history/publication consumes it; only an accepted estimate refreshes ratio age. |
+| `PtpE2e` | Capture operands; epoch differences; checked elapsed/calibration products; delay/offset | Sequence nonzero RX/TX calibration divisions | Hold one result with its validity/error and generation context. |
+| `PtpServo` and filter/PI children | Median, acquisition, PI/bootstrap/holdover; candidate versus committed state | SECOND for phase normalization | Hold PHC command; commit frequency/history only on successful ACK. |
+| `PtpPhc` | Four-word manual admission; live epoch check; tick/PPS and command arbitration | SECOND for manual PHASE preparation | Validate again at commit; preserve distinct early rejection and late fault. |
 
-`PtpEndpoint` connects four fixed compute owners. `PtpProtocolEngine` drives
-owner zero and connects its E2E child to owner one; servo and PHC drive owners
-two and three. The former `PtpComputePkg` interface has three
-transactions: word write/read, operation descriptor/completion, and cancellation.
-Operation completion returns flags/tag, not the numerical result: clients must
-read result words or name that slot as a later operand. Acknowledging completion
-releases the descriptor while retaining stored values.
-
-| Client | Transaction from input to publication | State and lifetime |
-| --- | --- | --- |
-| Rate: [PtpProtocolEngine](rtl/PtpProtocolEngine.vhd), `RATE_*` | Completed Sync pair -> 48 word uploads -> normalize remote/local times and sum corrections -> reject nonmonotonic samples -> form forward time -> store eight normalized words in history -> establish/check raw-tick anchor span -> divide remote-time delta by raw-tick/phase delta -> qualify/filter ratio -> read forward/ratio and publish one measurement. First-anchor and short-span paths skip rate calculation. | Owner 0 has 64 words. Slots 10/11/12 retain last corrected remote time, rate-anchor remote time and rate-anchor raw ticks. Slot 9 holds the filtered ratio during calculation; `r.ratio` also retains the published ratio and reloads it. Pair/history validity, qualification counters and held measurement live in the protocol engine. |
-| E2E: [PtpE2e](rtl/PtpE2e.vhd), `LOAD/PLAN/ISSUE/WAIT/READ` | Protocol selects a history row and uploads its eight normalized words before asserting E2E input valid -> upload remaining operands -> normalize Delay_Resp -> scale raw elapsed ticks by qualified ratio -> apply each nonzero calibration using its own captured increment -> compute/check delay -> read eight result words -> hold the measurement until protocol retirement. | Owner 1 has 64 words, all transaction-local. Protocol pins the selected provenance/input records through result retirement. E2E acknowledges input only after upload; `NORMALIZED_SYNC_G=false` additionally normalizes the Sync itself. |
-| Servo: [PtpServo](rtl/PtpServo.vhd), median and forward paths | Delay sample -> two-word local history write -> upload five padded signed128 samples -> nine compare/swap pairs -> read/publish median. Forward sample -> upload forward/ratio before input acknowledgement -> subtract delay/asymmetry -> bootstrap or PI -> clamp/anti-windup -> convert rate or phase -> issue PHC command -> wait for acknowledgement. | Owner 2 has 64 words. Scratch slots are reused between filter/control phases. Slots 10/11 alternate committed and candidate frequency; `frequencyBank` changes only after successful rate-command ACK. Five-sample history, published median, status and command records are local. |
-| Manual PHC: [PtpPhc](rtl/PtpPhc.vhd), `PHASE_*` | AXI submission freezes operand bank -> upload four phase words and four constant-divisor words -> one signed division -> read four quotient and two remainder words -> reject quotient outside signed64 -> claim PHC command slot -> commit/ACK. | Owner 3 has 16 words: dividend, divisor, quotient and remainder. Only manual PHASE uses compute; SET, RATE, validity and PPS commands bypass it. Frozen operands and command ownership remain local to PHC. |
-
-For rate, normalized history is published before the new ratio calculation
-finishes; the protocol controls when a qualified ratio and selected history may
-be used together. These are not four independently fed arithmetic pipelines.
-E2E completion and forward measurements share the protocol's publication slot,
-and slow servo acceptance propagates back to packet admission.
-
-Cancellation has deliberately different meanings at these boundaries:
-
-| Client | Cancellation and retained state |
-| --- | --- |
-| Rate | Port invalidation clears pair/history validity, anchors, qualification and pending publication; registered compute cancel invalidates its whole workspace. TX draining and unresolved ledger keys survive. |
-| E2E | Registered protocol abort clears the E2E sequencer/output and cancels its whole workspace. The protocol also revokes the selected input/history transaction. |
-| Servo | Restart, first observation of port abort, generation change, disable or sample expiry cancel current work. Compute `retain=1` preserves completed slots, including committed frequency; admitted destinations are invalidated. Candidate frequency is distinct from committed frequency. Filter population/tracking reset while retained frequency supports holdover. System reset clears both. |
-| Manual PHC | Accepted preparation survives AXI-only reset. There is no wired compute-cancel request for this owner; system reset clears it. The PHC's later admission/commit checks determine command validity. Do not substitute protocol abort for system reset here. |
-
-At the compute service, one queued/active/completed job occupies an owner's
-descriptor lifecycle. Admission freezes that workspace and invalidates its
-destination/remainder validity. Full cancellation clears all loaded-word bits;
-retained cancellation preserves other completed slots. Cancellation wins even
-on arithmetic FINISH. A held read can prevent that owner from reusing its
-workspace after descriptor acknowledgement. Other owners can still progress.
-
-The arithmetic itself is nonpreemptive. **All host word transfers wait while
-any owner's arithmetic operation is active**, even when their own workspace is
-otherwise free. Round-robin word/job arbitration applies at idle boundaries.
-Thus moving a constant or fetching a median can wait behind an unrelated divide.
-Waiting for PHC ACK, however, holds no arithmetic slot. Manual steering is
-rejected while automatic control is enabled; the disabled servo can still have
-initialization/cancellation traffic. Four-owner stress is a service test, not
-evidence that all four production algorithms continuously execute together.
-
-#### Complexity attributable to the boundary
-
-The control algorithm requires bootstrap, elapsed-time integration, anti-windup,
-holdover and command acknowledgement regardless of implementation. It does not
-inherently require word-upload cursors, slot numbers, descriptor return states,
-loaded-word validity or a global retained-cancel protocol.
-
-The servo makes this distinction concrete. Its median path uploads 20 words,
-issues nine comparisons and up to 27 copies, then reads four words. A clamp
-loads a limit and schedules comparisons, negation and possibly a copy. The
-PI path repeatedly uses `loadWords`, `issue`, `readWords` and `clampWords`, with
-separate continuation state for each. Splitting the file while retaining those
-transactions would leave much of the audit burden intact.
-
-Some serialization belongs to other decisions: configuration-bank reads,
-versioned snapshot publication, protocol table scans and packet RAM are not
-caused solely by `PtpCompute`. They need not be widened or redesigned to change
-the arithmetic interface. Likewise, smaller arithmetic jobs do not remove
-protocol backpressure or the need for explicit commit/cancellation semantics.
+Waiting for PHC ACK reserves no arithmetic service. Each service has independent
+per-owner result storage and cancellation. Filter history, estimator anchors,
+protocol associations and publication state retain their own lifetimes. Shorter
+arithmetic latency does not make these other ownership rules unnecessary.
 
 #### Math inventory by module
 
-October 14 follow-up at the same source: inventory actual arithmetic before
-selecting a replacement engine. Counts below are runtime operations on successful
-paths, not physical operator counts or measured cycles. All compute descriptors
-currently operate on signed128 slots, even when their inputs are much narrower
-or a denominator is constant. Copies, loads and stores are transport overhead,
-not additional mathematical requirements.
-
-Notation: `RN` rounds nearest with ties away from zero; `TZ` truncates toward
-zero. `S16 = 1_000_000_000 * 2^16`, `N = ptpNominalIncrement(CLK_FREQ_G)` is Q32
-ns/tick, `R` is the qualified Q48 ns/raw-tick ratio, and `C` is a capture's Q32
-PHC increment. Corrections, offsets, forward time and delay use Q16 ns; gains
-are Q30 and controller frequency/slew values are Q16 ppb. Products must retain
-the existing overflow checks before rounding/narrowing. Algebraic reassociation
-can change both intermediate overflow and rounding and is not assumed equivalent.
-
-**PtpProtocolEngine: rate estimator (`RATE_PLAN_S`) and protocol scans.**
-
-| Operation | Inputs / frequency | Optimization candidate |
-| --- | --- | --- |
-| Normalize remote and local Sync time: `seconds*S16 + subsecondQ16`; sum Sync/Follow_Up corrections, then add to remote time. | Two constant multiplications per accepted Sync; seconds are unsigned48. Wire nanoseconds become Q16 by wiring; correction operands are signed64, summed in signed128. | Constant-coefficient DSP or shift/add conversion; no general multiplier interface is intrinsically needed. Keep epoch arithmetic wide before subtraction. |
-| Forward time: local normalized time minus corrected remote time; chronology and anchor updates. | Wide subtraction/comparison and copies per Sync. | Local named values/registered add-subtract; preserve chronology, not just final difference. |
-| Estimate rate: `RN(((remoteQ16-anchorQ16)<<35) / deltaRawQ3)`. | One **variable-denominator** divide when the anchor span qualifies; raw tick/phase operands are unsigned67, difference formed in signed128. | Candidate for the remaining shared variable divider. An assumed fixed Sync interval cannot replace measured elapsed ticks. Reciprocal estimation or feedback is a separate precision/convergence decision. |
-| Qualify ratio against fixed nominal margin; initialize filter or `filtered += RN((new-filtered)/4)`. | Comparisons, subtraction, rounded shift by 2, addition. Published ratio is unsigned64. | Local arithmetic; the divide by four is already a shift descriptor, not a divide job. |
-| Pair/history expiry, nearest-history distance, timeout/interval/scheduler logic. | Modulo64 ages; signed68 Q3 distance/absolute value; comparisons. Existing shared local 32-bit scan ALU sequences table checks. Log-interval scaling and 0.5/1/1.5 scheduling use shifts/adds; LFSR uses XOR. | Retain bounded local scans. Consider DSP add/subtract only with preserved observation edges or an explicit scan-pipeline change. No variable divider is needed here. |
-
-The initial anchor and insufficient-span paths skip rate division. Nominal-rate
-margin calculation and default timeout scaling occur at elaboration; they are
-not packet-time divide jobs. Normalized history already avoids repeating both
-Sync conversions in the production E2E path.
-
-**PtpE2e (`PLAN_S`).**
-
-| Operation | Inputs / frequency | Optimization candidate |
-| --- | --- | --- |
-| Normalize Delay_Resp time and subtract its correction. | One `seconds*S16` constant multiplication plus add/subtract per exchange. Raw standalone mode adds two Sync-side constant multiplications; production normalized mode omits them. | Same constant time-conversion primitive as rate, potentially reused locally. |
-| Elapsed remote time: `RN((deltaRawQ3*R)/2^35)`. | One variable multiplication plus rounded shift. Raw differences may need signed68; `R` carries 64 unsigned bits. The current checked signed128 product can reject extreme inputs. | DSP partial products with explicit high-bit overflow detection. Do not assume every 68-by-64 product fits signed128. |
-| RX calibration: `RN(ingressLatencyQ16*R / (rxC<<16))`. TX calibration uses `egressLatencyQ16` and its own captured `txC`. Add each result to elapsed time. | Each nonzero compile-time calibration adds one constant-by-variable multiplication, one **variable-denominator** divide, and one addition. Each zero plane skips that work entirely. | Constant-coefficient DSP multiplication. Explore reciprocal reuse only with the exact captured increment as part of the key; substituting nominal or current increment changes the measurement. |
-| Delay: subtract corrected Sync from corrected Delay_Resp, subtract calibrated elapsed, then `RN(value/2)`; compare against zero and max path delay. | Subtractions, rounded shift by 1 and two comparisons. Forward value is copied from normalized input (or calculated in raw mode). | Local add/subtract/shift/compare. Division by two is already a shift job. |
-
-Thus a production E2E exchange uses two multiplications and zero divides with
-zero calibration, up to four multiplications and two divides with both planes
-nonzero. These counts include the constant Delay_Resp conversion. Calibration
-cannot be removed merely because a zero-calibration test configuration is cheap.
-
-**PtpServo: filter and control (`MEDIAN_*`, `BOOT_*`, PI and command states).**
-
-| Operation | Inputs / frequency | Optimization candidate |
-| --- | --- | --- |
-| Median of up to five delay samples. | Nine compare/swap pairs per accepted delay; sample storage is two words each, padded to signed128 for compute. No multiply or divide. | Local comparator and sample selection/swap, with existing population/sentinel semantics; no global arithmetic engine required. |
-| Offset: `forward-filteredDelay-asymmetry`; absolute value, phase-step/lock/unlock comparisons. | Signed128 forward/public offset; configured asymmetry and thresholds are 64-bit encodings. Rate path checks offset fits signed64; large phase steps retain wide input. | Local registered subtraction/compare. Narrow only after the existing range check. |
-| Bootstrap frequency: `clamp(RN((R-(N<<16))*1e9/N))`. | One constant multiplication, one **constant-denominator** divide per rate-producing forward update in current RTL, including tracking updates. | First consider skipping this work during tracking: the tracking branch uses committed frequency plus integral correction, not bootstrap. Preserve rejection/cancellation behavior. At 125 MHz `N=2^35`, so retained bootstrap division can be an exact signed rounded shift. |
-| Proportional term: `p = clamp(-RN(offset*kp/2^30))`. | Signed offset by 32-bit Q30 gain; one variable multiplication, rounded shift, negation, clamps. | DSP product or a few DSP partial products after width proof; shifts/sign/clamps local. |
-| Elapsed interval: `dtQ32 = RN(deltaTicks*N/1e9)`. | Tracking only; one constant multiplication and one **constant-denominator** divide. Ticks are 64-bit; current intermediate is checked signed128. | Exact constant-rational scaling using a DSP coefficient and correction, or specialized constant divider. Preserve rounded Q32 interval before the integral product. |
-| Integral increment: `di = -RN((offset*ki)*dtQ32/2^62)`. | Tracking only; two variable multiplications with overflow checks at each product, rounded shift and negation. | Right-size each product from accepted offset/gain/interval bounds. Do not combine products and silently remove a current overflow rejection. |
-| Candidate frequency: bootstrap minus `p`, or committed frequency plus `di`; clamp candidate and candidate-plus-`p`, conditional integration, final rate clamp. | Add/subtract/compare/select; no multiply/divide. Committed frequency changes only on successful PHC ACK. | Local named state. Applied +/-200,000 ppb Q16 needs signed35, but +/-400,000 ppb intermediate sums need signed36; this is not a license to narrow the preceding products. |
-| Rate command: `RN(ratePpbQ16*N/S16)`. | One constant multiplication and one **constant-denominator** divide for every rate command, including holdover. | Exact constant scaling; a likely DSP-backed conversion primitive. Preserve signed rounding and final signed64 fit check. |
-| Phase command: `TZ(-offset/S16)` and signed remainder, then remainder shifted left 16 for PHC Q32. | One **constant-denominator** divide on the large-step path, which bypasses PI. | Exact constant quotient/remainder conversion shared in design with manual PHC. Simple bounded normalization is insufficient for full-range phase operands. |
-
-Current successful tracking-rate path: **six multiplications and three divides**
-(bootstrap, interval, rate conversion), plus rounded shifts and local policy.
-Bootstrap-rate path: three multiplications and two divides. Holdover rate command:
-one multiplication and one divide. The phase path uses one divide. These are
-alternative paths, not counts to sum for each sample. Bootstrap arithmetic on the
-tracking path appears avoidable from the state/dataflow; this is a source-derived
-optimization candidate, not a verified change.
-
-**PtpPhc and physical capture: separate continuous and command-time math.**
-
-| Module/path | Operations | Constraints / candidate |
-| --- | --- | --- |
-| `PtpPhc` manual PHASE | `TZ(phaseQ16/S16)` and remainder, signed64 quotient fit check; one constant divide. SET/RATE/validity/PPS preparation needs no divide. | Same exact converter as servo phase, with distinct command/reset ownership. Rare requests do not justify a replicated general divider automatically. |
-| `PtpPhc` tick/commit | Every clock: raw64 increment, Q32 subsecond addition, second-boundary comparison/subtraction and seconds carry. PHASE adds signed seconds/subseconds and bounded normalization; RATE adds correction to nominal increment. Uses 65--67-bit widened arithmetic and epoch checks. | No multiply or divide on the tick path. Keep independent of packet service; DSP placement/pipelining must preserve edge semantics and close feedback timing. |
-| `PtpRxTimestampAdapter` via `ptpRxCapture`, reused for RX/TX | Capture byte phase `floor(C*lane/8)` (64-by-3 unsigned product), add calibration/phase, normalize one second carry/borrow and check epoch. GMII phase is zero; XGMII supports the decoded byte phase. | Small phase selector/shift-add may beat a general multiplier. This is capture-edge work; a multi-cycle DSP replacement needs explicit byte/capture alignment. |
-| Capture calibration constants | Split generic latency into seconds and subsecond remainder using `/ S16` and `rem S16`. | Elaboration-time constants in current callers, not runtime dividers. Keep this distinction from E2E's runtime calibration-unit conversion. |
-| `PtpTxLedger` | Shared 65-bit age/chronology subtraction, modulo64 limit comparison, sequence/pointer increments and saturating diagnostics. | No multiplication/division needed. Preserve live-expiry observation edge and physical-key lifetime. |
-| RX validator / Delay_Req observer / guard / banks / endpoint control | CRC XOR networks, length/address arithmetic, counters, comparisons and bank selection; wrappers primarily connect blocks. | No general numerical multiplier/divider requirement. Address indexing, constant modulo and CRC are not candidates for the shared numerical service. |
-
-**The arithmetic implementations themselves.** `PtpMath` performs bit-serial
-shift/add multiplication and restoring division over 128 iterations; it does
-not contain an inferred `a*b` multiplier. Replicating it therefore replicates
-wide state/add-subtract machinery, not a DSP-oriented multiplier by construction.
-`PtpCompute` uses one inferred unsigned32-by-32 partial-product expression,
-a 32-bit carry/borrow ALU and RAM scratch; signed128 multiplication assembles
-partial products, while division sequences trial subtraction across words.
-Its copies, arbitrary shifts and comparisons share the same processor. Neither
-interface establishes the number of mapped DSPs; inspect synthesis hierarchy.
-
-#### Division reduction and DSP priorities
-
-There are **eight runtime divide descriptor sites**: rate one, E2E two, servo
-four, manual PHC one. Five have constant denominators (all servo/manual sites).
-Only rate estimation and the two optional calibration planes require variable
-denominators in the current equations. This strongly favors specialization
-before choosing how many general-purpose math engines to instantiate.
-
-At 125 MHz, `N=34_359_738_368=2^35`; at 156.25 MHz,
-`N=27_487_790_694` (rounded Q32), not a power of two. A shift-only bootstrap
-implementation therefore needs a generic-specific branch. For the other
-constant divisions, investigate multiply-high by a precomputed reciprocal plus
-bounded correction. Prove quotient/remainder and signed rounding over the
-accepted input range; a rounded reciprocal multiply alone is not automatically
-bit-exact. Do not replace encoded `N` with ideal `1e9/CLK_FREQ_G` when that changes
-intermediate rounding. Preserve checked128-bit PHASE submission before any arithmetic narrowing.
-
-Prioritize candidates in this order:
-
-1. Prove the tracking bootstrap result is unnecessary, including error policy;
-   bypassing it could remove one multiply/divide and its loads/clamps per update.
-2. Specify exact constant converters for interval, rate command and phase
-   quotient/remainder; specialize power-of-two bootstrap. Share converter logic
-   where useful without sharing long-lived controller state.
-3. Derive accepted operand bounds for proportional/integral and elapsed-time
-   products, including out-of-envelope rejection. Compare DSP-backed direct or
-   limb-serial multiplication with the current generic engines. Packet cadence
-   leaves room for a small reused local DSP datapath; throughput is still to be
-   checked under the supported burst/service envelope.
-4. Evaluate one shared variable divider for the rate and nonzero-calibration
-   cases. Preserve capture-specific divisors. A reciprocal cache must handle
-   changing rates, exactness and invalidation; it is not a free substitution.
-5. Move median, clamps and simple comparisons local. Consider DSP add/subtract
-   where registered stages have timing budget, then compare the entire control
-   path, not just an isolated operator.
-
-Checked-out SURF candidates include [DspPreSubMult](../../dsp/generic/fixed/DspPreSubMult.vhd),
-[DspAddSub](../../dsp/generic/fixed/DspAddSub.vhd) (width limited to 48), and
-[SfixedMult](../../dsp/xilinx/fixed/SfixedMult.vhd). Their width, signedness,
-latency, overflow and reset contracts need adaptation to PTP; a DSP-friendly
-name does not establish a compatible replacement. Existing parent-project
-`firmware/benchmarks/ptp-arithmetic/README.md` reports successful LUT-to-DSP
-tradeoffs for selected add/compare operators, with longer delays than native
-carry chains at 64--67 bits. That supports DSP use in suitable registered stages,
-not an unconditional DSP directive over PHC/capture control.
-
-The consuming project's October 14 follow-on experiment now records a
-per-operation width schedule, exact reciprocal/correction proof, serial-converter
-invariant and matched routed fixtures in
-`firmware/benchmarks/ptp-constant-divide/README.md` and `specification.md`.
-Serial constant converters use fewer LUTs than the exact reciprocal candidates;
-SECOND sharing includes a measured two-owner wrapper. A positive80-bit-divisor,
-quotient-only PtpMath adapter costs less than retaining the full signed interface.
-Wide single-cycle products fail setup and need internal pipeline boundaries or
-reused narrower DSP products. These are isolated measurements at 156.25 MHz,
-not a connected endpoint improvement.
-
-The [prototype sequence](../../docs/plans/ethernet-ptp/acceptance.md#arithmetic-prototype-sequence)
-selects local arithmetic with shared SECOND and variable division as its starting
-boundary. Manual PHASE's proposed signed96 admission retains four 32-bit submission
-words so hardware can detect a high-word mismatch; servo phase retains128 bits.
-Bootstrap may move to the nonintegrating branch only after accounting for stale
-changing tracking during arithmetic. The consuming-project connected study now tests matched servo slices, shared
-SECOND/manual lifetime and E2E/rate publication through real PHC ticks/ACKs.
-The first local PI implementation failed timing through combined clamps and
-anti-windup; the revised prototype registers these equations. Keep the selected
-boundary and implement the complete conversion in one pass, with final endpoint
-validation and no intermediate approval checkpoints. Whole-harness resource results and endpoint acceptance remain
-necessary; isolated savings do not imply an endpoint reduction. No production
-division elimination, width reduction, register behavior or service floor changes
-in this experiment.
-
-#### Alternative boundaries
-
-| Option | Concrete boundary | Expected benefit and cost to measure |
-| --- | --- | --- |
-| A: retain the word processor | Keep addressed workspaces and the existing protocol; clarify slot layouts, equations and filter/control responsibilities. | Lowest migration risk and retains current storage sharing. Word traffic, global memory blocking and retained cancellation remain. Documentation alone will not remove the sequencing burden. |
-| B: local state, shared multiply/divide | Each functional block owns named algorithm values and local add/subtract/compare/fixed-shift/clamp operations. Only complete multiply/divide requests cross the shared boundary. | Removes cross-module workspace lifetimes and most small-operation scheduling. Costs wider operand/result selection, local registers or RAM, and local arithmetic. Requests/results still need arbitration and cancellation. Resource and timing benefit are unmeasured. |
-| C: local state and local arithmetic engine | Same value-level interface as B, with a private multi-cycle multiply/divide engine per functional block. Each block can reuse its own operators; this does not require a combinational expression-sized datapath. | Removes inter-client arbitration and bounds latency locally. Replicates expensive operators; may cost substantially more LUTs/registers/DSPs. Dedicated engines do not by themselves simplify a client that retains word-level microprogramming. |
-
-**Candidate after arithmetic specialization: B, with C as a backend comparison.** The
-architectural hypothesis is that algorithm state should be owned by the block
-that interprets it, while arithmetic sharing remains a measured implementation
-choice. Local storage may still use RAM and local arithmetic may still be
-multi-cycle. Do not restore wide replicated table stores as a side effect.
-
-A proposed value-level service has these obligations:
-
-- Request: operation (`MUL`/`DIV`), two signed128 operands and division rounding
-  selection, held with valid until accepted. Initially permit one outstanding
-  request per client. Owner identity is structural; no public slot addresses or
-  persistent algorithm memory cross the boundary.
-- Response: signed128 result, truncating division remainder and error, held
-  stable until consumed. Preserve current wrapped-product/overflow behavior,
-  divide-by-zero and signed-minimum handling, and nearest/ties-away semantics.
-  Local rounded shifts must preserve the same numerical contract too.
-- Arbitration: bounded fair admission with capacity reserved for the result.
-  A stalled result consumer must not retain the shared arithmetic unit; use
-  per-client held result storage or equivalent reservation. Include the wide
-  response storage and operand muxes in area comparisons.
-- Cancellation: owner-local cancel wins over admission and result delivery on
-  that edge, removes queued/active/held work, and cannot affect other owners.
-  Do not accept replacement work until the old operation cannot publish into
-  it. Preserve existing registered propagation at client boundaries; there is
-  no `retain` operation because committed algorithm state is local.
-- Commit: servo keeps separate local candidate/committed frequency and updates
-  the committed value only on successful PHC ACK. Arithmetic completion never
-  commits controller state. Manual preparation and PHC commit retain their
-  different reset/abort policies.
-
-The existing [PtpMath](rtl/PtpMath.vhd) already offers full-value multiply/divide,
-rounding, remainder, ready/valid and cancellation. It is a useful candidate
-backend, not a selected replacement: it has no multi-client arbitration and its
-earlier implementation resource figures do not establish today's total cost.
-Its contract and focused tests should be reused where applicable before creating
-another arithmetic primitive. Keep general floating point and feedback-rate
-algorithm changes out of this comparison so structural and numerical effects
-remain distinguishable.
-
-#### Smallest representative prototype and decision evidence
-
-The consuming project's initial prototype now exercises the
-**servo forward-update path through PHC rate acknowledgement**:
-offset formation, bootstrap, proportional/integral terms, clamps/anti-windup,
-rate conversion and local candidate/committed frequency. Feed a known filtered
-delay and frozen settings; keep the same independent PI oracle. Include holdover
-and cancellation before/after command admission. This exercises the expensive
-operations and the persistent-state problem together. A median-only extraction
-would be a useful later simplification but would not test this central tradeoff.
-Its six focused numerical/lifecycle tests pass at both endpoint clocks; new
-epoch-normalize and shared-divider fixtures also pass isolated tests. These
-results are recorded in the consuming project's benchmark guide. Matched
-complete-harness resource/timing measurements are next.
-Phase-command preparation, median implementation and production migration remain
-outside this initial slice and require their own follow-through.
-
-Use the same proposed request/response interface with a shared service and a
-private backend, plus the current servo/compute implementation as baseline.
-Drive competing synthetic arithmetic clients for the service comparison, and
-label those loads separately from reachable endpoint traffic. The prototype
-must use RTL arithmetic and a real PHC command path for lifecycle comparison;
-a Python-only model cannot assess the ownership change. Adapt existing fixtures
-without embedding a second control algorithm in the VHDL wrapper.
-
-| Question | Required comparison before production choice |
+| Module | Operations and selected implementation |
 | --- | --- |
-| Numerical and lifecycle equivalence | Reuse `test_ptp_servo.py::numerical_control` scenarios and its rational oracle at both endpoint clocks: bootstrap, tracking, fractional terms, both limit signs, integral overflow, anti-windup, backpressure and holdover. Compare ordered accepted samples/commands and retained state, not cycle-identical completion. Sweep cancel around service and PHC admission/ACK; allow different arithmetic latency while preserving the PHC commit contract. |
-| Actual service cost | Record request counts by operation, word-transfer counts for A, waiting versus execution cycles, and sample-to-command/ACK latency. Exercise unloaded and competing service, held responses and cancellation. Endpoint queue/expiry measurements from review item 3 remain necessary before selecting a new association floor. |
-| Reviewability | Show the equations beside named values/stages, count distinct ownership/handshake mechanisms and identify cancellation paths. Require removal of public workspace addresses/loaded-word management from the candidate servo. Fewer states alone is not success. |
-| Resource/timing cost | Compare complete tested harnesses at the same FPGA, tool version, constraints, reset and I/O registration. Report LUT/FF/BRAM/DSP and timing, counting shared services once. A simplified arithmetic slice is not directly comparable to the full existing servo; include matching filter/config/publication logic or isolate identical boundaries in both. |
-| Integrated acceptance | Before broad migration, account for remaining rate/E2E/manual clients, their shared-service storage and arbitration. A transitional endpoint containing both compute engines may grow; it is not the final architecture's area estimate. Require a matched connected implementation and re-derived bounds before claiming an endpoint improvement. |
+| `PtpEpochNormalize` | Factored seconds48-to-Q16 conversion with a 48×21 product, fixed shift and subsecond add. |
+| `PtpRateEstimator` | Widened correction sum, epoch normalization, chronological/span checks, shared variable quotient and local ratio qualification/filtering. |
+| `PtpE2e` | Local epoch differences and registered signed68×unsigned64 product tree; check full-product overflow before elapsed rounding; shared positive-divisor calibration quotients. |
+| `PtpServoFilter` | Median/sample-history selection independent of PHC command lifetime. |
+| `PtpServoPi` | Reused signed96×unsigned95 limb product, rounded shifts, local BILLION/NOMINAL converters, registered clamp/anti-windup equations. |
+| `PtpServo` | Phase acquisition through SECOND; candidate/command/ACK sequencing, configuration and snapshots. |
+| `PtpPhc` | Dedicated counting/PPS and live command application; shared SECOND preparation only. |
+| Protocol tables and TX ledger | Word-oriented scans, native adds/comparisons and raw-age checks; separate from arithmetic services. |
 
-Hard requirements are unchanged numerical/lifecycle behavior, continued PHC
-tick/capture independence, bounded progress under stated loads and meeting the
-selected clock constraints. Some resource growth is acceptable to simplify
-ownership, but no numerical LUT allowance has been agreed. Present measured
-resource deltas and fit margin with the architectural simplification before
-selecting B or C; do not assume the previous LUT minimum is the objective.
+[Primitive contracts](interfaces.md#arithmetic-primitive-contracts) define width,
+rounding and manual PHASE admission. Native add/subtract stays local where DSP
+mapping worsened the measured path. Serial constant conversion saves resources;
+125 MHz NOMINAL has an exact power-of-two bypass. E2E requires actual captured
+increments for calibration; operator-installed RATE values cannot be replaced by
+an assumed nominal denominator. Zero calibration planes skip their arithmetic.
 
-The [earlier area evidence](../../docs/plans/ethernet-ptp/history/verification.md#area-and-timing-evidence)
-mixes storage, arithmetic, tools and configurations across milestones. It does
-not isolate the cost of reversing this boundary. Existing matched arbiter
-savings establish that its implementation mattered, not that global workspace
-ownership is the best long-term design. Current bounds are analytical and this
-source review adds no endpoint latency measurements. The subsequent isolated
-experiments establish operator costs and latencies; use the connected prototype
-and its focused baseline comparison to confirm the proposed sharing boundaries.
+The full endpoint service proof and endpoint/real-MAC lifecycle checks remain in
+[acceptance](../../docs/plans/ethernet-ptp/acceptance.md#arithmetic-prototype-sequence).
+Keep the retained association floor until those obligations justify changing it.
 
 ### Mapping and timing choices
 
@@ -497,7 +209,7 @@ The [bank contract](interfaces.md#configuration-and-snapshots) preserves read
 latency, initialization, copy and snapshot ownership across mappings.
 
 Protocol pair/history row checks share a separate 32-bit ALU so overlapping
-scans have bounded arbitration without adding shared-compute jobs. Ledger live
+scans have bounded arbitration without using the arithmetic services. Ledger live
 expiry checks retain local arithmetic because their observation edge matters.
 Native inferred add/subtract is retained on the critical wide paths. Matched
 KU040 experiments favored it over handwritten carry-select/carry-save forms;

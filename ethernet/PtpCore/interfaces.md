@@ -63,6 +63,68 @@ values, accepted traffic, register maps, synthesis structure and handshake timin
 The [endpoint numerical envelope](architecture.md#port-policy-and-numerical-envelope)
 distinguishes the derived service floor from the actuator cap awaiting qualification.
 
+## Arithmetic primitive contracts
+
+The fixed-function architecture preserves exact integer semantics; the
+[decision record](../../docs/plans/ethernet-ptp/history/decisions.md#fixed-function-arithmetic-architecture)
+explains the choice over the retired word processor. Leaf entity comments own
+cycle-level handshakes. Prototype timing budgets are conditional measurements,
+not the replacement endpoint service proof.
+
+`PtpConstDivide` takes a signed W-bit operand and a positive constant divisor.
+Form its magnitude as **unsigned W bits**, including the signed minimum. Factor
+`d = odd * 2^k` and split the magnitude as `m = h * 2^k + l`. Restoring division
+of `h` maintains the prefix invariant `prefix = q * odd + r`, `0 <= r < odd`;
+each next trial is below `2 * odd`, so one subtract suffices. Reconstruct the
+exact remainder as `R = (r << k) | l`. Discarding `l` before rounding is incorrect.
+
+| Converter | Divisor | k | Odd factor | Remainder bits |
+| --- | ---: | ---: | ---: | ---: |
+| SECOND (Q16 ns per second) | 65,536,000,000,000 | 25 | 1,953,125 | 46 |
+| BILLION (ppb scale) | 1,000,000,000 | 9 | 1,953,125 | 30 |
+| NOMINAL at 125 MHz | 34,359,738,368 | 35 | 1 | 35 |
+| NOMINAL at 156.25 MHz | 27,487,790,694 | 1 | 13,743,895,347 | 35 |
+
+Derive NOMINAL from the actual clock generic. The odd-factor-one case bypasses
+the serial loop. Nearest rounding increments the magnitude quotient when
+`R >= ceil(d/2)`, comparing at the full remainder width; using `floor(d/2)` is
+wrong for odd divisors and doubling a narrow remainder can overflow. Apply the
+operand sign afterward, giving ties away from zero. The published remainder
+always belongs to truncation and has the dividend's sign. Only truncating mode
+satisfies `operand = quotient*d + remainder`; a rounded quotient and this
+remainder are not a division pair.
+
+`PtpVariableDivide` uses signed128 dividends and positive unsigned80 divisors
+for rate and E2E. Reject signed or wider divisors before narrowing; divide by
+zero is an observable error. Preserve each capture's increment for calibration:
+manual RATE commands are not restricted to the nominal oscillator-error envelope.
+
+Keep full products until checking overflow. E2E's signed68-by-unsigned64 tree
+produces 132 bits and rejects signed128 overflow before the 35-bit rounded elapsed
+shift. PI's signed96-by-unsigned95 limb product retains 191 bits and rejects
+signed128 overflow before its 62-bit rounded integral shift. Signed64 Q16 offset
+times unsigned32 Q2.30 gain fits signed96. Narrowing only after a shift would
+silently change which inputs are accepted.
+
+`PtpEpochNormalize` factors seconds48 times SECOND into a 48-by-21 product,
+then shifts its 69-bit product by 25 and adds subsecondQ16. All unsigned48
+subsecond values fit the unsigned94 sum; the returned signed95 value has a zero
+sign bit. Timestamp canonicality and signed corrections remain caller checks.
+
+Manual PHASE retains all four signed128 submission words and checks sign
+extension into signed96 before preparation through the shared SECOND128 service.
+High-word mismatch rejects the command early without a PHC fault or generation
+change. Representable adjustments that fail at the live commit epoch retain
+late-fault behavior. Servo phase retains its full signed128 contract.
+
+Shared services use round-robin arbitration, one outstanding transaction per
+owner and independent held responses. A stalled response cannot retain the
+arithmetic core and block another owner. Hold request payload/valid until transfer;
+reset or owner-local cancellation excludes transfer and discards that owner's
+pending/held work. PHC ACK commits servo state separately and holds no service.
+These rules do not remove queue, history, publication or command costs from the
+[complete service-bound obligation](#shared-service-bound).
+
 ## Output ownership and exceptions
 
 Forward payload, valid, lifecycle and diagnostic outputs belong to registered
