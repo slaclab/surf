@@ -64,7 +64,10 @@ entity PtpServoFilter is
       filterCount   : out slv(2 downto 0);
       filterTicks   : out slv(63 downto 0);
       -- One-cycle strobe on an atomic median/population publication.
-      filterUpdate  : out sl);
+      filterUpdate  : out sl;
+      -- One-cycle strobe when an admitted sample fails the value or
+      -- chronology rules. The owner counts these for its diagnostics.
+      filterReject  : out sl);
 end entity PtpServoFilter;
 
 architecture rtl of PtpServoFilter is
@@ -96,6 +99,7 @@ architecture rtl of PtpServoFilter is
       count       : slv(2 downto 0);
       ticks       : slv(63 downto 0);
       update      : sl;
+      rejected    : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -110,7 +114,8 @@ architecture rtl of PtpServoFilter is
       median      => (others => '0'),
       count       => (others => '0'),
       ticks       => (others => '0'),
-      update      => '0');
+      update      => '0',
+      rejected    => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -127,6 +132,7 @@ begin
       v := r;
       v.inputReady := '0';
       v.update := '0';
+      v.rejected := '0';
 
       leftIndex := MEDIAN_LEFT_C(r.medianStep);
       rightIndex := MEDIAN_RIGHT_C(r.medianStep);
@@ -167,6 +173,8 @@ begin
                   v.inputReady := '0';
                   v.medianStep := 0;
                   v.state := SORT_COMPARE_S;
+               else
+                  v.rejected := '1';
                end if;
             end if;
 
@@ -206,6 +214,7 @@ begin
          v.filterValid := '0';
          v.count := (others => '0');
          v.update := '0';
+         v.rejected := '0';
          v.inputReady := '0';
       end if;
 
@@ -221,6 +230,7 @@ begin
       filterCount <= r.count;
       filterTicks <= r.ticks;
       filterUpdate <= r.update;
+      filterReject <= r.rejected;
    end process comb;
 
    seq : process (clk, rst) is

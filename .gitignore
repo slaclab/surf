@@ -19,6 +19,9 @@ ruckus
 ruckus/
 build/
 sim_build*
+**/sim_build/
+__pycache__/
+.pytest_cache/
 xsc.pb
 .coverage*
 

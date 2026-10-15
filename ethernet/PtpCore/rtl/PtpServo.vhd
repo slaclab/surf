@@ -242,6 +242,7 @@ architecture rtl of PtpServo is
       sampleTicks   : slv(63 downto 0);
       sampleGen     : slv(31 downto 0);
       rejectedCount : slv(31 downto 0);
+      status        : PtpServoStatusType;
       generation    : slv(31 downto 0);
       abortSeen     : sl;
       cancel        : sl;
@@ -280,6 +281,7 @@ architecture rtl of PtpServo is
       sampleTicks       => (others => '0'),
       sampleGen         => (others => '0'),
       rejectedCount     => (others => '0'),
+      status            => PTP_SERVO_STATUS_INIT_C,
       generation        => (others => '0'),
       abortSeen         => '0',
       cancel            => '0');
@@ -306,6 +308,7 @@ architecture rtl of PtpServo is
    signal filterCount      : slv(2 downto 0);
    signal filterTicks      : slv(63 downto 0);
    signal filterUpdate     : sl;
+   signal filterReject     : sl;
 
    -- PI interface.
    signal piInputValid : sl;
@@ -386,7 +389,8 @@ begin
          filteredDelay => filteredDelay,             -- [out]
          filterCount   => filterCount,               -- [out]
          filterTicks   => filterTicks,               -- [out]
-         filterUpdate  => filterUpdate);             -- [out]
+         filterUpdate  => filterUpdate,              -- [out]
+         filterReject  => filterReject);             -- [out]
 
    U_Pi : entity surf.PtpServoPi
       generic map (
@@ -496,6 +500,12 @@ begin
       -- Publication streaming. Each child strobe queues one record; the words
       -- then stream into the bank and commit atomically.
       -------------------------------------------------------------------------
+      -- Both children report their own rejections; this core counts them
+      -- alongside the provenance rejections it applies itself.
+      if filterReject = '1' then
+         v.rejectedCount := ptpSatInc(r.rejectedCount);
+      end if;
+
       if piOffsetUpd = '1' then
          v.pendingOffset := '1';
       end if;
@@ -597,8 +607,8 @@ begin
       end if;
 
       -- Live quality and active local/shared configuration.
-      axiSlaveRegisterR(ep, x"090", 0, piStatus.state);
-      axiSlaveRegisterR(ep, x"090", 4, filterCount);
+      axiSlaveRegisterR(ep, x"090", 0, r.status.state);
+      axiSlaveRegisterR(ep, x"090", 4, r.status.filterCount);
       axiSlaveRegisterR(ep, x"0A0", 0, sharedConfig.associationTimeout);
       axiSlaveRegisterR(ep, x"0A8", 0, sharedConfig.syncTimeout);
       axiSlaveRegisterR(ep, x"0B0", 0, sharedConfig.maxPathDelay);
@@ -747,6 +757,15 @@ begin
          v.sequenceId := snapshotControl.sequenceId;
       end if;
 
+      -- The published status joins each owner's fields: the PI loop owns
+      -- quality, offset and rate; the filter owns the delay median and its
+      -- population; this core owns the combined rejection counter. The record
+      -- is a public interface, so it is assembled here rather than split.
+      v.status := piStatus;
+      v.status.filteredDelay := filteredDelay;
+      v.status.filterCount := filterCount;
+      v.status.rejectedCount := v.rejectedCount;
+
       -- Apply synchronous reset before publishing next state and outputs.
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -765,7 +784,7 @@ begin
       axiWriteSlave <= r.writeSlave;
       configValid <= r.configValid;
       measurementSlave <= v.measurementSlave;
-      status <= piStatus;
+      status <= r.status;
    end process comb;
 
    seq : process (clk, rst) is

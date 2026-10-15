@@ -25,7 +25,6 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 
 entity PtpProtocolEngineWrapper is
    generic (
@@ -130,19 +129,35 @@ architecture rtl of PtpProtocolEngineWrapper is
    signal resetN      : sl;
    signal txMaster    : AxiStreamMasterType;
    signal txSlave     : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
-   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
-   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
+   signal divideValid       : slv(1 downto 0);
+   signal divideReady       : slv(1 downto 0);
+   signal divideOperandA    : Slv128Array(1 downto 0);
+   signal divideOperandB    : slv(159 downto 0);
+   signal divideCancel      : slv(1 downto 0);
+   signal divideResultValid : slv(1 downto 0);
+   signal divideResultReady : slv(1 downto 0);
+   signal divideResultValue : Slv128Array(1 downto 0);
+   signal divideResultError : slv(1 downto 0);
 
 begin
 
-   U_Compute : entity surf.PtpCompute
+   U_Divide : entity surf.PtpVariableDivide
       generic map (
-         MEMORY_TYPE_G => "block")
+         NUM_CLIENTS_G   => 2,
+         DIVISOR_WIDTH_G => 80)
       port map (
-         clk     => clk,
-         rst     => rst,
-         masters => computeMasters,
-         slaves  => computeSlaves);
+         clk          => clk,                 -- [in]
+         rst          => rst,                 -- [in]
+         cancel       => divideCancel,        -- [in]
+         inputValid   => divideValid,         -- [in]
+         inputReady   => divideReady,         -- [out]
+         roundNearest => "11",                -- [in]
+         operandA     => divideOperandA,      -- [in]
+         operandB     => divideOperandB,      -- [in]
+         resultValid  => divideResultValid,   -- [out]
+         resultReady  => divideResultReady,   -- [in]
+         resultValue  => divideResultValue,   -- [out]
+         resultError  => divideResultError);  -- [out]
 
    resetN <= not rst;
 
@@ -244,8 +259,15 @@ begin
          CLK_FREQ_G            => 125000000,
          PACKET_LIFETIME_G     => PACKET_LIFETIME_G)
       port map (
-         computeMasters    => computeMasters(0 to 1),
-         computeSlaves     => computeSlaves(0 to 1),
+         divideValid       => divideValid,
+         divideReady       => divideReady,
+         divideOperandA    => divideOperandA,
+         divideOperandB    => divideOperandB,
+         divideCancel      => divideCancel,
+         divideResultValid => divideResultValid,
+         divideResultReady => divideResultReady,
+         divideResultValue => divideResultValue,
+         divideResultError => divideResultError,
          clk               => clk,                       -- [in]
          rst               => rst,                       -- [in]
          regRst            => regRst,                    -- [in]

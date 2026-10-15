@@ -29,7 +29,6 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 
 entity PtpE2eWrapper is
    generic (
@@ -82,19 +81,35 @@ architecture rtl of PtpE2eWrapper is
    signal syncSample  : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
    signal delaySample : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
    signal measurement : PtpMeasurementType;
-   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
-   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
+   signal divideValid       : slv(1 downto 0);
+   signal divideReady       : slv(1 downto 0);
+   signal divideOperandA    : Slv128Array(1 downto 0);
+   signal divideOperandB    : slv(159 downto 0);
+   signal divideCancel      : slv(1 downto 0);
+   signal divideResultValid : slv(1 downto 0);
+   signal divideResultReady : slv(1 downto 0);
+   signal divideResultValue : Slv128Array(1 downto 0);
+   signal divideResultError : slv(1 downto 0);
 
 begin
 
-   U_Compute : entity surf.PtpCompute
+   U_Divide : entity surf.PtpVariableDivide
       generic map (
-         MEMORY_TYPE_G => "block")
+         NUM_CLIENTS_G   => 2,
+         DIVISOR_WIDTH_G => 80)
       port map (
-         clk     => clk,
-         rst     => rst,
-         masters => computeMasters,
-         slaves  => computeSlaves);
+         clk          => clk,                 -- [in]
+         rst          => rst,                 -- [in]
+         cancel       => divideCancel,        -- [in]
+         inputValid   => divideValid,         -- [in]
+         inputReady   => divideReady,         -- [out]
+         roundNearest => "11",                -- [in]
+         operandA     => divideOperandA,      -- [in]
+         operandB     => divideOperandB,      -- [in]
+         resultValid  => divideResultValid,   -- [out]
+         resultReady  => divideResultReady,   -- [in]
+         resultValue  => divideResultValue,   -- [out]
+         resultError  => divideResultError);  -- [out]
 
    syncSample.capture.timestamp  <= syncTime;
    syncSample.capture.ticks      <= syncTicks;
@@ -131,8 +146,15 @@ begin
          normalizedReady => normalizedReady,
          normalizedWord  => normalizedWord,
          normalizedData  => normalizedData,
-         computeMaster => computeMasters(PTP_COMPUTE_E2E_C),
-         computeSlave  => computeSlaves(PTP_COMPUTE_E2E_C),
+         divideValid       => divideValid(1),
+         divideReady       => divideReady(1),
+         divideOperandA    => divideOperandA(1),
+         divideOperandB    => divideOperandB(159 downto 80),
+         divideCancel      => divideCancel(1),
+         divideResultValid => divideResultValid(1),
+         divideResultReady => divideResultReady(1),
+         divideResultValue => divideResultValue(1),
+         divideResultError => divideResultError(1),
          clk           => clk,           -- [in]
          rst           => rst,           -- [in]
          cancel        => cancel,        -- [in]

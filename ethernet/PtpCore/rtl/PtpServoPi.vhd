@@ -180,6 +180,8 @@ architecture rtl of PtpServoPi is
       mulA               : slv(PRODUCT_A_C-1 downto 0);
       mulB               : slv(PRODUCT_B_C-1 downto 0);
       mulValid           : sl;
+      mulTake            : sl;
+      mulPending         : sl;
       divOperand         : slv(127 downto 0);
       divRound           : sl;
       divKind            : natural range 0 to 2;
@@ -230,6 +232,8 @@ architecture rtl of PtpServoPi is
       mulA               => (others => '0'),
       mulB               => (others => '0'),
       mulValid           => '0',
+      mulTake            => '0',
+      mulPending         => '0',
       divOperand         => (others => '0'),
       divRound           => '1',
       divKind            => SECOND_ID_C,
@@ -256,6 +260,7 @@ architecture rtl of PtpServoPi is
    signal arithmeticCancel : sl;
    signal mulReady         : sl;
    signal mulResultValid   : sl;
+   signal mulResultReady   : sl;
    signal mulOverflow      : sl;
    signal mulResult        : slv(PRODUCT_A_C+PRODUCT_B_C-1 downto 0);
    signal divRequest       : slv(2 downto 0);
@@ -332,7 +337,7 @@ begin
          operandA    => r.mulA,            -- [in]
          operandB    => r.mulB,            -- [in]
          resultValid => mulResultValid,    -- [out]
-         resultReady => '1',               -- [in]
+         resultReady => mulResultReady,    -- [in]
          resultValue => mulResult,         -- [out]
          overflow    => mulOverflow);      -- [out]
 
@@ -402,6 +407,7 @@ begin
    begin
       v := r;
       v.inputReady := '0';
+      v.mulTake := '0';
       v.secondResultReady := '0';
       v.offsetUpdate := '0';
       v.rateUpdate := '0';
@@ -542,11 +548,17 @@ begin
             end if;
 
          when PRODUCT_WAIT_S =>
-            if mulReady = '1' then
+            -- The product asserts ready only while idle, so valid-and-ready
+            -- is the accepting edge. Clear the request there and only then
+            -- look at the result.
+            if r.mulValid = '1' and mulReady = '1' then
                v.mulValid := '0';
+               v.mulPending := '1';
             end if;
 
-            if mulResultValid = '1' then
+            if r.mulPending = '1' and mulResultValid = '1' then
+               v.mulPending := '0';
+               v.mulTake := '1';
                v.mathValue := resize(signed(mulResult), 128);
                v.state := r.returnState;
 
@@ -562,11 +574,12 @@ begin
                v.divValid := '0';
             end if;
 
+
             if r.divKind = SECOND_ID_C then
                v.secondResultReady := '1';
             end if;
 
-            if divResultValid(r.divKind) = '1' then
+            if r.divValid = '0' and divResultValid(r.divKind) = '1' then
                v.mathValue := signed(divResult(r.divKind));
                v.state := r.returnState;
 
@@ -835,6 +848,8 @@ begin
       secondOperand <= r.divOperand;
       secondCancel <= v.arithmeticCancel;
       secondResultReady <= v.secondResultReady;
+
+      mulResultReady <= v.mulTake;
 
       inputReady <= v.inputReady;
       commandMaster <= r.command;

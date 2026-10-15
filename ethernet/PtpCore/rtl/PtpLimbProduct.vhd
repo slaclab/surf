@@ -67,6 +67,12 @@ architecture rtl of PtpLimbProduct is
    constant LIMBS_C     : positive := (B_G+LIMB_BITS_C-1)/LIMB_BITS_C;
    constant WIDTH_C     : positive := A_G+B_G;
 
+   -- B occupies whole limbs, so a width that is not a multiple of the limb
+   -- size is padded. The padding must sit below B's least significant bit:
+   -- the loop consumes limbs from the top, so left-padding would shift every
+   -- limb and silently scale the product.
+   constant PAD_BITS_C : natural := LIMB_BITS_C*LIMBS_C-B_G;
+
    type StateType is (IDLE_S, MULTIPLY_S, ADD_S, FINISH_S, DONE_S);
 
    type RegType is record
@@ -75,7 +81,7 @@ architecture rtl of PtpLimbProduct is
       b           : unsigned(LIMB_BITS_C*LIMBS_C-1 downto 0);
       count       : natural range 0 to LIMBS_C-1;
       negative    : sl;
-      accumulator : unsigned(WIDTH_C-1 downto 0);
+      accumulator : unsigned(WIDTH_C+PAD_BITS_C-1 downto 0);
       inputReady  : sl;
       value       : slv(WIDTH_C-1 downto 0);
       valid       : sl;
@@ -115,7 +121,11 @@ begin
       v := r;
       v.inputReady := '0';
 
-      value := signed(r.accumulator);
+      -- B was left-aligned into whole limbs, so the accumulator carries
+      -- 2**PAD_BITS_C times the true product. Shifting it back is exact: the
+      -- discarded low bits are the zeros introduced by that alignment.
+      value := signed(resize(shift_right(r.accumulator, PAD_BITS_C), WIDTH_C));
+
       if r.negative = '1' then
          value := -value;
       end if;
@@ -125,7 +135,13 @@ begin
             v.inputReady := '1';
 
             if inputValid = '1' then
-               v := REG_INIT_C;
+               -- Clear only the transaction state. A whole-record reset here
+               -- would also clear the ready just advertised, so the accepting
+               -- edge would never be observable to the client.
+               v.count := 0;
+               v.accumulator := (others => '0');
+               v.valid := '0';
+               v.overflow := '0';
 
                -- Negate in the operand's own width so the signed endpoint is
                -- representable as a magnitude.
@@ -135,7 +151,11 @@ begin
                   v.a := unsigned(-signed(operandA));
                end if;
 
-               v.b := resize(unsigned(operandB), v.b'length);
+               -- Left-align B in its padded container so the first limb read
+               -- is B's most significant limb. Plain resize would zero-pad on
+               -- the left and shift every limb when B_G is not a multiple of
+               -- the limb width.
+               v.b := shift_left(resize(unsigned(operandB), v.b'length), PAD_BITS_C);
                v.state := MULTIPLY_S;
             end if;
 
@@ -143,7 +163,8 @@ begin
             v.state := ADD_S;
 
          when ADD_S =>
-            v.accumulator := shift_left(r.accumulator, LIMB_BITS_C)+resize(product, WIDTH_C);
+            v.accumulator := shift_left(r.accumulator, LIMB_BITS_C)+
+                             resize(product, v.accumulator'length);
             v.b := shift_left(r.b, LIMB_BITS_C);
 
             if r.count = LIMBS_C-1 then

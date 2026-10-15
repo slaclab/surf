@@ -142,11 +142,21 @@ architecture rtl of PtpE2e is
       productValue : signed(127 downto 0);
       rawSeparation : signed(67 downto 0);
 
-      -- Captured sample provenance and operands.
-      ratio       : unsigned(63 downto 0);
-      rxIncrement : unsigned(63 downto 0);
-      txIncrement : unsigned(63 downto 0);
-      maximum     : signed(63 downto 0);
+      -- Every operand is captured at the accepting edge. The producer is
+      -- free to change its sample records immediately afterward, so reading
+      -- them in a later state would use perturbed values.
+      ratio          : unsigned(63 downto 0);
+      rxIncrement    : unsigned(63 downto 0);
+      txIncrement    : unsigned(63 downto 0);
+      maximum        : signed(63 downto 0);
+      localSeconds   : slv(47 downto 0);
+      localSubsecond : slv(47 downto 0);
+      syncSeconds    : slv(47 downto 0);
+      syncSubsecond  : slv(47 downto 0);
+      remoteSeconds  : slv(47 downto 0);
+      remoteSubsecond : slv(47 downto 0);
+      syncCorrection : signed(127 downto 0);
+      delayCorrection : signed(63 downto 0);
 
       epochValid  : sl;
       epochSeconds : slv(47 downto 0);
@@ -155,6 +165,8 @@ architecture rtl of PtpE2e is
       mulA        : slv(PRODUCT_A_C-1 downto 0);
       mulB        : slv(PRODUCT_B_C-1 downto 0);
       mulValid    : sl;
+      mulTake     : sl;
+      mulPending  : sl;
 
       divOperandA : slv(127 downto 0);
       divOperandB : slv(79 downto 0);
@@ -183,12 +195,22 @@ architecture rtl of PtpE2e is
       rxIncrement    => (others => '0'),
       txIncrement    => (others => '0'),
       maximum        => (others => '0'),
+      localSeconds   => (others => '0'),
+      localSubsecond => (others => '0'),
+      syncSeconds    => (others => '0'),
+      syncSubsecond  => (others => '0'),
+      remoteSeconds  => (others => '0'),
+      remoteSubsecond => (others => '0'),
+      syncCorrection => (others => '0'),
+      delayCorrection => (others => '0'),
       epochValid     => '0',
       epochSeconds   => (others => '0'),
       epochSubsecond => (others => '0'),
       mulA           => (others => '0'),
       mulB           => (others => '0'),
       mulValid       => '0',
+      mulTake        => '0',
+      mulPending     => '0',
       divOperandA    => (others => '0'),
       divOperandB    => (others => '0'),
       divValid       => '0',
@@ -205,6 +227,7 @@ architecture rtl of PtpE2e is
    signal epochResultValue : slv(94 downto 0);
    signal mulReady         : sl;
    signal mulResultValid   : sl;
+   signal mulResultReady   : sl;
    signal mulOverflow      : sl;
    signal mulResult        : slv(PRODUCT_A_C+PRODUCT_B_C-1 downto 0);
 
@@ -244,7 +267,7 @@ begin
          operandA    => r.mulA,          -- [in]
          operandB    => r.mulB,          -- [in]
          resultValid => mulResultValid,  -- [out]
-         resultReady => '1',             -- [in]
+         resultReady => mulResultReady,  -- [in]
          resultValue => mulResult,       -- [out]
          overflow    => mulOverflow);    -- [out]
 
@@ -256,6 +279,7 @@ begin
       v := r;
       v.inputReady := '0';
       v.historyReady := '0';
+      v.mulTake := '0';
       v.divReady := '0';
 
       separation := (others => '0');
@@ -300,6 +324,18 @@ begin
                v.txIncrement := unsigned(delaySample.capture.increment);
                v.maximum := signed(maxPathDelay);
 
+               -- Local Sync RX capture already carries a Q16 subsecond; the
+               -- two wire times carry integer nanoseconds that become Q16 by
+               -- placement.
+               v.localSeconds := syncSample.capture.timestamp(95 downto 48);
+               v.localSubsecond := syncSample.capture.timestamp(47 downto 0);
+               v.syncSeconds := syncSample.remoteTime(79 downto 32);
+               v.syncSubsecond := syncSample.remoteTime(31 downto 0) & x"0000";
+               v.remoteSeconds := delaySample.remoteTime(79 downto 32);
+               v.remoteSubsecond := delaySample.remoteTime(31 downto 0) & x"0000";
+               v.syncCorrection := signed(syncSample.correction);
+               v.delayCorrection := signed(delaySample.correction);
+
                -- The raw separation is formed from the two captures directly;
                -- both are unsigned67 Q3 tick/phase values.
                v.rawSeparation :=
@@ -327,26 +363,24 @@ begin
             end if;
 
          when EPOCH_LOCAL_S =>
-            -- Local Sync RX capture: seconds and a Q16 subsecond.
-            v.epochSeconds := syncSample.capture.timestamp(95 downto 48);
-            v.epochSubsecond := syncSample.capture.timestamp(47 downto 0);
+            v.epochSeconds := r.localSeconds;
+            v.epochSubsecond := r.localSubsecond;
             v.epochSelect := LOCAL_E;
             v.epochValid := '1';
             v.returnState := EPOCH_SYNC_S;
             v.state := EPOCH_WAIT_S;
 
          when EPOCH_SYNC_S =>
-            -- Master Sync origin: wire nanoseconds become Q16 by placement.
-            v.epochSeconds := syncSample.remoteTime(79 downto 32);
-            v.epochSubsecond := syncSample.remoteTime(31 downto 0) & x"0000";
+            v.epochSeconds := r.syncSeconds;
+            v.epochSubsecond := r.syncSubsecond;
             v.epochSelect := SYNC_E;
             v.epochValid := '1';
             v.returnState := CORRECT_SYNC_S;
             v.state := EPOCH_WAIT_S;
 
          when EPOCH_REMOTE_S =>
-            v.epochSeconds := delaySample.remoteTime(79 downto 32);
-            v.epochSubsecond := delaySample.remoteTime(31 downto 0) & x"0000";
+            v.epochSeconds := r.remoteSeconds;
+            v.epochSubsecond := r.remoteSubsecond;
             v.epochSelect := REMOTE_E;
             v.epochValid := '1';
             v.returnState := CORRECT_REMOTE_S;
@@ -368,11 +402,11 @@ begin
 
          when CORRECT_SYNC_S =>
             -- Correction additions intentionally wrap signed128.
-            v.syncTime := r.syncTime+signed(syncSample.correction);
+            v.syncTime := r.syncTime+r.syncCorrection;
             v.state := EPOCH_REMOTE_S;
 
          when CORRECT_REMOTE_S =>
-            v.remoteTime := r.remoteTime-resize(signed(delaySample.correction), 128);
+            v.remoteTime := r.remoteTime-resize(r.delayCorrection, 128);
             v.state := ELAPSED_PRODUCT_S;
 
          when ELAPSED_PRODUCT_S =>
@@ -383,11 +417,18 @@ begin
             v.state := PRODUCT_WAIT_S;
 
          when PRODUCT_WAIT_S =>
-            if mulReady = '1' then
+            -- The product asserts ready only while idle, so valid-and-ready
+            -- is the accepting edge. Clear the request there and only then
+            -- look at the result; the leaf holds its previous result until
+            -- consumed, so an early test would latch the prior product.
+            if r.mulValid = '1' and mulReady = '1' then
                v.mulValid := '0';
+               v.mulPending := '1';
             end if;
 
-            if mulResultValid = '1' then
+            if r.mulPending = '1' and mulResultValid = '1' then
+               v.mulPending := '0';
+               v.mulTake := '1';
                v.productValue := resize(signed(mulResult), 128);
                v.state := r.returnState;
 
@@ -435,7 +476,7 @@ begin
 
             v.divReady := '1';
 
-            if divideResultValid = '1' then
+            if r.divValid = '0' and divideResultValid = '1' then
                v.productValue := signed(divideResultValue);
                v.state := r.returnState;
 
@@ -525,6 +566,7 @@ begin
 
       inputReady <= v.inputReady;
       normalizedReady <= v.historyReady;
+      mulResultReady <= v.mulTake;
       resultValue <= r.resultValue;
       resultValid <= r.resultValid;
       resultError <= r.error;

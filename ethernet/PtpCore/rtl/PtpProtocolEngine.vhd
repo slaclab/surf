@@ -68,7 +68,6 @@ use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 use surf.PtpRegisterPkg.all;
 
 entity PtpProtocolEngine is
@@ -124,8 +123,18 @@ entity PtpProtocolEngine is
       measurementSlave  : in  PtpMeasurementSlaveType;
       lifecycle         : out PtpPortLifecycleType;
       status            : out PtpPortStatusType;
-      computeMasters    : out PtpComputeMasterArray(0 to 1);
-      computeSlaves     : in PtpComputeSlaveArray(0 to 1));
+      -- Shared endpoint variable divider. Index 0 is the rate estimator and
+      -- index 1 is the E2E calibration path; both use the positive-divisor,
+      -- quotient-only contract and qualify their divisor before narrowing.
+      divideValid       : out slv(1 downto 0);
+      divideReady       : in  slv(1 downto 0)         := (others => '0');
+      divideOperandA    : out Slv128Array(1 downto 0);
+      divideOperandB    : out slv(159 downto 0);
+      divideCancel      : out slv(1 downto 0);
+      divideResultValid : in  slv(1 downto 0)         := (others => '0');
+      divideResultReady : out slv(1 downto 0);
+      divideResultValue : in  Slv128Array(1 downto 0) := (others => (others => '0'));
+      divideResultError : in  slv(1 downto 0)         := (others => '0'));
 end entity PtpProtocolEngine;
 
 architecture rtl of PtpProtocolEngine is
@@ -182,6 +191,7 @@ architecture rtl of PtpProtocolEngine is
       syncTimeout        : slv(63 downto 0);
       associationTimeout : slv(63 downto 0);
       maxExchange        : slv(63 downto 0);
+      minRateSpan        : slv(63 downto 0);
       maxRateAge         : slv(63 downto 0);
       maxPathDelay       : slv(63 downto 0);
       lfsrSeed           : slv(15 downto 0);
@@ -200,6 +210,7 @@ architecture rtl of PtpProtocolEngine is
       cache.syncTimeout := CFG_C.syncTimeout;
       cache.associationTimeout := CFG_C.associationTimeout;
       cache.maxExchange := CFG_C.maxExchange;
+      cache.minRateSpan := CFG_C.minRateSpan;
       cache.maxRateAge := CFG_C.maxRateAge;
       cache.maxPathDelay := CFG_C.maxPathDelay;
       cache.lfsrSeed := CFG_C.lfsrSeed;
@@ -218,6 +229,7 @@ architecture rtl of PtpProtocolEngine is
       cfg.syncTimeout := cache.syncTimeout;
       cfg.associationTimeout := cache.associationTimeout;
       cfg.maxExchange := cache.maxExchange;
+      cfg.minRateSpan := cache.minRateSpan;
       cfg.maxRateAge := cache.maxRateAge;
       cfg.maxPathDelay := cache.maxPathDelay;
       cfg.lfsrSeed := cache.lfsrSeed;
@@ -438,9 +450,9 @@ architecture rtl of PtpProtocolEngine is
 
    type StateType is (
       IDLE_S,
-      RATE_HISTORY_BEGIN_S, RATE_HISTORY_READ_S, RATE_HISTORY_WAIT_S, RATE_HISTORY_DONE_S,
-      RATE_LOAD_S, RATE_CONFIG_READ_S, RATE_CONFIG_WAIT_S, RATE_PLAN_S, RATE_ISSUE_S, RATE_WAIT_S,
-      RATE_READ_S, RATE_READ_WAIT_S, RATE_CORRECTION_READ_S, RATE_CORRECTION_WAIT_S, RATE_PUBLISH_S);
+      RATE_SUBMIT_S, RATE_ACCEPT_S, RATE_WAIT_S,
+      RATE_HISTORY_BEGIN_S, RATE_HISTORY_READ_S, RATE_HISTORY_DONE_S,
+      RATE_PUBLISH_S);
 
    type RegType is record
       -- Current-edge admission for RX, ledger samples and E2E results.
@@ -456,7 +468,6 @@ architecture rtl of PtpProtocolEngine is
       candidate        : ControlCacheType;
       configBus        : PtpRegisterBusType;
       configMaster     : PtpRegisterMasterType;
-      rateSpanCarry    : slv(2 downto 0);
       validateValue    : slv(63 downto 0);
       validatePrevious : slv(63 downto 0);
       configValid      : sl;
@@ -520,9 +531,7 @@ architecture rtl of PtpProtocolEngine is
       announceLimit : slv(63 downto 0);
       lastTicks     : slv(63 downto 0);
       -- Retain normalized anchor data rather than reconverting a full sample.
-      anchorValid        : sl;
       ratio              : slv(63 downto 0);
-      ratioCount         : natural range 0 to RATIO_QUALIFY_COUNT_C;
       ratioTicks         : slv(63 downto 0);
       state              : StateType;
       pendingSync        : PtpSyncSampleType;
@@ -563,10 +572,8 @@ architecture rtl of PtpProtocolEngine is
       historyBest        : natural range 0 to HISTORY_DEPTH_C-1;
       historySampleTicks : slv(63 downto 0);
       historyPhase       : slv(PTP_TICK_PHASE_BITS_C-1 downto 0);
-      compute            : PtpComputeMasterType;
-      rateWord           : natural range 0 to 47;
-      rateStep           : natural range 0 to 23;
-      rateUpdated        : sl;
+      rateWord           : natural range 0 to 7;
+      rateInput          : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -580,7 +587,6 @@ architecture rtl of PtpProtocolEngine is
       candidate           => initialCache,
       configBus           => PTP_REGISTER_BUS_INIT_C,
       configMaster        => PTP_REGISTER_MASTER_INIT_C,
-      rateSpanCarry       => (others => '0'),
       validateValue       => (others => '0'),
       validatePrevious    => (others => '0'),
       configValid         => '1',
@@ -654,15 +660,11 @@ architecture rtl of PtpProtocolEngine is
       lastTicks           => (others => '0'),
       syncLimit           => (others => '0'),
       announceLimit       => (others => '0'),
-      anchorValid         => '0',
       ratio               => slv(NOMINAL_C),
-      ratioCount          => 0,
       ratioTicks          => (others => '0'),
       state               => IDLE_S,
-      compute             => PTP_COMPUTE_MASTER_INIT_C,
       rateWord            => 0,
-      rateStep            => 0,
-      rateUpdated         => '0',
+      rateInput           => '0',
       pendingSync         => PTP_SYNC_SAMPLE_INIT_C,
       measurementMaster   => PTP_MEASUREMENT_MASTER_INIT_C,
       lifecycle           => PTP_PORT_LIFECYCLE_INIT_C,
@@ -706,6 +708,16 @@ architecture rtl of PtpProtocolEngine is
    signal e2eInput         : sl;
    signal e2eReady         : sl;
    signal e2eSync          : PtpSyncSampleType;
+   signal rateReady      : sl;
+   signal rateRatio      : slv(63 downto 0);
+   signal rateQualified  : sl;
+   signal rateUpdate     : sl;
+   signal rateNormalized : slv(127 downto 0);
+   signal rateCorrection : slv(127 downto 0);
+   signal rateForward    : slv(127 downto 0);
+   signal rateAccepted   : sl;
+   signal rateRejected   : slv(31 downto 0);
+
    signal e2eResult        : PtpMeasurementType;
    signal e2eValid         : sl;
    signal e2eTake          : sl;
@@ -867,7 +879,6 @@ architecture rtl of PtpProtocolEngine is
 
 begin
 
-   computeMasters(PTP_COMPUTE_RATE_C) <= r.compute;
    snapshotScalars <=
    (
       rxCounters.accepted,
@@ -1045,9 +1056,51 @@ begin
          resultValue     => e2eResult,     -- [out]
          resultValid     => e2eValid,      -- [out]
          resultReady     => e2eTake,       -- [in]
-         resultError     => e2eError,
-         computeMaster   => computeMasters(PTP_COMPUTE_E2E_C),
-         computeSlave    => computeSlaves(PTP_COMPUTE_E2E_C));     -- [out]
+         resultError       => e2eError,              -- [out]
+         divideValid       => divideValid(1),        -- [out]
+         divideReady       => divideReady(1),        -- [in]
+         divideOperandA    => divideOperandA(1),     -- [out]
+         divideOperandB    => divideOperandB(159 downto 80),  -- [out]
+         divideCancel      => divideCancel(1),       -- [out]
+         divideResultValid => divideResultValid(1),  -- [in]
+         divideResultReady => divideResultReady(1),  -- [out]
+         divideResultValue => divideResultValue(1),  -- [in]
+         divideResultError => divideResultError(1));  -- [in]
+
+   -- Rate measurement is a separate responsibility from protocol policy.
+   U_RateEstimator : entity surf.PtpRateEstimator
+      generic map (
+         TPD_G                => TPD_G,
+         RST_POLARITY_G       => RST_POLARITY_G,
+         RST_ASYNC_G          => RST_ASYNC_G,
+         CLK_FREQ_G           => CLK_FREQ_G,
+         MAX_OSCILLATOR_PPB_G => MAX_OSCILLATOR_PPB_C,
+         QUALIFY_COUNT_G      => RATIO_QUALIFY_COUNT_C)
+      port map (
+         clk                => clk,                     -- [in]
+         rst                => rst,                     -- [in]
+         cancel             => abortNow,                -- [in]
+         inputValid         => r.rateInput,             -- [in]
+         inputReady         => rateReady,               -- [out]
+         syncSample         => r.pendingSync,           -- [in]
+         minimumSpan        => r.activeConfig.minRateSpan,  -- [in]
+         ratio              => rateRatio,               -- [out]
+         ratioValid         => rateQualified,           -- [out]
+         ratioUpdate        => rateUpdate,              -- [out]
+         normalizedTime     => rateNormalized,          -- [out]
+         combinedCorrection => rateCorrection,          -- [out]
+         forwardValue       => rateForward,             -- [out]
+         sampleAccepted     => rateAccepted,            -- [out]
+         rejectedCount      => rateRejected,            -- [out]
+         divideValid        => divideValid(0),          -- [out]
+         divideReady        => divideReady(0),          -- [in]
+         divideOperandA     => divideOperandA(0),       -- [out]
+         divideOperandB     => divideOperandB(79 downto 0),  -- [out]
+         divideCancel       => divideCancel(0),         -- [out]
+         divideResultValid  => divideResultValid(0),    -- [in]
+         divideResultReady  => divideResultReady(0),    -- [out]
+         divideResultValue  => divideResultValue(0),    -- [in]
+         divideResultError  => divideResultError(0));   -- [in]
 
    comb : process (all) is
       variable readAddress      : slv(11 downto 0);
@@ -1085,9 +1138,6 @@ begin
       variable scanCarryIn : unsigned(32 downto 0);
       variable scanAlu     : unsigned(32 downto 0);
       variable scanLast    : natural range 1 to 2;
-      variable rateData    : slv(127 downto 0);
-      variable rateJob     : PtpComputeJobType;
-      variable rateAddress : natural range 0 to 63;
       variable pairWord    : slv(31 downto 0);
       variable remoteTime  : slv(95 downto 0);
       variable inputSample : PtpSyncSampleType;
@@ -1129,51 +1179,12 @@ begin
          rxReceiptLimit := rxInterval.receipt;
       end if;
 
-      v.compute.resultReady := '0';
-      v.compute.readReady := '0';
-      v.compute.cancel := '0';
       v.configMaster.cancel := '0';
       v.configMaster.responseReady := '1';
 
       if r.configMaster.valid = '1' and configSlaves(1).ready = '1' then
          v.configMaster.valid := '0';
       end if;
-
-      rateJob     := PTP_COMPUTE_JOB_INIT_C;
-      rateData    := (others => '0');
-      rateAddress := r.rateWord;
-      -- Word selection is wiring only. Normalized current/last/anchor time,
-      -- elapsed values and filtered-ratio intermediates remain in the workspace.
-      case r.rateWord/4 is
-         when 0 =>
-            rateData(47 downto 0) := r.pendingSync.remoteTime(79 downto 32);
-         when 1 =>
-            rateData(47 downto 16) := r.pendingSync.remoteTime(31 downto 0);
-         when 2 =>
-            rateData(47 downto 0) := r.pendingSync.capture.timestamp(95 downto 48);
-         when 3 =>
-            rateData(47 downto 0) := r.pendingSync.capture.timestamp(47 downto 0);
-         when 4 =>
-            rateData := slv(resize(signed(r.pendingSync.correction(63 downto 0)), 128));
-         when 5 =>
-            rateData(66 downto 0) := r.pendingSync.capture.ticks & r.pendingSync.capture.tickPhase;
-         when 6 =>
-            rateData(66 downto 64) := r.rateSpanCarry;
-         when 7 =>
-            rateData := slv(resize(NOMINAL_C-RATE_MARGIN_C, 128));
-         when 8 =>
-            rateData := slv(resize(NOMINAL_C+RATE_MARGIN_C, 128));
-         when 9 =>
-            rateData(63 downto 0) := r.ratio;
-         when 10 =>
-            rateAddress := 56+r.rateWord mod 4;
-            rateData    := slv(shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
-         when 11 =>
-            rateAddress := 52+r.rateWord mod 4;
-            rateData    := slv(resize(signed(r.pendingSync.correction(127 downto 64)), 128));
-         when others =>
-            null;
-      end case;
 
       -- Requests retain their complete payload until the child accepts them.
       -- The RAM ledger scans the held response before accepting it. Retain
@@ -1267,9 +1278,11 @@ begin
       -- Drain the registered child cancellation before admitting new work.
       -- Do not feed that old event back into its own next value above.
       abortPort      := abortPort or r.measurementMaster.abort;
+      -- The estimator reports whether its ratio is qualified; freshness for
+      -- this consumer is the separate age test.
       qualifiedRatio := '0';
 
-      if r.ratioCount = RATIO_QUALIFY_COUNT_C and
+      if rateQualified = '1' and
          not ptpAgeExpired(phcStatus.ticks, r.ratioTicks, r.activeConfig.maxRateAge) then
          qualifiedRatio := '1';
       end if;
@@ -1423,7 +1436,7 @@ begin
                v.delayReady := '1';
                v.e2eBusy := '1';
                v.e2eDelay := delaySample;
-               v.e2eRatio := r.ratio;
+               v.e2eRatio := rateRatio;
                v.e2eMaximum := r.activeConfig.maxPathDelay;
                v.historyTicks := phcStatus.ticks;
                v.historyQualified := qualifiedRatio;
@@ -2033,11 +2046,13 @@ begin
       end if;
 
       -------------------------------------------------------------------------
-      -- Rate estimation and forward-measurement publication
+      -- Rate estimation handoff and forward-measurement publication
       -------------------------------------------------------------------------
-      -- RX is admitted only with publication capacity. Thus only the row
-      -- just updated can become newly complete; no parallel ready-row search
-      -- or second wide table read is needed. Chronology still gates acceptance.
+      -- PtpRateEstimator owns the master-time conversion, anchor chronology,
+      -- the variable division and ratio qualification. This machine hands it
+      -- a completed Sync pair, appends the sample to the history table, then
+      -- publishes the forward measurement it returns. Protocol policy stays
+      -- here; the measurement arithmetic does not.
       case r.state is
          when IDLE_S =>
 
@@ -2047,307 +2062,93 @@ begin
                   if ptpAgeExpired(phcStatus.ticks, r.pendingSync.capture.ticks, r.activeConfig.associationTimeout) then
                      rejectedEvents := rejectedEvents+1;
                   else
-                     v.rateWord := 0;
-                     v.rateStep := 0;
-                     v.rateUpdated := '0';
-                     v.state := RATE_LOAD_S;
+                     v.state := RATE_SUBMIT_S;
                   end if;
                end if;
             end if;
 
-         when RATE_LOAD_S =>
-
-            if r.compute.memValid = '0' and (r.rateWord = 24 or r.rateWord = 25) then
-               v.state := RATE_CONFIG_READ_S;
-            elsif r.compute.memValid = '0' then
-               v.compute.memValid := '1';
-               v.compute.memWrite := '1';
-               v.compute.memWord := toSlv(rateAddress, 6);
-               v.compute.memData := rateData(32*(r.rateWord mod 4)+31 downto 32*(r.rateWord mod 4));
-            elsif computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
-               v.compute.memValid := '0';
-               if r.rateWord = 47 then
-                  v.state := RATE_PLAN_S;
-               else
-                  v.rateWord := r.rateWord+1;
-               end if;
+         when RATE_SUBMIT_S =>
+            -- Chronology against the last accepted Sync stays local, because
+            -- it gates history admission as well as the rate estimate.
+            if r.portStatus.active = '1' and
+               unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks) then
+               rejectedEvents := rejectedEvents+1;
+               v.state := IDLE_S;
+            else
+               v.rateInput := '1';
+               v.state := RATE_ACCEPT_S;
             end if;
 
-         when RATE_CONFIG_READ_S =>
-            v.configMaster.valid := '1';
-            v.configMaster.write := '0';
-            v.configMaster.bank := "01";
-            v.configMaster.index := toSlv(40+r.rateWord-24,8);
-            v.state := RATE_CONFIG_WAIT_S;
-         when RATE_CONFIG_WAIT_S =>
+         when RATE_ACCEPT_S =>
 
-            if configSlaves(1).responseValid = '1' then
-               v.compute.memValid := '1';
-               v.compute.memWrite := '1';
-               v.compute.memWord := toSlv(r.rateWord,6);
-               v.compute.memData := configSlaves(1).data(28 downto 0) & "000";
-               if r.rateWord = 25 then
-                  v.compute.memData(2 downto 0) := r.rateSpanCarry;
-               end if;
-               v.rateSpanCarry := configSlaves(1).data(31 downto 29);
-               v.state := RATE_LOAD_S;
-            end if;
-
-         when RATE_PLAN_S =>
-            v.state := RATE_ISSUE_S;
-
-            case r.rateStep is
-               when 0 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_MUL_C, 0, 14, 0, 15);
-               when 1 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 0, 1, 0, 15);
-               when 2 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 0, 4, 0, 15);
-               when 3 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 0, 10, 13, 15);
-
-                  if r.portStatus.active = '0' then
-                     v.rateStep := 4;
-                     v.state := RATE_PLAN_S;
-                  end if;
-
-               when 4 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_MUL_C, 2, 14, 2, 15);
-               when 5 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 2, 3, 2, 15);
-               when 6 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 2, 0, 2, 15);
-               when 7 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 10, 15);
-               when 8 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 11, 15);
-               when 9 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 5, 0, 12, 15);
-               when 10 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 5, 12, 13, 15);
-               when 11 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 13, 6, 14, 15);
-               when 12 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 0, 11, 14, 15);
-               when 13 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SHL_C, 14, 0, 14, 15, RATE_RATIO_SHIFT_C);
-               when 14 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 0, 0, 11, 15);
-               when 15 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 5, 0, 12, 15);
-               when 16 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_DIV_C, 14, 13, 13, 15, 0, '1');
-               when 17 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 13, 7, 14, 15);
-               when 18 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_CMP_C, 8, 13, 14, 15);
-               when 19 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SUB_C, 13, 9, 14, 15);
-
-                  if r.ratioCount = 0 then
-                     rateJob := ptpComputeJob(PTP_COMPUTE_COPY_C, 13, 0, 9, 15);
-                  end if;
-
-               when 20 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_SHR_C, 14, 0, 14, 15, RATIO_FILTER_SHIFT_C, '1');
-               when 21 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 9, 14, 9, 15);
-               when 22 =>
-                  v.rateWord := 0;
-                  v.state := RATE_READ_S;
-               when 23 =>
-                  rateJob := ptpComputeJob(PTP_COMPUTE_ADD_C, 4, 13, 4, 15);
-            end case;
-
-            if v.state = RATE_ISSUE_S then
-               v.compute.job := rateJob;
-               v.compute.jobValid := '1';
-            end if;
-
-         when RATE_ISSUE_S =>
-
-            if computeSlaves(PTP_COMPUTE_RATE_C).jobReady = '1' then
-               v.compute.jobValid := '0';
-               v.state := RATE_WAIT_S;
-            end if;
-
-         when RATE_WAIT_S =>
-
-            if computeSlaves(PTP_COMPUTE_RATE_C).resultValid = '1' then
-               v.compute.resultReady := '1';
-               v.state := RATE_PLAN_S;
-               v.rateStep := (r.rateStep+1) mod 24;
-
-               case r.rateStep is
-                  when 1 =>
-                     v.rateStep := 23;
-                  when 23 =>
-                     v.rateWord := 0;
-                     v.state := RATE_CORRECTION_READ_S;
-                  when 3 =>
-                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' or
-                        computeSlaves(PTP_COMPUTE_RATE_C).resultEqual = '1' or
-                        unsigned(r.pendingSync.capture.ticks) <= unsigned(r.lastTicks) then
-                        rejectedEvents := rejectedEvents+1;
-                        v.state := IDLE_S;
-                     end if;
-                  when 7 =>
-                     v.state := RATE_HISTORY_BEGIN_S;
-                     v.rateWord := 0;
-                     v.portStatus.active := '1';
-                     v.lastTicks := r.pendingSync.capture.ticks;
-                     v.historyWriteBusy := '1';
-                     v.historyWriteWord := 0;
-                     v.portStatus.syncCount := ptpSatInc(v.portStatus.syncCount);
-                     if r.anchorValid = '1' then
-                        v.rateStep := 10;
-                     end if;
-                  when 9 =>
-                     v.anchorValid := '1';
-                     v.rateStep := 22;
-                  when 11 =>
-                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' then
-                        v.rateStep := 22;
-                     end if;
-                  when 16 =>
-                     if computeSlaves(PTP_COMPUTE_RATE_C).resultError = '1' then
-                        rejectedEvents := rejectedEvents+1;
-                        v.rateStep := 22;
-                     end if;
-                  when 17 | 18 =>
-                     if computeSlaves(PTP_COMPUTE_RATE_C).resultLess = '1' then
-                        rejectedEvents := rejectedEvents+1;
-                        v.rateStep := 22;
-                     elsif r.rateStep = 18 then
-                        v.rateUpdated := '1';
-                     end if;
-                  when 19 =>
-                     if r.ratioCount = 0 then
-                        v.rateStep := 22;
-                     end if;
-                  when others =>
-                     null;
-               end case;
-
+            if rateReady = '1' then
+               v.rateInput := '0';
+               v.portStatus.active := '1';
+               v.lastTicks := r.pendingSync.capture.ticks;
+               v.portStatus.syncCount := ptpSatInc(v.portStatus.syncCount);
+               v.historyWriteBusy := '1';
+               v.historyWriteWord := 0;
+               v.state := RATE_HISTORY_BEGIN_S;
             end if;
 
          when RATE_HISTORY_BEGIN_S =>
 
             if r.historyWriteWord = 17 and r.historyWriteEnable = '0' then
+               v.rateWord := 0;
+               v.state := RATE_WAIT_S;
+            end if;
+
+         when RATE_WAIT_S =>
+            -- Wait for the estimator to finish this sample. It publishes the
+            -- forward value whether or not the sample also yields a new ratio.
+            if rateAccepted = '1' then
                v.state := RATE_HISTORY_READ_S;
             end if;
 
          when RATE_HISTORY_READ_S =>
-            v.compute.memValid := '1';
-            v.compute.memWrite := '0';
-            v.compute.memWord := toSlv(8+r.rateWord,6);
+            -- Words 17..24 hold the normalized forward value and corrected
+            -- Sync time, so the E2E path need not repeat either conversion.
+            v.historyWriteEnable := '1';
+            v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+17+r.rateWord, HISTORY_ADDR_WIDTH_C);
 
-            if r.rateWord >= 4 then
-               v.compute.memWord := toSlv(r.rateWord-4,6);
+            if r.rateWord < 4 then
+               v.historyWriteData := rateForward(32*r.rateWord+31 downto 32*r.rateWord);
+            else
+               v.historyWriteData := rateNormalized(32*(r.rateWord-4)+31 downto 32*(r.rateWord-4));
             end if;
 
-            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
-               v.compute.memValid := '0';
-               v.compute.readReady := '1';
-               v.state := RATE_HISTORY_WAIT_S;
-            end if;
-
-         when RATE_HISTORY_WAIT_S =>
-            v.compute.readReady := '1';
-
-            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
-               v.historyWriteEnable := '1';
-               v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+17+r.rateWord,HISTORY_ADDR_WIDTH_C);
-               v.historyWriteData := computeSlaves(PTP_COMPUTE_RATE_C).readData;
-               if r.rateWord = 7 then
-                  v.state := RATE_HISTORY_DONE_S;
-               else
-                  v.rateWord := r.rateWord+1;
-                  v.state := RATE_HISTORY_READ_S;
-               end if;
+            if r.rateWord = 7 then
+               v.state := RATE_HISTORY_DONE_S;
+            else
+               v.rateWord := r.rateWord+1;
             end if;
 
          when RATE_HISTORY_DONE_S =>
             v.historyWriteBusy := '0';
             v.historyValid(r.historyPtr) := '1';
             v.historyPtr := (r.historyPtr+1) mod HISTORY_DEPTH_C;
-            v.state := RATE_PLAN_S;
-         when RATE_CORRECTION_READ_S =>
-            v.compute.memValid := '1';
-            v.compute.memWrite := '0';
-            v.compute.memWord := toSlv(16+r.rateWord, 6);
-
-            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
-               v.compute.memValid := '0';
-               v.compute.readReady := '1';
-               v.state := RATE_CORRECTION_WAIT_S;
-            end if;
-
-         when RATE_CORRECTION_WAIT_S =>
-            v.compute.readReady := '1';
-
-            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
-               v.pendingSync.correction(32*r.rateWord+31 downto 32*r.rateWord) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
-               if r.rateWord = 3 then
-                  v.rateStep := 2;
-                  v.state := RATE_PLAN_S;
-               else
-                  v.rateWord := r.rateWord+1;
-                  v.state := RATE_CORRECTION_READ_S;
-               end if;
-            end if;
-
-         when RATE_READ_S =>
-            v.compute.memValid := '1';
-            v.compute.memWrite := '0';
-            v.compute.memWord := toSlv(8+r.rateWord, 6);
-
-            if r.rateWord >= 4 then
-               v.compute.memWord := toSlv(36+r.rateWord-4, 6);
-            end if;
-
-            if r.compute.memValid = '1' and computeSlaves(PTP_COMPUTE_RATE_C).memReady = '1' then
-               v.compute.memValid := '0';
-               v.compute.readReady := '1';
-               v.state := RATE_READ_WAIT_S;
-            end if;
-
-         when RATE_READ_WAIT_S =>
-            v.compute.readReady := '1';
-
-            if computeSlaves(PTP_COMPUTE_RATE_C).readValid = '1' then
-               if r.rateWord < 4 then
-                  v.measurementMaster.data.forward(32*r.rateWord+31 downto 32*r.rateWord) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
-               else
-                  v.ratio(32*(r.rateWord-4)+31 downto 32*(r.rateWord-4)) := computeSlaves(PTP_COMPUTE_RATE_C).readData;
-               end if;
-               if r.rateWord = 5 then
-                  v.state := RATE_PUBLISH_S;
-               else
-                  v.rateWord := r.rateWord+1;
-                  v.state := RATE_READ_S;
-               end if;
-            end if;
+            v.state := RATE_PUBLISH_S;
 
          when RATE_PUBLISH_S =>
 
-            if r.rateUpdated = '1' then
-               if r.ratioCount < RATIO_QUALIFY_COUNT_C then
-                  v.ratioCount := r.ratioCount+1;
-               end if;
+            if rateUpdate = '1' then
                v.ratioTicks := r.pendingSync.capture.ticks;
             end if;
 
+            v.pendingSync.correction := rateCorrection;
             v.measurementMaster.data.isDelay := '0';
             v.measurementMaster.data.generation := r.pendingSync.capture.generation;
             v.measurementMaster.data.ticks := r.pendingSync.capture.ticks;
             v.measurementMaster.data.syncSequence := r.pendingSync.sequenceId;
             v.measurementMaster.data.delaySequence := (others => '0');
             v.measurementMaster.data.delayValue := (others => '0');
-            v.measurementMaster.data.ratio := r.ratio;
+            v.measurementMaster.data.forward := rateForward;
+            v.measurementMaster.data.ratio := rateRatio;
             v.measurementMaster.data.ratioValid := '0';
 
-            if v.ratioCount = RATIO_QUALIFY_COUNT_C and
+            -- Freshness is separate from acceptance: a qualified ratio must
+            -- also be recent enough for this sample's consumer.
+            if rateQualified = '1' and
                not ptpAgeExpired(phcStatus.ticks, v.ratioTicks, r.activeConfig.maxRateAge) then
                v.measurementMaster.data.ratioValid := '1';
             end if;
@@ -2426,12 +2227,9 @@ begin
          v.portStatus.active       := '0';
          v.syncLimit               := r.activeConfig.syncTimeout;
          v.announceLimit           := slv(resize(unsigned(r.activeConfig.syncTimeout)*ANNOUNCE_CAP_FACTOR_C, 64));
-         v.anchorValid             := '0';
-         v.compute := PTP_COMPUTE_MASTER_INIT_C;
-         v.compute.cancel := '1';
          v.configMaster.valid := '0';
          v.configMaster.cancel := '1';
-         v.ratioCount              := 0;
+         v.rateInput               := '0';
          v.state                   := IDLE_S;
          v.measurementMaster.valid := '0';
          v.requestStarted          := '0';
@@ -2470,7 +2268,7 @@ begin
 
       v.portStatus.ratioValid := '0';
 
-      if v.ratioCount = RATIO_QUALIFY_COUNT_C and
+      if rateQualified = '1' and
          not ptpAgeExpired(phcStatus.ticks, v.ratioTicks, r.activeConfig.maxRateAge) then
          v.portStatus.ratioValid := '1';
       end if;
@@ -2612,6 +2410,7 @@ begin
             when 39 =>
                v.candidate.maxExchange := v.validateValue;
             when 41 =>
+               v.candidate.minRateSpan := v.validateValue;
                v.validatePrevious := v.validateValue;
             when 43 =>
                v.candidate.maxRateAge := v.validateValue;

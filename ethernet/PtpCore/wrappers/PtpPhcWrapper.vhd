@@ -32,7 +32,6 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 
 entity PtpPhcWrapper is
    generic (
@@ -124,21 +123,39 @@ architecture rtl of PtpPhcWrapper is
    signal snapshot     : PtpTimeType;
    signal abortCapture : sl;
    signal resetHigh    : sl;
-   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
-   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
+   -- The fixture supplies a private SECOND converter so manual phase
+   -- preparation is exercised without the endpoint's sharing arbiter.
+   signal secondValid       : slv(0 downto 0);
+   signal secondReady       : slv(0 downto 0);
+   signal secondRound       : slv(0 downto 0);
+   signal secondOperand     : slv(127 downto 0);
+   signal secondCancel      : slv(0 downto 0);
+   signal secondResultValid : slv(0 downto 0);
+   signal secondResultReady : slv(0 downto 0);
+   signal secondQuotient    : slv(127 downto 0);
+   signal secondRemainder   : slv(127 downto 0);
 
 begin
 
-   U_Compute : entity surf.PtpCompute
+   U_Second : entity surf.PtpSecondService
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G)
+         RST_ASYNC_G    => RST_ASYNC_G,
+         NUM_CLIENTS_G  => 1,
+         WIDTH_G        => 128)
       port map (
-         clk     => clk,
-         rst     => rst,
-         masters => computeMasters,
-         slaves  => computeSlaves);
+         clk             => clk,                -- [in]
+         rst             => rst,                -- [in]
+         cancel          => secondCancel,       -- [in]
+         inputValid      => secondValid,        -- [in]
+         inputReady      => secondReady,        -- [out]
+         roundNearest    => secondRound,        -- [in]
+         operand         => secondOperand,      -- [in]
+         resultValid     => secondResultValid,  -- [out]
+         resultReady     => secondResultReady,  -- [in]
+         resultValue     => secondQuotient,     -- [out]
+         resultRemainder => secondRemainder);   -- [out]
 
    command.kind                <= commandKind;
    command.generation          <= commandGeneration;
@@ -209,8 +226,15 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         computeMaster  => computeMasters(PTP_COMPUTE_PHC_C),
-         computeSlave   => computeSlaves(PTP_COMPUTE_PHC_C),
+         secondValid       => secondValid(0),
+         secondReady       => secondReady(0),
+         secondRound       => secondRound(0),
+         secondOperand     => secondOperand,
+         secondCancel      => secondCancel(0),
+         secondResultValid => secondResultValid(0),
+         secondResultReady => secondResultReady(0),
+         secondQuotient    => secondQuotient,
+         secondRemainder   => secondRemainder,
          clk            => clk,             -- [in]
          rst            => rst,             -- [in]
          axiReadMaster  => axiReadMaster,   -- [in]

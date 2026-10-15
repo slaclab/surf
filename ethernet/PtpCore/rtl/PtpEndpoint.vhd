@@ -43,19 +43,18 @@ use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 
 entity PtpEndpoint is
    generic (
-      AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
-      TPD_G             : time             := 1 ns;
-      RST_POLARITY_G    : sl               := '1';
-      RST_ASYNC_G       : boolean          := false;
-      CLK_FREQ_G        : positive         := 156250000;
-      PACKET_LIFETIME_G : positive         := 156250000;
-      INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
-      TX_AXIS_CONFIG_G : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C);
+      AXIL_BASE_ADDR_G  : slv(31 downto 0)    := (others => '0');
+      TPD_G             : time                := 1 ns;
+      RST_POLARITY_G    : sl                  := '1';
+      RST_ASYNC_G       : boolean             := false;
+      CLK_FREQ_G        : positive            := 156250000;
+      PACKET_LIFETIME_G : positive            := 156250000;
+      INGRESS_LATENCY_G : slv(63 downto 0)    := (others => '0');
+      EGRESS_LATENCY_G  : slv(63 downto 0)    := (others => '0');
+      TX_AXIS_CONFIG_G  : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C);
    port (
       -- Shared endpoint clock domain and lifecycle controls.
       clk          : in  sl;
@@ -141,22 +140,76 @@ architecture rtl of PtpEndpoint is
    signal portLifecycle     : PtpPortLifecycleType;
    signal portTxMaster : AxiStreamMasterType;
    signal portTxSlave  : AxiStreamSlaveType;
-   signal computeMasters : PtpComputeMasterArray(0 to 3) := (others => PTP_COMPUTE_MASTER_INIT_C);
-   signal computeSlaves : PtpComputeSlaveArray(0 to 3);
+   -- Two narrowly shared arithmetic services. SECOND converts between a Q16
+   -- nanosecond scalar and seconds for manual PHC preparation (owner 0) and
+   -- the servo (owner 1). The variable divider serves the rate estimator
+   -- (owner 0) and the E2E calibration planes (owner 1). Everything else is
+   -- local to its client.
+   constant SECOND_PHC_C   : natural := 0;
+   constant SECOND_SERVO_C : natural := 1;
+
+   signal secondValid       : slv(1 downto 0);
+   signal secondReady       : slv(1 downto 0);
+   signal secondRound       : slv(1 downto 0);
+   signal secondOperand     : slv(255 downto 0);
+   signal secondCancel      : slv(1 downto 0);
+   signal secondResultValid : slv(1 downto 0);
+   signal secondResultReady : slv(1 downto 0);
+   signal secondQuotient    : slv(255 downto 0);
+   signal secondRemainder   : slv(255 downto 0);
+
+   signal divideValid       : slv(1 downto 0);
+   signal divideReady       : slv(1 downto 0);
+   signal divideOperandA    : Slv128Array(1 downto 0);
+   signal divideOperandB    : slv(159 downto 0);
+   signal divideCancel      : slv(1 downto 0);
+   signal divideResultValid : slv(1 downto 0);
+   signal divideResultReady : slv(1 downto 0);
+   signal divideResultValue : Slv128Array(1 downto 0);
+   signal divideResultError : slv(1 downto 0);
 
 begin
 
-   U_Compute : entity surf.PtpCompute
+   U_Second : entity surf.PtpSecondService
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         MEMORY_TYPE_G  => "block")
+         NUM_CLIENTS_G  => 2,
+         WIDTH_G        => 128)
       port map (
-         clk     => clk,
-         rst     => rst,
-         masters => computeMasters,
-         slaves  => computeSlaves);
+         clk             => clk,                -- [in]
+         rst             => rst,                -- [in]
+         cancel          => secondCancel,       -- [in]
+         inputValid      => secondValid,        -- [in]
+         inputReady      => secondReady,        -- [out]
+         roundNearest    => secondRound,        -- [in]
+         operand         => secondOperand,      -- [in]
+         resultValid     => secondResultValid,  -- [out]
+         resultReady     => secondResultReady,  -- [in]
+         resultValue     => secondQuotient,     -- [out]
+         resultRemainder => secondRemainder);   -- [out]
+
+   U_Divide : entity surf.PtpVariableDivide
+      generic map (
+         TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
+         NUM_CLIENTS_G   => 2,
+         DIVISOR_WIDTH_G => 80)
+      port map (
+         clk          => clk,                -- [in]
+         rst          => rst,                -- [in]
+         cancel       => divideCancel,       -- [in]
+         inputValid   => divideValid,        -- [in]
+         inputReady   => divideReady,        -- [out]
+         roundNearest => "11",               -- [in]
+         operandA     => divideOperandA,     -- [in]
+         operandB     => divideOperandB,     -- [in]
+         resultValid  => divideResultValid,  -- [out]
+         resultReady  => divideResultReady,  -- [in]
+         resultValue  => divideResultValue,  -- [out]
+         resultError  => divideResultError);  -- [out]
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
@@ -235,8 +288,15 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         computeMaster    => computeMasters(PTP_COMPUTE_PHC_C),
-         computeSlave     => computeSlaves(PTP_COMPUTE_PHC_C),
+         secondValid       => secondValid(SECOND_PHC_C),
+         secondReady       => secondReady(SECOND_PHC_C),
+         secondRound       => secondRound(SECOND_PHC_C),
+         secondOperand     => secondOperand(127 downto 0),
+         secondCancel      => secondCancel(SECOND_PHC_C),
+         secondResultValid => secondResultValid(SECOND_PHC_C),
+         secondResultReady => secondResultReady(SECOND_PHC_C),
+         secondQuotient    => secondQuotient(127 downto 0),
+         secondRemainder   => secondRemainder(127 downto 0),
          clk              => clk,                             -- [in]
          rst              => rst,                             -- [in]
          regRst           => regRst,                          -- [in]
@@ -270,8 +330,15 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
-         computeMasters    => computeMasters(0 to 1),
-         computeSlaves     => computeSlaves(0 to 1),
+         divideValid       => divideValid,
+         divideReady       => divideReady,
+         divideOperandA    => divideOperandA,
+         divideOperandB    => divideOperandB,
+         divideCancel      => divideCancel,
+         divideResultValid => divideResultValid,
+         divideResultReady => divideResultReady,
+         divideResultValue => divideResultValue,
+         divideResultError => divideResultError,
          clk               => clk,                              -- [in]
          rst               => rst,                              -- [in]
          regRst            => regRst,                           -- [in]
@@ -342,8 +409,15 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         computeMaster     => computeMasters(PTP_COMPUTE_SERVO_C),
-         computeSlave      => computeSlaves(PTP_COMPUTE_SERVO_C),
+         secondValid       => secondValid(SECOND_SERVO_C),
+         secondReady       => secondReady(SECOND_SERVO_C),
+         secondRound       => secondRound(SECOND_SERVO_C),
+         secondOperand     => secondOperand(255 downto 128),
+         secondCancel      => secondCancel(SECOND_SERVO_C),
+         secondResultValid => secondResultValid(SECOND_SERVO_C),
+         secondResultReady => secondResultReady(SECOND_SERVO_C),
+         secondQuotient    => secondQuotient(255 downto 128),
+         secondRemainder   => secondRemainder(255 downto 128),
          clk               => clk,                               -- [in]
          rst               => rst,                               -- [in]
          regRst            => regRst,                            -- [in]

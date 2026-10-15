@@ -154,7 +154,13 @@ begin
             v.inputReady := '1';
 
             if inputValid = '1' then
-               v := REG_INIT_C;
+               -- Clear only the transaction state. A whole-record reset here
+               -- would also clear the ready just advertised, so the accepting
+               -- edge would never be observable to the client.
+               v.count := 0;
+               v.quotient := (others => '0');
+               v.residual := (others => '0');
+               v.valid := '0';
                v.negative := operand(WIDTH_G-1);
                v.rounding := roundNearest;
                v.highValue := magnitude(WIDTH_G-1 downto SHIFT_C);
