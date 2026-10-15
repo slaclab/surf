@@ -424,27 +424,52 @@ bounded searches that a small local helper could clarify. Keep state updates,
 selection priority and cancellation in the owning process. A useful module
 boundary has an independent responsibility and a clear interface.
 
-### Apply reset before publishing outputs
+### Order reset and output publication
 
-Place the synchronous `v := REG_INIT_C` override near the bottom of `comb`,
-after normal next-state calculations and **before `rin <= v` and output
-assignments**. This gives reset priority and makes outputs driven from `v`
-observe the resolved reset value. Avoid subsequent updates to `v` that undo
-the reset unless explicitly required by the interface.
+Three things happen at the bottom of `comb`, in this order:
 
-Ordering matters: `inputReady <= v.inputReady;` evaluates its right-hand side
-when that statement executes. A later `v := REG_INIT_C` does not change the
-value already scheduled for `inputReady`. Publishing before reset can therefore
-advertise acceptance or assert a control while the corresponding next state is
-being reset. The same applies to a local variable copied from `v` before
-reset; resetting `v` does not reset that copy.
+1. **Publish combinational outputs sourced from `v`**, under the comment
+   `-- Combinatorial outputs before the reset`.
+2. **Apply the synchronous `v := REG_INIT_C` override**, after normal
+   next-state calculations.
+3. **Transfer next state with `rin <= v`**, then publish registered outputs
+   sourced from `r`.
 
-Outputs driven directly from `r` still reflect the current registers; moving
-their publication below the reset override does not make synchronous reset
-asynchronous. Keep asynchronous reset in `seq` and preserve the specialized
-templates below. If an existing interface intentionally publishes a value
-before reset, document why and verify its reset behavior at both ends. Treat
-changing that ordering as a behavior change, not a formatting edit.
+The reset override always precedes `rin <= v`, which gives reset priority over
+the registered state. Avoid subsequent updates to `v` that undo the reset
+unless explicitly required by the interface.
+
+Combinational outputs are published *above* the reset override. This is the
+established SURF idiom and the convention for new code: the comment in step 1
+appears verbatim across the AXI Stream, Ethernet, packetizer and line-code
+blocks, and [AxiStreamShift.vhd](../axi/axi-stream/rtl/AxiStreamShift.vhd)
+shows the whole sequence in a few lines.
+
+The reason is that a combinational output of this kind is a claim about the
+module's own capacity, and reset is not part of that claim. Keeping the reset
+out of the published expression keeps `rst` out of the ready cone, so a reset
+does not fan out into every upstream producer's combinational ready path.
+Both ends of the interface share a reset domain and must already exclude
+transfers while reset is asserted, so forcing ready low adds no protection a
+correct producer needs. With `RST_ASYNC_G = true` the behavioral reset lives in
+`seq` and cannot force a combinational output low at all, so a design that
+depended on step 2 reaching its ready would not behave consistently across the
+two reset modes.
+
+Ordering still matters, and in the same way: `inputReady <= v.inputReady;`
+evaluates its right-hand side when that statement executes, so a later
+`v := REG_INIT_C` does not change the value already scheduled. The consequence
+is simply the intended one here. **A functional override that must affect a
+published output has to be applied above that output's assignment.** Owner-local
+cancellation is the usual case: cancel suppresses admission, so it belongs with
+the next-state logic, before publication, not beside the reset. The same applies
+to a local variable copied from `v`; later changes to `v` do not reach the copy.
+
+Outputs driven directly from `r` reflect the current registers and are published
+after `rin <= v`; their position relative to the reset override does not matter.
+Keep asynchronous reset in `seq` and preserve the specialized templates below.
+Treat moving a combinational output across the reset override as a behavior
+change, not a formatting edit, and verify its reset behavior at both ends.
 
 ### Where the template does not apply
 
@@ -587,9 +612,9 @@ register.
 For justified combinational control records, a fully assigned local variable can
 collect the decision before publication. For AXI Stream ready, use the `v` field
 pattern in [Combinational ready outputs](#combinational-ready-outputs).
-Keep output assignment separate from computing that decision, and apply the
-intended reset override to the value being published. Follow the
-[reset ordering](#apply-reset-before-publishing-outputs) above. Changing an
+Keep output assignment separate from computing that decision, and apply any
+functional override that must reach the output above its publication. Follow the
+[reset ordering](#order-reset-and-output-publication) above. Changing an
 output from `r` to `v`, or the reverse, changes its timing.
 
 ### Register related controls together
@@ -1007,17 +1032,18 @@ literal is not useful if the resulting expression hides the layout.
 ### Prefer synchronous reset for behavioral state
 
 **Synchronous reset is the default preference. Encode it in `comb`**, using
-`v := REG_INIT_C` after the normal next-state calculations and before `rin`
-and output publication, as described in
-[reset ordering](#apply-reset-before-publishing-outputs). For a synchronous-only
+`v := REG_INIT_C` after the normal next-state calculations and before `rin`,
+with combinational outputs published above it, as described in
+[reset ordering](#order-reset-and-output-publication). For a synchronous-only
 module, `seq` needs only the clock edge and `r <= rin after TPD_G`; do not move
 the behavioral reset branch into `seq`.
 
 Synchronous reset takes effect in the registers on an active clock edge. The
 reset must meet the receiving clock's timing requirements and remain asserted
 through an active edge. A stopped clock cannot reset those registers. Outputs
-intentionally published from `v` can respond to the reset before that edge;
-this does not make the state registers asynchronously resettable.
+published from `v` above the reset override do not respond to it at all, which
+is intended; where a functional override such as cancellation must reach such
+an output, apply that override above the publication.
 
 ### Use asynchronous reset when the implementation requires it
 
@@ -1327,6 +1353,38 @@ the readiness decision in the output assignment section. In particular,
 accepting an input and initializing its transaction state must not accidentally
 clear that same edge's ready value.
 
+That last hazard is easy to introduce and does not show up in analysis, so it
+is worth stating concretely. A module that clears transaction state on the
+accepting edge with a whole-record write undoes the ready it just advertised:
+
+```vhdl
+when IDLE_S =>
+   v.inputReady := '1';
+   if inputValid = '1' then
+      v := REG_INIT_C;              -- also clears v.inputReady
+      v.state := RUN_S;
+   end if;
+```
+
+Because ready is published from `v`, no client can ever observe valid and ready
+together, and the interface deadlocks rather than producing a wrong result.
+Prefer clearing only the fields the new transaction owns:
+
+```vhdl
+when IDLE_S =>
+   v.inputReady := '1';
+   if inputValid = '1' then
+      v.count := 0;                 -- clear the transaction, not the record
+      v.accumulator := (others => '0');
+      v.valid := '0';
+      v.state := RUN_S;
+   end if;
+```
+
+Selective clearing cannot regress when a field is later added to `RegType`, so
+it is preferred in new code. Where a whole-record write is genuinely wanted,
+re-assert ready after it and say why in a comment; `PtpMath.vhd` uses that form.
+
 ### Example: one output slot with combinational input ready
 
 This `comb` excerpt assumes `sAxisSlave : AxiStreamSlaveType` and
@@ -1355,13 +1413,15 @@ begin
       end if;
    end if;
 
+   -- Combinatorial outputs before the reset
+   sAxisSlave <= v.sAxisSlave;
+
    if RST_ASYNC_G = false and axisRst = RST_POLARITY_G then
       v := REG_INIT_C;
    end if;
    rin <= v;
 
-   -- Publish after reset so combinational ready observes the override.
-   sAxisSlave  <= v.sAxisSlave;
+   -- Registered outputs
    mAxisMaster <= r.mAxisMaster;
 end process comb;
 ```
@@ -1376,15 +1436,17 @@ and excessive ready-path depth.
 
 ### Reset, framing and integration
 
-The example publishes ready after the synchronous whole-record reset, so ready
-is low while synchronous reset is asserted. Some existing SURF modules publish
-ready before reset and rely on the shared reset excluding transfers. Preserve
-such behavior only as an intentional, documented interface choice; see
-[reset ordering](#apply-reset-before-publishing-outputs). Preserve reset polarity,
-and clear registered valid and partial-frame state according to the module's
-contract. With `RST_ASYNC_G = true`, the example resets registered state in
-`seq` and does not force combinational ready low; both ends must exclude
-transfers during reset. Registering or delaying ready is not a reset fix.
+The example publishes ready above the synchronous whole-record reset, so ready
+reflects the module's capacity and relies on the shared reset domain excluding
+transfers; see [reset ordering](#order-reset-and-output-publication). This is
+consistent across both reset modes: with `RST_ASYNC_G = true` the behavioral
+reset lives in `seq` and cannot force a combinational output low, so both ends
+must exclude transfers during reset in either case. A few modules instead
+publish ready below the reset override and so deassert it under synchronous
+reset; treat that as a documented interface choice where it already exists
+rather than a model for new code. Preserve reset polarity, and clear registered
+valid and partial-frame state according to the module's contract. Registering
+or delaying ready is not a reset fix.
 
 Move data and sidebands together. Preserve byte order, `tKeep`, enabled `tStrb`,
 `tLast`, `tDest`, `tId` and `tUser` through stalls, arbitration and width changes.
@@ -1639,8 +1701,10 @@ on lint or test results. These questions catch common mistakes:
   accounted for across the supported implementations?
 - **Reset and CDC:** Are startup values, reset options and `TPD_G` preserved?
   Is synchronous reset the default, with any asynchronous requirement explained?
-  Does the synchronous reset override precede `rin` and output publication,
-  including reset handling for outputs derived from `v` or local variables?
+  Does the synchronous reset override precede `rin`, with combinational outputs
+  published above it and registered outputs below? Does any functional override
+  that must reach a combinational output, such as cancellation, sit above that
+  output's assignment? Does accepting an input leave that edge's ready intact?
   Are any intentional ordering exceptions justified by the interface?
   Is asynchronous reset release synchronized to each receiving domain, with
   stopped-clock behavior and reset distribution latency accounted for?
