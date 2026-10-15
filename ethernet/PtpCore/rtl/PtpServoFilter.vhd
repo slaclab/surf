@@ -205,21 +205,30 @@ begin
       end case;
 
       -- Cancellation clears validity and replacement ownership but retains the
-      -- prior median payload for diagnostic reads.
+      -- prior median payload for diagnostic reads. The payload is restored
+      -- explicitly because cancellation can coincide with the publication edge
+      -- of an in-flight sort, which would otherwise commit a median whose
+      -- population has just been invalidated.
       if cancel = '1' then
          v.state := IDLE_S;
          v.population := 0;
          v.writePtr := 0;
          v.medianStep := 0;
          v.filterValid := '0';
+         v.median := r.median;
          v.count := (others => '0');
          v.update := '0';
          v.rejected := '0';
          v.inputReady := '0';
       end if;
 
-      -- Combinatorial outputs before the reset
+      -- Combinatorial outputs before the reset. Rejection accompanies the
+      -- accepting edge that consumed the sample, like the ready beside it, so
+      -- the owner's counter advances one register after the event rather than
+      -- three. A registered strobe here would put the filter's register, the
+      -- owner's counter and the owner's status output in series.
       inputReady <= v.inputReady;
+      filterReject <= v.rejected;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -232,7 +241,6 @@ begin
       filterCount <= r.count;
       filterTicks <= r.ticks;
       filterUpdate <= r.update;
-      filterReject <= r.rejected;
    end process comb;
 
    seq : process (clk, rst) is

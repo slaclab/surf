@@ -242,6 +242,7 @@ architecture rtl of PtpServo is
       sampleTicks   : slv(63 downto 0);
       sampleGen     : slv(31 downto 0);
       rejectedCount : slv(31 downto 0);
+      filterStale   : sl;
       status        : PtpServoStatusType;
       generation    : slv(31 downto 0);
       abortSeen     : sl;
@@ -281,6 +282,7 @@ architecture rtl of PtpServo is
       sampleTicks       => (others => '0'),
       sampleGen         => (others => '0'),
       rejectedCount     => (others => '0'),
+      filterStale       => '1',
       status            => PTP_SERVO_STATUS_INIT_C,
       generation        => (others => '0'),
       abortSeen         => '0',
@@ -443,6 +445,7 @@ begin
       variable configIndexValue : natural range 0 to 255;
       variable snapshotIndex    : integer range -1 to 9;
       variable cancelNow        : boolean;
+      variable publishedCount   : slv(2 downto 0);
    begin
       v := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
@@ -512,6 +515,8 @@ begin
 
       if filterUpdate = '1' then
          v.pendingFilter := '1';
+         -- A fresh median retires the cancellation that invalidated the last.
+         v.filterStale := '0';
       end if;
 
       if piRateUpd = '1' then
@@ -567,6 +572,7 @@ begin
       -- Cancellation discards queued publication work; a commit already
       -- issued belongs to the bank.
       if cancelNow then
+         v.filterStale := '1';
          v.measurementSlave.ready := '0';
          v.delayValid := '0';
          v.forwardValid := '0';
@@ -757,23 +763,32 @@ begin
          v.sequenceId := snapshotControl.sequenceId;
       end if;
 
-      -- The published status joins each owner's fields: the PI loop owns
-      -- quality, offset and rate; the filter owns the delay median and its
-      -- population; this core owns the combined rejection counter. The record
-      -- is a public interface, so it is assembled here rather than split.
+      -- Retained copy for the AXI read below, which needs a registered source.
       v.status := piStatus;
       v.status.filteredDelay := filteredDelay;
       v.status.filterCount := filterCount;
       v.status.rejectedCount := v.rejectedCount;
 
-      -- Combinatorial outputs before the reset. These are resolved controls
-      -- published without another decision stage. Measurement ready is the
+      -- Combinatorial outputs before the reset. Measurement ready is the
       -- reverse capacity exception: holdover work and current cancellation
       -- share its input slot, and a delayed ready would require an extra
-      -- reserved sample slot.
-      filterInputValid <= v.delayValid;
-      piInputValid <= v.forwardValid;
+      -- reserved sample slot. The rejection counter is published from `v` so a
+      -- rejection reported on an accepting edge becomes visible one register
+      -- later, as it was before the filter was split into its own entity.
       measurementSlave <= v.measurementSlave;
+      status.rejectedCount <= v.rejectedCount;
+
+      publishedCount := filterCount;
+      if v.filterStale = '1' or cancelNow then
+         publishedCount := (others => '0');
+      end if;
+
+      -- Cancellation invalidates the filter population. The filter clears its
+      -- own count, but only one edge after it observes the registered cancel,
+      -- so the invalidation is retained here and retired when the filter next
+      -- publishes. The payload stays readable for diagnostics; the count is
+      -- what reports its validity.
+      status.filterCount <= publishedCount;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -781,10 +796,30 @@ begin
 
       rin <= v;
 
+      -- Child valid is registered with the payload it describes. Publishing it
+      -- from `v` would present the sample to the child on the same edge the
+      -- producer handshake captures it, while the holding flag that retires it
+      -- is only cleared from `r` once the child reports ready. The child would
+      -- then accept once immediately and again when it next idles, counting
+      -- one measurement twice.
+      filterInputValid <= r.delayValid;
+      piInputValid <= r.forwardValid;
+
       axiReadSlave <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
       configValid <= r.configValid;
-      status <= r.status;
+
+      -- The published status joins each owner's fields: the PI loop owns
+      -- quality, offset and rate; the filter owns the delay median and its
+      -- population; this core owns the combined rejection counter. Each child
+      -- field is forwarded from the owner that already registered it rather
+      -- than re-registered here. A second stage would delay the filter's
+      -- population by one clock past the ready that announces it, so a
+      -- consumer polling ready would read the previous population.
+      status.state <= piStatus.state;
+      status.offsetValue <= piStatus.offsetValue;
+      status.ratePpb <= piStatus.ratePpb;
+      status.filteredDelay <= filteredDelay;
    end process comb;
 
    seq : process (clk, rst) is

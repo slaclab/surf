@@ -634,7 +634,9 @@ begin
             -- Full signed128 overflow was rejected before this state. The
             -- rounded shift then fits signed67; retain the correction for the
             -- frequency sum and its direction for anti-windup.
-            correction := -ptpRoundShiftExact(r.mathValue, INTEGRAL_SHIFT_C);
+            -- The helper returns value'length-bits+1 bits, so widen before
+            -- assigning into the signed128 working variable.
+            correction := -resize(ptpRoundShiftExact(r.mathValue, INTEGRAL_SHIFT_C), 128);
             assert resize(resize(correction, 67), 128) = correction
                report "PtpServoPi integral correction exceeds signed67"
                severity failure;
