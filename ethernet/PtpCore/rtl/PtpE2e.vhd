@@ -251,7 +251,7 @@ begin
          resultReady  => '1',               -- [in]
          resultValue  => epochResultValue);  -- [out]
 
-   U_Product : entity surf.PtpLimbProduct
+   U_Product : entity surf.PtpTreeProduct
       generic map (
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,

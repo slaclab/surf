@@ -139,7 +139,8 @@ port clocks do not share a timing loop. The physical taps belong to
 `EthMacPtpEndpoint`, outside `PtpEndpoint`.
 
 Epoch normalization, checked products, shifts, additions and clamps operate on
-named local state. The servo has local BILLION/NOMINAL converters and separate
+named local state. E2E uses the registered `PtpTreeProduct`; PI reuses the serial
+`PtpLimbProduct`. The servo has local BILLION/NOMINAL converters and separate
 filter/PI children. Protocol tables, configuration and snapshot word banks keep
 their existing ownership; removing arithmetic workspaces does not remove these
 stores. Waiting for PHC acknowledgement holds no arithmetic service.
