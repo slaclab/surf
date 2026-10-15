@@ -67,28 +67,26 @@ exact converters and routed primitive/sharing measurements in
 `firmware/benchmarks/ptp-constant-divide/`. The
 [prototype sequence](acceptance.md#arithmetic-prototype-sequence) selects local
 DSP products, serial constant converters, shared SECOND and a positive-divisor
-restoring divider as its starting boundary. The consuming project now has matched legacy/candidate servo harnesses,
-shared PHC/servo SECOND ownership, representative E2E/rate clients and a connected
-arithmetic-chain fixture using real PHC ticks and ACKs. Initial connected timing
-exposed a long rounding/clamp/anti-windup path; the revised servo stages those
-equations. Numerical, sharing and actual-age tests pass; final matched physical
-comparisons remain distinct from endpoint qualification. The maintainer has
-asked to close architectural exploration and move toward integration: retain
-local state, specialized arithmetic and the two narrow shared services. Implement
-all clients and remove the old compute infrastructure in one pass, without
-intermediate approval or commit checkpoints; validate the complete endpoint. No production RTL
-or service floor changed. Keep70,347,776 ticks until a complete endpoint proof
-and contention/expiry tests justify a separate change.
-LUT savings alone do not settle the architecture choice; reviewability,
-ownership/cancellation complexity, service latency and timing also matter.
-Final endpoint/MAC integration and a matched routed build remain acceptance
-requirements for the resulting source.
-The 200,000-ppb actuator cap still needs physical/control rationale; the shared
-service minimum has a documented derivation but needs deployment qualification.
+restoring divider as its starting boundary. Production clients now use local
+algorithm state, specialized arithmetic and
+shared SECOND/variable-divider services. The obsolete compute engine, workspace
+package and legacy-only fixtures were removed at `63f6cfade`; no legacy folder
+is retained. The October 15 follow-up fixes constant rounding for odd divisors,
+rate-estimator completion/chronology/anchor handling and correction-history
+publication, and uses the selected registered E2E product tree. Focused numerical,
+service-contention, PHC and protocol-memory tests pass. Simulation wrappers are
+loaded explicitly by their test fixtures, outside the production manifest.
 
-Further area work is optional and measurement-driven. The PHC compute owner's
-oversized loaded-word bookkeeping remains a candidate in the
-[latest area record](history/verification.md#capacity-and-arbiter-follow-up).
+Complete endpoint/MAC validation and a matched routed build of the repaired
+source remain open. Keep **70,347,776 ticks** until the complete endpoint service
+proof and contention/expiry tests justify a separate change. Reviewability,
+ownership/cancellation complexity, service latency and timing remain acceptance
+criteria alongside area. The 200,000-ppb actuator cap still needs physical/control
+rationale and deployment qualification.
+
+Further area work is optional and measurement-driven. Historical compute-owner
+bookkeeping observations in the [area record](history/verification.md#capacity-and-arbiter-follow-up)
+refer to the retired engine.
 Halving LUT usage was motivation, not an acceptance threshold. Shared MAC/checksum
 changes, feedback estimation, floating-point servo arithmetic, additional protocol
 modes and application/physical timing are deferred rather than prerequisites.
