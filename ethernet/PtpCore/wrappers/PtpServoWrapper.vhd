@@ -107,6 +107,15 @@ architecture rtl of PtpServoWrapper is
    signal status       : PtpPhcStatusType    := PTP_PHC_STATUS_INIT_C;
    signal measurement  : PtpMeasurementType  := PTP_MEASUREMENT_INIT_C;
    signal command      : PtpPhcCommandType;
+   -- Record-typed interfaces are assembled below rather than associated
+   -- element by element, which older GHDL releases reject in a port map.
+   signal configControl     : PtpConfigControlType     := PTP_CONFIG_CONTROL_INIT_C;
+   signal snapshotControl   : PtpSnapshotControlType   := PTP_SNAPSHOT_CONTROL_INIT_C;
+   signal measurementMaster : PtpMeasurementMasterType := PTP_MEASUREMENT_MASTER_INIT_C;
+   signal measurementSlave  : PtpMeasurementSlaveType;
+   signal commandMaster     : PtpPhcCommandMasterType;
+   signal commandSlave      : PtpPhcCommandSlaveType   := PTP_PHC_COMMAND_SLAVE_INIT_C;
+   signal servoStatus       : PtpServoStatusType;
    -- Private shared-service instances keep each fixture's arithmetic
    -- contract identical to the endpoint's without its cross-client arbiter.
    signal secondValid       : slv(0 downto 0);
@@ -154,6 +163,30 @@ begin
    measurement.ratioValid          <= '1';
    commandKind                     <= command.kind;
    commandRate                     <= command.rate;
+
+   configControl.prepare      <= prepareConfig;
+   configControl.apply        <= applyConfig;
+   configControl.busy         <= '0';
+   snapshotControl.publish    <= snapshotPublish;
+   snapshotControl.capture    <= snapshotCapture;
+   snapshotControl.sequenceId <= snapshotSequence;
+   measurementMaster.data     <= measurement;
+   measurementMaster.valid    <= inputValid;
+   measurementMaster.abort    <= cancel;
+   commandSlave.ready         <= commandReady;
+   commandSlave.ack           <= commandAck;
+   commandSlave.error         <= commandError;
+
+   inputReady    <= measurementSlave.ready;
+   command       <= commandMaster.data;
+   commandValid  <= commandMaster.valid;
+   cancelCommand <= commandMaster.cancel;
+   servoState    <= servoStatus.state;
+   filteredDelay <= servoStatus.filteredDelay;
+   offsetValue   <= servoStatus.offsetValue;
+   ratePpb       <= servoStatus.ratePpb;
+   filterCount   <= servoStatus.filterCount;
+   rejectedCount <= servoStatus.rejectedCount;
 
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
@@ -211,35 +244,19 @@ begin
          axiReadSlave   => axiReadSlave,    -- [out]
          axiWriteMaster => axiWriteMaster,  -- [in]
          axiWriteSlave  => axiWriteSlave,   -- [out]
-         configControl.prepare      => prepareConfig,   -- [in]
-         configControl.apply        => applyConfig,     -- [in]
-         configControl.busy         => '0',             -- [in]
-         configPrepared   => configPrepared,
-         configValid      => configValid,     -- [out]
-         snapshotPrepared => snapshotPrepared,
-         snapshotControl.publish => snapshotPublish,
-         snapshotControl.capture    => snapshotCapture, -- [in]
-         snapshotControl.sequenceId => snapshotSequence, -- [in]
-         servoEnable  => '1',             -- [in]
-         sharedConfig => sharedConfig,    -- [in]
-         phcStatus    => status,          -- [in]
-         measurementMaster.data     => measurement,     -- [in]
-         measurementMaster.valid    => inputValid,      -- [in]
-         measurementMaster.abort    => cancel,          -- [in]
-         measurementSlave.ready     => inputReady,      -- [out]
-         commandMaster.data         => command,         -- [out]
-         commandMaster.valid        => commandValid,    -- [out]
-         commandMaster.cancel       => cancelCommand,   -- [out]
-         commandMaster.stale        => open,            -- [out]
-         commandSlave.ready         => commandReady,    -- [in]
-         commandSlave.ack           => commandAck,      -- [in]
-         commandSlave.error         => commandError,    -- [in]
-         expireTime => expireTime,      -- [out]
-         status.state               => servoState,      -- [out]
-         status.filteredDelay       => filteredDelay,   -- [out]
-         status.offsetValue         => offsetValue,     -- [out]
-         status.ratePpb             => ratePpb,         -- [out]
-         status.filterCount         => filterCount,     -- [out]
-         status.rejectedCount       => rejectedCount);  -- [out]
+         configControl      => configControl,      -- [in]
+         configPrepared     => configPrepared,     -- [out]
+         configValid        => configValid,        -- [out]
+         snapshotPrepared   => snapshotPrepared,   -- [out]
+         snapshotControl    => snapshotControl,    -- [in]
+         servoEnable        => '1',                -- [in]
+         sharedConfig       => sharedConfig,       -- [in]
+         phcStatus          => status,             -- [in]
+         measurementMaster  => measurementMaster,  -- [in]
+         measurementSlave   => measurementSlave,   -- [out]
+         commandMaster      => commandMaster,      -- [out]
+         commandSlave       => commandSlave,       -- [in]
+         expireTime         => expireTime,         -- [out]
+         status             => servoStatus);       -- [out]
 
 end architecture rtl;

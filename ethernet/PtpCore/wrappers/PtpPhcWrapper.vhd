@@ -123,6 +123,12 @@ architecture rtl of PtpPhcWrapper is
    signal snapshot     : PtpTimeType;
    signal abortCapture : sl;
    signal resetHigh    : sl;
+   -- Record-typed interfaces are assembled below rather than associated
+   -- element by element, which older GHDL releases reject in a port map.
+   signal configControl   : PtpConfigControlType   := PTP_CONFIG_CONTROL_INIT_C;
+   signal snapshotControl : PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
+   signal commandMaster   : PtpPhcCommandMasterType;
+   signal commandSlave    : PtpPhcCommandSlaveType;
    -- The fixture supplies a private SECOND converter so manual phase
    -- preparation is exercised without the endpoint's sharing arbiter.
    signal secondValid       : slv(0 downto 0);
@@ -184,6 +190,21 @@ begin
    readNanoseconds <= snapshot.nanoseconds;
    readFraction    <= snapshot.fraction;
 
+   configControl.prepare      <= prepareConfig;
+   configControl.apply        <= applyConfig;
+   configControl.busy         <= '0';
+   snapshotControl.capture    <= snapshotCapture;
+   snapshotControl.publish    <= snapshotPublish;
+   snapshotControl.sequenceId <= snapshotSequence;
+   commandMaster.data         <= command;
+   commandMaster.valid        <= commandValid;
+   commandMaster.cancel       <= commandCancel;
+   commandMaster.stale        <= commandStale;
+
+   commandReady <= commandSlave.ready;
+   commandAck   <= commandSlave.ack;
+   commandError <= commandSlave.error;
+
    U_Axi : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
          ADDR_WIDTH    => 32,
@@ -241,23 +262,14 @@ begin
          axiReadSlave   => axiReadSlave,    -- [out]
          axiWriteMaster => axiWriteMaster,  -- [in]
          axiWriteSlave  => axiWriteSlave,   -- [out]
-         configControl.prepare => prepareConfig,   -- [in]
-         configControl.apply   => applyConfig,     -- [in]
-         configControl.busy    => '0',             -- [in]
-         configValid => configValid,     -- [out]
-         snapshotControl.capture    => snapshotCapture,
-         snapshotControl.publish    => snapshotPublish,
-         snapshotControl.sequenceId => snapshotSequence,
-         snapshotPrepared           => snapshotPrepared,
-         servoEnable => '1',             -- [in]
-         clearValid  => clearValid,      -- [in]
-         commandMaster.data    => command,         -- [in]
-         commandMaster.valid   => commandValid,    -- [in]
-         commandMaster.cancel  => commandCancel,   -- [in]
-         commandMaster.stale   => commandStale,    -- [in]
-         commandSlave.ready    => commandReady,    -- [out]
-         commandSlave.ack      => commandAck,      -- [out]
-         commandSlave.error    => commandError,    -- [out]
+         configControl    => configControl,    -- [in]
+         configValid      => configValid,      -- [out]
+         snapshotControl  => snapshotControl,  -- [in]
+         snapshotPrepared => snapshotPrepared, -- [out]
+         servoEnable      => '1',              -- [in]
+         clearValid       => clearValid,       -- [in]
+         commandMaster    => commandMaster,    -- [in]
+         commandSlave     => commandSlave,     -- [out]
          phcTime      => timeValue,       -- [out]
          status       => status,          -- [out]
          pps          => pps,             -- [out]

@@ -95,6 +95,9 @@ architecture rtl of PtpRxFrontendWrapper is
    signal capture   : PtpRxCaptureType;
    signal rxMessage : PtpRxMessageType;
    signal flush     : sl;
+   -- Record-typed interfaces are assembled below rather than associated
+   -- element by element, which older GHDL releases reject in a port map.
+   signal counters  : PtpRxCountersType;
 
 begin
 
@@ -180,6 +183,9 @@ begin
    messageData      <= toSlv(rxMessage);
    messageIncrement <= rxMessage.capture.increment;
    messageError     <= rxMessage.capture.error;
+   acceptedCount    <= counters.accepted;
+   droppedCount     <= counters.dropped;
+   overflowCount    <= counters.overflow;
    GEN_RX : if not TX_OBSERVE_G generate
 
       U_DUT : entity surf.PtpRxFrontend
@@ -203,9 +209,7 @@ begin
             messageReady => messageReady,    -- [in]
             rxAbort      => rxAbort,         -- [out]
             rxEpoch      => rxEpoch,         -- [out]
-            counters.accepted => acceptedCount,   -- [out]
-            counters.dropped  => droppedCount,    -- [out]
-            counters.overflow => overflowCount);  -- [out]
+            counters     => counters);       -- [out]
 
    end generate;
    GEN_TX : if TX_OBSERVE_G generate
@@ -230,9 +234,7 @@ begin
             messageReady => messageReady,    -- [in]
             rxAbort      => rxAbort,         -- [out]
             rxEpoch      => rxEpoch,         -- [out]
-            counters.accepted => acceptedCount,   -- [out]
-            counters.dropped  => droppedCount,    -- [out]
-            counters.overflow => overflowCount);  -- [out]
+            counters     => counters);       -- [out]
 
    end generate;
 
