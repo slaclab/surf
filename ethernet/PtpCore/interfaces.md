@@ -139,10 +139,11 @@ port status, time/capture and protocol payload records remain in use.
 - RX messages and TX completion messages already have payload records. Their
   queue handshakes and abort signals remain explicit: RX queue
   invalidation and physical TX observation have distinct lifetime rules.
-- Shared arithmetic uses the private directional records in `PtpComputePkg`.
-  Ledger payload ports remain point-to-point. Result-valid outputs are registered;
-  consumers exclude cancel/restart and reset edges from transfers. Word storage
-  ownership outlives an individual arithmetic grant or result acknowledgement.
+- Shared arithmetic uses operand/result handshakes on `PtpSecondService` and
+  `PtpVariableDivide`. Each service owns two clients at endpoint scope, with
+  round-robin admission, registered independently held responses and owner-local
+  cancellation. Consumers exclude cancel/reset edges from transfers. Algorithm
+  state stays local to the client; there is no shared addressed workspace.
 - The asynchronous PHC reader keeps its explicit request/response pins and CDC
   boundary. Introducing a record would not itself make that crossing safe.
 
@@ -243,8 +244,7 @@ distance retains all 68 signed bits before optional word-wise negation. Limit
 comparisons are inclusive, while best/oldest comparisons are strict to retain
 the first physical slot on ties. Invalid rows skip the ALU. Cancellation clears
 both clients and ALU ownership on the same edge, with final priority over DONE;
-stale scratch cannot publish after a restart. There are no additional
-`PtpCompute` jobs. See the [implementation record](../../docs/plans/ethernet-ptp/history/decisions.md#share-computation-and-word-storage-preserve-real-time-capture).
+stale scratch cannot publish after a restart. These scans do not use the arithmetic services. See the [implementation record](../../docs/plans/ethernet-ptp/history/decisions.md#share-computation-and-word-storage-preserve-real-time-capture).
 
 ## Configuration and snapshots
 
@@ -291,16 +291,21 @@ not change initialization, copy, snapshot, cancellation or ownership timing.
 
 ## Shared service bound
 
-Each endpoint owns one `PtpCompute`. Rate, E2E, servo and manual PHC preparation
-use separate workspaces of 64, 64, 64 and 16 little-endian 32-bit words. The 208
-persistent words plus 26 scratch words fit one 256x32 RAM. Descriptors name
-128-bit slots; results chain in RAM across acknowledgements. Word and descriptor
-arbitration each use round-robin selection, alternating when both are eligible.
-A held result/read response excludes only its owner. Waiting for PHC ACK holds
-no arithmetic slot. Full cancellation invalidates the owner's workspace;
-`retain` preserves completed slots but invalidates admitted destinations even
-when cancellation coincides with FINISH. The servo commits its frequency bank
-pointer only on successful PHC ACK.
+Each endpoint owns one `PtpSecondService` for the servo/manual PHC clients and
+one `PtpVariableDivide` for the rate/E2E clients. E2E sequences its two
+calibration planes through the same owner. Both services arbitrate round-robin,
+hold each owner's response independently, and cancel only the selected owner.
+Cancellation wins over completion. Clients retain their algorithm state locally;
+waiting for PHC ACK holds no arithmetic service. The servo commits frequency
+only after a successful PHC ACK.
+
+The **70,347,776-raw-tick floor remains unchanged** during this migration.
+The derivation below records the retired word-serial implementation's service
+costs; it is not a latency claim for the replacement services. A complete new
+bound including queues, history, filtering, configuration and commands remains
+an acceptance item before reducing the floor.
+
+### Retained floor derivation (word-serial implementation)
 
 The following conservative bounds count clocks, not measured simulator latency:
 

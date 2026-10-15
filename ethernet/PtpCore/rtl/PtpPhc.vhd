@@ -35,7 +35,7 @@
 --
 -- Its local AXI-Lite bank owns monotonic-policy shadows, manual SET/PHASE/RATE
 -- operands, command completion and coherent time/rate/tick snapshots. PHASE
--- uses the endpoint-owned word processor to normalize signed Q16 nanoseconds
+-- uses the endpoint-owned SECOND service to normalize signed Q16 nanoseconds
 -- into whole seconds and a signed Q32 remainder. Signed128 quotient/remainder
 -- semantics and quotient-fit checks remain exact. Submission freezes operand
 -- bank ownership, so later register writes cannot alter a command

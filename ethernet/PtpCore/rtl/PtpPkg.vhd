@@ -36,9 +36,10 @@ package PtpPkg is
    -- Seconds-to-nanoseconds conversion and exclusive upper bound on the
    -- nanoseconds field of a normalized PTP timestamp.
    constant PTP_NANOSECONDS_PER_SECOND_C : positive := 1000000000;
-   -- Conservative finite-burst service envelope for one shared word processor.
+   -- Retained finite-burst floor from the retired shared word processor.
    -- Four RX records, four completed ledger entries and one in-flight chain;
-   -- see docs/plans/ethernet-ptp/rtl-readability.md#shared-service-bound.
+   -- see ethernet/PtpCore/interfaces.md#shared-service-bound. Re-derive the
+   -- complete endpoint bound before reducing this floor for the new services.
    constant PTP_MIN_ASSOCIATION_TICKS_C : positive := (4*608+4*192+608)*18464+9*4096;
    -- Dimensionless parts-per-billion scale, independent of time units.
    constant PTP_PPB_SCALE_C : positive := 1000000000;

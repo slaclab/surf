@@ -12,7 +12,7 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 source $::env(RUCKUS_PROC_TCL)
-# Includes local register owners and PtpComputePkg/PtpCompute word services.
+# Includes local register owners, fixed-function arithmetic and shared services.
 # The two-process bodies use VHDL-2008 `process(all)`, so Vivado must not
 # analyze these as VHDL-93; GHDL regressions already run with --std=08.
 loadSource -lib surf -dir "$::DIR_PATH/rtl" -fileType "VHDL 2008"

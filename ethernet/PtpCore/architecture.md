@@ -5,8 +5,8 @@ TimeReceiver with per-message one-/two-step Sync reception. Software configures
 and observes it; FPGA logic captures timestamps, associates exchanges, estimates
 rate and delay, runs the servo and commits PHC commands.
 
-This guide describes the source architecture reviewed at SURF `68e5dbfaa`
-(October 13, 2026). It is the maintained design record, not a hardware accuracy
+This guide includes the October 15 arithmetic conversion and retains the
+explicitly dated October 14 compute-boundary review as design history. It is the maintained design record, not a hardware accuracy
 claim. [Interface contracts](interfaces.md) own exact clock-edge, handshake,
 RAM and service bounds; the [register map](register-map.md) owns software
 transactions. [Validation and outstanding acceptance](../../docs/plans/ethernet-ptp/README.md)
@@ -21,7 +21,7 @@ project; [physical-clock integration](physical-clock.md) remains future work.
 | Passive, independently validated wire observation | Keeps each capture with its own bytes before any lossy queue and preserves the existing MAC. It costs duplicate framing/FCS logic; header-key joins after independent loss were rejected. |
 | Fixed source and L2 E2E scope | Bounds policy and association state. It does not imply BMCA, VLAN/UDP, Pdelay, one-step transmit or full profile conformance. |
 | Raw-tick rate estimation and capture-specific calibration | PHC steering must not feed back into the oscillator estimate or change the units of an earlier capture. E2E needs a qualified rate even before valid path delay exists. |
-| One word processor and narrow RAM stores per endpoint | Removes replicated wide arithmetic, muxes and working copies while retaining full precision. Costs bounded scheduling latency, explicit ownership and a larger minimum association window. |
+| Local arithmetic state with two narrowly shared services | SECOND conversion is shared by servo/manual PHC and variable division by rate/E2E. Registered local operations replace descriptors and operand workspaces; the existing association floor remains until the complete replacement bound is validated. |
 | Physical TX fate retained across logical restart | A queued MAC frame can still reach the wire after timeout or reconfiguration. Freeing its key early risks associating a late completion/response with a new exchange. |
 | Registered publication and explicit cancellation edges | Makes payload, validity and lifecycle observable together. Cancellation can veto pending work but cannot retroactively undo a consumed sample or committed clock command. |
 | Local register ownership with coordinated commit/snapshot | Each core owns its settings and diagnostics. Frozen candidates and versioned result banks provide atomic transactions without central wide copies. |
@@ -108,24 +108,24 @@ old work once and permits subsequent frequency-only holdover control.
 
 ## Shared compute and storage
 
-`PtpEndpoint` owns one [PtpCompute](rtl/PtpCompute.vhd). Rate estimation, E2E,
-servo and manual PHC preparation have persistent workspaces of 64/64/64/16
-little-endian 32-bit words. Descriptors address four-word signed128 slots;
-add/subtract, multiplication, division, copy, shifts and comparison share the
-word datapath. A result acknowledgement releases the descriptor, not the stored
-value, so successive operations chain in RAM without reloading wide results.
+`PtpEndpoint` owns one [PtpSecondService](rtl/PtpSecondService.vhd) for servo
+and manual PHC conversion, and one [PtpVariableDivide](rtl/PtpVariableDivide.vhd)
+for rate estimation and E2E calibration. Each has two owners, round-robin
+admission, independently held responses and owner-local cancellation. There is
+no shared descriptor engine or addressed operand workspace. `PtpCompute`, its
+package and its legacy-only fixtures are deleted; Git history preserves them.
 
 ```mermaid
 flowchart TD
     Wire["Physical RX / TX"] --> Capture["Timestamp adapters + validated frame stores"]
     Capture --> Protocol["Protocol association / TX ledger"]
-    Protocol --> Measurement["Rate estimation / E2E"]
-    Measurement --> Servo["Servo"]
-    Measurement <--> Compute["Shared PtpCompute + owner workspaces"]
-    Servo <--> Compute
-    Manual["Frozen manual operands"] --> Compute
+    Protocol --> Measurement["Rate estimation / E2E: local state"]
+    Measurement <--> Divide["Shared variable divider"]
+    Measurement --> Servo["Local filter / PI"]
+    Servo <--> Second["Shared SECOND converter"]
+    Manual["Frozen manual operands"] <--> Second
     Servo --> PHC["PHC command arbitration / commit"]
-    Compute -->|"prepared manual operands"| PHC
+    Manual --> PHC
     PHC --> Tick["Dedicated tick / PPS / generation"]
     Tick --> Capture
     AXI["Local AXI banks + endpoint coordinator"] --> Manual
@@ -133,49 +133,39 @@ flowchart TD
     AXI --> Servo
 ```
 
-Arrows show functional flow; sequencers own requests and consume results.
-`PtpE2e` and `PtpTxLedger` are children of `PtpProtocolEngine`. The physical taps
-belong to `EthMacPtpEndpoint`, outside `PtpEndpoint`. Each instantiated endpoint
-has its own processor and PHC; independent port clocks do not share a timing loop.
+`PtpRateEstimator`, `PtpE2e` and `PtpTxLedger` are children of
+`PtpProtocolEngine`. Each endpoint has its own services and PHC; independent
+port clocks do not share a timing loop. The physical taps belong to
+`EthMacPtpEndpoint`, outside `PtpEndpoint`.
 
-Sharing only multipliers would leave wide operand/result staging, repeated
-conversions and muxes. The selected design therefore stores working values,
-protocol tables, configuration and snapshots as addressed words. Normalized
-corrected Sync/forward values are reused by rate, history and E2E. Ownership and
-valid flags remain registers; reset invalidates them without clearing payload
-RAM. Full-width physical captures, public records, held outputs and per-clock
-policy caches remain where their interface requires them.
+Epoch normalization, checked products, shifts, additions and clamps operate on
+named local state. The servo has local BILLION/NOMINAL converters and separate
+filter/PI children. Protocol tables, configuration and snapshot word banks keep
+their existing ownership; removing arithmetic workspaces does not remove these
+stores. Waiting for PHC acknowledgement holds no arithmetic service.
 
-A general-purpose soft CPU was considered but has no demonstrated advantage
-here and would add program/boot and worst-case execution obligations. The
-implemented processor is a fixed-operation RTL service. Round-robin word/job
-arbitration, owner-local cancellation and independent held responses prevent a
-stalled client from blocking the others. Waiting for PHC acknowledgement holds
-no compute slot, preventing circular waits during command preparation.
-
-The derived minimum association window is **70,347,776 raw ticks**, exposed as
+The retained minimum association window is **70,347,776 raw ticks**, exposed as
 `MinimumAssociationTicks`; the two-second default remains valid at both endpoint
 clock rates. The working sustained Sync envelope is 10 Hz, initially advertised
-at 8 Hz. This is a deployment/service-demand assumption, not an RX rejection
-rule or measured performance. The [service derivation](interfaces.md#shared-service-bound)
-includes finite bursts, word movement, arbitration and publication, with explicit
-exclusions for future packet arrival and unbounded stalls.
+at 8 Hz. This is a deployment assumption, not an RX rejection rule or measured
+performance. The [service-bound record](interfaces.md#shared-service-bound)
+preserves the original floor derivation; a complete replacement bound and
+endpoint validation remain open.
 
 ### Compute boundary review
 
 Source review on October 14, 2026, at SURF `4d3439185`, for
 [review response item 1](../../docs/plans/ethernet-ptp/acceptance.md#review-response-and-simplification-plan).
-The traces below describe the implementation. The alternative interfaces and
-prototype remain proposals for the connected endpoint. Subsequent isolated
-arithmetic measurements are summarized below; production RTL is unchanged. The review separates **sharing arithmetic hardware** from **placing
-algorithm state in a shared, externally addressed workspace**. The current
-design does both, but they need not remain coupled.
+The traces and arithmetic inventory below describe that retired source revision,
+not the current endpoint. They preserve the reasons for replacing descriptors
+and addressed workspaces with local state and specialized services. Recover the
+reviewed source from Git if needed; no legacy copy is maintained.
 
 #### Current transaction and ownership map
 
 `PtpEndpoint` connects four fixed compute owners. `PtpProtocolEngine` drives
 owner zero and connects its E2E child to owner one; servo and PHC drive owners
-two and three. The interface in [PtpComputePkg](rtl/PtpComputePkg.vhd) has three
+two and three. The former `PtpComputePkg` interface has three
 transactions: word write/read, operation descriptor/completion, and cancellation.
 Operation completion returns flags/tag, not the numerical result: clients must
 read result words or name that slot as a later operand. Acknowledging completion
@@ -508,12 +498,6 @@ latency, initialization, copy and snapshot ownership across mappings.
 Protocol pair/history row checks share a separate 32-bit ALU so overlapping
 scans have bounded arbitration without adding shared-compute jobs. Ledger live
 expiry checks retain local arithmetic because their observation edge matters.
-Compute memory eligibility is evaluated at constant owner indices before grant
-rotation: the earlier nested runtime owner/address selection created a large
-mux. The cursor advances only on a taken grant; simply replacing it with
-`ArbiterPkg` selection would neither remove eligibility cost nor preserve that
-rule under the memory/job interlock.
-
 Native inferred add/subtract is retained on the critical wide paths. Matched
 KU040 experiments favored it over handwritten carry-select/carry-save forms;
 DSP versions reduced LUTs but lengthened those operators. Streaming TLV validation
@@ -536,10 +520,9 @@ to a power of two; inference and constant pruning require build-host evidence.
 
 | Owner | Addressed payload storage per endpoint |
 | --- | --- |
-| Shared compute | 208 persistent + 26 scratch words; 256x32 physical RAM. |
 | Protocol pair/history | Four 20-word pair rows and four 25-word history rows; each RAM is 128x32. History includes eight normalized words per sample. |
 | TX ledger | Four 22-word rows; 128x32 RAM. Depth generic retains 1–255 logical slots. |
-| Servo median | Five two-word history samples in 16x32 RAM; padded sorting scratch uses compute slots. |
+| Servo median | Five signed64 samples and a padded sorting copy in local registers; no arithmetic workspace RAM. |
 | Local configuration | Three banks of 48 protocol, 34 servo and 10 PHC operand words, including address-map holes; physical RAMs are 256x32, 128x32 and 32x32. |
 | Immutable result snapshots | Protocol records have 12 Announce body/metadata and 20 exchange words; servo records have 4 offset, 4 median and 2 rate words. Five versions per record require 256x32 and 64x32 physical RAMs. |
 | Changing-scalar snapshots | Two banks of 7 protocol counter, 10 PHC and 1 servo words; scalar cohorts are latched together before copying. |
@@ -786,11 +769,11 @@ registered write may finish on a reset edge but cannot regain valid ownership.
   E2E converts each latency to master-time units using that capture's increment
   and the qualified master-time/raw-tick ratio. A PHC rate change between t2 and
   t3 therefore cannot silently change the calibration plane.
-- `PtpCompute` shares exact signed128 operations between rate, E2E, servo and
-  manual PHC preparation. Word-serial work has variable arbitration latency;
-  division can round nearest with ties away from zero while its remainder
-  follows truncation toward zero. Each client retains its own workspace and
-  cancellation ownership. `PtpMath` is a standalone leaf, outside production.
+- Local arithmetic leaves and the two shared services retain exact signed128
+  intermediate contracts. Division rounds nearest with ties away from zero
+  where requested; constant-converter remainders follow truncation toward zero.
+  `PtpMath` supplies the shared variable divider's restoring core. Cancellation
+  and held-response ownership remain per client.
 - PHC command acceptance latches an immutable operand; commit is the following
   edge. SET specifies commit-edge time; PHASE applies after normal advancement;
   RATE changes the next increment. A discontinuity clears validity, suppresses
@@ -989,21 +972,18 @@ range before their potentially large epoch offsets cancel.
 
 ### E2E arithmetic sequencing
 
-`PtpE2e` sequences its operations through the endpoint-owned `PtpCompute`.
-Production history supplies normalized corrected Sync and forward words; the
-standalone leaf can normalize a raw Sync through the same service. Remote
-Delay_Resp conversion, elapsed tick/phase scaling, calibration and final equations
-share that processor. Epoch/correction additions preserve modulo signed128;
+`PtpE2e` uses a local epoch normalizer and product pipeline, with the
+endpoint-owned variable divider for calibration. Production history supplies
+normalized corrected Sync and forward words; the standalone leaf can normalize
+a raw Sync locally. Epoch/correction additions preserve modulo signed128;
 products and calibration division retain checked overflow and exact rounding.
 Both calibration planes use their own captured increment; zero planes omit
 their work. Zero ratio/increment and generation mismatch remain errors.
 
-The producer holds input records until word upload acknowledgement. Intermediate
-values remain in persistent RAM slots and chain without wide result reloads.
-Only the public output record holds the complete result. Cancellation invalidates
-this owner's workspace and output, independently of other clients. Service time
-is variable under arbitration and covered by the common bound; the former
-private-engine 136/396/656-cycle timings no longer apply.
+The producer holds input records until acceptance; E2E captures all operands
+before releasing it. Intermediate values remain local. Cancellation invalidates
+this transaction and its divider ownership independently of the rate client.
+Service time depends on arbitration; the old word-serial timings do not apply.
 
 ### PHC increment and phase normalization
 
@@ -1029,21 +1009,19 @@ hierarchy. Its earlier resource figures describe the previous implementation.
 
 ### Servo arithmetic and filter sequencing
 
-`PtpServo` uses shared-service descriptors for bootstrap, proportional and
-integral arithmetic, six possible clamp calls, anti-windup and command conversion.
-Shifts retain nearest ties away from zero at 30 and 62 bits. Overflow rejection,
-unsigned32 gains and signed128 intermediate semantics remain unchanged. Rare
-configuration values load from the active word bank; per-clock policy/timers
-remain cached. Candidate and committed frequency occupy alternating RAM slots;
-only successful PHC acknowledgement switches the committed pointer. ACK waiting
-releases the compute engine so PHC preparation cannot deadlock behind the servo.
+`PtpServo` composes `PtpServoFilter` and `PtpServoPi`. PI uses named local
+state, a reused product, registered clamp/anti-windup stages, local constant
+converters and shared SECOND conversion for commands. Shifts retain nearest
+ties away from zero at 30 and 62 bits. Overflow rejection, unsigned32 gains and
+signed128 intermediate semantics remain unchanged. Applied configuration is
+read from the active record. Candidate frequency becomes committed frequency
+only after successful PHC acknowledgement; ACK waiting holds no shared service.
 
-Delay history uses five signed64 samples in local word RAM. Twenty workspace
-words hold a padded sorting copy; nine comparisons and at most 27 RAM copies
-implement the same sorting network. Four result words stream into the sole
-publication staging record. Median and population publish atomically, retaining
-lower-median startup, duplicates, signed64 maximum and circular replacement.
-Input backpressure spans sorting; no nine-clock filter interval is claimed.
+Delay history keeps five signed64 samples in registers. One comparator sequences
+the nine-pair sorting network over a padded local copy. Median and population
+publish together, retaining lower-median startup, duplicates, signed64 maximum
+and circular replacement. The parent streams the result into its publication
+bank and tracks filter/PI ownership until each child returns idle.
 
 Admitted delay refreshes its age timestamp; forward work waits for sorting.
 Abort/restart, generation change and stale work cancel immediately, clearing

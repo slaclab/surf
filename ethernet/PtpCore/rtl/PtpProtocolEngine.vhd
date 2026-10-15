@@ -1425,8 +1425,7 @@ begin
       end if;
 
       -- Only this admission can leave an idle history machine. Reuse its
-      -- predicate below instead of decoding the complete combinational next
-      -- state, which also contains the compute memory-ready return path.
+      -- predicate below instead of decoding the complete combinational next state.
       historyStarting := delayValid = '1' and r.e2eBusy = '0' and r.historyWriteBusy = '0' and
                          r.historyWriteEnable = '0' and abortPort = '0';
       case r.historyState is
@@ -1765,8 +1764,8 @@ begin
          when PAIR_PUBLISH_CAPTURE_S =>
 
             if r.pairWord <= 6 then
-               -- Keep the two signed wire corrections here until RATE sums
-               -- them in its workspace before normalizing the remote timestamp.
+               -- Keep both signed wire corrections for the rate estimator to sum
+               -- at full width when forming the corrected remote timestamp.
                v.pendingSync.correction(32*(r.pairWord-3)+31 downto 32*(r.pairWord-3)) := pairReadData;
             else
                takeSyncWord(v.pendingSync, r.pairWord-7, pairReadData);
@@ -2164,7 +2163,7 @@ begin
       -- receiver as well as at the arithmetic/ledger producers.
       -- E2E valid blocks a new pair search. With the pair already idle, the
       -- rate machine cannot start (it requires PAIR_ACK_S), so both next-state
-      -- idle tests are redundant. Keep compute ready out of publication enables.
+      -- idle tests are redundant. Keep service ready out of publication enables.
       if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and
          r.pairState = PAIR_IDLE_S and v.measurementMaster.valid = '0' and
          r.exchangeWriting = '0' and v.publicationPort.commit = '0' then

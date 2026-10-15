@@ -95,7 +95,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Ordinary master traffic | `test_ptp_exchange.py::test_master_headers` and affected `test_ordinary_master` edition/mode nodes. | Add a continuous PHY/PHC/servo run only when that interaction changes; raw-tick fixture results do not qualify hardware rates. |
 | Sourced header, version, TLV or two-step checks | The relevant node/scenario in `test_ptp_specification.py` (RX or protocol). | Expand for affected PHY timing or normative cases absent from that fixture; the selected cases are not the whole standards audit. |
 | Math, PHC, servo, E2E or ledger RTL | Corresponding leaf `test_ptp_<block>.py` and relevant independent reference cases. | Add affected consumers; select a closed-loop endpoint case for acquisition, stability or holdover changes. |
-| Standalone shared word processor | `test_ptp_compute.py` block/distributed configurations. | Add rate/E2E and endpoint fixtures when production clients migrate; standalone arithmetic is not endpoint equivalence. |
+| Shared arithmetic services | Affected `test_ptp_phc.py`, `test_ptp_servo.py`, `test_ptp_e2e.py` and rate/protocol cases. | Direct production-service contention/cancellation coverage remains an integration acceptance item; client tests alone do not establish arbitration coverage. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
 | PHC carry/normalization or unsigned age arithmetic | `test_ptp_timing_math.py` for integer boundary/random oracles; `test_ptp_phc.py` for cycle semantics and epoch faults. | Add protocol expiry and servo cancellation cases when the shared age predicate changes. |
@@ -140,12 +140,6 @@ reporting the previous full-suite result as validation of a later edit.
 
 ## Autonomous endpoint tests
 
-- `test_ptp_compute.py`: the production shared processor with independent
-  integer arithmetic oracle, addressed result chaining, shifts/comparison,
-  four-owner arbitration, stalled readers, active/queued/held cancellation and
-  committed-state retention. Block/synchronous-high and distributed/asynchronous-low
-  reset cases both enforce the derived 4,608-clock operation ceiling. See
-  [service ownership and bounds](../../../ethernet/PtpCore/interfaces.md#shared-service-bound).
 - `test_ptp_timing_math.py`: production compatibility-adder sums at 64/66/67 bits
   and native modulo-tick expiry against Python integers, including every
   word boundary, wrapped/future timestamps, equality and seeded random inputs.
