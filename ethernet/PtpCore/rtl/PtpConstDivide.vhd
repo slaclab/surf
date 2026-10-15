@@ -14,7 +14,7 @@
 -- Two quotient modes share one remainder definition. With roundNearest low the
 -- quotient truncates toward zero; with roundNearest high it rounds to nearest
 -- with ties away from zero, decided by comparing the exact unsigned remainder
--- against `d/2` at the full remainder width. The published remainder always
+-- against `ceil(d/2)` at the full remainder width. The published remainder always
 -- describes truncation, carries the dividend's sign and satisfies
 -- `operand = quotient*d + remainder` with `abs(remainder) < d` in truncating
 -- mode. A rounded quotient and this remainder are not a division pair.
@@ -80,6 +80,10 @@ architecture rtl of PtpConstDivide is
    -- High part consumed by the serial loop, and the exact remainder range.
    constant HIGH_C     : positive := WIDTH_G-SHIFT_C;
    constant REM_BITS_C : positive := ptpUsedBits(DIVISOR_C-1);
+   -- ceil(divisor/2) preserves nearest rounding for odd nominal increments.
+   -- Form the half first so the maximum unsigned64 divisor cannot overflow.
+   constant ROUND_THRESHOLD_C : unsigned(63 downto 0) :=
+      shift_right(DIVISOR_C, 1)+resize(DIVISOR_C(0 downto 0), 64);
 
    type StateType is (
       IDLE_S, SERIAL_S, PUBLISH_S, DONE_S);
@@ -196,10 +200,9 @@ begin
             end if;
 
          when PUBLISH_S =>
-            -- Compare the exact remainder magnitude against d/2 at the full
-            -- remainder width. Every supported divisor is even, so d/2 is
-            -- exact, and `>=` gives ties away from zero.
-            if r.rounding = '1' and remainderValue >= shift_right(DIVISOR_C, 1) then
+            -- Compare against ceil(d/2) at the full remainder width. Even
+            -- divisors retain ties away from zero; odd divisors have no tie.
+            if r.rounding = '1' and remainderValue >= ROUND_THRESHOLD_C then
                quotientValue := quotientValue+1;
             end if;
 
