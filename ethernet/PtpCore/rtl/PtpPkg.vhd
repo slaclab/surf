@@ -55,6 +55,23 @@ package PtpPkg is
    -- The reverse conversion drops the same number of low fractional bits.
    constant PTP_TIME_TO_PHC_SHIFT_C  : natural := PTP_PHC_FRAC_BITS_C-PTP_TIME_FRAC_BITS_C;
    constant PTP_PHC_TO_RATIO_SHIFT_C : natural := PTP_RATIO_FRAC_BITS_C-PTP_PHC_FRAC_BITS_C;
+
+   -- Constant divisors for the fixed-function converters, as 64-bit values
+   -- because a decimal second in Q16 nanoseconds exceeds a VHDL integer.
+   -- Each name states the units of the conversion it performs, so a converter
+   -- instance cannot silently inherit the wrong one.
+
+   -- One decimal second in Q16 nanoseconds. Converts a Q16-nanosecond scalar
+   -- to whole seconds plus a Q16 subsecond remainder, and Q16 ppb rate
+   -- commands to a Q32 PHC increment addend.
+   constant PTP_SECOND_Q16_DIVISOR_C : slv(63 downto 0) :=
+      slv(shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 64), PTP_TIME_FRAC_BITS_C));
+
+   -- Nanoseconds per second, for converting a nanosecond-scaled product to
+   -- seconds. This is a time-unit conversion; PTP_PPB_SCALE_C is the
+   -- dimensionless ppb scale and the two are not interchangeable.
+   constant PTP_NANOSECOND_DIVISOR_C : slv(63 downto 0) :=
+      slv(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 64));
    -- Untagged Ethernet geometry, including FCS in frame-size limits.
    constant PTP_ETH_MAC_BYTES_C      : positive := 6;
    constant PTP_ETH_HEADER_BYTES_C   : positive := 14; -- Two MAC addresses and EtherType.
@@ -662,6 +679,21 @@ package PtpPkg is
    function ptpRoundShift (
       value : signed;
       bits  : natural) return signed;
+
+   -- Rounded right shift with ties away from zero, computed without forming a
+   -- wide absolute value. Uses the floor shift plus a guard/sticky decision,
+   -- so the long combinational path through an abs/negate chain is avoided.
+   -- The result is one bit wider than the floor quotient to retain a positive
+   -- rounding carry, including at the signed input extrema.
+   function ptpRoundShiftExact (
+      value : signed;
+      bits  : positive) return signed;
+
+   -- Count of low zero bits and of significant bits in a constant. These are
+   -- elaboration helpers for factoring a constant divisor as `odd << k`.
+   function ptpTrailingZeros (value : unsigned) return natural;
+   function ptpUsedBits (value : unsigned) return positive;
+
    function ptpSatInc (value : slv) return slv;
    -- Compatibility adder; native inference beats the former carry-select tree.
    -- Operands have equal widths; the result wraps at that width like numeric_std.
@@ -893,6 +925,54 @@ package body PtpPkg is
       end if;
 
       return resize(resultValue, value'length);
+   end function;
+
+   function ptpRoundShiftExact (
+      value : signed;
+      bits  : positive) return signed is
+      -- value = floor(value/2**bits)*2**bits + unsigned(discarded bits).
+      -- A positive tie increments the floor; a negative tie keeps it, which is
+      -- ties-away-from-zero in both directions.
+      constant RESULT_BITS_C : positive := value'length-bits+1;
+      variable resultValue   : signed(RESULT_BITS_C-1 downto 0);
+      variable sticky        : boolean;
+   begin
+      resultValue := resize(shift_right(value, bits), RESULT_BITS_C);
+      sticky      := false;
+
+      if bits > 1 then
+         sticky := unsigned(value(bits-2 downto 0)) /= 0;
+      end if;
+
+      if value(bits-1) = '1' and (value(value'high) = '0' or sticky) then
+         resultValue := resultValue+1;
+      end if;
+
+      return resultValue;
+   end function;
+
+   function ptpTrailingZeros (value : unsigned) return natural is
+   begin
+
+      for i in 0 to value'high loop
+         if value(i) = '1' then
+            return i;
+         end if;
+      end loop;
+
+      return 0;
+   end function;
+
+   function ptpUsedBits (value : unsigned) return positive is
+   begin
+
+      for i in value'high downto 0 loop
+         if value(i) = '1' then
+            return i+1;
+         end if;
+      end loop;
+
+      return 1;
    end function;
 
    function ptpSatInc (value : slv) return slv is

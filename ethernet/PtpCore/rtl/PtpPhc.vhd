@@ -70,7 +70,6 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 use surf.PtpRegisterPkg.all;
 
 entity PtpPhc is
@@ -105,8 +104,18 @@ entity PtpPhc is
       captureAbort  : out sl;
       commandMaster : in  PtpPhcCommandMasterType := PTP_PHC_COMMAND_MASTER_INIT_C;
       commandSlave  : out PtpPhcCommandSlaveType;
-      computeMaster : out PtpComputeMasterType;
-      computeSlave  : in PtpComputeSlaveType);
+      -- Shared SECOND service, also used by the servo. Manual phase
+      -- preparation is the only arithmetic this core performs; the tick and
+      -- PPS datapath needs no multiply or divide.
+      secondValid       : out sl;
+      secondReady       : in  sl                := '0';
+      secondRound       : out sl;
+      secondOperand     : out slv(127 downto 0);
+      secondCancel      : out sl;
+      secondResultValid : in  sl                := '0';
+      secondResultReady : out sl;
+      secondQuotient    : in  slv(127 downto 0) := (others => '0');
+      secondRemainder   : in  slv(127 downto 0) := (others => '0'));
 end entity PtpPhc;
 
 architecture rtl of PtpPhc is
@@ -118,12 +127,9 @@ architecture rtl of PtpPhc is
 
    type ManualStateType is (
       IDLE_S, FREEZE_S, OPERAND_READ_S, OPERAND_WAIT_S, OPERAND_STORE_S,
-      PHASE_LOAD_S, PHASE_ISSUE_S, PHASE_READ_S, PHASE_READ_WAIT_S, PHASE_CHECK_S,
-      PHASE_WAIT_S,
+      PHASE_ADMIT_S, PHASE_REQUEST_S, PHASE_WAIT_S, PHASE_CHECK_S,
       REQUEST_S,
       WAIT_ACK_S);
-
-   constant SECOND_Q16_C : slv(127 downto 0) := slv(shift_left(to_unsigned(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C));
    -- One billion needs 30 bits; Q16 encoding gives a 46-bit divisor magnitude.
    -- Q32 ns: the encoded value is ns * 2**32. The signed status.rate uses the
    -- same scale, so adding it changes ns/tick directly, without a ppb conversion.
@@ -152,10 +158,15 @@ architecture rtl of PtpPhc is
       -- Accepted manual work survives AXI reset and later operand writes.
       manualState   : ManualStateType;
       manualBusy    : sl;
-      compute       : PtpComputeMasterType;
-      phaseWord     : natural range 0 to 7;
-      phaseSign     : sl;
-      phaseError    : sl;
+      -- Four 32-bit submission words are frozen on admission. The fourth is
+      -- an admission guard, not a converter operand: it makes an oversized
+      -- software write observable in hardware, which a three-word register
+      -- could not do once a client had already truncated its value.
+      phaseSubmission : slv(127 downto 0);
+      phaseOperand    : slv(95 downto 0);
+      secondValid     : sl;
+      secondReady     : sl;
+      phaseError      : sl;
       manualCommand : PtpPhcCommandType;
       manualAck     : sl;
       manualError   : sl;
@@ -187,9 +198,10 @@ architecture rtl of PtpPhc is
       operandWord        => 0,
       manualState        => IDLE_S,
       manualBusy         => '0',
-      compute            => PTP_COMPUTE_MASTER_INIT_C,
-      phaseWord          => 0,
-      phaseSign          => '0',
+      phaseSubmission    => (others => '0'),
+      phaseOperand       => (others => '0'),
+      secondValid        => '0',
+      secondReady        => '0',
       phaseError         => '0',
       manualCommand      => PTP_PHC_COMMAND_INIT_C,
       manualAck          => '0',
@@ -289,8 +301,8 @@ begin
       -- r is pre-edge state. v collects the state to register next; ordinary
       -- ticking happens even while command preparation or arbitration is busy.
       v := r;
-      v.compute.resultReady := '0';
-      v.compute.readReady := '0';
+      v.secondValid := r.secondValid;
+      v.secondReady := '0';
       v.operandPrepare := '0';
       v.operandMaster.responseReady := '1';
 
@@ -446,10 +458,9 @@ begin
                   when 3 =>
                      v.manualCommand.setTime.fraction := operandSlaves(1).data;
                   when 4 to 7 =>
-                     v.compute.memValid := '1';
-                     v.compute.memWrite := '1';
-                     v.compute.memWord := toSlv(r.operandWord-4, 6);
-                     v.compute.memData := operandSlaves(1).data;
+                     -- Collect all four submission words, including the guard.
+                     v.phaseSubmission(32*(r.operandWord-4)+31 downto
+                                       32*(r.operandWord-4)) := operandSlaves(1).data;
                   when 8 to 9 =>
                      v.manualCommand.rate(32*(r.operandWord-8)+31 downto 32*(r.operandWord-8)) := operandSlaves(1).data;
                end case;
@@ -459,93 +470,57 @@ begin
 
          when OPERAND_STORE_S =>
 
-            if r.manualCommand.kind /= PTP_CMD_PHASE_C or computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               if r.operandWord = 3 or r.operandWord = 9 then
-                  v.manualState := REQUEST_S;
-               elsif r.operandWord = 7 then
-                  v.phaseWord := 4;
-                  v.manualState := PHASE_LOAD_S;
-               else
-                  v.operandWord := r.operandWord+1;
-                  v.manualState := OPERAND_READ_S;
-               end if;
+            if r.operandWord = 3 or r.operandWord = 9 then
+               v.manualState := REQUEST_S;
+            elsif r.operandWord = 7 then
+               v.manualState := PHASE_ADMIT_S;
+            else
+               v.operandWord := r.operandWord+1;
+               v.manualState := OPERAND_READ_S;
             end if;
 
-         when PHASE_LOAD_S =>
+         when PHASE_ADMIT_S =>
+            -- Validate the entire 128-bit submission before narrowing. A
+            -- non-sign-extended guard word is a command error: it does not
+            -- advance generation, invalidate time or raise a fatal fault.
+            -- Signed96 spans the whole reachable epoch, so no successful
+            -- adjustment changes behavior. A representable value can still
+            -- exceed the epoch at commit and keeps the existing fault.
+            v.manualState := PHASE_REQUEST_S;
 
-            if r.compute.memValid = '0' then
-               v.compute.memWrite := '1';
-               v.compute.memValid := '1';
-               v.compute.memWord := toSlv(r.phaseWord, 6);
-               v.compute.memData := SECOND_Q16_C(32*(r.phaseWord-4)+31 downto 32*(r.phaseWord-4));
-            elsif computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               if r.phaseWord = 7 then
-                  v.compute.job := ptpComputeJob(PTP_COMPUTE_DIV_C, 0, 1, 2, 3);
-                  v.compute.jobValid := '1';
-                  v.manualState := PHASE_ISSUE_S;
-               else
-                  v.phaseWord := r.phaseWord+1;
-               end if;
+            if resize(signed(r.phaseSubmission(95 downto 0)), 128) /=
+               signed(r.phaseSubmission) then
+               v.phaseError := '1';
+               v.manualState := PHASE_CHECK_S;
+            else
+               v.phaseOperand := r.phaseSubmission(95 downto 0);
+               v.secondValid := '1';
             end if;
 
-         when PHASE_ISSUE_S =>
-
-            if computeSlave.jobReady = '1' then
-               v.compute.jobValid := '0';
+         when PHASE_REQUEST_S =>
+            -- Truncating conversion: the quotient is whole seconds and the
+            -- remainder is the exact subsecond part with the dividend's sign.
+            if secondReady = '1' then
+               v.secondValid := '0';
                v.manualState := PHASE_WAIT_S;
             end if;
 
          when PHASE_WAIT_S =>
+            v.secondReady := '1';
 
-            if computeSlave.resultValid = '1' then
-               v.compute.resultReady := '1';
-               v.phaseError := computeSlave.resultError;
-               v.phaseWord := 0;
-               v.manualState := PHASE_READ_S;
-            end if;
+            if secondResultValid = '1' then
+               v.secondReady := '0';
+               v.manualState := PHASE_CHECK_S;
 
-         when PHASE_READ_S =>
-            v.compute.memWrite := '0';
-            v.compute.memValid := '1';
-            v.compute.memWord := toSlv(8+r.phaseWord, 6);
-
-            if r.compute.memValid = '1' and computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               v.compute.readReady := '1';
-               v.manualState := PHASE_READ_WAIT_S;
-            end if;
-
-         when PHASE_READ_WAIT_S =>
-            v.compute.readReady := '1';
-
-            if computeSlave.readValid = '1' then
-
-               case r.phaseWord is
-                  when 0 =>
-                     v.manualCommand.phaseSeconds(31 downto 0) := computeSlave.readData;
-                  when 1 =>
-                     v.manualCommand.phaseSeconds(63 downto 32) := computeSlave.readData;
-                     v.phaseSign := computeSlave.readData(31);
-                  when 2 | 3 =>
-                     if computeSlave.readData /= slv'(31 downto 0 => r.phaseSign) then
-                        v.phaseError := '1';
-                     end if;
-                  when 4 =>
-                     v.manualCommand.phaseFraction(47 downto 16) := computeSlave.readData;
-                     v.manualCommand.phaseFraction(15 downto 0) := (others => '0');
-                  when 5 =>
-                     v.manualCommand.phaseFraction(63 downto 48) := computeSlave.readData(15 downto 0);
-                  when others =>
-                     null;
-               end case;
-
-               if r.phaseWord = 5 then
-                  v.manualState := PHASE_CHECK_S;
+               -- The quotient must fit signed64 and the remainder signed48,
+               -- the widths the command record carries.
+               if resize(signed(secondQuotient(63 downto 0)), 128) /= signed(secondQuotient) or
+                  resize(signed(secondRemainder(47 downto 0)), 128) /= signed(secondRemainder) then
+                  v.phaseError := '1';
                else
-                  v.phaseWord := r.phaseWord+1;
-                  v.manualState := PHASE_READ_S;
+                  v.manualCommand.phaseSeconds := secondQuotient(63 downto 0);
+                  v.manualCommand.phaseFraction :=
+                     slv(shift_left(resize(signed(secondRemainder), 64), PTP_TIME_FRAC_BITS_C));
                end if;
             end if;
 
@@ -828,7 +803,11 @@ begin
       commandSlave   <= r.commandSlave;
       captureAbort   <= r.captureAbort;
       manualBusy     <= r.manualBusy;
-      computeMaster <= r.compute;
+      secondValid <= r.secondValid;
+      secondRound <= '0';  -- Truncate; the remainder is the subsecond part.
+      secondOperand <= slv(resize(signed(r.phaseOperand), 128));
+      secondCancel <= '0';
+      secondResultReady <= v.secondReady;
       axiReadSlave   <= r.readSlave;
       axiWriteSlave  <= r.writeSlave;
       phcTime        <= r.timeValue;

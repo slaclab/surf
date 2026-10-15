@@ -3,23 +3,37 @@
 -------------------------------------------------------------------------------
 -- Description: Rate-corrected end-to-end PTP path-delay arithmetic.
 --
--- Consumes an associated Sync sample and completed Delay_Req/Delay_Resp sample
--- from PtpProtocolEngine. These supply master timestamps t1/t4, correction fields and
--- local RX/TX captures t2/t3. A qualified Q48 master-nanoseconds-per-raw-cycle
--- ratio converts the raw tick/phase separation between t2 and t3 into master
--- elapsed time, avoiding an assumption that the steered PHC rate stayed
--- constant during the exchange.
+-- Consumes an associated Sync sample and a completed Delay_Req/Delay_Resp
+-- sample from PtpProtocolEngine. These supply master timestamps t1/t4,
+-- correction fields and the local RX/TX captures t2/t3. A qualified Q48
+-- master-nanoseconds-per-raw-cycle ratio converts the raw tick/phase
+-- separation between t2 and t3 into master elapsed time, so the measurement
+-- does not assume the steered PHC rate stayed constant during the exchange.
 --
--- The endpoint-owned word processor holds all working values. Input valid
--- reserves this sequencer while its producer holds the sample; inputReady
--- acknowledges the completed word upload. No duplicate sample or wide arithmetic
--- staging is retained here. The producer may change operands after that edge.
--- A single registered publication record holds the completed result.
+-- The published equation is
+--   forward = t2 - (t1 + cSync)
+--   elapsed = round(rawTicks(t2..t3) * ratio / 2**35) + calibration
+--   delay   = round(((t4 - cDelay) - (t1 + cSync) - elapsed) / 2)
+-- with each calibration plane rescaling its configured latency into master
+-- time through its own captured PHC increment.
 --
--- Zero calibration skips its work; nonzero planes use their own captured
--- increment. Timestamp/correction additions intentionally wrap signed128, while
--- products/divisions remain checked. Cancellation invalidates only this owner's
--- workspace and publication, independently of unrelated arithmetic and PHC ticks.
+-- Arithmetic is fixed-function and local: one epoch normalizer converts the
+-- seconds/subsecond pairs, one reused product forms the elapsed and
+-- calibration products, and the shared endpoint divider performs the two
+-- calibration divisions. In production the normalized-Sync history supplies
+-- the forward value and corrected Sync directly, so only the Delay_Resp
+-- conversion runs here; the standalone leaf normalizes all three.
+--
+-- Timestamp and correction additions intentionally wrap signed 128 bits, while
+-- products and divisions stay checked: a product that does not fit signed 128
+-- bits is rejected before its rounding shift. A zero ratio or captured
+-- increment, and a generation mismatch, remain errors. Negative or excessive
+-- path delay is rejected before publication.
+--
+-- All ports use clk. Input ready is combinational; the published measurement
+-- and its valid are registered and held until resultReady. Cancellation
+-- invalidates only this owner's work and publication, independently of
+-- unrelated arithmetic and PHC ticks.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -32,10 +46,10 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.PtpPkg.all;
-use surf.PtpComputePkg.all;
 
 entity PtpE2e is
    generic (
@@ -46,210 +60,232 @@ entity PtpE2e is
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       NORMALIZED_SYNC_G : boolean          := false);
    port (
-      clk    : in  sl;
-      rst    : in  sl;
-      cancel : in  sl;
-      -- Private history stream: words 0..3 forward, 4..7 corrected Sync Q16.
-      -- Accepted words occupy this owner's workspace until input/result release.
-      normalizedValid : in sl               := '0';
+      clk    : in sl;
+      rst    : in sl;
+      cancel : in sl;
+
+      -- Private history stream: words 0..3 the forward value, 4..7 the
+      -- corrected Sync time in Q16 nanoseconds. Only used when the production
+      -- normalized-Sync path supplies them.
+      normalizedValid : in  sl               := '0';
       normalizedReady : out sl;
-      normalizedWord  : in slv(2 downto 0)  := (others => '0');
-      normalizedData  : in slv(31 downto 0) := (others => '0');
-      inputValid      : in  sl;
-      inputReady      : out sl;
-      syncSample      : in  PtpSyncSampleType;
-      delaySample     : in  PtpDelaySampleType;
-      ratio           : in  slv(63 downto 0);
-      maxPathDelay    : in  slv(63 downto 0);
-      resultValue     : out PtpMeasurementType;
-      -- Registered valid; transfer requires valid/ready high and cancel/reset inactive.
-      resultValid   : out sl;
-      resultReady   : in  sl;
-      resultError   : out sl;
-      computeMaster : out PtpComputeMasterType;
-      computeSlave  : in PtpComputeSlaveType);
+      normalizedWord  : in  slv(2 downto 0)  := (others => '0');
+      normalizedData  : in  slv(31 downto 0) := (others => '0');
+
+      inputValid   : in  sl;
+      inputReady   : out sl;
+      syncSample   : in  PtpSyncSampleType;
+      delaySample  : in  PtpDelaySampleType;
+      ratio        : in  slv(63 downto 0);
+      maxPathDelay : in slv(63 downto 0);
+
+      resultValue : out PtpMeasurementType;
+      -- Registered valid; transfer requires valid/ready high and cancel/reset
+      -- inactive.
+      resultValid : out sl;
+      resultReady : in  sl;
+      resultError : out sl;
+
+      -- Shared endpoint variable divider for the calibration planes.
+      divideValid       : out sl;
+      divideReady       : in  sl                := '0';
+      divideOperandA    : out slv(127 downto 0);
+      divideOperandB    : out slv(79 downto 0);
+      divideCancel      : out sl;
+      divideResultValid : in  sl                := '0';
+      divideResultReady : out sl;
+      divideResultValue : in  slv(127 downto 0) := (others => '0');
+      divideResultError : in  sl                := '0');
 end entity PtpE2e;
 
 architecture rtl of PtpE2e is
 
-   -- Workspace slots: normalized timestamps replace their seconds operands.
-   constant LOCAL_C : natural := 0;
-   constant LOCAL_NS_C : natural := 1;
-   constant SYNC_C : natural := 2;
-   constant SYNC_NS_C : natural := 3;
-   constant REMOTE_C : natural := 4;
-   constant REMOTE_NS_C : natural := 5;
-   constant SYNC_CORRECTION_C : natural := 6;
-   constant DELAY_CORRECTION_C : natural := 7;
-   constant ELAPSED_C : natural := 8;
-   constant FORWARD_C : natural := 9;
-   constant RATIO_C : natural := 10;
-   constant RX_INCREMENT_C : natural := 11;
-   constant TX_INCREMENT_C : natural := 12;
-   constant MAXIMUM_C : natural := 13;
-   constant TEMP_C : natural := 14;
-   constant REMAINDER_C : natural := 15;
-   constant INPUT_WORDS_C : positive := 4*TEMP_C;
+   -- Raw Q3 tick/phase separation scaled by the Q48 ratio reaches Q16 master
+   -- nanoseconds after this shift.
    constant ELAPSED_SHIFT_C : natural := PTP_TICK_PHASE_BITS_C+PTP_RATIO_FRAC_BITS_C-PTP_TIME_FRAC_BITS_C;
+
+   -- Both calibration planes are elaboration constants, so a zero plane
+   -- removes its product, division and addition entirely.
+   constant INGRESS_ACTIVE_C : boolean := signed(INGRESS_LATENCY_G) /= 0;
+   constant EGRESS_ACTIVE_C  : boolean := signed(EGRESS_LATENCY_G) /= 0;
+
+   -- Product operands: a signed68 raw separation or signed64 latency by the
+   -- unsigned64 ratio. The full product is checked against signed128.
+   constant PRODUCT_A_C : positive := 68;
+   constant PRODUCT_B_C : positive := 64;
+
    type StateType is (
-      IDLE_S, LOAD_S, ACCEPT_S, PLAN_S, CONSTANT_S,
-      ISSUE_S, WAIT_S, READ_S, READ_WAIT_S, DONE_S);
+      IDLE_S,
+      EPOCH_LOCAL_S, EPOCH_SYNC_S, EPOCH_REMOTE_S, EPOCH_WAIT_S,
+      CORRECT_SYNC_S, CORRECT_REMOTE_S,
+      ELAPSED_PRODUCT_S, PRODUCT_WAIT_S, ELAPSED_SHIFT_S,
+      RX_PRODUCT_S, RX_DIVIDE_S, DIVIDE_WAIT_S, RX_ADD_S,
+      TX_PRODUCT_S, TX_DIVIDE_S, TX_ADD_S,
+      FORWARD_S, REMOTE_DIFF_S, DELAY_DIFF_S, DELAY_HALF_S, DELAY_CHECK_S,
+      DONE_S);
+
+   type EpochSelectType is (LOCAL_E, SYNC_E, REMOTE_E);
 
    type RegType is record
-      inputReady  : sl;
       state       : StateType;
-      compute     : PtpComputeMasterType;
-      wordIndex   : natural range 0 to INPUT_WORDS_C-1;
-      step        : natural range 0 to 26;
-      checked     : boolean;
+      returnState : StateType;
+      epochSelect : EpochSelectType;
+      inputReady  : sl;
+      historyReady : sl;
+
+      -- Named working values, all Q16 nanoseconds unless stated.
+      localTime   : signed(127 downto 0);
+      syncTime    : signed(127 downto 0);
+      remoteTime  : signed(127 downto 0);
+      forwardValue : signed(127 downto 0);
+      elapsedValue : signed(127 downto 0);
+      productValue : signed(127 downto 0);
+      rawSeparation : signed(67 downto 0);
+
+      -- Captured sample provenance and operands.
+      ratio       : unsigned(63 downto 0);
+      rxIncrement : unsigned(63 downto 0);
+      txIncrement : unsigned(63 downto 0);
+      maximum     : signed(63 downto 0);
+
+      epochValid  : sl;
+      epochSeconds : slv(47 downto 0);
+      epochSubsecond : slv(47 downto 0);
+
+      mulA        : slv(PRODUCT_A_C-1 downto 0);
+      mulB        : slv(PRODUCT_B_C-1 downto 0);
+      mulValid    : sl;
+
+      divOperandA : slv(127 downto 0);
+      divOperandB : slv(79 downto 0);
+      divValid    : sl;
+      divReady    : sl;
+
       resultValue : PtpMeasurementType;
       resultValid : sl;
       error       : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      inputReady  => '0',
-      state       => IDLE_S,
-      compute     => PTP_COMPUTE_MASTER_INIT_C,
-      wordIndex   => 0,
-      step        => 0,
-      checked     => false,
-      resultValue => PTP_MEASUREMENT_INIT_C,
-      resultValid => '0',
-      error       => '0');
+      state          => IDLE_S,
+      returnState    => IDLE_S,
+      epochSelect    => LOCAL_E,
+      inputReady     => '0',
+      historyReady   => '0',
+      localTime      => (others => '0'),
+      syncTime       => (others => '0'),
+      remoteTime     => (others => '0'),
+      forwardValue   => (others => '0'),
+      elapsedValue   => (others => '0'),
+      productValue   => (others => '0'),
+      rawSeparation  => (others => '0'),
+      ratio          => (others => '0'),
+      rxIncrement    => (others => '0'),
+      txIncrement    => (others => '0'),
+      maximum        => (others => '0'),
+      epochValid     => '0',
+      epochSeconds   => (others => '0'),
+      epochSubsecond => (others => '0'),
+      mulA           => (others => '0'),
+      mulB           => (others => '0'),
+      mulValid       => '0',
+      divOperandA    => (others => '0'),
+      divOperandB    => (others => '0'),
+      divValid       => '0',
+      divReady       => '0',
+      resultValue    => PTP_MEASUREMENT_INIT_C,
+      resultValid    => '0',
+      error          => '0');
 
-   signal r : RegType := REG_INIT_C;
+   signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
-   -- Only wiring/sign extension and word selection; all numerical conversion
-   -- and elapsed arithmetic runs in the shared processor.
-   function inputWord (
-      syncValue  : PtpSyncSampleType;
-      delayValue : PtpDelaySampleType;
-      ratioValue : slv(63 downto 0);
-      maximum    : slv(63 downto 0);
-      index      : natural) return slv is
-      variable value : slv(127 downto 0) := (others => '0');
-   begin
 
-      case index/4 is
-         when LOCAL_C =>
-            value(47 downto 0) := syncValue.capture.timestamp(95 downto 48);
-         when LOCAL_NS_C =>
-            value(47 downto 0) := syncValue.capture.timestamp(47 downto 0);
-         when SYNC_C =>
-            value(47 downto 0) := syncValue.remoteTime(79 downto 32);
-         when SYNC_NS_C =>
-            value(47 downto 16) := syncValue.remoteTime(31 downto 0);
-         when REMOTE_C =>
-            value(47 downto 0) := delayValue.remoteTime(79 downto 32);
-         when REMOTE_NS_C =>
-            value(47 downto 16) := delayValue.remoteTime(31 downto 0);
-         when SYNC_CORRECTION_C =>
-            value := syncValue.correction;
-         when DELAY_CORRECTION_C =>
-            value := slv(resize(signed(delayValue.correction), 128));
-         when ELAPSED_C =>
-            value(66 downto 0) := syncValue.capture.ticks & syncValue.capture.tickPhase;
-         when FORWARD_C =>
-            value(66 downto 0) := delayValue.capture.ticks & delayValue.capture.tickPhase;
-         when RATIO_C =>
-            value(63 downto 0) := ratioValue;
-         when RX_INCREMENT_C =>
-            value(79 downto 16) := syncValue.capture.increment;
-         when TX_INCREMENT_C =>
-            value(79 downto 16) := delayValue.capture.increment;
-         when MAXIMUM_C =>
-            value := slv(resize(signed(maximum), 128));
-         when others =>
-            null;
-      end case;
-
-      return value(32*(index mod 4)+31 downto 32*(index mod 4));
-   end function inputWord;
+   signal epochReady       : sl;
+   signal epochResultValid : sl;
+   signal epochResultValue : slv(94 downto 0);
+   signal mulReady         : sl;
+   signal mulResultValid   : sl;
+   signal mulOverflow      : sl;
+   signal mulResult        : slv(PRODUCT_A_C+PRODUCT_B_C-1 downto 0);
 
 begin
 
+   -- One normalizer serves every seconds/subsecond conversion in this chain.
+   U_Epoch : entity surf.PtpEpochNormalize
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
+      port map (
+         clk          => clk,               -- [in]
+         rst          => rst,               -- [in]
+         cancel       => cancel,            -- [in]
+         inputValid   => r.epochValid,      -- [in]
+         inputReady   => epochReady,        -- [out]
+         seconds      => r.epochSeconds,    -- [in]
+         subsecondQ16 => r.epochSubsecond,  -- [in]
+         resultValid  => epochResultValid,  -- [out]
+         resultReady  => '1',               -- [in]
+         resultValue  => epochResultValue);  -- [out]
+
+   U_Product : entity surf.PtpLimbProduct
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         A_G            => PRODUCT_A_C,
+         B_G            => PRODUCT_B_C)
+      port map (
+         clk         => clk,             -- [in]
+         rst         => rst,             -- [in]
+         cancel      => cancel,          -- [in]
+         inputValid  => r.mulValid,      -- [in]
+         inputReady  => mulReady,        -- [out]
+         operandA    => r.mulA,          -- [in]
+         operandB    => r.mulB,          -- [in]
+         resultValid => mulResultValid,  -- [out]
+         resultReady => '1',             -- [in]
+         resultValue => mulResult,       -- [out]
+         overflow    => mulOverflow);    -- [out]
+
    comb : process (all) is
-      variable v             : RegType;
-      variable constantValue : signed(127 downto 0);
-      variable job           : PtpComputeJobType;
+      variable v          : RegType;
+      variable separation : signed(67 downto 0);
+      variable delayHalf  : signed(127 downto 0);
    begin
       v := r;
       v.inputReady := '0';
-      v.compute.cancel := '0';
-      v.compute.resultReady := '0';
-      v.compute.readReady := '0';
-      job := PTP_COMPUTE_JOB_INIT_C;
-      job.remainder := toSlv(REMAINDER_C, 4);
-      normalizedReady <= '0';
-      constantValue := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 128), PTP_TIME_FRAC_BITS_C);
+      v.historyReady := '0';
+      v.divReady := '0';
 
-      if r.step = 11 then
-         constantValue := resize(signed(INGRESS_LATENCY_G), 128);
-      elsif r.step = 15 then
-         constantValue := resize(signed(EGRESS_LATENCY_G), 128);
-      elsif r.step = 24 then
-         constantValue := (others => '0');
+      separation := (others => '0');
+      delayHalf := (others => '0');
+
+      -- Release an accepted epoch request as soon as the normalizer takes it.
+      if r.epochValid = '1' and epochReady = '1' then
+         v.epochValid := '0';
       end if;
 
       case r.state is
          when IDLE_S =>
-
+            -- The production history stream fills the forward and corrected
+            -- Sync values outside a measurement.
             if NORMALIZED_SYNC_G and normalizedValid = '1' then
-               if r.compute.memValid = '0' then
-                  v.compute.memValid := '1';
-                  v.compute.memWrite := '1';
-                  v.compute.memWord := toSlv(to_integer(unsigned(normalizedWord)),6);
-                  if normalizedWord(2) = '1' then
-                     v.compute.memWord := toSlv(8+to_integer(unsigned(normalizedWord(1 downto 0))),6);
-                  end if;
-                  v.compute.memData := normalizedData;
-               elsif computeSlave.memReady = '1' then
-                  v.compute.memValid := '0';
-                  normalizedReady <= '1';
-               end if;
-            end if;
+               v.historyReady := '1';
 
-            if inputValid = '1' and r.compute.cancel = '0' then
-               v.resultValue := PTP_MEASUREMENT_INIT_C;
-               v.error := '0';
-               v.wordIndex := 0;
-               v.step := 0;
-               if NORMALIZED_SYNC_G then
-                  v.wordIndex := 16;
-                  v.step := 5;
-               end if;
-               v.state := LOAD_S;
-               if unsigned(ratio) = 0 or unsigned(syncSample.capture.increment) = 0 or
-                  unsigned(delaySample.capture.increment) = 0 or
-                  syncSample.capture.generation /= delaySample.generation then
-                  v.inputReady := '1';
-                  v.error := '1';
-                  v.resultValid := '1';
-                  v.state := DONE_S;
-               end if;
-            end if;
-
-         when LOAD_S =>
-
-            if r.compute.memValid = '0' then
-               v.compute.memValid := '1';
-               v.compute.memWrite := '1';
-               v.compute.memWord := toSlv(r.wordIndex, 6);
-               v.compute.memData := inputWord(syncSample, delaySample, ratio, maxPathDelay, r.wordIndex);
-            elsif computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               if r.wordIndex = INPUT_WORDS_C-1 then
-                  v.state := ACCEPT_S;
+               if unsigned(normalizedWord) < 4 then
+                  v.forwardValue(32*to_integer(unsigned(normalizedWord))+31 downto
+                                 32*to_integer(unsigned(normalizedWord))) := signed(normalizedData);
                else
-                  v.wordIndex := r.wordIndex+1;
+                  v.syncTime(32*(to_integer(unsigned(normalizedWord))-4)+31 downto
+                             32*(to_integer(unsigned(normalizedWord))-4)) := signed(normalizedData);
                end if;
             end if;
 
-         when ACCEPT_S =>
             v.inputReady := '1';
 
             if inputValid = '1' then
+               v.resultValue := PTP_MEASUREMENT_INIT_C;
                v.resultValue.isDelay := '1';
                v.resultValue.generation := delaySample.generation;
                v.resultValue.ticks := delaySample.capture.ticks;
@@ -257,200 +293,256 @@ begin
                v.resultValue.delaySequence := delaySample.sequenceId;
                v.resultValue.ratio := ratio;
                v.resultValue.ratioValid := '1';
-               v.wordIndex := 0;
-               v.state := CONSTANT_S;
-            end if;
+               v.error := '0';
 
-         when CONSTANT_S =>
+               v.ratio := unsigned(ratio);
+               v.rxIncrement := unsigned(syncSample.capture.increment);
+               v.txIncrement := unsigned(delaySample.capture.increment);
+               v.maximum := signed(maxPathDelay);
 
-            if r.compute.memValid = '0' then
-               v.compute.memValid := '1';
-               v.compute.memWrite := '1';
-               v.compute.memWord := toSlv(4*TEMP_C+r.wordIndex, 6);
-               v.compute.memData := slv(constantValue(32*r.wordIndex+31 downto 32*r.wordIndex));
-            elsif computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               if r.wordIndex = 3 then
-                  v.state := PLAN_S;
-                  if r.step = 11 or r.step = 15 or r.step = 24 then
-                     v.step := r.step+1;
-                  end if;
+               -- The raw separation is formed from the two captures directly;
+               -- both are unsigned67 Q3 tick/phase values.
+               v.rawSeparation :=
+                  signed(resize(unsigned(delaySample.capture.ticks) &
+                                unsigned(delaySample.capture.tickPhase), 68)) -
+                  signed(resize(unsigned(syncSample.capture.ticks) &
+                                unsigned(syncSample.capture.tickPhase), 68));
+
+               if NORMALIZED_SYNC_G then
+                  v.state := EPOCH_REMOTE_S;
                else
-                  v.wordIndex := r.wordIndex+1;
+                  v.state := EPOCH_LOCAL_S;
                end if;
-            end if;
 
-         when PLAN_S =>
-            v.checked := false;
-            v.state := ISSUE_S;
-
-            case r.step is
-               when 0 =>
-                  job := ptpComputeJob(PTP_COMPUTE_MUL_C, LOCAL_C, TEMP_C, LOCAL_C, REMAINDER_C);
-               when 1 =>
-                  job := ptpComputeJob(PTP_COMPUTE_ADD_C, LOCAL_C, LOCAL_NS_C, LOCAL_C, REMAINDER_C);
-               when 2 =>
-                  job := ptpComputeJob(PTP_COMPUTE_MUL_C, SYNC_C, TEMP_C, SYNC_C, REMAINDER_C);
-               when 3 =>
-                  job := ptpComputeJob(PTP_COMPUTE_ADD_C, SYNC_C, SYNC_NS_C, SYNC_C, REMAINDER_C);
-               when 4 =>
-                  job := ptpComputeJob(PTP_COMPUTE_ADD_C, SYNC_C, SYNC_CORRECTION_C, SYNC_C, REMAINDER_C);
-               when 5 =>
-                  job := ptpComputeJob(PTP_COMPUTE_MUL_C, REMOTE_C, TEMP_C, REMOTE_C, REMAINDER_C);
-               when 6 =>
-                  job := ptpComputeJob(PTP_COMPUTE_ADD_C, REMOTE_C, REMOTE_NS_C, REMOTE_C, REMAINDER_C);
-               when 7 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SUB_C, REMOTE_C, DELAY_CORRECTION_C, REMOTE_C, REMAINDER_C);
-               when 8 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SUB_C, FORWARD_C, ELAPSED_C, ELAPSED_C, REMAINDER_C);
-               when 9 =>
-                  job := ptpComputeJob(PTP_COMPUTE_MUL_C, ELAPSED_C, RATIO_C, ELAPSED_C, REMAINDER_C);
-                  v.checked := true;
-               when 10 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SHR_C, ELAPSED_C, 0, ELAPSED_C, REMAINDER_C, ELAPSED_SHIFT_C, '1');
-               when 11 | 15 | 24 =>
-                  v.wordIndex := 0;
-                  v.state := CONSTANT_S;
-
-                  if r.step = 11 and signed(INGRESS_LATENCY_G) = 0 then
-                     v.step := 15;
-                     v.state := PLAN_S;
-                  elsif r.step = 15 and signed(EGRESS_LATENCY_G) = 0 then
-                     v.step := 19;
-                     v.state := PLAN_S;
-                  end if;
-
-               when 12 | 16 =>
-                  job := ptpComputeJob(PTP_COMPUTE_MUL_C, TEMP_C, RATIO_C, TEMP_C, REMAINDER_C);
-                  v.checked := true;
-               when 13 =>
-                  job := ptpComputeJob(PTP_COMPUTE_DIV_C, TEMP_C, RX_INCREMENT_C, TEMP_C, REMAINDER_C, 0, '1');
-                  v.checked := true;
-               when 17 =>
-                  job := ptpComputeJob(PTP_COMPUTE_DIV_C, TEMP_C, TX_INCREMENT_C, TEMP_C, REMAINDER_C, 0, '1');
-                  v.checked := true;
-               when 14 | 18 =>
-                  job := ptpComputeJob(PTP_COMPUTE_ADD_C, ELAPSED_C, TEMP_C, ELAPSED_C, REMAINDER_C);
-               when 19 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SUB_C, LOCAL_C, SYNC_C, FORWARD_C, REMAINDER_C);
-
-                  if NORMALIZED_SYNC_G then
-                     job := ptpComputeJob(PTP_COMPUTE_COPY_C, LOCAL_C, 0, FORWARD_C, REMAINDER_C);
-                  end if;
-
-               when 20 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SUB_C, REMOTE_C, SYNC_C, REMOTE_C, REMAINDER_C);
-               when 21 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SUB_C, REMOTE_C, ELAPSED_C, ELAPSED_C, REMAINDER_C);
-               when 22 =>
-                  job := ptpComputeJob(PTP_COMPUTE_SHR_C, ELAPSED_C, 0, ELAPSED_C, REMAINDER_C, 1, '1');
-               when 23 =>
-                  job := ptpComputeJob(PTP_COMPUTE_CMP_C, MAXIMUM_C, ELAPSED_C, TEMP_C, REMAINDER_C);
-               when 25 =>
-                  job := ptpComputeJob(PTP_COMPUTE_CMP_C, ELAPSED_C, TEMP_C, TEMP_C, REMAINDER_C);
-               when 26 =>
-                  v.wordIndex := 0;
-                  v.state := READ_S;
-            end case;
-
-            if v.state = ISSUE_S then
-               v.compute.job := job;
-               v.compute.jobValid := '1';
-            end if;
-
-         when ISSUE_S =>
-
-            if computeSlave.jobReady = '1' then
-               v.compute.jobValid := '0';
-               v.state := WAIT_S;
-            end if;
-
-         when WAIT_S =>
-
-            if computeSlave.resultValid = '1' then
-               v.compute.resultReady := '1';
-               v.step := r.step+1;
-               v.state := PLAN_S;
-               if r.checked and computeSlave.resultError = '1' then
+               -- A zero ratio or captured increment cannot produce a
+               -- measurement, and a generation mismatch invalidates it.
+               if unsigned(ratio) = 0 or
+                  unsigned(syncSample.capture.increment) = 0 or
+                  unsigned(delaySample.capture.increment) = 0 or
+                  syncSample.capture.generation /= delaySample.generation then
                   v.error := '1';
                   v.resultValid := '1';
                   v.state := DONE_S;
-               elsif (r.step = 23 or r.step = 25) and computeSlave.resultLess = '1' then
+               end if;
+            end if;
+
+         when EPOCH_LOCAL_S =>
+            -- Local Sync RX capture: seconds and a Q16 subsecond.
+            v.epochSeconds := syncSample.capture.timestamp(95 downto 48);
+            v.epochSubsecond := syncSample.capture.timestamp(47 downto 0);
+            v.epochSelect := LOCAL_E;
+            v.epochValid := '1';
+            v.returnState := EPOCH_SYNC_S;
+            v.state := EPOCH_WAIT_S;
+
+         when EPOCH_SYNC_S =>
+            -- Master Sync origin: wire nanoseconds become Q16 by placement.
+            v.epochSeconds := syncSample.remoteTime(79 downto 32);
+            v.epochSubsecond := syncSample.remoteTime(31 downto 0) & x"0000";
+            v.epochSelect := SYNC_E;
+            v.epochValid := '1';
+            v.returnState := CORRECT_SYNC_S;
+            v.state := EPOCH_WAIT_S;
+
+         when EPOCH_REMOTE_S =>
+            v.epochSeconds := delaySample.remoteTime(79 downto 32);
+            v.epochSubsecond := delaySample.remoteTime(31 downto 0) & x"0000";
+            v.epochSelect := REMOTE_E;
+            v.epochValid := '1';
+            v.returnState := CORRECT_REMOTE_S;
+            v.state := EPOCH_WAIT_S;
+
+         when EPOCH_WAIT_S =>
+            if epochResultValid = '1' then
+               case r.epochSelect is
+                  when LOCAL_E =>
+                     v.localTime := resize(signed(epochResultValue), 128);
+                  when SYNC_E =>
+                     v.syncTime := resize(signed(epochResultValue), 128);
+                  when REMOTE_E =>
+                     v.remoteTime := resize(signed(epochResultValue), 128);
+               end case;
+
+               v.state := r.returnState;
+            end if;
+
+         when CORRECT_SYNC_S =>
+            -- Correction additions intentionally wrap signed128.
+            v.syncTime := r.syncTime+signed(syncSample.correction);
+            v.state := EPOCH_REMOTE_S;
+
+         when CORRECT_REMOTE_S =>
+            v.remoteTime := r.remoteTime-resize(signed(delaySample.correction), 128);
+            v.state := ELAPSED_PRODUCT_S;
+
+         when ELAPSED_PRODUCT_S =>
+            v.mulA := slv(r.rawSeparation);
+            v.mulB := slv(r.ratio);
+            v.mulValid := '1';
+            v.returnState := ELAPSED_SHIFT_S;
+            v.state := PRODUCT_WAIT_S;
+
+         when PRODUCT_WAIT_S =>
+            if mulReady = '1' then
+               v.mulValid := '0';
+            end if;
+
+            if mulResultValid = '1' then
+               v.productValue := resize(signed(mulResult), 128);
+               v.state := r.returnState;
+
+               -- Reject an overflowing product before its rounding shift, so
+               -- the discarded-measurement set is unchanged.
+               if mulOverflow = '1' then
                   v.error := '1';
-               end if;
-            end if;
-
-         when READ_S =>
-            v.compute.memWrite := '0';
-            v.compute.memValid := '1';
-            v.compute.memWord := toSlv(4*FORWARD_C+r.wordIndex, 6);
-
-            if r.wordIndex >= 4 then
-               v.compute.memWord := toSlv(4*ELAPSED_C+r.wordIndex-4, 6);
-            end if;
-
-            if r.compute.memValid = '1' and computeSlave.memReady = '1' then
-               v.compute.memValid := '0';
-               v.compute.readReady := '1';
-               v.state := READ_WAIT_S;
-            end if;
-
-         when READ_WAIT_S =>
-            v.compute.readReady := '1';
-
-            if computeSlave.readValid = '1' then
-               if r.wordIndex < 4 then
-                  v.resultValue.forward(32*r.wordIndex+31 downto 32*r.wordIndex) := computeSlave.readData;
-               else
-                  v.resultValue.delayValue(32*(r.wordIndex-4)+31 downto 32*(r.wordIndex-4)) := computeSlave.readData;
-               end if;
-               if r.wordIndex = 7 then
                   v.resultValid := '1';
                   v.state := DONE_S;
-               else
-                  v.wordIndex := r.wordIndex+1;
-                  v.state := READ_S;
                end if;
+            end if;
+
+         when ELAPSED_SHIFT_S =>
+            v.elapsedValue := resize(
+               ptpRoundShiftExact(r.productValue, ELAPSED_SHIFT_C), 128);
+            v.state := FORWARD_S;
+
+            if INGRESS_ACTIVE_C then
+               v.state := RX_PRODUCT_S;
+            elsif EGRESS_ACTIVE_C then
+               v.state := TX_PRODUCT_S;
+            end if;
+
+         when RX_PRODUCT_S =>
+            v.mulA := slv(resize(signed(INGRESS_LATENCY_G), PRODUCT_A_C));
+            v.mulB := slv(r.ratio);
+            v.mulValid := '1';
+            v.returnState := RX_DIVIDE_S;
+            v.state := PRODUCT_WAIT_S;
+
+         when RX_DIVIDE_S =>
+            -- Each plane converts through its own captured increment; the
+            -- current or nominal increment would change the measurement.
+            v.divOperandA := slv(r.productValue);
+            v.divOperandB := slv(shift_left(resize(r.rxIncrement, 80),
+                                            PTP_TIME_FRAC_BITS_C));
+            v.divValid := '1';
+            v.returnState := RX_ADD_S;
+            v.state := DIVIDE_WAIT_S;
+
+         when DIVIDE_WAIT_S =>
+            if divideReady = '1' then
+               v.divValid := '0';
+            end if;
+
+            v.divReady := '1';
+
+            if divideResultValid = '1' then
+               v.productValue := signed(divideResultValue);
+               v.state := r.returnState;
+
+               if divideResultError = '1' then
+                  v.error := '1';
+                  v.resultValid := '1';
+                  v.state := DONE_S;
+               end if;
+            end if;
+
+         when RX_ADD_S =>
+            v.elapsedValue := r.elapsedValue+r.productValue;
+            v.state := FORWARD_S;
+
+            if EGRESS_ACTIVE_C then
+               v.state := TX_PRODUCT_S;
+            end if;
+
+         when TX_PRODUCT_S =>
+            v.mulA := slv(resize(signed(EGRESS_LATENCY_G), PRODUCT_A_C));
+            v.mulB := slv(r.ratio);
+            v.mulValid := '1';
+            v.returnState := TX_DIVIDE_S;
+            v.state := PRODUCT_WAIT_S;
+
+         when TX_DIVIDE_S =>
+            v.divOperandA := slv(r.productValue);
+            v.divOperandB := slv(shift_left(resize(r.txIncrement, 80),
+                                            PTP_TIME_FRAC_BITS_C));
+            v.divValid := '1';
+            v.returnState := TX_ADD_S;
+            v.state := DIVIDE_WAIT_S;
+
+         when TX_ADD_S =>
+            v.elapsedValue := r.elapsedValue+r.productValue;
+            v.state := FORWARD_S;
+
+         when FORWARD_S =>
+            -- In normalized mode the history already supplied the forward
+            -- value; the standalone leaf forms it here.
+            if not NORMALIZED_SYNC_G then
+               v.forwardValue := r.localTime-r.syncTime;
+            end if;
+
+            v.state := REMOTE_DIFF_S;
+
+         when REMOTE_DIFF_S =>
+            v.remoteTime := r.remoteTime-r.syncTime;
+            v.state := DELAY_DIFF_S;
+
+         when DELAY_DIFF_S =>
+            v.elapsedValue := r.remoteTime-r.elapsedValue;
+            v.state := DELAY_HALF_S;
+
+         when DELAY_HALF_S =>
+            v.elapsedValue := resize(ptpRoundShiftExact(r.elapsedValue, 1), 128);
+            v.state := DELAY_CHECK_S;
+
+         when DELAY_CHECK_S =>
+            -- Negative or excessive path delay is rejected before publication.
+            v.resultValue.forward := slv(r.forwardValue);
+            v.resultValue.delayValue := slv(r.elapsedValue);
+            v.resultValid := '1';
+            v.state := DONE_S;
+
+            if r.elapsedValue < 0 or
+               r.elapsedValue > resize(r.maximum, 128) then
+               v.error := '1';
             end if;
 
          when DONE_S =>
-
             if resultReady = '1' then
                v.resultValid := '0';
                v.state := IDLE_S;
             end if;
-
       end case;
-
-      if cancel = '1' or rst = RST_POLARITY_G then
-         normalizedReady <= '0';
-      end if;
 
       if cancel = '1' then
          v := REG_INIT_C;
-         v.compute.cancel := '1';
       end if;
 
-      if not RST_ASYNC_G and rst = RST_POLARITY_G then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
-      computeMaster <= r.compute;
+
       inputReady <= v.inputReady;
+      normalizedReady <= v.historyReady;
       resultValue <= r.resultValue;
       resultValid <= r.resultValid;
       resultError <= r.error;
+
+      divideValid <= r.divValid;
+      divideOperandA <= r.divOperandA;
+      divideOperandB <= r.divOperandB;
+      divideCancel <= cancel;
+      divideResultReady <= v.divReady;
    end process comb;
+
    seq : process (clk, rst) is
    begin
-
-      if RST_ASYNC_G and rst = RST_POLARITY_G then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
-
    end process seq;
 
 end architecture rtl;
