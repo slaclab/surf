@@ -177,7 +177,7 @@ begin
             v.active := '0';
          end if;
 
-      elsif eligible(selected) = '1' and rst /= RST_POLARITY_G then
+      elsif eligible(selected) = '1' then
          issue := '1';
          v.inputReady(selected) := coreReady;
 
@@ -188,14 +188,8 @@ begin
          end if;
       end if;
 
-      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
-         v := REG_INIT_C;
-         issue := '0';
-         cancelNow := '0';
-      end if;
-
-      rin <= v;
-
+      -- Combinatorial outputs before the reset. Admission describes this
+      -- edge's capacity; the shared reset domain excludes transfers.
       coreValid <= issue;
       coreCancel <= cancelNow;
       coreRound <= roundNearest(selected);
@@ -204,6 +198,13 @@ begin
          operandB(DIVISOR_WIDTH_G*selected+DIVISOR_WIDTH_G-1 downto DIVISOR_WIDTH_G*selected)), 128));
 
       inputReady <= v.inputReady;
+
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+         v := REG_INIT_C;
+      end if;
+
+      rin <= v;
+
       resultValid <= r.valid;
       resultValue <= r.value;
       resultError <= r.error;

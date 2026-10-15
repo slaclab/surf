@@ -196,13 +196,15 @@ begin
          v := REG_INIT_C;
       end if;
 
+      -- Combinatorial outputs before the reset
+      inputReady <= v.inputReady;
+
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      inputReady <= v.inputReady;
       resultValid <= r.valid;
       resultValue <= r.value;
       overflow <= r.overflow;

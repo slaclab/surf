@@ -791,7 +791,9 @@ begin
          v.manualBusy := '1';
       end if;
 
-      -- Apply synchronous reset before publishing next state and outputs.
+      -- Combinatorial outputs before the reset
+      secondResultReady <= v.secondReady;
+
       if RST_ASYNC_G = false and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
@@ -807,7 +809,6 @@ begin
       secondRound <= '0';  -- Truncate; the remainder is the subsecond part.
       secondOperand <= slv(resize(signed(r.phaseOperand), 128));
       secondCancel <= '0';
-      secondResultReady <= v.secondReady;
       axiReadSlave   <= r.readSlave;
       axiWriteSlave  <= r.writeSlave;
       phcTime        <= r.timeValue;

@@ -558,15 +558,18 @@ begin
          v := REG_INIT_C;
       end if;
 
+      -- Combinatorial outputs before the reset
+      inputReady <= v.inputReady;
+      normalizedReady <= v.historyReady;
+      mulResultReady <= v.mulTake;
+      divideResultReady <= v.divReady;
+
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      inputReady <= v.inputReady;
-      normalizedReady <= v.historyReady;
-      mulResultReady <= v.mulTake;
       resultValue <= r.resultValue;
       resultValid <= r.resultValid;
       resultError <= r.error;
@@ -575,7 +578,6 @@ begin
       divideOperandA <= r.divOperandA;
       divideOperandB <= r.divOperandB;
       divideCancel <= cancel;
-      divideResultReady <= v.divReady;
    end process comb;
 
    seq : process (clk, rst) is

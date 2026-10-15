@@ -766,24 +766,24 @@ begin
       v.status.filterCount := filterCount;
       v.status.rejectedCount := v.rejectedCount;
 
-      -- Apply synchronous reset before publishing next state and outputs.
+      -- Combinatorial outputs before the reset. These are resolved controls
+      -- published without another decision stage. Measurement ready is the
+      -- reverse capacity exception: holdover work and current cancellation
+      -- share its input slot, and a delayed ready would require an extra
+      -- reserved sample slot.
+      filterInputValid <= v.delayValid;
+      piInputValid <= v.forwardValid;
+      measurementSlave <= v.measurementSlave;
+
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      -- Publish resolved controls and registered payloads without another
-      -- decision stage. Measurement ready is the reverse capacity exception:
-      -- holdover work and current cancellation share its input slot, and a
-      -- delayed ready would require an extra reserved sample slot.
-      filterInputValid <= v.delayValid;
-      piInputValid <= v.forwardValid;
-
       axiReadSlave <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
       configValid <= r.configValid;
-      measurementSlave <= v.measurementSlave;
       status <= r.status;
    end process comb;
 

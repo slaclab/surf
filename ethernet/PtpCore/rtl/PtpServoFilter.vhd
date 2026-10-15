@@ -218,13 +218,15 @@ begin
          v.inputReady := '0';
       end if;
 
+      -- Combinatorial outputs before the reset
+      inputReady <= v.inputReady;
+
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      inputReady <= v.inputReady;
       filterValid <= r.filterValid;
       filteredDelay <= r.median;
       filterCount <= r.count;

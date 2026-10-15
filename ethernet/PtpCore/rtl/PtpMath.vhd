@@ -169,8 +169,10 @@ begin
             end if;
 
             -- Ready describes this edge's admission, even when accepting the
-            -- operands above starts work. Set it after the transaction reset.
-            if cancel = '0' and rst /= RST_POLARITY_G then
+            -- operands above starts work. Set it after the whole-record
+            -- transaction reset, which would otherwise clear it. Cancellation
+            -- is applied below and withdraws this ready.
+            if cancel = '0' then
                v.inputReady := '1';
             end if;
          when RUN_S =>
@@ -256,12 +258,20 @@ begin
          v.resultValid := '1';
       end if;
 
-      if cancel = '1' or (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
+      -- Owner-local cancellation discards pending and held work. It is a
+      -- functional override, so it is applied above the publication below.
+      if cancel = '1' then
+         v := REG_INIT_C;
+      end if;
+
+      -- Combinatorial outputs before the reset
+      inputReady <= v.inputReady;
+
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin             <= v;
-      inputReady      <= v.inputReady;
       resultValid     <= r.resultValid;
       resultValue     <= r.resultValue;
       resultRemainder <= r.resultRemainder;

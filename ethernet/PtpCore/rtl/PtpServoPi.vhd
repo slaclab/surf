@@ -317,10 +317,6 @@ architecture rtl of PtpServoPi is
 
 begin
 
-   assert CLK_FREQ_G = 125000000 or CLK_FREQ_G = 156250000
-      report "PtpServoPi supports the two qualified endpoint clocks only"
-      severity failure;
-
    U_Product : entity surf.PtpLimbProduct
       generic map (
          TPD_G          => TPD_G,
@@ -832,26 +828,27 @@ begin
       v.arithmeticCancel := toSl(cancelNow or phcStatus.fault = '1' or
                                  v.status.state = PTP_SERVO_FAULT_C);
 
+      -- Combinatorial outputs before the reset.
+      -- Arithmetic cancellation also covers a fault, which stops the loop
+      -- without being a command cancellation.
+      arithmeticCancel <= v.arithmeticCancel;
+      secondCancel <= v.arithmeticCancel;
+      secondResultReady <= v.secondResultReady;
+      mulResultReady <= v.mulTake;
+      inputReady <= v.inputReady;
+
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
       rin <= v;
 
-      -- Arithmetic cancellation also covers a fault, which stops the loop
-      -- without being a command cancellation.
-      arithmeticCancel <= v.arithmeticCancel;
       -- The SECOND request is registered like the local converter requests, so
       -- valid, operand and rounding mode reach the shared service together.
       secondValid <= divRequest(SECOND_ID_C);
       secondRound <= r.divRound;
       secondOperand <= r.divOperand;
-      secondCancel <= v.arithmeticCancel;
-      secondResultReady <= v.secondResultReady;
 
-      mulResultReady <= v.mulTake;
-
-      inputReady <= v.inputReady;
       commandMaster <= r.command;
       expireTime <= r.expireTime;
       status <= r.status;
