@@ -242,7 +242,9 @@ architecture rtl of PtpServo is
       sampleTicks   : slv(63 downto 0);
       sampleGen     : slv(31 downto 0);
       rejectedCount : slv(31 downto 0);
-      filterStale   : sl;
+      delayBusy     : sl;
+      forwardBusy   : sl;
+      piRejected    : slv(31 downto 0);
       status        : PtpServoStatusType;
       generation    : slv(31 downto 0);
       abortSeen     : sl;
@@ -282,7 +284,9 @@ architecture rtl of PtpServo is
       sampleTicks       => (others => '0'),
       sampleGen         => (others => '0'),
       rejectedCount     => (others => '0'),
-      filterStale       => '1',
+      delayBusy         => '0',
+      forwardBusy       => '0',
+      piRejected        => (others => '0'),
       status            => PTP_SERVO_STATUS_INIT_C,
       generation        => (others => '0'),
       abortSeen         => '0',
@@ -301,6 +305,8 @@ architecture rtl of PtpServo is
    signal scanData      : slv(31 downto 0);
    signal snapshotSlave : PtpRegisterSlaveType;
    signal counterSlave  : PtpRegisterSlaveType;
+
+   signal childCancel : sl;
 
    -- Filter interface.
    signal filterInputValid : sl;
@@ -381,7 +387,7 @@ begin
       port map (
          clk           => clk,                       -- [in]
          rst           => rst,                       -- [in]
-         cancel        => r.cancel,                  -- [in]
+         cancel        => childCancel,               -- [in]
          inputValid    => filterInputValid,          -- [in]
          inputReady    => filterInputReady,          -- [out]
          delayValue    => r.delayValue,              -- [in]
@@ -403,7 +409,7 @@ begin
       port map (
          clk               => clk,                -- [in]
          rst               => rst,                -- [in]
-         cancel            => r.cancel,           -- [in]
+         cancel            => childCancel,        -- [in]
          enable            => servoEnable,        -- [in]
          config            => r.activeConfig,     -- [in]
          sharedConfig      => sharedConfig,       -- [in]
@@ -445,7 +451,6 @@ begin
       variable configIndexValue : natural range 0 to 255;
       variable snapshotIndex    : integer range -1 to 9;
       variable cancelNow        : boolean;
-      variable publishedCount   : slv(2 downto 0);
    begin
       v := r;
       v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
@@ -456,7 +461,9 @@ begin
       -- Generation changes independently invalidate work.
       cancelNow := restart = '1' or
                    (measurementMaster.abort = '1' and r.abortSeen = '0') or
-                   phcStatus.generation /= r.generation or servoEnable = '0';
+                   phcStatus.generation /= r.generation or servoEnable = '0' or
+                   ((r.delayBusy = '1' or r.forwardBusy = '1') and
+                    ptpAgeExpired(phcStatus.ticks, r.sampleTicks, sharedConfig.associationTimeout));
       v.cancel := toSl(cancelNow);
       v.abortSeen := measurementMaster.abort;
       v.generation := phcStatus.generation;
@@ -472,7 +479,17 @@ begin
          v.forwardValid := '0';
       end if;
 
-      if v.delayValid = '0' and v.forwardValid = '0' and cancelNow = false then
+      -- Ready at a child is capacity, not completion of its input transfer.
+      -- Retain ownership after that transfer until the child returns idle.
+      if r.delayBusy = '1' and r.delayValid = '0' and filterInputReady = '1' then
+         v.delayBusy := '0';
+      end if;
+
+      if r.forwardBusy = '1' and r.forwardValid = '0' and piInputReady = '1' then
+         v.forwardBusy := '0';
+      end if;
+
+      if v.delayBusy = '0' and v.forwardBusy = '0' and cancelNow = false then
          v.measurementSlave.ready := '1';
 
          if measurementMaster.valid = '1' and measurementMaster.abort = '0' and
@@ -488,6 +505,7 @@ begin
                v.delayValue := measurementMaster.data.delayValue;
                v.sampleTicks := measurementMaster.data.ticks;
                v.delayValid := '1';
+               v.delayBusy := '1';
             else
                v.forwardValue := measurementMaster.data.forward;
                v.ratio := measurementMaster.data.ratio;
@@ -495,6 +513,7 @@ begin
                v.sampleTicks := measurementMaster.data.ticks;
                v.sampleGen := measurementMaster.data.generation;
                v.forwardValid := '1';
+               v.forwardBusy := '1';
             end if;
          end if;
       end if;
@@ -506,8 +525,15 @@ begin
       -- Both children report their own rejections; this core counts them
       -- alongside the provenance rejections it applies itself.
       if filterReject = '1' then
-         v.rejectedCount := ptpSatInc(r.rejectedCount);
+         v.rejectedCount := ptpSatInc(v.rejectedCount);
       end if;
+
+      -- The PI counter is retained across cancellation and saturates. Count
+      -- each change once, including a rejection concurrent with another owner.
+      if piStatus.rejectedCount /= r.piRejected then
+         v.rejectedCount := ptpSatInc(v.rejectedCount);
+      end if;
+      v.piRejected := piStatus.rejectedCount;
 
       if piOffsetUpd = '1' then
          v.pendingOffset := '1';
@@ -515,8 +541,6 @@ begin
 
       if filterUpdate = '1' then
          v.pendingFilter := '1';
-         -- A fresh median retires the cancellation that invalidated the last.
-         v.filterStale := '0';
       end if;
 
       if piRateUpd = '1' then
@@ -572,7 +596,8 @@ begin
       -- Cancellation discards queued publication work; a commit already
       -- issued belongs to the bank.
       if cancelNow then
-         v.filterStale := '1';
+         v.delayBusy := '0';
+         v.forwardBusy := '0';
          v.measurementSlave.ready := '0';
          v.delayValid := '0';
          v.forwardValid := '0';
@@ -778,17 +803,12 @@ begin
       measurementSlave <= v.measurementSlave;
       status.rejectedCount <= v.rejectedCount;
 
-      publishedCount := filterCount;
-      if v.filterStale = '1' or cancelNow then
-         publishedCount := (others => '0');
-      end if;
-
-      -- Cancellation invalidates the filter population. The filter clears its
-      -- own count, but only one edge after it observes the registered cancel,
-      -- so the invalidation is retained here and retired when the filter next
-      -- publishes. The payload stays readable for diagnostics; the count is
-      -- what reports its validity.
-      status.filterCount <= publishedCount;
+      -- Cancellation must enter the child state equations on the detection
+      -- edge: a PHC command accepted on that edge commits on the next one.
+      -- Another register here would miss that veto window and would also let
+      -- a simultaneous median publication escape cancellation. Public command
+      -- and filter outputs remain registered in their owning children.
+      childCancel <= v.cancel;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -820,6 +840,7 @@ begin
       status.offsetValue <= piStatus.offsetValue;
       status.ratePpb <= piStatus.ratePpb;
       status.filteredDelay <= filteredDelay;
+      status.filterCount <= filterCount;
    end process comb;
 
    seq : process (clk, rst) is

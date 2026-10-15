@@ -170,7 +170,8 @@ begin
                      end if;
                   end loop;
 
-                  v.inputReady := '0';
+                  -- Preserve ready on the accepting edge. The new state
+                  -- withdraws it while sorting on subsequent cycles.
                   v.medianStep := 0;
                   v.state := SORT_COMPARE_S;
                else

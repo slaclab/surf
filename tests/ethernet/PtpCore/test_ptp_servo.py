@@ -17,7 +17,7 @@
 #   Check registered valid/cancel/expiry before and after input-changing edges.
 #   Median cases cover every ordering, startup count, duplicates, signed64
 #   maximum, circular replacement and abort/restart of partially filled history.
-#   Cancel each median phase and the shared arithmetic transition windows;
+#   Cancel every median cycle and measured acquisition/tracking latency windows;
 #   check stalled inputs, AXI-only reset, stale work and coherent snapshots.
 #   Clock cases cover both MAC nominal increments and a standalone nominal
 #   divisor wider than the seconds/ppb constants (47 rather than 46 bits).
@@ -45,7 +45,7 @@ async def numerical_control(d):
     nominal = nearest(Fraction(NS*Q32, frequency))
 
     async def edge(check_registered=False, **values):
-        registered = ("commandValid", "cancelCommand", "expireTime")
+        registered = ("commandValid", "cancelCommand", "expireTime", "filteredDelay", "filterCount")
         before = tuple(int(getattr(d, name).value) for name in registered) if check_registered else None
         d.clk.value = 0
         for name, value in values.items():
@@ -57,14 +57,14 @@ async def numerical_control(d):
         d.clk.value = 1
         await Timer(4, unit="ns")
         if values.get("inputValid"):
-            # Input capture is serialized. Keep every field stable until the
-            # upload acknowledgement; subsequent calls may perturb the payload.
+            # Keep every field stable through the accepting edge. Subsequent
+            # calls may perturb the payload while the child processes its copy.
             for _ in range(100):
                 if accepted:
                     break
                 accepted = await edge()
             else:
-                assert False, "sample word upload did not acknowledge"
+                assert False, "sample did not acknowledge"
         return accepted
     for name in ("clk", "cancel", "ticks", "sampleTicks", "isDelay", "forwardValue", "delayValue", "ratio",
                  "inputValid", "commandReady", "commandAck", "commandError", "prepareConfig", "applyConfig",
@@ -182,6 +182,7 @@ async def numerical_control(d):
             await edge(inputValid=0)
             await collect(expected_ppb)
             assert int(d.offsetValue.value) == offset & ((1 << 128)-1)
+            assert int(d.rejectedCount.value) == 0, (ppm, index)
             last_sample = now
         if ppm == 0:
             # Maximum gain/offset times 1.5 s exceeds signed128 before the
@@ -219,12 +220,11 @@ async def numerical_control(d):
         assert int(d.expireTime.value)
         await edge(cancel=0)
 
-    # Sweep the boundaries surrounding bootstrap clamp, proportional rounding/
-    # seeding, and integral rounding/anti-windup. These are cancellation timing
-    # windows, not a reproduction of the numerical calculation.
-    for tracking, cutoffs in ((False, (*range(259, 263), *range(390, 397))),
-                              (True, range(912, 919))):
-        for cutoff in cutoffs:
+    # Measure each public command latency, then cancel throughout that window,
+    # including the edge that would publish the command. Fixed cycle numbers
+    # from the former word-serial engine no longer identify in-flight work.
+    for tracking in (False, True):
+        async def start_correction():
             await edge(rst=1, inputValid=0, cancel=0, commandReady=0, commandAck=0)
             await edge(rst=0)
             await configure((100000, 50000, 150000))
@@ -243,11 +243,25 @@ async def numerical_control(d):
                 now += frequency
             await edge(ticks=now, sampleTicks=now, isDelay=0, forwardValue=200*Q16,
                        ratio=ratio, inputValid=1)
+            return model
+
+        await start_correction()
+        for latency in range(1, 30001):
+            await edge(inputValid=0)
+            if int(d.commandValid.value):
+                break
+        else:
+            assert False, "servo command latency measurement timed out"
+        cutoffs = sorted({0, 1, 2, latency//4, latency//2, 3*latency//4,
+                          latency-2, latency-1})
+        for cutoff in cutoffs:
+            model = await start_correction()
             for _ in range(cutoff):
                 await edge(inputValid=0)
                 assert not int(d.commandValid.value)
-            await edge(check_registered=True, cancel=1)
-            assert not int(d.commandValid.value)
+            await edge(check_registered=True, inputValid=0, cancel=1)
+            assert not int(d.commandValid.value), (tracking, cutoff, latency)
+            assert int(d.cancelCommand.value)
             assert int(d.filterCount.value) == 0
             await edge(cancel=0)
             if tracking:
@@ -255,7 +269,7 @@ async def numerical_control(d):
                 # intact; holdover removes slew and exposes that retained value.
                 await collect(model.holdover())
             else:
-                for _ in range(700):
+                for _ in range(latency+1):
                     await edge()
                     assert not int(d.commandValid.value)
 
@@ -289,13 +303,13 @@ async def median_history(d):
         for _ in range(100):
             if await edge(ticks=tick, sampleTicks=tick, inputValid=1, isDelay=1, delayValue=value):
                 return
-        assert False, "median input upload did not acknowledge"
+        assert False, "median input did not acknowledge"
 
     async def submit(value, tick):
         before = (int(d.filteredDelay.value), int(d.filterCount.value))
         await accept_sample(value, tick)
-        # Twenty scratch writes, nine comparisons and at most 27 word copies
-        # plus a four-word publication fit inside 1200 isolated service clocks.
+        # Keep the independent service bound while observing completion through
+        # public ready. Median and population must change atomically.
         for cycle in range(1200):
             assert not int(d.inputReady.value)
             assert (int(d.filteredDelay.value), int(d.filterCount.value)) == before
@@ -314,6 +328,7 @@ async def median_history(d):
         assert int(d.filterCount.value) == 0
         await edge(cancel=0)
         history = deque(maxlen=5)
+        rejection_baseline = int(d.rejectedCount.value)
         for value in values:
             now += 1
             await submit(value, now)
@@ -321,6 +336,7 @@ async def median_history(d):
             expected = sorted(history)[(len(history)-1)//2]
             assert int(d.filterCount.value) == len(history)
             assert int(d.filteredDelay.value) == expected, (values, list(history), expected)
+            assert int(d.rejectedCount.value) == rejection_baseline, "accepted sample was replayed/rejected"
         # A rejected sample must leave both the median and replacement order intact.
         rejected = int(d.rejectedCount.value)
         now += 1
@@ -370,8 +386,8 @@ async def median_history(d):
     await edge(rst=0)
     await submit(11, 100)
     publication_latency = await submit(5, 101)
-    phases = (0, 1, 2, 50, 100, 250, publication_latency-1)
-    # Cancel upload/compute/publication, including the exact publication edge.
+    phases = range(publication_latency)
+    # Cancel every in-flight cycle, including the exact publication edge.
     for reason in ("cancel", "restart", "generation", "rst", "stale"):
         for phase in phases:
             await edge(rst=1, cancel=0, restart=0, generation=0, inputValid=0,
@@ -383,13 +399,34 @@ async def median_history(d):
                 await edge(inputValid=0)
             event = {reason: 1} if reason != "stale" else {"associationTimeout": 2, "ticks": 104}
             await edge(inputValid=0, **event)
-            assert int(d.filterCount.value) == 0, (reason, phase)
+            assert int(d.filterCount.value) == 0, (reason, phase, publication_latency)
             assert not int(d.commandValid.value)
-            assert int(d.filteredDelay.value) == (0 if reason == "rst" else 11)
+            assert int(d.filteredDelay.value) == (0 if reason == "rst" else 11), (reason, phase)
+            # Invalidation must persist when the cancellation pulse falls; an
+            # obsolete child publication must not resurrect the population.
             await edge(rst=0, cancel=0, restart=0, associationTimeout=(1 << 62)-1)
+            for _ in range(publication_latency+1):
+                await edge()
+                assert int(d.filterCount.value) == 0, (reason, phase)
+                assert int(d.filteredDelay.value) == (0 if reason == "rst" else 11)
             await submit(17, 200)
             assert int(d.filterCount.value) == 1
             assert int(d.filteredDelay.value) == 17
+
+    # Cancellation after completion invalidates the count while retaining the
+    # newly published median; it must not roll back an already completed sample.
+    await edge(rst=1, inputValid=0, generation=0)
+    await edge(rst=0)
+    await submit(11, 100)
+    await submit(5, 101)
+    await edge(cancel=1)
+    assert int(d.filterCount.value) == 0
+    assert int(d.filteredDelay.value) == 5
+    await edge(cancel=0)
+    for _ in range(publication_latency+1):
+        await edge()
+        assert int(d.filterCount.value) == 0
+        assert int(d.filteredDelay.value) == 5
 
     axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
 

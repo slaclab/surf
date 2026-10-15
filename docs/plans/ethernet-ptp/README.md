@@ -19,9 +19,9 @@ configures and observes the endpoint; it is outside the timing loop.
 
 ## Current validation
 
-Status reconciled October 13, 2026, at SURF `68e5dbfaa`. Each row describes its
-own source and test selection; results do not accumulate into qualification of
-the latest source automatically.
+The baseline table was reconciled October 13, 2026, at SURF `68e5dbfaa`;
+later rows identify their own source and test selection. Results do not
+accumulate into qualification of the latest source automatically.
 
 | Source/change | Recorded result | Boundary |
 | --- | --- | --- |
@@ -30,6 +30,7 @@ the latest source automatically.
 | Counter/BRAM/interval pass, `0d27ddbba`, and subsequent scan ALU | 20 and 9 focused configurations passed respectively. [Evidence](history/verification.md#connected-compute-and-subsequent-focused-checks) | The milestone summary preserves scope; original patch provenance is recoverable through its Git source index. |
 | Arithmetic/timing and RX/TX storage follow-ups | Selected SFP-only KCU105 source routes with WNS +0.247 ns and zero setup/hold/pulse-width failures; final RX leaf and real-MAC RX checks pass. [Evidence](history/verification.md#area-and-timing-evidence) | Final endpoint lifecycle, copper, constraint/CDC review and hardware acceptance remain open. |
 | Compute arbiter, frame capacity and optional TLVs, `016771843` | 48 focused configurations pass. Matched synthesis reports -803 LUTs for arbiter indexing and -1,176 for 128-byte capacity. TLV rejection is implemented but not selected. [Evidence](history/verification.md#capacity-and-arbiter-follow-up) | Synthesis has PHY black boxes unbound. Final endpoint/MAC lifecycle and a routed build of the combined source remain outstanding. |
+| October 15 servo lifecycle repair over `d4c78ad5b` | All three servo clock cases and the 125 MHz PHC command-lifecycle scenario pass; both edited RTL files pass VSG. [Evidence](history/verification.md#october-15-servo-lifecycle-repair) | Selected endpoint run was interrupted and remains incomplete; no new synthesis, routed timing or hardware qualification. |
 
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);

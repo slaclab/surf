@@ -1,11 +1,10 @@
 # PTP validation milestones
 
-Recorded evidence through October 13, 2026. These results apply to the named
+Recorded evidence through October 15, 2026. These results apply to the named
 source/configuration, not automatically to later RTL. The [workstream](../README.md)
 owns current status and [acceptance](../acceptance.md) owns remaining work.
 Original commands, per-case tables, fixture corrections and source hashes are
 recoverable using the [provenance index](decisions.md#source-provenance).
-No new simulations or builds ran during this condensation.
 
 ## Capture-boundary experiments
 
@@ -143,3 +142,46 @@ was below 100 ns for those cases. Separate estimator sweeps included ±100 ns
 packet-delay variation. These are model cases, not hardware accuracy guarantees
 or a combined arbitrary-jitter stability proof. Accelerated physical endpoint
 fixtures test state/command composition rather than long-duration default settling.
+
+## October 15 servo lifecycle repair
+
+Source: working-tree changes over `d4c78ad5b`, following the fixed-function
+servo split. The unmodified 125 MHz regression failed command cancellation
+and median retention. Diagnostics established a two-register cancellation path
+where the PHC commit veto permits only one; fixed median test delays also fell
+after the new filter had finished. A sweep at the actual publication boundary
+exposed a stale filter update undoing the parent's invalidation. Continuing the
+numerical test exposed omitted PI rejection accounting.
+
+The parent now resolves cancellation into the children's state updates, keeping
+public command/cancel and median/count registered. Measurement ownership lasts
+until the active child returns idle; the filter preserves ready on its accepting
+edge instead of consuming and then rejecting the same held sample. Association
+expiry covers pending child work, and the aggregate counter includes PI
+rejections. The [interface guide](../../../../ethernet/PtpCore/interfaces.md#registered-command-and-expiry-interface)
+records the cancellation timing requirement.
+
+The servo test derives cancellation windows from observed completion latency,
+checks every in-flight median cycle, distinguishes cancellation after completion,
+and checks that invalidation persists and accepted samples do not increment the
+rejection counter. Numerical results still use the independent rational oracle.
+The original cancellation-edge assertions remain in place.
+
+Validation uses Python 3.12.7, cocotb 2.1.0 and GHDL 6.0.0 on `PC100431`.
+Both edited RTL files pass VSG (689 rules, zero violations each). The PHC
+`registered_command_lifecycle` scenario passes at 125 MHz. All three
+`test_ptp_servo.py` configurations (125 MHz, 156.25 MHz and the wide nominal
+divisor at 31.25 kHz) pass both cocotb scenarios: six scenario executions.
+The selected `test_ptp_endpoint[two-step-GMII-False]` run was interrupted after
+261 seconds, during its first Sync interval; it is **incomplete**, not a pass or
+an RTL assertion failure. The preceding saved result for the same configuration
+records 5,143 seconds (about 86 minutes) on this host. Full endpoint/MAC
+integration remains open. No synthesis or routed timing validation ran.
+
+Focused commands from the SURF root used
+`/Users/bareese/ptp-dev/.planning/timing-venv/bin/python`:
+
+```bash
+python -m pytest -n 3 -q tests/ethernet/PtpCore/test_ptp_servo.py
+COCOTB_TEST_FILTER=registered_command_lifecycle python -m pytest -n 0 -q 'tests/ethernet/PtpCore/test_ptp_phc.py::test_ptp_phc[125000000-1-False]'
+```

@@ -211,9 +211,23 @@ The exact multi-hop boundaries are:
 Ledger samples, sample-valid, occupancy and counters remain registered;
 sequence extension is fixed wiring. Allocation capacity derives from the
 completed table scan and checked sequence candidate. Response acceptance is a registered one-cycle
-completion, aligned with metadata retained by the caller. Servo math-child
-cancellation is registered too; local cancellation immediately clears the
-parent's transaction and excludes results.
+completion, aligned with metadata retained by the caller.
+
+The servo holds one measurement while its filter or PI child processes it;
+child input acceptance does not release the parent's measurement ownership.
+Filter ready remains asserted on its accepting edge and falls during sorting.
+The parent resumes admission when the active child returns idle. Its rejection
+counter includes provenance, filter and PI rejections without replaying samples.
+
+Servo cancellation is resolved combinationally into both children's state
+updates. This is a deliberate exception to registered child controls: the PHC
+commits one clock after command admission, so inserting another register before
+the PI child's registered command cancellation would miss the commit veto.
+Filter median/count and PHC command/cancel remain registered at their owners.
+Cancellation on a median publication edge suppresses that publication and keeps
+the preceding median with count zero; cancellation after publication retains the
+new median with count zero. Association expiry remains live while either child
+owns a measurement, including the registered input holding stage.
 
 The ledger shares one widened subtract/compare across its mutually exclusive
 association-age, response-chronology and wire-age checks. Modulo-64 age handling
