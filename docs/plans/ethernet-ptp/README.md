@@ -34,6 +34,7 @@ accumulate into qualification of the latest source automatically.
 | October 15 fixed-function repairs, through `44c85ff35` | 25 focused arithmetic/E2E/protocol/PHC/service configurations pass; 202 configurations collect, ten wrappers elaborate, six changed RTL files pass VSG. Matched SFP-only routing has +0.133 ns setup WNS and zero black boxes. [Evidence](history/arithmetic.md) | Area increases; endpoint/real-MAC integration, full service bound, constraint/CDC/DRC review and hardware acceptance remain open. |
 | October 15 Delay_Req TX extraction and test-runtime follow-up over `a3f821fd9` | Three reservation/stall cases, four ordinary exchange edition/mode cases and the interval fixture pass. All six separated GMII/XGMII port scenarios pass (278.24 s including builds); the two strengthened rejection cases pass again in 56.54 s. Both edited RTL files pass VSG. | Earlier long port runs were interrupted, then replaced by completion-driven validation. No new closed-loop endpoint/real-MAC, synthesis, timing or hardware result. |
 | October 15 protocol ownership split and direct-test runtime repair over `a3f821fd9` | 32 distinct simulation configurations pass across focused batches: all 18 table/negative-guard cases, both direct-sample RAM modes, four ordinary exchange cases, three rejection cases, three TX cases and two protocol-specification cases. Five refined/new RTL files pass VSG; source import resolves. The matched 14-case batch fell from 458.24 s to 167.65 s; summed case execution time fell 52%. [Method and scope](../../../tests/ethernet/PtpCore/README.md#selecting-tests) | Both RAM modes retain all sixteen history-cancellation phases. Public engine ports and table word packing are unchanged. No new continuous-clock endpoint/real-MAC, synthesis, routed timing or hardware result. |
+| October 15 Sync transaction records over `513abd870` | Eleven focused configurations pass: history selection/cancellation/publication priority, pair cancellation/expiry and negative-result guard in both RAM modes, plus normalized E2E with both calibration planes. All six changed VHDL files pass VSG; source import resolves. | Pair/history/E2E state transitions and datapaths also compare unchanged after field substitution; completion fields are registered on their existing edge. One case needed a rebuild after a concurrent formatting edit invalidated GHDL analysis. No full-suite, synthesis, timing or hardware result. |
 
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
@@ -71,7 +72,11 @@ snapshot ownership, `PtpPortPolicy` admission/deadline/lifecycle ownership, and
 extraction remained too broad: its pairing, history and shared scan state now
 live in `PtpSyncPair`, `PtpSyncHistory` and `PtpTableScan`. Their boundaries are
 held transactions, not exported private FSM state. History also owns append
-sequencing, leaving one coordination FSM in the flow.
+sequencing, leaving one coordination FSM in the flow. A subsequent interface
+pass uses cohesive `PtpSyncPkg` records for pair completion, lookup command/result,
+append command/status and normalized words through E2E. Result records have one
+state owner; borrowed payloads retain their existing storage and lifetimes.
+Lookup's separately retained Delay sample remains distinct from its start command.
 `PtpDelayReqTx` retains scheduling, reservation requests and stalled-frame drain;
 `PtpTxLedger` retains its existing physical ownership contract. The parent is
 structural. Diagnostic serialization stays with held RX/E2E payloads in the flow;

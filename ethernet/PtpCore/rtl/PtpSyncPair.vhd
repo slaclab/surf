@@ -29,7 +29,7 @@ entity PtpSyncPair is
       clk    : in sl;
       rst    : in sl;
       cancel : in sl;
-      -- enable permits a new search; RX holds the message through done/take.
+      -- enable permits a new search; RX holds the message through result.done/take.
       enable        : in sl;
       ticks         : in slv(63 downto 0);
       rxMessage     : in PtpRxMessageType;
@@ -40,10 +40,8 @@ entity PtpSyncPair is
       -- A completion may have no sample (incomplete or rejected pair). The
       -- completed sample remains retained until enable permits another search.
       idle         : out sl;
-      done         : out sl;
       take         : in sl;
-      sampleValid  : out sl;
-      sample       : out PtpSyncSampleType;
+      result       : out PtpSyncPairResultType;
       syncAdmitted : out sl;
       rejected     : out natural range 0 to 2;
       -- Held row request; consume the unbackpressured result on its valid edge.
@@ -109,7 +107,7 @@ architecture rtl of PtpSyncPair is
       pairWriteEnable    : sl;
       pairWriteAddress   : slv(PAIR_ADDR_WIDTH_C-1 downto 0);
       pairWriteData      : slv(31 downto 0);
-      pendingSync        : PtpSyncSampleType;
+      result             : PtpSyncPairResultType;
       pairWord           : natural range 0 to PAIR_WORDS_C-1;
       pairKey            : slv(15 downto 0);
       pairBorn           : slv(63 downto 0);
@@ -117,7 +115,6 @@ architecture rtl of PtpSyncPair is
       pairDuplicateEqual : sl;
       pairWriteSync      : sl;
       pairWriteFollow    : sl;
-      pairPublish        : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -139,15 +136,14 @@ architecture rtl of PtpSyncPair is
       pairWriteEnable    => '0',
       pairWriteAddress   => (others => '0'),
       pairWriteData      => (others => '0'),
-      pendingSync        => PTP_SYNC_SAMPLE_INIT_C,
+      result             => PTP_SYNC_PAIR_RESULT_INIT_C,
       pairWord           => 0,
       pairKey            => (others => '0'),
       pairBorn           => (others => '0'),
       pairNew            => '0',
       pairDuplicateEqual => '1',
       pairWriteSync      => '0',
-      pairWriteFollow    => '0',
-      pairPublish        => '0');
+      pairWriteFollow    => '0');
 
    signal r            : RegType := REG_INIT_C;
    signal rin          : RegType;
@@ -158,9 +154,7 @@ begin
    assert MEMORY_TYPE_G = "distributed" or MEMORY_TYPE_G = "block"
       report "PtpSyncPair memory must be distributed or block" severity failure;
    idle <= toSl(r.pairState = PAIR_IDLE_S);
-   done <= toSl(r.pairState = PAIR_ACK_S);
-   sampleValid <= r.pairPublish;
-   sample <= r.pendingSync;
+   result <= r.result;
    scanRequest.valid <= toSl(r.pairState = PAIR_SCAN_S);
    scanRequest.ticks <= r.pairTicks;
    scanRequest.rowTicks <= r.pairBorn;
@@ -230,7 +224,7 @@ begin
                v.pairMatch := -1;
                v.pairFree := -1;
                v.pairOldest := -1;
-               v.pairPublish := '0';
+               v.result.sampleValid := '0';
                v.pairReadAddress := (others => '0');
                v.pairReadEnable := '1';
                v.pairState := PAIR_READ_S;
@@ -404,7 +398,7 @@ begin
          when PAIR_PUBLISH_S =>
             v.pairState := PAIR_ACK_S;
 
-            if r.pairPublish = '1' then
+            if r.result.sampleValid = '1' then
                v.pairWord := 3;
                v.pairReadAddress := toSlv(PAIR_WORDS_C*r.pairSlot+3, PAIR_ADDR_WIDTH_C);
                v.pairReadEnable := '1';
@@ -418,9 +412,9 @@ begin
             if r.pairWord <= 6 then
                -- Keep both signed wire corrections for the rate estimator to sum
                -- at full width when forming the corrected remote timestamp.
-               v.pendingSync.correction(32*(r.pairWord-3)+31 downto 32*(r.pairWord-3)) := pairReadData;
+               v.result.sample.correction(32*(r.pairWord-3)+31 downto 32*(r.pairWord-3)) := pairReadData;
             else
-               takeSyncWord(v.pendingSync, r.pairWord-7, pairReadData);
+               takeSyncWord(v.result.sample, r.pairWord-7, pairReadData);
             end if;
 
             if r.pairWord = PAIR_WORDS_C-1 then
@@ -527,10 +521,10 @@ begin
       -- Ownership changes precede field writes, but RX and rate admission
       -- remain blocked until the selected row has drained its registered write.
       if pairUpdated then
-         v.pairPublish := '0';
+         v.result.sampleValid := '0';
          if pair.used = '1' and pair.syncSeen = '1' and pair.complete = '0' and
             (pair.twoStep = '0' or pair.followSeen = '1') then
-            v.pairPublish := '1';
+            v.result.sampleValid := '1';
             pair.complete := '1';
          end if;
          v.pairUsed(r.pairSlot) := pair.used;
@@ -554,6 +548,9 @@ begin
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
+      -- Compute completion from resolved next state, on the same edge as the
+      -- final sample update. No extra publication cycle or payload register.
+      v.result.done := toSl(v.pairState = PAIR_ACK_S);
       rin <= v;
    end process comb;
 

@@ -29,6 +29,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpSyncPkg.all;
 
 entity PtpE2eWrapper is
    generic (
@@ -78,9 +79,9 @@ end entity PtpE2eWrapper;
 
 architecture rtl of PtpE2eWrapper is
 
-   signal syncSample  : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
-   signal delaySample : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
-   signal measurement : PtpMeasurementType;
+   signal syncSample        : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
+   signal delaySample       : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
+   signal measurement       : PtpMeasurementType;
    signal divideValid       : slv(1 downto 0);
    signal divideReady       : slv(1 downto 0);
    signal divideOperandA    : Slv128Array(1 downto 0);
@@ -91,7 +92,16 @@ architecture rtl of PtpE2eWrapper is
    signal divideResultValue : Slv128Array(1 downto 0);
    signal divideResultError : slv(1 downto 0);
 
+   signal normalizedMaster : PtpSyncNormalizedMasterType;
+
 begin
+
+   normalizedMaster <=
+   (
+      valid => normalizedValid,
+      word  => normalizedWord,
+      data  => normalizedData
+   );
 
    U_Divide : entity surf.PtpVariableDivide
       generic map (
@@ -142,10 +152,8 @@ begin
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          NORMALIZED_SYNC_G => NORMALIZED_SYNC_G)
       port map (
-         normalizedValid => normalizedValid,
-         normalizedReady => normalizedReady,
-         normalizedWord  => normalizedWord,
-         normalizedData  => normalizedData,
+         normalizedMaster  => normalizedMaster,  -- [in]
+         normalizedReady   => normalizedReady,  -- [out]
          divideValid       => divideValid(1),
          divideReady       => divideReady(1),
          divideOperandA    => divideOperandA(1),
@@ -155,18 +163,18 @@ begin
          divideResultReady => divideResultReady(1),
          divideResultValue => divideResultValue(1),
          divideResultError => divideResultError(1),
-         clk           => clk,           -- [in]
-         rst           => rst,           -- [in]
-         cancel        => cancel,        -- [in]
-         inputValid    => inputValid,    -- [in]
-         inputReady    => inputReady,    -- [out]
-         syncSample    => syncSample,    -- [in]
-         delaySample   => delaySample,   -- [in]
-         ratio         => ratio,         -- [in]
-         maxPathDelay  => maxPathDelay,  -- [in]
-         resultValue   => measurement,   -- [out]
-         resultValid   => resultValid,   -- [out]
-         resultReady   => resultReady,   -- [in]
-         resultError   => resultError);  -- [out]
+         clk               => clk,           -- [in]
+         rst               => rst,           -- [in]
+         cancel            => cancel,        -- [in]
+         inputValid        => inputValid,    -- [in]
+         inputReady        => inputReady,    -- [out]
+         syncSample        => syncSample,    -- [in]
+         delaySample       => delaySample,   -- [in]
+         ratio             => ratio,         -- [in]
+         maxPathDelay      => maxPathDelay,  -- [in]
+         resultValue       => measurement,   -- [out]
+         resultValid       => resultValid,   -- [out]
+         resultReady       => resultReady,   -- [in]
+         resultError       => resultError);  -- [out]
 
 end architecture rtl;

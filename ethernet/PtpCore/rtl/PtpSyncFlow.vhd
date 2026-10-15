@@ -163,12 +163,9 @@ architecture rtl of PtpSyncFlow is
 
    signal r               : RegType := REG_INIT_C;
    signal rin             : RegType;
-   signal normalizedValid : sl;
    signal normalizedReady : sl;
-   signal normalizedWord  : slv(2 downto 0);
    signal e2eInput        : sl;
    signal e2eReady        : sl;
-   signal e2eSync         : PtpSyncSampleType;
    signal rateReady       : sl;
    signal rateValid       : sl;
    signal rateRatio       : slv(63 downto 0);
@@ -184,14 +181,9 @@ architecture rtl of PtpSyncFlow is
    signal e2eValid           : sl;
    signal e2eTake            : sl;
    signal e2eError           : sl;
-   signal historyReadData    : slv(31 downto 0);
    signal pairIdle           : sl;
-   signal pairDone           : sl;
    signal pairTake           : sl;
    signal pairEnable         : sl;
-   signal pairSampleValid    : sl;
-   signal pairSample         : PtpSyncSampleType;
-   signal appendSample       : PtpSyncSampleType;
    signal pairRejected       : natural range 0 to 2;
    signal pairScanRequest    : PtpScanRequestType;
    signal historyScanRequest : PtpScanRequestType;
@@ -199,16 +191,17 @@ architecture rtl of PtpSyncFlow is
    signal historyScanResult  : PtpScanResultType;
    signal historyIdle        : sl;
    signal historyReady       : sl;
-   signal historyStart       : sl;
-   signal historyDone        : sl;
-   signal historyMatched     : sl;
-   signal appendStart        : sl;
    signal appendBusy         : sl;
-   signal appendDone         : sl;
-   signal qualified          : sl;
+
+   signal pairResult       : PtpSyncPairResultType;
+   signal lookupRequest    : PtpSyncLookupRequestType;
+   signal lookupResult     : PtpSyncLookupResultType;
+   signal appendRequest    : PtpSyncAppendRequestType;
+   signal appendStatus     : PtpSyncAppendStatusType;
+   signal normalizedMaster : PtpSyncNormalizedMasterType;
 
    function exchangeRecord(sync : PtpSyncSampleType;
-   delay : PtpDelaySampleType) return PtpExchangeType is
+   delay           : PtpDelaySampleType) return PtpExchangeType is
       variable ret : PtpExchangeType;
    begin
       ret.t1 := sync.remoteTime;
@@ -224,7 +217,7 @@ architecture rtl of PtpSyncFlow is
    end function;
 
    function exchangeWord(item : PtpExchangeType;
-   index : natural) return slv is
+   index            : natural) return slv is
       variable word : slv(31 downto 0) := (others => '0');
    begin
 
@@ -255,8 +248,10 @@ architecture rtl of PtpSyncFlow is
 
 begin
 
+   -- Single-bit admission gate also used by bounded regression retirement.
+   appendBusy <= appendStatus.busy;
    policyIdle <= toSl(r.state = IDLE_S) and not r.measurementMaster.valid;
-   sampleTicks <= pairSample.capture.ticks;
+   sampleTicks <= pairResult.sample.capture.ticks;
    response <= r.response;
    responseLog <= r.responseLog;
    publication <= r.publicationPort;
@@ -296,10 +291,8 @@ begin
          policyFlags   => policyFlags,
          intervalValid => intervalValid,
          idle          => pairIdle,
-         done          => pairDone,
          take          => pairTake,
-         sampleValid   => pairSampleValid,
-         sample        => pairSample,
+         result        => pairResult,  -- [out]
          syncAdmitted  => syncAdmitted,
          rejected      => pairRejected,
          scanRequest   => pairScanRequest,
@@ -316,24 +309,15 @@ begin
          rst              => rst,
          cancel           => abortPort,
          ticks            => phcStatus.ticks,
-         lookupStart      => historyStart,
-         lookupIdle       => historyIdle,
-         lookupReady      => historyReady,
-         lookupQualified  => qualified,
+         lookupRequest    => lookupRequest,  -- [in]
          delaySample      => r.e2eDelay,
-         lookupDone       => historyDone,
-         lookupMatched    => historyMatched,
-         selectedSample   => e2eSync,
-         appendStart      => appendStart,
-         appendSample     => appendSample,
-         appendForward    => rateForward,
-         appendNormalized => rateNormalized,
-         appendBusy       => appendBusy,
-         appendDone       => appendDone,
-         normalizedValid  => normalizedValid,
-         normalizedReady  => normalizedReady,
-         normalizedWord   => normalizedWord,
-         normalizedData   => historyReadData,
+         lookupIdle       => historyIdle,  -- [out]
+         lookupReady      => historyReady,  -- [out]
+         lookupResult     => lookupResult,  -- [out]
+         appendRequest    => appendRequest,  -- [in]
+         appendStatus     => appendStatus,  -- [out]
+         normalizedMaster => normalizedMaster,  -- [out]
+         normalizedReady  => normalizedReady,  -- [in]
          scanRequest      => historyScanRequest,
          scanResult       => historyScanResult);
 
@@ -346,16 +330,14 @@ begin
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          NORMALIZED_SYNC_G => true)
       port map (
-         normalizedValid   => normalizedValid,
-         normalizedReady   => normalizedReady,
-         normalizedWord    => normalizedWord,
-         normalizedData    => historyReadData,
+         normalizedMaster  => normalizedMaster,  -- [in]
+         normalizedReady   => normalizedReady,  -- [out]
          clk               => clk,           -- [in]
          rst               => rst,           -- [in]
          cancel            => abortNow,      -- [in]
          inputValid        => e2eInput,      -- [in]
          inputReady        => e2eReady,      -- [out]
-         syncSample        => e2eSync,       -- [in]
+         syncSample        => lookupResult.sample,       -- [in]
          delaySample       => r.e2eDelay,    -- [in]
          ratio             => r.e2eRatio,    -- [in]
          maxPathDelay      => r.e2eMaximum,  -- [in]
@@ -390,7 +372,7 @@ begin
          inputReady         => rateReady,               -- [out]
          resultValid        => rateValid,               -- [out]
          resultReady        => r.rateTake,              -- [in]
-         syncSample         => pairSample,           -- [in]
+         syncSample         => pairResult.sample,           -- [in]
          minimumSpan        => activeConfig.minRateSpan,  -- [in]
          ratio              => rateRatio,               -- [out]
          ratioValid         => rateQualified,           -- [out]
@@ -412,6 +394,8 @@ begin
 
    comb : process (all) is
       variable v                 : RegType;
+      variable lookupCommand     : PtpSyncLookupRequestType;
+      variable appendCommand     : PtpSyncAppendRequestType;
       variable announceAdmission : sl;
       variable sampleAcceptance  : sl;
       -- Same-edge admission/cancellation decisions.
@@ -425,8 +409,12 @@ begin
       v := r;
       -- One combinational driver overlays the held rate correction for append.
       -- The pair owner retains the sample; this creates no second register bank.
-      appendSample <= pairSample;
-      appendSample.correction <= rateCorrection;
+      lookupCommand := PTP_SYNC_LOOKUP_REQUEST_INIT_C;
+      appendCommand := PTP_SYNC_APPEND_REQUEST_INIT_C;
+      appendCommand.sample := pairResult.sample;
+      appendCommand.sample.correction := rateCorrection;
+      appendCommand.forwardValue := rateForward;
+      appendCommand.normalizedTime := rateNormalized;
       announceAdmission := '0';
       sampleAcceptance := '0';
       rejectedEvents := pairRejected;
@@ -466,11 +454,11 @@ begin
       end if;
 
       -- Reserve E2E capacity on the original ledger handshake edge. The
-      -- history owner borrows the retained Delay sample until lookupDone.
+      -- history owner borrows the retained Delay sample until lookupResult.done.
       historyStarting := delayValid = '1' and r.e2eBusy = '0' and
                          historyReady = '1' and abortPort = '0';
-      historyStart <= toSl(historyStarting) and historyIdle;
-      qualified <= qualifiedRatio;
+      lookupCommand.start := toSl(historyStarting) and historyIdle;
+      lookupCommand.qualified := qualifiedRatio;
       if historyStarting and historyIdle = '1' then
          v.delayReady := '1';
          v.e2eBusy := '1';
@@ -478,8 +466,8 @@ begin
          v.e2eRatio := r.ratio;
          v.e2eMaximum := activeConfig.maxPathDelay;
       end if;
-      if historyDone = '1' then
-         if historyMatched = '1' then
+      if lookupResult.done = '1' then
+         if lookupResult.matched = '1' then
             v.e2eInput := '1';
             v.exchangeWriting := '1';
             v.exchangeWord := 0;
@@ -499,7 +487,7 @@ begin
          v.publicationPort.first := toSl(r.exchangeWord = 0);
          v.publicationPort.recordIndex := x"1";
          v.publicationPort.wordIndex := toSlv(r.exchangeWord,8);
-         v.publicationPort.data := exchangeWord(exchangeRecord(e2eSync,r.e2eDelay),r.exchangeWord);
+         v.publicationPort.data := exchangeWord(exchangeRecord(lookupResult.sample,r.e2eDelay),r.exchangeWord);
          if r.exchangeWord = 19 then
             v.exchangeWriting := '0';
          else
@@ -514,7 +502,7 @@ begin
       if r.state = IDLE_S and r.measurementMaster.valid = '0' and abortPort = '0' and
          historyIdle = '1' and not historyStarting and
          (r.responseValid = '0' or responseReady = '1') then
-         if pairDone = '1' then
+         if pairResult.done = '1' then
             v.rxReady := '1';
          elsif pairIdle = '1' and
             rxMessage.messageType /= PTP_MSG_SYNC_C and rxMessage.messageType /= PTP_MSG_FOLLOW_UP_C then
@@ -624,9 +612,9 @@ begin
       case r.state is
          when IDLE_S =>
 
-            if pairDone = '1' and v.rxReady = '1' and rxValid = '1' then
-               if pairSampleValid = '1' then
-                  if ptpAgeExpired(phcStatus.ticks, pairSample.capture.ticks, activeConfig.associationTimeout) then
+            if pairResult.done = '1' and v.rxReady = '1' and rxValid = '1' then
+               if pairResult.sampleValid = '1' then
+                  if ptpAgeExpired(phcStatus.ticks, pairResult.sample.capture.ticks, activeConfig.associationTimeout) then
                      rejectedEvents := rejectedEvents+1;
                   else
                      v.state := RATE_SUBMIT_S;
@@ -638,7 +626,7 @@ begin
             -- Chronology against the last accepted Sync stays local, because
             -- it gates history admission as well as the rate estimate.
             if policyStatus.active = '1' and
-               unsigned(pairSample.capture.ticks) <= unsigned(lastSyncTicks) then
+               unsigned(pairResult.sample.capture.ticks) <= unsigned(lastSyncTicks) then
                rejectedEvents := rejectedEvents+1;
                v.state := IDLE_S;
             else
@@ -667,7 +655,7 @@ begin
             end if;
 
          when RATE_HISTORY_S =>
-            if appendDone = '1' then
+            if appendStatus.done = '1' then
                v.state := RATE_PUBLISH_S;
             end if;
 
@@ -677,13 +665,13 @@ begin
             v.ratioQualified := rateQualified;
 
             if rateUpdate = '1' then
-               v.ratioTicks := pairSample.capture.ticks;
+               v.ratioTicks := pairResult.sample.capture.ticks;
             end if;
 
             v.measurementMaster.data.isDelay := '0';
-            v.measurementMaster.data.generation := pairSample.capture.generation;
-            v.measurementMaster.data.ticks := pairSample.capture.ticks;
-            v.measurementMaster.data.syncSequence := pairSample.sequenceId;
+            v.measurementMaster.data.generation := pairResult.sample.capture.generation;
+            v.measurementMaster.data.ticks := pairResult.sample.capture.ticks;
+            v.measurementMaster.data.syncSequence := pairResult.sample.sequenceId;
             v.measurementMaster.data.delaySequence := (others => '0');
             v.measurementMaster.data.delayValue := (others => '0');
             v.measurementMaster.data.forward := rateForward;
@@ -707,7 +695,7 @@ begin
       -- Result valid is registered; the shared abort takes priority at this
       -- receiver as well as at the arithmetic/ledger producers.
       -- E2E valid blocks a new pair search. With the pair already idle, the
-      -- rate machine cannot start (it requires pairDone), so both next-state
+      -- rate machine cannot start (it requires pairResult.done), so both next-state
       -- idle tests are redundant. Keep service ready out of publication enables.
       if e2eValid = '1' and abortPort = '0' and r.state = IDLE_S and
          pairIdle = '1' and v.measurementMaster.valid = '0' and
@@ -716,7 +704,7 @@ begin
          v.e2eBusy := '0';
          if e2eError = '0' and qualifiedRatio = '1' then
             v.measurementMaster.data           := e2eResult;
-            v.portStatus.exchange := exchangeRecord(e2eSync,r.e2eDelay);
+            v.portStatus.exchange := exchangeRecord(lookupResult.sample,r.e2eDelay);
             v.publicationPort.commit := '1';
             v.publicationPort.commitRecord := x"1";
             v.measurementMaster.valid          := '1';
@@ -776,7 +764,7 @@ begin
       v.portStatus.timeoutCount := timeoutCount;
       -- Current-edge events update policy deadlines without adding a stage.
       -- Policy applies its own final cancellation priority to these events.
-      appendStart <= sampleAcceptance;
+      appendCommand.start := sampleAcceptance;
       announceAdmitted <= announceAdmission;
       sampleAccepted <= sampleAcceptance;
 
@@ -785,6 +773,8 @@ begin
          v := REG_INIT_C;
       end if;
 
+      lookupRequest <= lookupCommand;
+      appendRequest <= appendCommand;
       rin <= v;
       -- Registered forward interfaces; reverse ready still describes capacity
       -- on this edge. RX/measurement arbitration and local cancellation can
@@ -794,7 +784,7 @@ begin
       delayReady        <= v.delayReady;
       e2eTake           <= v.e2eTake;
       rxReady           <= v.rxReady;
-      pairTake <= v.rxReady and rxValid and pairDone;
+      pairTake <= v.rxReady and rxValid and pairResult.done;
       responseValid     <= r.responseValid;
       measurementMaster <= r.measurementMaster;
       -- This field comes from the policy owner's registered abort event.

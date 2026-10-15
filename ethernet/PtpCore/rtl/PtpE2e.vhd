@@ -50,6 +50,7 @@ use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpSyncPkg.all;
 
 entity PtpE2e is
    generic (
@@ -67,10 +68,8 @@ entity PtpE2e is
       -- Private history stream: words 0..3 the forward value, 4..7 the
       -- corrected Sync time in Q16 nanoseconds. Only used when the production
       -- normalized-Sync path supplies them.
-      normalizedValid : in  sl               := '0';
-      normalizedReady : out sl;
-      normalizedWord  : in  slv(2 downto 0)  := (others => '0');
-      normalizedData  : in  slv(31 downto 0) := (others => '0');
+      normalizedMaster : in PtpSyncNormalizedMasterType := PTP_SYNC_NORMALIZED_MASTER_INIT_C;
+      normalizedReady  : out sl;
 
       inputValid   : in  sl;
       inputReady   : out sl;
@@ -294,15 +293,15 @@ begin
          when IDLE_S =>
             -- The production history stream fills the forward and corrected
             -- Sync values outside a measurement.
-            if NORMALIZED_SYNC_G and normalizedValid = '1' then
+            if NORMALIZED_SYNC_G and normalizedMaster.valid = '1' then
                v.historyReady := '1';
 
-               if unsigned(normalizedWord) < 4 then
-                  v.forwardValue(32*to_integer(unsigned(normalizedWord))+31 downto
-                                 32*to_integer(unsigned(normalizedWord))) := signed(normalizedData);
+               if unsigned(normalizedMaster.word) < 4 then
+                  v.forwardValue(32*to_integer(unsigned(normalizedMaster.word))+31 downto
+                                 32*to_integer(unsigned(normalizedMaster.word))) := signed(normalizedMaster.data);
                else
-                  v.syncTime(32*(to_integer(unsigned(normalizedWord))-4)+31 downto
-                             32*(to_integer(unsigned(normalizedWord))-4)) := signed(normalizedData);
+                  v.syncTime(32*(to_integer(unsigned(normalizedMaster.word))-4)+31 downto
+                             32*(to_integer(unsigned(normalizedMaster.word))-4)) := signed(normalizedMaster.data);
                end if;
             end if;
 

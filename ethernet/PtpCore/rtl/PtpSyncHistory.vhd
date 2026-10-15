@@ -26,34 +26,21 @@ entity PtpSyncHistory is
       RST_ASYNC_G    : boolean := false;
       MEMORY_TYPE_G  : string  := "block");
    port (
-      clk    : in sl;
-      rst    : in sl;
-      cancel : in sl;
-      ticks  : in slv(63 downto 0);
-      -- Start only with lookupIdle/lookupReady; caller retains delaySample
-      -- through lookupDone. selectedSample persists until the next lookup.
-      lookupStart     : in sl;
-      lookupIdle      : out sl;
-      lookupReady     : out sl;
-      lookupQualified : in sl;
-      delaySample     : in PtpDelaySampleType;
-      lookupDone      : out sl;
-      lookupMatched   : out sl;
-      selectedSample  : out PtpSyncSampleType;
-      -- One-edge append admission; hold all payload fields through appendDone.
-      appendStart      : in sl;
-      appendSample     : in PtpSyncSampleType;
-      appendForward    : in slv(127 downto 0);
-      appendNormalized : in slv(127 downto 0);
-      appendBusy       : out sl;
-      appendDone       : out sl;
-      -- Selected normalized words stream directly from RAM, held on stall.
-      normalizedValid : out sl;
-      normalizedReady : in sl;
-      normalizedWord  : out slv(2 downto 0);
-      normalizedData  : out slv(31 downto 0);
-      scanRequest     : out PtpScanRequestType;
-      scanResult      : in PtpScanResultType);
+      clk              : in sl;
+      rst              : in sl;
+      cancel           : in sl;
+      ticks            : in slv(63 downto 0);
+      lookupRequest    : in PtpSyncLookupRequestType;
+      delaySample      : in PtpDelaySampleType;
+      lookupIdle       : out sl;
+      lookupReady      : out sl;
+      lookupResult     : out PtpSyncLookupResultType;
+      appendRequest    : in PtpSyncAppendRequestType;
+      appendStatus     : out PtpSyncAppendStatusType;
+      normalizedMaster : out PtpSyncNormalizedMasterType;
+      normalizedReady  : in sl;
+      scanRequest      : out PtpScanRequestType;
+      scanResult       : in PtpScanResultType);
 end entity PtpSyncHistory;
 
 architecture rtl of PtpSyncHistory is
@@ -88,9 +75,9 @@ architecture rtl of PtpSyncHistory is
       historyWriteAddress : slv(HISTORY_ADDR_WIDTH_C-1 downto 0);
       historyValid        : slv(HISTORY_DEPTH_C-1 downto 0);
       historyPtr          : natural range 0 to HISTORY_DEPTH_C-1;
-      e2eSync             : PtpSyncSampleType;
+      lookupResult        : PtpSyncLookupResultType;
       historyWriteData    : slv(31 downto 0);
-      historyWriteBusy    : sl;
+      appendStatus        : PtpSyncAppendStatusType;
       historyWriteWord    : natural range 0 to HISTORY_WORDS_C;
       historyWord         : natural range 0 to HISTORY_WORDS_C-1;
       historyBest         : natural range 0 to HISTORY_DEPTH_C-1;
@@ -115,9 +102,9 @@ architecture rtl of PtpSyncHistory is
       historyWriteAddress => (others => '0'),
       historyValid        => (others => '0'),
       historyPtr          => 0,
-      e2eSync             => PTP_SYNC_SAMPLE_INIT_C,
+      lookupResult        => PTP_SYNC_LOOKUP_RESULT_INIT_C,
       historyWriteData    => (others => '0'),
-      historyWriteBusy    => '0',
+      appendStatus        => PTP_SYNC_APPEND_STATUS_INIT_C,
       historyWriteWord    => 0,
       historyWord         => 0,
       historyBest         => 0,
@@ -135,15 +122,17 @@ begin
    assert MEMORY_TYPE_G = "distributed" or MEMORY_TYPE_G = "block"
       report "PtpSyncHistory memory must be distributed or block" severity failure;
    lookupIdle <= toSl(r.historyState = HISTORY_IDLE_S);
-   lookupReady <= not r.historyWriteBusy and not r.historyWriteEnable;
-   lookupDone <= toSl(r.historyState = HISTORY_DONE_S);
-   lookupMatched <= r.historyFound and r.historyQualified;
-   selectedSample <= r.e2eSync;
-   appendBusy <= r.historyWriteBusy;
-   appendDone <= toSl(r.appendState = APPEND_COMMIT_S);
-   normalizedValid <= r.normalizedValid;
-   normalizedWord <= r.normalizedWord;
-   normalizedData <= historyReadData;
+   lookupReady <= not r.appendStatus.busy and not r.historyWriteEnable;
+   lookupResult <= r.lookupResult;
+   appendStatus <= r.appendStatus;
+   -- Representation-only packing: the RAM output register owns data, while
+   -- this FSM owns valid/word. Copying data into RegType would add a cycle.
+   normalizedMaster <=
+   (
+      valid => r.normalizedValid,
+      word  => r.normalizedWord,
+      data  => historyReadData
+   );
    scanRequest.valid <= toSl(r.historyState = HISTORY_SCAN_S);
    scanRequest.ticks <= r.historyTicks;
    scanRequest.rowTicks <= r.historySampleTicks;
@@ -184,19 +173,19 @@ begin
       v.historyWriteEnable := '0';
       -- Appends reuse the rate producer's held sample. A lookup pins the
       -- table until its selected record is copied; it never sees a partial row.
-      if r.historyWriteBusy = '1' and r.historyState = HISTORY_IDLE_S and r.historyWriteWord < 17 then
+      if r.appendStatus.busy = '1' and r.historyState = HISTORY_IDLE_S and r.historyWriteWord < 17 then
          v.historyWriteEnable := '1';
          v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+r.historyWriteWord, HISTORY_ADDR_WIDTH_C);
-         v.historyWriteData := syncWord(appendSample, r.historyWriteWord);
+         v.historyWriteData := syncWord(appendRequest.sample, r.historyWriteWord);
          v.historyWriteWord := r.historyWriteWord+1;
       end if;
 
       case r.historyState is
          when HISTORY_IDLE_S =>
 
-            if lookupStart = '1' then
+            if lookupRequest.start = '1' then
                v.historyTicks := ticks;
-               v.historyQualified := lookupQualified;
+               v.historyQualified := lookupRequest.qualified;
                v.historyFound := '0';
                v.historyIndex := 0;
                v.historyWord := 0;
@@ -275,7 +264,7 @@ begin
          when HISTORY_CAPTURE_S =>
 
             if r.historyWord < 17 then
-               takeSyncWord(v.e2eSync, r.historyWord, historyReadData);
+               takeSyncWord(v.lookupResult.sample, r.historyWord, historyReadData);
             end if;
 
             if r.historyWord < 17 or normalizedReady = '1' then
@@ -295,12 +284,12 @@ begin
 
       end case;
 
-      -- The rate producer holds all append fields until appendDone. Commit
+      -- The rate producer holds all append fields until appendStatus.done. Commit
       -- follows the last registered RAM write; lookups never see partial rows.
       case r.appendState is
          when APPEND_IDLE_S =>
-            if appendStart = '1' then
-               v.historyWriteBusy := '1';
+            if appendRequest.start = '1' then
+               v.appendStatus.busy := '1';
                v.historyWriteWord := 0;
                v.appendState := APPEND_SAMPLE_S;
             end if;
@@ -317,9 +306,9 @@ begin
             v.historyWriteAddress := toSlv(HISTORY_WORDS_C*r.historyPtr+17+r.appendWord, HISTORY_ADDR_WIDTH_C);
 
             if r.appendWord < 4 then
-               v.historyWriteData := appendForward(32*r.appendWord+31 downto 32*r.appendWord);
+               v.historyWriteData := appendRequest.forwardValue(32*r.appendWord+31 downto 32*r.appendWord);
             else
-               v.historyWriteData := appendNormalized(32*(r.appendWord-4)+31 downto 32*(r.appendWord-4));
+               v.historyWriteData := appendRequest.normalizedTime(32*(r.appendWord-4)+31 downto 32*(r.appendWord-4));
             end if;
 
             if r.appendWord = 7 then
@@ -329,7 +318,7 @@ begin
             end if;
 
          when APPEND_COMMIT_S =>
-            v.historyWriteBusy := '0';
+            v.appendStatus.busy := '0';
             v.historyValid(r.historyPtr) := '1';
             v.historyPtr := (r.historyPtr+1) mod HISTORY_DEPTH_C;
             v.appendState := APPEND_IDLE_S;
@@ -340,7 +329,7 @@ begin
          v.normalizedValid := '0';
          v.historyReadEnable := '0';
          v.historyWriteEnable := '0';
-         v.historyWriteBusy := '0';
+         v.appendStatus.busy := '0';
          v.historyFound := '0';
          v.historyValid := (others => '0');
          v.appendState := APPEND_IDLE_S;
@@ -348,6 +337,11 @@ begin
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
+      -- Publish the resolved state on its existing completion edge, including
+      -- reset/cancel priority. Payload storage remains the selected row only.
+      v.lookupResult.done := toSl(v.historyState = HISTORY_DONE_S);
+      v.lookupResult.matched := v.historyFound and v.historyQualified;
+      v.appendStatus.done := toSl(v.appendState = APPEND_COMMIT_S);
       rin <= v;
    end process comb;
 

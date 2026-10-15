@@ -309,22 +309,43 @@ candidate still permits an otherwise accepted Sync to publish the retained
 ratio; only `ratioUpdate` renews ratio freshness.
 
 The private table transactions use `PtpSyncPkg` and do not change `PtpPkg`'s
-endpoint ABI:
+endpoint ABI. Whole records connect production owners; the E2E simulation wrapper
+flattens the normalized stream. Each type documents its clock, units, hold rule
+and cancellation priority beside its initializer.
 
-- **Pair:** enable allows a new search against the held RX message. `done` holds
-  until `take`; `sampleValid` is meaningful with `done` and distinguishes a
-  completed sample from a rejected/incomplete association. After `take`, the
+| Transaction | Record | Owner |
+| --- | --- | --- |
+| Pair completion and optional sample | `PtpSyncPairResultType` | Pair |
+| Lookup admission and ratio qualification | `PtpSyncLookupRequestType` | Flow |
+| Lookup completion and selected sample | `PtpSyncLookupResultType` | History |
+| Append admission and held sample/normalized values | `PtpSyncAppendRequestType` | Flow, borrowing Pair/rate payloads |
+| Append busy/commit status | `PtpSyncAppendStatusType` | History |
+| Normalized word valid/index/data | `PtpSyncNormalizedMasterType` | History FSM and registered RAM output |
+
+Pair/lookup results and append status live in their owner's state record.
+Completion fields derive from resolved next state on the existing completion
+edge, without copying payloads or adding a publication cycle. Normalized stream
+packing retains the RAM's registered data ownership. Single-bit reverse
+handshakes, independent admission controls, clocks and cancellation remain
+separate ports.
+
+- **Pair:** enable allows a new search against the held RX message. `result.done`
+  holds until `take`; `result.sampleValid` is meaningful with `result.done` and
+  distinguishes a completed sample from a rejected/incomplete association. After `take`, the
   sample remains retained until the flow permits another pair search. Sync
   admission/rejection events occur at the decision edge, before RX acknowledgement.
-- **History append:** `appendStart` is a one-edge acceptance event from the rate
-  result, issued with `appendBusy` clear. An active lookup defers the writes. The coordinator holds sample, forward and normalized values through
-  `appendDone`. History writes 17 provenance words, drains that write, writes
+- **History append:** `appendRequest.start` is a one-edge acceptance event from
+  the rate result, issued with `appendStatus.busy` clear. An active lookup defers
+  the writes. The coordinator holds the request payload through
+  `appendStatus.done`. History writes 17 provenance words, drains that write, writes
   eight normalized words and asserts completion on the commit edge. Lookup
   cannot observe a partial append.
 - **History lookup:** the coordinator reserves E2E capacity and captures the
-  Delay sample on `lookupStart`, issued only with `lookupIdle` and `lookupReady`.
-  The sample is stable for the complete search. `lookupDone` is a one-cycle
-  completion with `lookupMatched`; the selected Sync persists through E2E
+  Delay sample on `lookupRequest.start`, issued only with `lookupIdle` and
+  `lookupReady`. The separate borrowed `delaySample` becomes valid after that
+  edge and stays stable through the search; it is not a payload sampled with
+  the lookup command. `lookupResult.done` is a one-cycle completion with
+  `lookupResult.matched`; the selected Sync persists through E2E
   retirement. Normalized words obey valid/ready and stay stable when stalled.
 - **Scan:** each table holds its row request until its own `result.valid` edge.
   Round-robin arbitration retains only owner and arithmetic scratch; the clients
