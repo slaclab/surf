@@ -60,6 +60,10 @@ separates simulated behavior from remaining device and interoperability work.
   and raw-tick advances preserve 1 Hz Sync values while skipping idle simulation
   seconds; these are protocol-boundary checks, not a closed-loop servo run.
   See [exchange coverage](specification-coverage.md#ordinary-master-and-exchange-checks).
+- `test_ptp_delay_req_tx.py` exercises the production protocol/ledger/TX chain:
+  cancellation before and on reservation acceptance, and restart/AXI reset with
+  every frame beat stalled. Literal wire bytes and held sidebands check that
+  logical cancellation preserves an accepted physical frame.
 
 **Current authorization:** the maintainer lifted the simulation/pytest pause on
 October 9, 2026. See the [resumed results](../../../docs/plans/ethernet-ptp/history/verification.md#october-9-baseline)
@@ -101,6 +105,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Shared arithmetic services | `test_ptp_arithmetic_services.py` SECOND/variable cases; add affected PHC, servo, E2E or rate/protocol cases. | Direct service tests check contention/cancellation; endpoint integration is still needed for client interactions. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
+| Delay_Req scheduler or transmitter | `test_ptp_delay_req_tx.py`; ordinary exchange edition/mode cases for wire fields, and `test_ptp_intervals.py` for receipt-policy interaction. | Select `test_ptp_port.py -k tx_restart` for both PHYs' stream integration; real-MAC cases when downstream queue/reset behavior changes. |
 | PHC carry/normalization or unsigned age arithmetic | `test_ptp_timing_math.py` for integer boundary/random oracles; `test_ptp_phc.py` for cycle semantics and epoch faults. | Add protocol expiry and servo cancellation cases when the shared age predicate changes. |
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
@@ -121,6 +126,91 @@ work, not per-case estimates or runtime guarantees. Long endpoint cases are
 reserved for changes requiring those integration assertions; the full suite is
 for substantial integration/release validation or an explicit request.
 
+An October 15 runtime investigation found inherited fixed delays in the physical
+port fixtures. The shared-compute migration (`52dfa266f`) increased per-frame
+waits from 160 to 9,000 clocks and shared-bench Sync spacing from 2,200 to 30,000.
+Those delays survived the fixed-function arithmetic replacement. The two
+original `test_ptp_port.py` scenarios contained 678,000 fixed wait clocks per PHY,
+before serialization, AXI operations and smaller waits.
+
+A short GMII probe of the TX-extraction working tree over `a3f821fd9`, using
+Python 3.12.7/GHDL 6.0.0, observed three two-step Sync completions through AXI
+snapshots after 344, 476 and 476 clocks from the start of packet injection.
+These samples are not worst-case bounds. Batching a 1,000-clock idle wait into
+one timer reduced its mean wall time from 5.90 to 5.52 seconds across two trials
+each; a CPU sample showed substantial GHDL signal/event bookkeeping. Avoiding
+unnecessary HDL cycles matters more than removing Python wakeups in this probe.
+
+Replace blanket service waits with bounded checks of the completion relevant to
+the assertion. Rejected-frame checks must observe ingress retirement and a
+defined no-result window; an unchanged counter alone cannot establish completion.
+Keep timeout/expiry boundary checks explicit, and use controlled raw ticks in
+protocol fixtures when PHC continuity is not under test. Preserve continuous
+physical clocks for capture, MAC queuing, servo dynamics and clock-control checks.
+Do not globally shorten shared Sync spacing or acceptance limits based on the
+three latency samples. The larger endpoint/MAC schedule still needs its own
+coverage review. The original long GMII/XGMII runs were interrupted; diagnostic
+scripts/profiles remain in the consuming project's ignored
+`.planning/ptp-sim-runtime/` cache, outside the maintained test suite.
+
+The port fixture now waits for actual frontend/engine transfers and polls AXI
+snapshots for expected Sync publication. Invalid wire frames must increment the
+frontend drop counter without a protocol transfer; policy-invalid frames must
+retire and increment the protocol rejection counter before checking no Sync result.
+The old 9,000-clock allowance
+is retained as a failure timeout. Receipt expiry uses a separately configured
+2,048-clock interval, and TX qualification uses 1,000-clock spacing above its
+800-clock minimum rate span. Closed-loop endpoint/MAC fixtures retain their
+30,000-clock spacing. Association/expiry, mixed-mode policy and TX restart are
+separate pytest scenarios so a TX change can select just `tx_restart` on each PHY.
+
+All six scenarios passed in 278.24 s including their new builds; after adding
+explicit protocol-rejection checks, the two affected policy cases passed in
+56.54 s. Final scenario results total 21,114 simulated clocks on XGMII and
+25,406 on GMII, compared with the old 678,000 fixed wait clocks alone per PHY.
+This removes about 96–97% of that cycle cost while retaining physical clocks,
+packet checks, expiry and stalled-frame assertions. The old full run was
+interrupted, so this is a cycle-count comparison, not a measured wall-time speedup
+against a completed old batch. No full closed-loop endpoint/MAC rerun is implied.
+
+The protocol fixtures also use completion-driven negative checks. Previously,
+`Bench.no_result()` always waited 512 clocks and `ExchangeBench.no_delay()`
+always observed 16,000 clocks, including sixteen repetitions per RAM mode in
+history cancellation. They now check public measurement valid on every edge and
+require the consumer to hold ready low, so an unwanted result cannot disappear.
+The endpoint for observation is actual retirement:
+
+- Sync checks wait for idle pair/history/append/coordinator state and both
+  arithmetic clients' ready/valid interfaces to drain.
+- Delay checks first wait for held ledger inputs to retire and observe a complete
+  ledger sweep with the downstream pipeline idle throughout, using two row-zero
+  RAM-read admissions. A previously blocked row must get another publication
+  opportunity. This works even when the
+  ledger is full or allocation is quarantined; allocation ready is insufficient.
+- Four subsequent quiet edges drain registered handoffs and diagnostic counting.
+  The 16,000-cycle limit remains a failure timeout rather than a fixed delay.
+
+Internal signals establish completion only; expected payloads, counts and
+recovery still come from public interfaces and independent arithmetic. Raw ticks
+stay fixed during these waits. An incomplete pair or unresolved wire key cannot
+produce a new measurement without another input. These conditions are specific
+to the direct protocol fixture and must not replace continuous-clock endpoint or
+PHY observations. `negative_guard_retirement` intentionally offers valid Sync
+and Delay work to both negative checks: each must detect the late measurement,
+which is then verified with the ordinary result oracle. Run it when changing
+these completion checks. All sixteen history-cancellation phases remain selected.
+
+Measured October 15 on the refined protocol-split working tree over `a3f821fd9`,
+using Python 3.12.7/GHDL 6.0.0: the same fourteen table configurations with
+`-n 3 --dist=worksteal` passed in **458.24 s before and 167.65 s after** this
+change (63% less wall time, including builds). Their summed cocotb case times,
+excluding builds, fell from **792.414 s to 379.976 s** (52%). Build-cache and host
+load differences affect wall time; these are observed local runtimes, not fixed
+performance budgets or a full-suite benchmark. The matched selection excludes
+`history_cancellation` and the new `negative_guard_retirement` scenario; those
+are validated separately with all sixteen cancellation phases retained per RAM
+mode and both late-result guard checks.
+
 Run from the SURF root, using the existing configured Python environment; refresh
 the HDL import only when missing or stale. For example, check the models alone:
 
@@ -135,7 +225,7 @@ For a math/servo change, select those two fixtures and run them concurrently:
 ```
 
 Use a quoted pytest node ID for one configuration, for example
-`'tests/ethernet/PtpCore/test_ptp_port.py::test_ptp_port[GMII]'`.
+`'tests/ethernet/PtpCore/test_ptp_port.py::test_ptp_port[tx_restart-GMII]'`.
 Parallelize independent selected simulations, with workers bounded by the case
 count and available CPU/memory. Use `-n 0` for tiny pure-model checks or serial
 debug logs. Record selected cases/results; retain the rest as unrun rather than
@@ -217,8 +307,12 @@ reporting the previous full-suite result as validation of a later edit.
   exercised, including byte writes while a candidate is frozen and reads held
   across publication. Snapshot requests must remain stable between edges;
   configuration apply is observed separately from the registered endpoint restart path.
+  The fixture gives PHC and servo distinct shared-converter client slots, matching
+  the production endpoint. Manual phase tests retain all signed128 submission
+  words and check the signed96 admission boundary separately from later epoch faults.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
-  local RTL decoder, child offsets, overlap and 4 KiB bank bounds; no PyRogue
+  local RTL decoder (including the protocol bank in `PtpProtocolReg`), child
+  offsets, overlap and 4 KiB bank bounds; no PyRogue
   installation is required for these static checks.
 - `test_ptp_port_samples.py` / `PtpProtocolEngineWrapper`: direct production `PtpProtocolEngine` with
   exact independent Q16 forward expectations, one-/two-step correction equivalence,
@@ -248,6 +342,8 @@ reporting the previous full-suite result as validation of a later edit.
 - `test_ptp_port.py`: GMII/XGMII reordered/conflicting/foreign messages, bounded
   association replacement, timeout, grandmaster change and Announce metadata,
   plus one-step mode transitions and malformed/FCS-bad/truncated wire traffic.
+  The separate `tx_restart` scenario qualifies real physical Sync captures and
+  checks every stalled/drained Delay_Req beat and retained ledger ownership.
 - `test_ptp_endpoint.py`: independent master time with +100 ppm XGMII and
   −100 ppm GMII oscillators, acquisition with/without phase step, lock, holdover
   expiry and reacquisition in both receive modes. A known total correction is

@@ -412,7 +412,7 @@ package PtpPkg is
       minorVersion     => x"1",                    -- Transmit major version 2, minor version 1.
       localIdentity    => x"001122FFFE3344550001", -- Example MAC 00:11:22:33:44:55 + FFFE, port 1.
       sourceIdentity   => x"00000000000000000001", -- Placeholder clock identity 0, port 1; configure upstream.
-      -- Raw ticks = seconds * 156250000 here. PtpProtocolEngine.initialConfig recomputes
+      -- Raw ticks = seconds * 156250000 here. PtpProtocolReg.initialConfig recomputes
       -- these timer defaults from CLK_FREQ_G, including at 125 MHz.
       delayInterval      => x"0000000009502F90",     -- 1 s nominal Delay_Req interval before jitter.
       syncTimeout        => x"000000001BF08EB0",     -- 3 s: three nominal 1 Hz Sync periods.

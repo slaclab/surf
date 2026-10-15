@@ -57,7 +57,46 @@ attempts and counting them. It also rejects malformed/short initial SSI beats;
 a legal primary frame presents a full first 16-byte beat with SOF. Other frames
 retain their payload and sidebands through a registered ready/valid stage.
 
-The port builds a 58-byte Delay_Req on an eight-byte SSI stream.
+`PtpProtocolEngine` is a structural coordinator with no additional state or
+pipeline stage. Its internal owners are:
+
+| Owner | State and responsibilities | Boundary |
+| --- | --- | --- |
+| `PtpProtocolReg` | AXI decoding, frozen candidate validation, active configuration, MAC-derived identity and snapshot/publication banks | Active configuration, same-edge identity-change indication, registered diagnostic word writes/commits |
+| `PtpPortPolicy` | Identity/domain/capture admission, Announce metadata, Sync/Announce receipt deadlines and lifecycle causes | Same-edge admission/cancel decisions; registered status, lifecycle and child abort |
+| `PtpSyncFlow` | Admission arbitration, response holding, rate/E2E sequencing and measurement diagnostics | Pair completion, history append/lookup transactions, measurements and diagnostic publication transactions |
+| `PtpSyncPair` (flow child) | Pair RAM, expiry/replacement, Sync/Follow_Up semantics, duplicate retirement and completed Sync sample | Held RX record in; completion with optional sample out; held row comparisons to scan service |
+| `PtpSyncHistory` (flow child) | History RAM, atomic append/commit, nearest eligible sample lookup and normalized E2E upload | Held rate result to append; retained Delay sample to lookup; selected sample and word stream out |
+| `PtpTableScan` (flow child) | Round-robin row arbitration and one word-serial age/distance ALU | Two held requests and owner-specific completion; no table-state access |
+| `PtpDelayReqTx` | Interval/minimum-interval state, seeded jitter, reservation requests, frozen frame and beat progression | Ledger reservation handshake and AXI stream |
+| `PtpTxLedger` | Wire keys, physical completion/response matching and unresolved transmission lifetimes | Existing allocation, completion, response and sample interfaces |
+
+The initial flow extraction still coupled four state machines in one large
+owner. Pair and history now own their table state independently; explicit held
+row-comparison transactions preserve the shared scan ALU without sharing their
+private FSM state. The flow retains one rate/measurement coordination machine.
+History owns both lookup and append sequencing, committing only after the last
+registered RAM write drains. A pair completion carries an optional sample:
+rejected or incomplete pairs still acknowledge the RX record. The selected Sync
+and E2E records remain with their table owners until the coordinator permits
+replacement, avoiding duplicate payload registers or extra handshake stages.
+
+Diagnostic serialization stays with `PtpSyncFlow`: Announce uploads directly
+from the held RX producer, and exchange
+uploads from retained E2E operands. Moving those serializers into register
+management would require payload copies or a new reservation interface. The
+register owner instead accepts explicit registered writes and commits through
+`PtpPublicationType`; snapshots retain their original pre-edge capture behavior.
+
+`PtpPortPolicy` consumes current-edge Sync admission, accepted rate-sample and
+Announce admission events from the flow owner. Its decisions depend on retained
+policy state and registered flow capacity, not those events, so cancellation
+does not form a combinational feedback loop. The engine combines independently
+registered policy/measurement status fields without resampling them. Logical
+restart still preserves TX drain and ledger ownership. This decomposition is
+for ownership and maintainability; it claims no area or timing improvement.
+
+The transmitter builds a 58-byte Delay_Req on an eight-byte SSI stream.
 `PtpEndpoint.TX_AXIS_CONFIG_G` defaults to that format with a direct connection;
 `EthMacPtpEndpoint` selects the MAC's native bypass configuration, enabling
 an `AxiStreamResize` inside `PtpEndpoint`. Only system reset clears this stage. The
@@ -90,9 +129,9 @@ AXI-Lite crossbar. The controller owns global enable/commit/snapshot state,
 registered restart/RX flush and IRQ events, plus combinational AXI reset.
 Restart consumes the published apply strobe, and IRQ status consumes the
 previous event stage; consolidation preserves their register hops. Each functional
-core contains
-its own AXI-Lite decode, configuration and snapshot storage in its existing
-`RegType`/`comb`/`seq` structure. `PtpPhc` also owns manual phase normalization
+core owns its AXI-Lite decode, configuration and snapshot storage. Protocol
+management lives in `PtpProtocolReg`; PHC and servo retain their local
+`RegType`/`comb`/`seq` structures. `PtpPhc` also owns manual phase normalization
 and final command arbitration. Only shared active limits, measurements and
 narrow lifecycle/status signals cross between these cores. All three cores
 use their local AXI configuration, with no optional bypass. Measurement
@@ -312,9 +351,10 @@ The frontend owns these structural checks:
   Profile-specific TLV semantics and conformance fixtures remain a parser
   qualification task; the model checks boundary lengths, not full IEEE conformance.
 
-`PtpProtocolEngine` owns configured destination/source/domain/transport-specific
-policy, flag legality, valid nanoseconds, requesting-port identity, Announce
-semantics, timeouts, and Sync/Follow_Up transaction matching. Keep structural
+The `PtpProtocolEngine` composition owns configured identity/domain policy,
+flag legality, valid nanoseconds, requesting-port identity, Announce semantics,
+timeouts and Sync/Follow_Up transaction matching through its policy, pairing,
+flow and ledger children. Keep structural
 parsing and mutable protocol policy separate. Configuration changes abort all
 in-flight frontend work through the common generation contract, including a
 frame that began before the change and terminates afterward.
@@ -511,8 +551,8 @@ registered write may finish on a reset edge but cannot regain valid ownership.
 
 ## Protocol association storage
 
-`PtpProtocolEngine` keeps four pairing rows of 20x32 words and four history
-rows of 25x32 words. Both inferred `SimpleDualPortRam` instances support
+`PtpSyncPair` keeps four pairing rows of 20x32 words; `PtpSyncHistory`
+keeps four history rows of 25x32 words. Both inferred `SimpleDualPortRam` instances support
 `"distributed"` and `"block"` through their existing generics. Ownership/mode
 flags remain in registers; reset/abort invalidate ownership without clearing RAM.
 
@@ -534,7 +574,7 @@ workspace. No timestamp reconversion or full-row scan register is required.
 
 An append writes raw provenance from the held rate producer, then normalized
 words directly from the rate workspace. The row becomes valid only after its
-last registered write drains. Lookup pins the table, excluding append/pair
+last registered write drains. Lookup pins the table, deferring append writes and excluding new pair
 admission until the selected words transfer. E2E retains its input ownership
 through result retirement. Completed E2E output takes priority over a new pair
 scan, including under continuing rejected traffic. Local scan and shared-service

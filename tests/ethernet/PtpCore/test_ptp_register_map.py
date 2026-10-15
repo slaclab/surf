@@ -24,7 +24,7 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
 BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
-         ('PtpProtocolEngine', 'PtpProtocolEngine'), ('PtpServo', 'PtpServo')]
+         ('PtpProtocolEngine', 'PtpProtocolReg'), ('PtpServo', 'PtpServo')]
 
 
 # Preserved word-bank ABI from the documented register map. Dynamic RAM

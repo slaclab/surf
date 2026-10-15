@@ -80,6 +80,64 @@ plus CFGBVS-1, REQP-1753, REQP-1853 and RTSTAT-10. CDC reports contained 26/24 u
 and 12/12 unknown findings. Constraint/CDC/DRC scope review remains open; copper
 and physical hardware were not qualified by these builds.
 
+## Area follow-up on the saved production checkpoint
+
+October 15 inspection of the same repaired routed checkpoint used Vivado 2025.2
+and hierarchy depth 12. No synthesis or RTL change was made for this inspection.
+The 8,218-LUT endpoint increase breaks down as servo +5,328, protocol +2,484,
+PHC +41, replacement arithmetic services minus removed compute +373, and other
+endpoint logic −8. The protocol controller's own logic fell 5,799 → 5,647 LUTs;
+its new arithmetic children account for the hierarchy's increase.
+
+| Repaired block | Own LUTs, excluding children | Arithmetic children | Total LUTs |
+| --- | ---: | --- | ---: |
+| PI | 3,853 | Limb product 840; BILLION 426; NOMINAL 221 | 5,339 |
+| E2E | 1,617 | Product tree 507; epoch converter 62 | 2,185 |
+| Rate estimator | 1,208 | Epoch converter 61 | 1,269 |
+| Median filter | 1,177 | None | 1,177 |
+
+Vivado's physical LUT packing can make parent and child totals differ by one.
+Mapped-cell names associate substantial PI logic with rate/proportional/proposed
+clamps, anti-windup comparisons and multiplier/divider operand selection. Those
+names identify investigation targets, not disjoint or proven removable LUT costs.
+The filter retains two 320-bit banks (history and sorting copy); indexed compare,
+swap, insertion and publication create mux logic around the single comparator.
+
+Prioritize these bounded experiments, retaining local algorithm ownership:
+
+1. **PI clamp/limit sharing and bounded state.** Several mutually exclusive
+   states invoke wide clamps. Measure one explicitly selected local clamp path
+   against the current inferred logic. Validated 200,000-ppb limits permit signed35
+   clamped frequency/slew/rate and signed36 sums; keep wider pre-clamp integral,
+   bootstrap and offset values and full-product overflow checks. Make any narrowed
+   leaf input preconditions explicit. Selection muxes and added stages can offset
+   savings, so compare measured resources and timing.
+2. **Median data movement.** Evaluate a schedule with fixed comparator positions
+   and less indexed movement while preserving circular replacement order,
+   lower-median startup, held outputs and cancellation. The two banks are real
+   state with different lifetimes; removing one needs an algorithmic equivalence
+   argument, not just a storage rewrite.
+3. **Qualified rate-filter arithmetic.** The candidate is checked at signed128
+   width before filtering. After qualification, both positive ratios fit unsigned64;
+   their difference fits signed65. Narrow only the filter subtraction/rounding
+   path, preserving full-width rejection and the same publication edge.
+4. **E2E/local staging.** Audit repeated 128-bit additions/subtractions and
+   nonoverlapping scratch lifetimes before altering the 507-LUT product tree.
+   Full-width calibration inputs and pre-shift overflow behavior remain required.
+
+Worst paths ending inside PI/filter/E2E/rate had +0.382/+2.143/+1.052/+3.201 ns
+setup slack respectively. PI's path ran from PHC ticks to the multiplier's DSP
+reset through cancellation logic; E2E's ended at state enable. Sharing arithmetic
+must not serialize expiry/cancellation or weaken their same-edge veto. These
+scoped paths do not replace the whole-design +0.133 ns WNS or open constraint review.
+
+No candidate savings are measured yet. Start with one isolated transformation,
+run its focused production regressions, then compare synthesis and routed timing
+under the same configuration. Scripts, checkpoint hashes and queries are in the
+ignored consuming-project `.planning/remote-builds/20261015-area-analysis/` cache
+and the corresponding `rdsrv419:/u1/bareese/agent-builds/ptp-dev/20261015-area-analysis/`
+scratch directory. No benchmark harness or raw report is added to maintained source.
+
 ## Production verification and limits
 
 The repair follow-up passed 25 distinct focused configurations: ten arithmetic

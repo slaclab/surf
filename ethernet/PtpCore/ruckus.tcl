@@ -1,7 +1,7 @@
 #-----------------------------------------------------------------------------
 # Company    : SLAC National Accelerator Laboratory
 #-----------------------------------------------------------------------------
-# Description: PTP cores with local AXI registers and simulation source manifest
+# Description: Production PTP source manifest, including local AXI registers
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
 # It is subject to the license terms in the LICENSE.txt file found in the
@@ -12,7 +12,8 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 source $::env(RUCKUS_PROC_TCL)
-# Includes local register owners, fixed-function arithmetic and shared services.
+# Includes protocol policy, register and Sync-flow owners, Delay_Req TX,
+# pair/history tables and their shared scan ALU, fixed-function arithmetic and services.
 # The two-process bodies use VHDL-2008 `process(all)`, so Vivado must not
 # analyze these as VHDL-93; GHDL regressions already run with --std=08.
 loadSource -lib surf -dir "$::DIR_PATH/rtl" -fileType "VHDL 2008"

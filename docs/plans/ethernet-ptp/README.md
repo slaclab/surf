@@ -32,11 +32,12 @@ accumulate into qualification of the latest source automatically.
 | Compute arbiter, frame capacity and optional TLVs, `016771843` | 48 focused configurations pass. Matched synthesis reports -803 LUTs for arbiter indexing and -1,176 for 128-byte capacity. TLV rejection is implemented but not selected. [Evidence](history/verification.md#capacity-and-arbiter-follow-up) | Synthesis has PHY black boxes unbound. Final endpoint/MAC lifecycle and a routed build of the combined source remain outstanding. |
 | October 15 servo lifecycle repair over `d4c78ad5b` | All three servo clock cases and the 125 MHz PHC command-lifecycle scenario pass; both edited RTL files pass VSG. [Evidence](history/verification.md#october-15-servo-lifecycle-repair) | Selected endpoint run was interrupted and remains incomplete; no new synthesis, routed timing or hardware qualification. |
 | October 15 fixed-function repairs, through `44c85ff35` | 25 focused arithmetic/E2E/protocol/PHC/service configurations pass; 202 configurations collect, ten wrappers elaborate, six changed RTL files pass VSG. Matched SFP-only routing has +0.133 ns setup WNS and zero black boxes. [Evidence](history/arithmetic.md) | Area increases; endpoint/real-MAC integration, full service bound, constraint/CDC/DRC review and hardware acceptance remain open. |
+| October 15 Delay_Req TX extraction and test-runtime follow-up over `a3f821fd9` | Three reservation/stall cases, four ordinary exchange edition/mode cases and the interval fixture pass. All six separated GMII/XGMII port scenarios pass (278.24 s including builds); the two strengthened rejection cases pass again in 56.54 s. Both edited RTL files pass VSG. | Earlier long port runs were interrupted, then replaced by completion-driven validation. No new closed-loop endpoint/real-MAC, synthesis, timing or hardware result. |
+| October 15 protocol ownership split and direct-test runtime repair over `a3f821fd9` | 32 distinct simulation configurations pass across focused batches: all 18 table/negative-guard cases, both direct-sample RAM modes, four ordinary exchange cases, three rejection cases, three TX cases and two protocol-specification cases. Five refined/new RTL files pass VSG; source import resolves. The matched 14-case batch fell from 458.24 s to 167.65 s; summed case execution time fell 52%. [Method and scope](../../../tests/ethernet/PtpCore/README.md#selecting-tests) | Both RAM modes retain all sixteen history-cancellation phases. Public engine ports and table word packing are unchanged. No new continuous-clock endpoint/real-MAC, synthesis, routed timing or hardware result. |
 
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
 the acceptance backlog does not require a full-suite replay after routine edits.
-No new RTL/Python regression is implied by this documentation consolidation.
 
 ## PHY composition implementation
 
@@ -64,6 +65,43 @@ and [source-specific measurements](history/arithmetic.md) capture the choice and
 its area cost. Local state and specialized services replace compute workspaces.
 Simulation wrappers load explicitly in test fixtures, outside the production manifest.
 
+The protocol-engine decomposition now gives `PtpProtocolReg` configuration and
+snapshot ownership, `PtpPortPolicy` admission/deadline/lifecycle ownership, and
+`PtpSyncFlow` admission arbitration and measurement sequencing. The first flow
+extraction remained too broad: its pairing, history and shared scan state now
+live in `PtpSyncPair`, `PtpSyncHistory` and `PtpTableScan`. Their boundaries are
+held transactions, not exported private FSM state. History also owns append
+sequencing, leaving one coordination FSM in the flow.
+`PtpDelayReqTx` retains scheduling, reservation requests and stalled-frame drain;
+`PtpTxLedger` retains its existing physical ownership contract. The parent is
+structural. Diagnostic serialization stays with held RX/E2E payloads in the flow;
+registered word writes/commits reach the register owner. The
+[ownership rationale](../../../ethernet/PtpCore/architecture.md#composition-and-ownership)
+and [edge contracts](../../../ethernet/PtpCore/interfaces.md#output-ownership-and-exceptions)
+record why these boundaries avoid payload copies and additional pipeline stages.
+This is a structural change; no new area or timing measurement is available.
+
+Validation of the split exposed two stale register-fixture assumptions from the
+arithmetic migration. `PtpRegWrapper` connected PHC and servo to the same SECOND
+client slot, causing multiple request/cancel drivers and a manual-command timeout;
+it now matches the production endpoint's two independent clients. The final
+phase-overflow oracle also used the former signed64-seconds preparation bound.
+It now checks signed96 Q16 admission from all four submitted words, including
+both adjacent out-of-range values and late epoch faults at the signed96 extrema.
+Both register bases passed after these fixture fixes (161.54 s); four schema
+checks passed. The production PHC arithmetic and register ABI are unchanged.
+
+The [test-runtime follow-up](../../../tests/ethernet/PtpCore/README.md#selecting-tests)
+replaces physical-port fixed service delays with bounded retirement/publication
+checks. Direct protocol negative checks now wait for actual ledger/table/rate/E2E
+retirement instead of fixed 512/16,000-cycle windows. The matched fourteen-case
+table batch fell from 458.24 s to 167.65 s with three workers (63% less wall time).
+Summed cocotb execution time excluding builds fell 52%. A dedicated regression
+checks that these faster guards still catch late valid work; all sixteen history
+cancellation phases remain. TX restart is independently selectable on each PHY.
+The continuous-clock endpoint/MAC schedule and production acceptance limits are
+unchanged.
+
 Complete endpoint/real-MAC validation, review the matched routed findings and
 finish the full service proof. Keep **70,347,776 ticks** until that proof and
 contention/expiry tests justify a separate change. The 200,000-ppb actuator cap
@@ -71,7 +109,11 @@ still needs physical/control rationale and deployment qualification. The
 [remaining review items](acceptance.md#review-response-and-simplification-plan)
 include RX overload policy, composition/reset guarantees and localized maintenance.
 
-Further area work is optional and measurement-driven. Historical compute-owner
+The [saved-checkpoint area follow-up](history/arithmetic.md#area-follow-up-on-the-saved-production-checkpoint)
+identifies PI clamp/limit logic, median data movement and qualified rate-filter
+widths as the next bounded optimization candidates. No candidate savings have
+been measured; preserve numerical and cancellation behavior and compare one
+change at a time. Further area work remains measurement-driven. Historical compute-owner
 bookkeeping observations in the [area record](history/verification.md#capacity-and-arbiter-follow-up)
 refer to the retired engine.
 Halving LUT usage was motivation, not an acceptance threshold. Shared MAC/checksum

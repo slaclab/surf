@@ -137,6 +137,13 @@ registered forward records. `EthMacPtpEndpoint` and `PtpTxTimestampTap` compose
 child boundaries with registered reset-completion tracking. `PtpEndpoint` is
 structural, forwarding controller/core outputs and adapting TX. `PtpPkg`
 defines the record contracts and has no module outputs.
+`PtpDelayReqTx` registers ledger allocation valid and the complete TX beat;
+`PtpProtocolEngine` forwards that child's stream without another register and
+composes `PtpProtocolReg`, `PtpPortPolicy`, `PtpSyncFlow` and `PtpTxLedger`.
+`PtpProtocolReg` owns configuration and snapshot banks; the flow owner supplies
+registered `PtpPublicationType` word writes/commits. Announce upload holds the
+RX record until its last word is stored; E2E upload retains its operands. Live
+policy and flow diagnostics combine by field without an extra sampling edge.
 
 The remaining exceptions are:
 
@@ -144,7 +151,7 @@ The remaining exceptions are:
   the edge that captures the presented word into the registered head. This
   follows the SURF FIFO consumer pattern; delaying acknowledgement would need
   another reserved slot. FIFO writes and reset remain registered.
-- Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpProtocolEngine` and
+- Reverse ready in `PtpMath`, `PtpE2e`, `PtpPrimaryGuard`, `PtpSyncFlow` and
   `PtpServo` expresses current capacity, simultaneous retirement or competing
   admission/cancellation. A timing break needs an additional reserved slot or
   an existing buffered SURF pipeline. This exception does not permit
@@ -157,6 +164,29 @@ The remaining exceptions are:
   Adding a separate flush register would misalign those two consumers.
 - Constants, fixed slices/extensions and structural forwarding preserve the
   underlying child/register ownership and need no extra stage.
+- Protocol policy feeds `PtpDelayReqTx.enable`, `cancel` and accepted-response
+  interval metadata combinationally. These local controls preserve the engine's
+  original scheduling and abort-detection edge; registering them would postpone
+  cancellation or interval updates. Allocation and AXI payload/valid remain
+  registered in the child. The separate `ledgerCancel` is the registered port
+  abort shared with `PtpTxLedger`, excluding reservation transfer at both ends.
+- `PtpPortPolicy` supplies combinational admission, flag/interval decoding and
+  same-edge cancellation to `PtpSyncFlow`. The flow supplies same-edge Sync,
+  Announce and accepted-sample events so receipt deadlines update on their
+  original edges. Announce-change detection uses registered flow idle/held-valid
+  state, not reverse ready or admission events. MAC-change detection comes
+  directly from `PtpProtocolReg`'s retained MAC. These controls add no payload
+  pipeline; lifecycle and child cancellation remain registered. The flow blocks
+  new work during both detection and consumption of the registered abort.
+- Internal Sync-table controls preserve the original arbitration edges:
+  `PtpSyncFlow` supplies pair enable/take, history lookup/append starts, and the
+  same-edge cancellation to both tables and `PtpTableScan`. Pair admission and
+  rejection events are combinational detection events consumed by policy and
+  diagnostics. Table completion, sample payloads, normalized upload and scan
+  request/result fields come from registered state. The append sample combines
+  the pair owner's held provenance with the rate producer's held correction;
+  it adds neither arithmetic nor storage. These internal controls are not new
+  endpoint streaming interfaces.
 - Simulation wrappers flatten/pack interfaces and inject fixture controls.
   `PtpRegWrapper` instantiates production `PtpEndpointControl`; its bank override
   and snapshot-inhibit injection remain test stimulus. It exposes actual
@@ -254,21 +284,53 @@ register. Consolidation from `PtpEndpoint` preserves these cycles. PHY and gener
 remain local to the affected owner. These are bounded event-delivery latencies,
 not retroactive cancellation of already committed operations.
 
-The port's child requests and payloads are registered. Allocation is held until
-the ledger accepts it; only then may TX begin. A reservation accepted on the
+The port's arithmetic requests and payloads are registered. `PtpDelayReqTx`
+holds registered allocation valid until ledger acceptance or cancellation;
+only acceptance may start TX. A reservation accepted on the
 local cancellation-detection edge still owns a frame, which survives restart
-and drains normally. E2E operands and the exchange diagnostic tag are frozen
+and drains normally. Same-edge `cancel` resets scheduling but does not veto
+that reservation; `ledgerCancel` reaches both owners on the following edge.
+Configuration and local identity are sampled when the reservation is accepted,
+so subsequent changes cannot alter any offered byte. A simultaneous accepted
+response updates the minimum interval for future reservations; the current
+reservation uses the previous minimum. Only system reset discards a held frame.
+E2E operands and the exchange diagnostic tag are frozen
 until result consumption or cancellation. The port does not admit replacement
 work while the registered child cancellation is being consumed.
 
 The rate estimator captures the complete Sync sample and minimum span on input
 acceptance. Its registered `resultValid`, `sampleAccepted` and `ratioUpdate`
 remain held until `resultReady`; input acceptance alone does not publish a
-measurement. The protocol engine waits for completion, stores the combined
-signed128 correction in history, and acknowledges after forwarding the result.
+measurement. `PtpSyncFlow` waits for completion and requests a history append
+from `PtpSyncHistory`, using the held combined signed128 correction. It
+acknowledges the rate result after the append and measurement publication.
 Rejected samples publish no history/forward measurement. A rejected rate
 candidate still permits an otherwise accepted Sync to publish the retained
 ratio; only `ratioUpdate` renews ratio freshness.
+
+The private table transactions use `PtpSyncPkg` and do not change `PtpPkg`'s
+endpoint ABI:
+
+- **Pair:** enable allows a new search against the held RX message. `done` holds
+  until `take`; `sampleValid` is meaningful with `done` and distinguishes a
+  completed sample from a rejected/incomplete association. After `take`, the
+  sample remains retained until the flow permits another pair search. Sync
+  admission/rejection events occur at the decision edge, before RX acknowledgement.
+- **History append:** `appendStart` is a one-edge acceptance event from the rate
+  result, issued with `appendBusy` clear. An active lookup defers the writes. The coordinator holds sample, forward and normalized values through
+  `appendDone`. History writes 17 provenance words, drains that write, writes
+  eight normalized words and asserts completion on the commit edge. Lookup
+  cannot observe a partial append.
+- **History lookup:** the coordinator reserves E2E capacity and captures the
+  Delay sample on `lookupStart`, issued only with `lookupIdle` and `lookupReady`.
+  The sample is stable for the complete search. `lookupDone` is a one-cycle
+  completion with `lookupMatched`; the selected Sync persists through E2E
+  retirement. Normalized words obey valid/ready and stay stable when stalled.
+- **Scan:** each table holds its row request until its own `result.valid` edge.
+  Round-robin arbitration retains only owner and arithmetic scratch; the clients
+  retain their operands. A row completes without result backpressure, and either
+  requester waits at most one competing row. Same-edge cancellation invalidates
+  both clients and the service together.
 
 Chronology compares against the last accepted Sync, independently of the rate
 anchor. A span shorter than `minimumSpan` raw cycles retains the anchor. Every

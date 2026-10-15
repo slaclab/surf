@@ -17,6 +17,9 @@
 # - Timing: Measurement stalls and rate-engine busy block RX; registered payload
 #   holds until consumption or documented abort. Reset, generation, RX abort,
 #   overflow and configuration application cancel pending work. No PHY model here.
+# - Negative checks observe production child handshakes/table capacity to await
+#   retirement, checking public measurement valid on every edge. Internal probes
+#   select the observation endpoint; they do not compute expected data/counts.
 
 import cocotb
 import pytest
@@ -176,9 +179,49 @@ class Bench:
         await self.wait()
         assert not int(self.d.measurementValid.value) or (self.payload(), int(self.d.measurementDelayValid.value)) != previous
 
+    async def no_measurement(self, *, ledger=False):
+        """Watch every edge until admitted work and diagnostic updates drain.
+
+        Raw ticks are controlled by this fixture and stay fixed here. Partial
+        pairs/unresolved wire keys may remain, but cannot create a measurement
+        without another input. TX drain is deliberately not an idle requirement.
+        """
+        flow = self.d.u_dut.u_flow
+        rate = flow.u_rateestimator
+        e2e = flow.u_e2e
+        entry_ram = self.d.u_dut.u_ledger.u_entryram
+        scan_starts = 0
+        stable = 0
+        for _ in range(16000):  # Failure timeout, never a fixed service delay.
+            assert not int(self.d.measurementValid.value), 'unexpected measurement during negative check'
+            assert not int(self.d.measurementReady.value), 'negative check must retain unexpected output'
+            idle = (int(flow.policyidle.value) and int(flow.pairidle.value) and
+                    int(flow.historyidle.value) and not int(flow.appendbusy.value) and
+                    int(rate.inputready.value) and not int(rate.inputvalid.value) and
+                    not int(rate.resultvalid.value) and int(e2e.inputready.value) and
+                    not int(e2e.inputvalid.value) and not int(e2e.resultvalid.value) and
+                    not int(self.d.u_dut.responsevalid.value) and
+                    not int(self.d.u_dut.delayvalid.value) and not int(self.d.rxValid.value))
+            if ledger:
+                # Require a complete sweep while the downstream pipeline stays
+                # idle. A row skipped while a prior sample blocked publication
+                # must get another opportunity before this check can finish.
+                # Two row-zero reads bracket START and a complete four-row pass,
+                # including when a full ledger/quarantine prevents allocation.
+                if not idle or int(self.d.wireValid.value):
+                    scan_starts = 0
+                elif int(entry_ram.enb.value) and int(entry_ram.addrb.value) == 0:
+                    scan_starts += 1
+            # Four quiet edges cover the registered handoffs and the two-stage
+            # rejection-count publication after the last owner retires.
+            stable = stable+1 if idle and (not ledger or scan_starts >= 2) else 0
+            if stable == 4:
+                return
+            await self.wait()
+        assert False, 'protocol work did not retire during negative check'
+
     async def no_result(self):
-        await self.wait(512)
-        assert not int(self.d.measurementValid.value)
+        await self.no_measurement()
 
     def stop(self):
         self.clock.cancel()
@@ -435,7 +478,6 @@ async def capacity_chronology_and_cancellation(d):
         await b.send(0, 55, (b.now+1000)*8, ticks=b.now+1000)
         assert not int(d.rxReady.value)
         await b.pulse('rxAbort')
-        await b.wait(150)
         await b.no_result()
         await b.send(0, 56, 100*NS)
         await b.result(56, 123*Q16+7)

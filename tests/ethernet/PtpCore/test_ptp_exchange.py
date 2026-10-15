@@ -234,10 +234,9 @@ class ExchangeBench(Bench):
 
     async def no_delay(self):
         before = int(self.d.delayCount.value)
-        # Covers the complete serialized E2E latency, not just RX admission.
-        for _ in range(16000):
-            await self.wait()
-            assert not int(self.d.measurementValid.value), 'rejected response published a measurement'
+        # A complete ledger sweep after input retirement, then the actual
+        # history/rate/E2E drain; observe public valid on every intervening edge.
+        await self.no_measurement(ledger=True)
         assert int(self.d.delayCount.value) == before
 
     async def next_request(self, sync_seq):
@@ -273,9 +272,8 @@ async def ordinary_master(d):
 
 @cocotb.test(timeout_time=10, timeout_unit='ms')
 async def response_association(d):
-    # Fourteen exchanges each include two complete negative E2E windows, a
-    # positive result and fresh rate samples. Their bounded waits can exceed
-    # 125000 clocks now that operand movement and division share one service.
+    # Fourteen exchanges each check rejection retirement, same-request recovery,
+    # duplicate rejection and fresh rate samples. Timeouts remain failure bounds.
     b = ExchangeBench(d)
     await b.setup()
     try:

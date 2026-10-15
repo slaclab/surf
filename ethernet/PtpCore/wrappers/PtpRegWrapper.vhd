@@ -130,17 +130,17 @@ architecture rtl of PtpRegWrapper is
    signal measurementSlave  : PtpMeasurementSlaveType;
    signal portStatus        : PtpPortStatusType;
    signal portLifecycle     : PtpPortLifecycleType;
-   -- Private shared-service instances keep each fixture's arithmetic
-   -- contract identical to the endpoint's without its cross-client arbiter.
-   signal secondValid       : slv(0 downto 0);
-   signal secondReady       : slv(0 downto 0);
-   signal secondRound       : slv(0 downto 0);
-   signal secondOperand     : slv(127 downto 0);
-   signal secondCancel      : slv(0 downto 0);
-   signal secondResultValid : slv(0 downto 0);
-   signal secondResultReady : slv(0 downto 0);
-   signal secondQuotient    : slv(127 downto 0);
-   signal secondRemainder   : slv(127 downto 0);
+   -- Match the endpoint's distinct PHC (0) and servo (1) converter owners.
+   -- Sharing a client slot would give request/cancel buses multiple drivers.
+   signal secondValid       : slv(1 downto 0);
+   signal secondReady       : slv(1 downto 0);
+   signal secondRound       : slv(1 downto 0);
+   signal secondOperand     : slv(255 downto 0);
+   signal secondCancel      : slv(1 downto 0);
+   signal secondResultValid : slv(1 downto 0);
+   signal secondResultReady : slv(1 downto 0);
+   signal secondQuotient    : slv(255 downto 0);
+   signal secondRemainder   : slv(255 downto 0);
 
    signal divideValid       : slv(1 downto 0);
    signal divideReady       : slv(1 downto 0);
@@ -156,7 +156,7 @@ begin
 
    U_Second : entity surf.PtpSecondService
       generic map (
-         NUM_CLIENTS_G  => 1,
+         NUM_CLIENTS_G  => 2,
          WIDTH_G        => 128)
       port map (
          clk             => clk,                -- [in]
@@ -329,12 +329,12 @@ begin
          secondValid       => secondValid(0),
          secondReady       => secondReady(0),
          secondRound       => secondRound(0),
-         secondOperand     => secondOperand,
+         secondOperand     => secondOperand(127 downto 0),
          secondCancel      => secondCancel(0),
          secondResultValid => secondResultValid(0),
          secondResultReady => secondResultReady(0),
-         secondQuotient    => secondQuotient,
-         secondRemainder   => secondRemainder,
+         secondQuotient    => secondQuotient(127 downto 0),
+         secondRemainder   => secondRemainder(127 downto 0),
          clk              => clk,                             -- [in]
          rst              => rst,                             -- [in]
          regRst           => regRst,                          -- [in]
@@ -421,15 +421,15 @@ begin
          RST_ASYNC_G    => RST_ASYNC_C,
          CLK_FREQ_G     => CLK_FREQ_C)
       port map (
-         secondValid       => secondValid(0),
-         secondReady       => secondReady(0),
-         secondRound       => secondRound(0),
-         secondOperand     => secondOperand,
-         secondCancel      => secondCancel(0),
-         secondResultValid => secondResultValid(0),
-         secondResultReady => secondResultReady(0),
-         secondQuotient    => secondQuotient,
-         secondRemainder   => secondRemainder,
+         secondValid       => secondValid(1),
+         secondReady       => secondReady(1),
+         secondRound       => secondRound(1),
+         secondOperand     => secondOperand(255 downto 128),
+         secondCancel      => secondCancel(1),
+         secondResultValid => secondResultValid(1),
+         secondResultReady => secondResultReady(1),
+         secondQuotient    => secondQuotient(255 downto 128),
+         secondRemainder   => secondRemainder(255 downto 128),
          clk               => clk,                               -- [in]
          rst               => rst,                               -- [in]
          regRst            => regRst,                            -- [in]

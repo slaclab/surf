@@ -11,7 +11,7 @@ literals in the AXI register helpers. Bank-local offsets are unchanged.
 | --- | --- | --- | --- |
 | Endpoint | `0x000` | `PtpEndpointControl` | `PtpEndpoint` |
 | PHC | `0x1000` | `PtpPhc` | `PtpEndpoint.Phc` |
-| Protocol engine | `0x2000` | `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
+| Protocol engine | `0x2000` | `PtpProtocolReg` inside `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
 
 Word-backed registers retain their addresses, widths, defaults and field strobes.
@@ -31,8 +31,9 @@ Previous snapshot values remain readable during copying. See
 | Port | Source/domain/local identity, MAC-derived identity, request and association timers, rate-estimator limits, path-delay acceptance limit, calibration readback, Announce/exchange snapshots, ledger status and protocol/RX counters |
 | Servo | Step policy, gains, frequency/slew limits, delay-age/holdover/sample limits, asymmetry, lock thresholds/counters, filter/offset/rate snapshots and servo diagnostics |
 
-AXI logic belongs directly in each functional core's VHDL module and uses the existing
-SURF endpoint helpers. Keep numerical/physical helpers such as `PtpMath`,
+AXI logic belongs to each functional core and uses the existing SURF endpoint
+helpers. The protocol engine delegates its bank to `PtpProtocolReg`. Keep
+numerical/physical helpers such as `PtpMath`,
 `PtpE2e`, and the timestamp adapters free of AXI. The port presents its ledger
 diagnostics; a separate bus endpoint for every internal helper is unnecessary.
 RX counters may enter port management from the physical frontend in the enclosing
@@ -43,17 +44,17 @@ Manual operands, phase normalization and manual/servo arbitration belong to
 control supplies permission and lifecycle policy; a command's own capture
 invalidation must not cancel that command.
 
-- `PtpProtocolEngine` owns `PtpPortConfigType`, MAC-derived identity, shared active
-  limits and local diagnostics. RX counters terminate here.
+- `PtpProtocolReg` owns `PtpPortConfigType`, MAC-derived identity, shared active
+  limits and diagnostic snapshot/publication storage inside `PtpProtocolEngine`.
+  RX counters terminate here; policy and flow publish live diagnostics.
 - `PtpServo` owns `PtpServoConfigType` and diagnostics, consuming the port's
   authoritative `PtpSharedConfigType`.
 - `PtpPhc` owns its register map, manual operands, phase normalization,
   snapshots and final manual/automatic command arbitration.
-- All three cores merge register state into the existing `RegType` and update
-  it in their single `comb`/`seq` pair. There are no separate AXI management
-  wrappers or PHC register entity. All three cores always use their local AXI
-  banks, with no optional configuration bypass. Standalone PHC and servo
-  fixtures configure the real banks through AXI and prepare/apply strobes.
+- PHC and servo retain register state in their existing `RegType`/`comb`/`seq`
+  pair; protocol management has its own two-process `PtpProtocolReg` owner.
+  All three cores always use their local AXI banks, with no optional configuration
+  bypass. Standalone PHC and servo fixtures configure the real banks through AXI and prepare/apply strobes.
 - `PtpEndpointControl` (formerly `PtpReg`) stores global enable shadows/candidates,
   commit/snapshot transactions, completion sequences and IRQ masks/status. It
   also owns the existing registered restart/RX-flush/event stages and

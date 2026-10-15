@@ -19,7 +19,12 @@ hardware qualification remain open.
 `rtl/` contains the common endpoint, packages, MAC composition and `GigEthPtp`.
 `PtpEndpoint` connects `PtpEndpointControl`, `PtpProtocolEngine`, `PtpServo`,
 `PtpPhc`, `PtpSecondService`, `PtpVariableDivide`, TX adaptation and the AXI
-crossbar. `PtpProtocolEngine` owns the TX ledger, E2E and rate-estimator children. `EthMacPtpEndpoint` adds `EthMacTop`, the
+crossbar. `PtpProtocolEngine` structurally connects `PtpProtocolReg` (configuration
+and snapshots), `PtpPortPolicy` (admission and lifecycle), `PtpSyncFlow`
+(association and measurement coordination), `PtpDelayReqTx` (scheduling and
+frame transmission), and `PtpTxLedger` (wire ownership). The flow delegates table ownership to
+`PtpSyncPair` and `PtpSyncHistory`, with row comparisons shared through
+`PtpTableScan`. The rate estimator and E2E arithmetic remain flow children. `EthMacPtpEndpoint` adds `EthMacTop`, the
 primary-stream guard and passive RX/TX taps. The RX tap composes the timestamp
 adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
 

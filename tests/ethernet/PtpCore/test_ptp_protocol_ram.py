@@ -23,7 +23,9 @@
 # - Timing: Raw ticks advance between events while ordinary pipeline clocks
 #   continue. Internal ledger ready and RAM enable target cancellation and
 #   concurrent traffic at lookup admission; payload/result oracles use public
-#   interfaces. No alternate RTL, physical timing or resource-use claim.
+#   interfaces. Negative-result guards wait for actual table/arithmetic drain;
+#   the guard regression must detect valid work before its retirement endpoint.
+#   No alternate RTL, physical timing or resource-use claim.
 
 from contextlib import asynccontextmanager
 
@@ -440,7 +442,7 @@ async def scan_overlap(d):
                 for _ in range(2*(4*45+22+8)):
                     await RisingEdge(d.clk)
                     admitted = int(d.u_dut.delayready.value)
-                    seen_pair_read |= bool(int(d.u_dut.u_pairram.enb.value))
+                    seen_pair_read |= bool(int(d.u_dut.u_flow.u_pair.u_pairram.enb.value))
                     await Timer(1.1, unit='ns')
                     if admitted:
                         assert seen_pair_read and not pending.done(), 'fixture missed concurrent scans'
@@ -467,10 +469,36 @@ async def scan_overlap(d):
             await b.drain()
 
 
+@cocotb.test(timeout_time=1, timeout_unit='ms')
+async def negative_guard_retirement(d):
+    # These are intentional false negative-result expectations. A guard that
+    # returns during an idle gap before late publication must fail this test.
+    # The held result is then checked with the ordinary independent oracle.
+    async with history_bench(d) as b:
+        ticks = b.last_sync_tick+125000000
+        remote = ticks*8-101
+        await b.packet(master_frame(0, 100, remote, 49152, minor=b.minor, two_step=False),
+                       ticks=ticks, local=ticks*8*Q16+3260416)
+        assert not int(d.measurementValid.value), 'fixture missed pending rate work'
+        with pytest.raises(AssertionError, match='unexpected measurement'):
+            await b.no_result()
+        await b.result(100, 150*Q16, ticks)
+        await b.drain()
+        request = await b.request()
+        tick = ticks+100
+        await b.wire(request, tick)
+        await b.packet(b.response(request, tick), ticks=b.now+10)
+        assert not int(d.measurementValid.value), 'fixture missed pending ledger/history/E2E work'
+        with pytest.raises(AssertionError, match='unexpected measurement'):
+            await b.no_delay()
+        await selected_exchange(b, request, (100, ticks, 0), tick)
+
+
 @pytest.mark.parametrize('memory', ['distributed', 'block'])
 @pytest.mark.parametrize('scenario', ['history_selection', 'history_cancellation', 'history_publication_priority',
                                     'pair_cancellation_and_expiry', 'concurrent_rejections',
-                                    'scan_word_boundaries', 'pair_word_boundaries', 'scan_overlap'])
+                                    'scan_word_boundaries', 'pair_word_boundaries', 'scan_overlap',
+                                    'negative_guard_retirement'])
 def test_protocol_ram(memory, scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',

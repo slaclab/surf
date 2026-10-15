@@ -18,7 +18,7 @@
 #   aliases and field strobes, active versus shadow state,
 #   local snapshot sequence/edge agreement, registered request stability,
 #   full phase operand latching, accepted commit survival across AXI reset,
-#   signed phase remainder/epoch boundaries and full-width quotient rejection,
+#   signed phase remainder/epoch boundaries and signed96 admission from signed128,
 #   busy/ack/error ownership, IRQ W1C and build constants.
 # - Timing: Clock edges are stepped explicitly; bus and command waits are bounded.
 
@@ -453,14 +453,17 @@ async def register_contract(d):
         assert int(d.timeGeneration.value) == before_generation+1
         assert not await read(0x1068)
 
-    # Overflow in phase preparation cannot reach the PHC command slot. In
-    # contrast, a fitting signed64 quotient is accepted by preparation and
-    # then faults at the PHC's 48-bit epoch boundary. Reset after each fatal
-    # case so a prior fault cannot hide a later quotient-fit error.
+    # Preparation requires the full submitted value to fit signed96 Q16 ns.
+    # Wider values must fail before reaching the PHC command slot, even when
+    # their seconds quotient fits signed64. The signed96 endpoints reach the
+    # clock and fault at its 48-bit epoch boundary. Reset after each fatal case
+    # so a prior fault cannot hide a later admission/epoch error.
     limits = (
         ((1 << 127)-1, False), (-(1 << 127), False),
         ((1 << 63)*divisor, False), (-((1 << 63)+1)*divisor, False),
-        ((1 << 63)*divisor-1, True), (-((1 << 63)+1)*divisor+1, True),
+        ((1 << 63)*divisor-1, False), (-((1 << 63)+1)*divisor+1, False),
+        (1 << 95, False), (-(1 << 95)-1, False),
+        ((1 << 95)-1, True), (-(1 << 95), True),
     )
     for delta, reaches_clock in limits:
         await edge(rst=1)
