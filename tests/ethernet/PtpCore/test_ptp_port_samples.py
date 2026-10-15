@@ -533,4 +533,5 @@ async def announce_snapshot_cohorts(d):
 @pytest.mark.parametrize('memory', ['distributed', 'block'])
 def test_ptp_port_samples(memory):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
                       parameters={'HISTORY_MEMORY_TYPE_G': memory, 'PAIR_MEMORY_TYPE_G': memory})

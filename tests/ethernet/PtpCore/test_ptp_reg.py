@@ -483,4 +483,5 @@ async def register_contract(d):
 @pytest.mark.parametrize('base', [0, 0xA5804000])
 def test_ptp_reg(base):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpregwrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRegWrapper.vhd"]},
                       parameters={'AXIL_BASE_ADDR_G': f'{base:032b}'}, extra_env={'AXIL_BASE': base})

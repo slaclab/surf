@@ -59,4 +59,5 @@ async def integer_oracles(d):
 @pytest.mark.parametrize("width", [64, 66, 67])
 def test_ptp_timing_math(width):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptimingmathwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTimingMathWrapper.vhd"]},
                        parameters={"WIDTH_G": width}, extra_env={"WIDTH": width})

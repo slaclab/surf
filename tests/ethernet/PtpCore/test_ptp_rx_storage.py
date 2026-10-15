@@ -260,6 +260,7 @@ async def tx_storage(d):
 def test_ptp_rx_storage(depth):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptprxfrontendwrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={"PHY_TYPE_G": "DIRECT", "FIFO_DEPTH_G": depth, "TX_OBSERVE_G": True},
         extra_env={"FIFO_DEPTH_G": depth},
     )

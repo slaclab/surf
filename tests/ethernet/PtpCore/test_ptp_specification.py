@@ -417,6 +417,7 @@ async def delay_request_headers(d):
 def test_ptp_specification_rx():
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
         extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
                                       cocotb_test_filter('literal_rx_headers')),
@@ -426,6 +427,7 @@ def test_ptp_specification_rx():
 def test_ptp_specification_protocol():
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
         extra_env=cocotb_filtered_env({}, cocotb_test_filter('interpreted_two_step_correction')),
     )
 
@@ -434,6 +436,7 @@ def test_ptp_specification_protocol():
 def test_ptp_specification_rx_rules(scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
         extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
                                       cocotb_test_filter(scenario)),
@@ -443,6 +446,7 @@ def test_ptp_specification_rx_rules(scenario):
 def test_ptp_specification_rx_tlv_disabled():
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
                     'TLV_EN_G': False},
         extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
@@ -458,6 +462,7 @@ def test_ptp_specification_rx_capacity_floor():
     capacity = 82
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
                     'MAX_FRAME_G': capacity},
         extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4,
@@ -470,5 +475,6 @@ def test_ptp_specification_rx_capacity_floor():
 def test_ptp_specification_protocol_rules(scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
         extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)),
     )

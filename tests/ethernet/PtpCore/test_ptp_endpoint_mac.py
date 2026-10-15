@@ -92,4 +92,4 @@ def test_ptp_endpoint_mac(mode, two_step):
                       parameters={"TPD_PS_G": 0, "PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": True},
                       extra_env={"TWO_STEP": int(two_step), "MODE": mode, "REAL_MAC": 1},
-                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})
+                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ["ethernet/PtpCore/wrappers/PtpEndpointLoopbackWrapper.vhd"]})

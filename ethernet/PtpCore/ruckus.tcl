@@ -16,8 +16,6 @@ source $::env(RUCKUS_PROC_TCL)
 # The two-process bodies use VHDL-2008 `process(all)`, so Vivado must not
 # analyze these as VHDL-93; GHDL regressions already run with --std=08.
 loadSource -lib surf -dir "$::DIR_PATH/rtl" -fileType "VHDL 2008"
-# Includes direct protocol/PHY fixtures and the combinational timing-math fixture.
-loadSource -lib surf -sim_only -dir "$::DIR_PATH/wrappers" -fileType "VHDL 2008"
 
 # PTP lane compositions are family-specific; PHY adapters and checkpoints are
 # owned by GigEthCore and loaded by its normal family manifests.

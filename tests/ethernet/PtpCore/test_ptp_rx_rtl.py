@@ -539,6 +539,7 @@ async def tlv_lane_lookahead(dut):
 def test_ptp_rx_rtl(mode, depth, polarity, async_reset, latency):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptprxfrontendwrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={"PHY_TYPE_G": mode, "FIFO_DEPTH_G": depth,
                     "RST_POLARITY_G": f"'{polarity}'", "RST_ASYNC_G": async_reset,
                     "INGRESS_LATENCY_G": format(latency & ((1 << 64)-1), "064b")},
@@ -553,6 +554,7 @@ def test_ptp_rx_rtl(mode, depth, polarity, async_reset, latency):
 def test_ptp_rx_capacity_boundary(capacity, size, accepted):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptprxfrontendwrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
         parameters={"PHY_TYPE_G": "DIRECT", "FIFO_DEPTH_G": 4,
                     "MAX_FRAME_G": capacity},
         extra_env=cocotb_filtered_env(

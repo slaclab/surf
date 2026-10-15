@@ -276,7 +276,8 @@ async def cancellation_and_reset(d):
     pytest.param(475136, -229376, id="both"),
 ])
 def test_ptp_e2e(ingress, egress, normalized):
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpe2ewrapper", parameters={
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpe2ewrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpE2eWrapper.vhd"]}, parameters={
         "INGRESS_LATENCY_G": format(ingress & MASK64, "064b"),
         "EGRESS_LATENCY_G": format(egress & MASK64, "064b"),
         "NORMALIZED_SYNC_G": normalized},

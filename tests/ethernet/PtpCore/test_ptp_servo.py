@@ -474,4 +474,5 @@ async def median_history(d):
                          ids=["125MHz", "156MHz", "wide-divisor"])
 def test_ptp_servo(frequency):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpservowrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpServoWrapper.vhd"]},
                       parameters={"CLK_FREQ_G": frequency})

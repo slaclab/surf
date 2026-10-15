@@ -28,7 +28,8 @@ The family directories below contain PHY compositions. Reusable PHY-only
 adapters live in [GigEthCore](../GigEthCore/README.md). The
 [PyRogue endpoint](../../python/surf/ethernet/ptp/_PtpEndpoint.py) exposes
 `Phc`, `ProtocolEngine` and `Servo` children. `ruckus.tcl` owns the source
-inventory, including RTL and wrappers.
+inventory for production RTL. Tests load their simulation wrappers explicitly
+through `extra_vhdl_sources`.
 
 ## Integration essentials
 

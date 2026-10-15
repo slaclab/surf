@@ -444,7 +444,8 @@ async def deferred_duplicate(d):
 
 
 def test_ptp_tx_ledger():
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters={"PACKET_LIFETIME_G": 10000},
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters={"PACKET_LIFETIME_G": 10000},
                       extra_env=cocotb_filtered_env({}, cocotb_test_filter('lifecycle')))
 
 
@@ -480,7 +481,8 @@ async def age_boundaries(d):
 @pytest.mark.parametrize('depth', [1, 4], ids=['one', 'four'])
 def test_ptp_tx_ledger_counters(depth):
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('counter_batches')))
 
 
@@ -488,36 +490,42 @@ def test_ptp_tx_ledger_counters(depth):
                          ids=['one-lut', 'three-lut', 'four-lut', 'four-block'])
 def test_ptp_tx_ledger_storage(depth, memory_type):
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': depth, 'SEQUENCE_BITS_G': 3, 'MEMORY_TYPE_G': memory_type}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('capture_storage')))
 
 
 def test_ptp_tx_ledger_cancellation():
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('cancellation')))
 
 
 def test_ptp_tx_ledger_slot_reuse():
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 1, 'SEQUENCE_BITS_G': 3}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('slot_reuse')))
 
 
 def test_ptp_tx_ledger_keys():
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 2}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('keys_and_duplicates')))
 
 
 def test_ptp_tx_ledger_deferred_duplicate():
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 4, 'SEQUENCE_BITS_G': 3}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('deferred_duplicate')))
 
 
 @pytest.mark.parametrize('memory_type', ['distributed', 'block'])
 def test_ptp_tx_ledger_age(memory_type):
     parameters = {'PACKET_LIFETIME_G': 10000, 'DEPTH_G': 1, 'SEQUENCE_BITS_G': 3, 'MEMORY_TYPE_G': memory_type}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper", parameters=parameters,
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptptxledgerwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTxLedgerWrapper.vhd"]}, parameters=parameters,
                       extra_env=cocotb_filtered_env(parameters, cocotb_test_filter('age_boundaries')))

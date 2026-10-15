@@ -113,4 +113,4 @@ def test_ptp_endpoint(mode, real_mac, two_step):
                                   "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": real_mac},
                       extra_env={"TWO_STEP": int(two_step), "SYNC_CORRECTION": 10*Q16+3, "ORIGIN_BIAS_NS": 3,
                                  "MODE": mode, "REAL_MAC": int(real_mac), "OSCILLATOR_PPM": 100 if mode == "XGMII" else -100, "ALLOW_STEP": int(mode == "XGMII"), "ABSOLUTE_PHASE_CHECK": 1},
-                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES})
+                      extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ["ethernet/PtpCore/wrappers/PtpEndpointLoopbackWrapper.vhd"]})

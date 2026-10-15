@@ -70,7 +70,10 @@ normative requirements, endpoint restrictions and implementation checks.
 
 The counterexample tests pass when they demonstrate the rejected algorithm's
 failure. They must not be mistaken for successful timestamp-association RTL.
-Large simulator logs stay in `tests/sim_build` or temporary storage; durable
+Simulation wrappers are supplied explicitly by each fixture through
+`extra_vhdl_sources`; they are not loaded by the production ruckus manifest.
+The shared runner puts GHDL outputs under ignored `tests/sim_build/ethernet/PtpCore/`.
+Large simulator logs stay there or in temporary storage; durable
 historical results are in the
 [Phase 0 record](../../../docs/plans/ethernet-ptp/history/verification.md#capture-boundary-experiments).
 Follow the [test guidance](../../README.md) for changes and new regressions.

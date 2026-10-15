@@ -472,5 +472,6 @@ async def snapshot_sessions(d):
 def test_ptp_phc(frequency, polarity, async_reset):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptpphcwrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpPhcWrapper.vhd"]},
         parameters={"CLK_FREQ_G": frequency, "RST_POLARITY_G": f"'{polarity}'", "RST_ASYNC_G": async_reset},
         extra_env={"FREQUENCY": frequency, "POLARITY": polarity})

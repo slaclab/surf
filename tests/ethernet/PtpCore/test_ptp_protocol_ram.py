@@ -474,6 +474,7 @@ async def scan_overlap(d):
 def test_protocol_ram(memory, scenario):
     run_surf_vhdl_test(
         test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
         parameters={'HISTORY_MEMORY_TYPE_G': memory, 'PAIR_MEMORY_TYPE_G': memory,
                     'PACKET_LIFETIME_G': 2*MIN_ASSOCIATION_TICKS},
         extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)))

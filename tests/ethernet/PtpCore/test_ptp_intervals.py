@@ -75,4 +75,5 @@ async def receipt_intervals(d):
 
 
 def test_ptp_intervals():
-    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper')
+    run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]})

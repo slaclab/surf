@@ -391,6 +391,7 @@ async def response_overflow(d):
 
 def test_master_headers():
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptprxfrontendwrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
                       parameters={'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
                       extra_env=cocotb_filtered_env({'PHY_TYPE_G': 'DIRECT', 'FIFO_DEPTH_G': 4},
                                                    cocotb_test_filter('master_headers')))
@@ -400,6 +401,7 @@ def test_master_headers():
 @pytest.mark.parametrize('two_step', [False, True], ids=['one-step', 'two-step'])
 def test_ordinary_master(minor, two_step):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
                       extra_env=cocotb_filtered_env({'MINOR': minor, 'TWO_STEP': int(two_step)},
                                                    cocotb_test_filter('ordinary_master')))
 
@@ -407,4 +409,5 @@ def test_ordinary_master(minor, two_step):
 @pytest.mark.parametrize('scenario', ['sync_overflow', 'response_overflow', 'response_association'])
 def test_exchange_rejection(scenario):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpprotocolenginewrapper',
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpProtocolEngineWrapper.vhd"]},
                       extra_env=cocotb_filtered_env({}, cocotb_test_filter(scenario)))

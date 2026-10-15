@@ -239,4 +239,4 @@ def test_ptp_port(mode):
                       parameters={'PHY_TYPE_G': mode, 'CLK_FREQ_G': 125000000 if mode == 'GMII' else 156250000,
                                   'PACKET_LIFETIME_G': 5000, 'MAC_ENABLE_G': False},
                       extra_env={'MODE': mode, 'REAL_MAC': 0},
-                      extra_vhdl_sources={'surf': ETHMAC_RTL_SOURCES})
+                      extra_vhdl_sources={'surf': ETHMAC_RTL_SOURCES + ["ethernet/PtpCore/wrappers/PtpEndpointLoopbackWrapper.vhd"]})
