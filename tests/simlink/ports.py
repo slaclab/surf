@@ -94,6 +94,24 @@ XSIM_TRAFFIC = PortRange("xsim-traffic", 19740, 8)
 NATIVE_STREAM_OVERLOAD = PortRange("native-stream-overload", 19800, 9)
 NATIVE_TRANSPORT = PortRange("native-transport", 19900, 9)
 
+# RogueSvTrafficTb ports, shared by the Icarus and Verilator SV traffic
+# runners. HDL offsets from BASE_PORT_G are fixed: Stream0 +0, Stream1 +2,
+# Stream2 +4, Memory0 +6, SideBand0 +8 (five pairs total).
+IVERILOG_TRAFFIC = PortRange("iverilog-traffic", 19760, 5)
+VERILATOR_TRAFFIC = PortRange("verilator-traffic", 19780, 5)
+
+# Icarus and Verilator multi-instance, relaunch, and real-Rogue tops, placed
+# above every earlier allocation. Multi layout per multi_instance_peer_specs():
+# Stream tags 0-3 at +0/+2/+4/+6, Memory tags 0-1 at +8/+10, SideBand tags 0-1
+# at +12/+14 (eight pairs total). Relaunch is one Memory pair. The real-Rogue
+# top offsets Memory0 +0, Stream0 +2, SideBand0 +4 (three pairs total).
+IVERILOG_MULTI = PortRange("iverilog-multi", 20000, 8)
+VERILATOR_MULTI = PortRange("verilator-multi", 20020, 8)
+IVERILOG_RELAUNCH = PortRange("iverilog-relaunch", 20040)
+VERILATOR_RELAUNCH = PortRange("verilator-relaunch", 20042)
+IVERILOG_ROGUE = PortRange("iverilog-rogue", 20050, 3)
+VERILATOR_ROGUE = PortRange("verilator-rogue", 20060, 3)
+
 ALL_PORT_RANGES = (
     GHDL_CASES,
     GHDL_MULTI,
@@ -121,4 +139,12 @@ ALL_PORT_RANGES = (
     XSIM_TRAFFIC,
     NATIVE_STREAM_OVERLOAD,
     NATIVE_TRANSPORT,
+    IVERILOG_TRAFFIC,
+    VERILATOR_TRAFFIC,
+    IVERILOG_MULTI,
+    VERILATOR_MULTI,
+    IVERILOG_RELAUNCH,
+    VERILATOR_RELAUNCH,
+    IVERILOG_ROGUE,
+    VERILATOR_ROGUE,
 )
