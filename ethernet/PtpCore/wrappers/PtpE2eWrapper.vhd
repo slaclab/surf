@@ -28,6 +28,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.PtpPkg.all;
 use surf.PtpSyncPkg.all;
 
@@ -81,20 +82,32 @@ architecture rtl of PtpE2eWrapper is
 
    signal syncSample        : PtpSyncSampleType  := PTP_SYNC_SAMPLE_INIT_C;
    signal delaySample       : PtpDelaySampleType := PTP_DELAY_SAMPLE_INIT_C;
-   signal measurement       : PtpMeasurementType;
-   signal divideValid       : slv(1 downto 0);
    signal divideReady       : slv(1 downto 0);
-   signal divideOperandA    : Slv128Array(1 downto 0);
-   signal divideOperandB    : slv(159 downto 0);
    signal divideCancel      : slv(1 downto 0);
-   signal divideResultValid : slv(1 downto 0);
    signal divideResultReady : slv(1 downto 0);
-   signal divideResultValue : Slv128Array(1 downto 0);
-   signal divideResultError : slv(1 downto 0);
 
    signal normalizedMaster : PtpSyncNormalizedMasterType;
 
+   signal dutRequest : PtpE2eRequestType;
+   signal dutResult  : PtpE2eResultType;
+
+   signal divideRequests : PtpDivideRequestArray(2-1 downto 0)(operandB(80-1 downto 0));
+   signal divideResults  : PtpDivideResultArray(2-1 downto 0);
+
 begin
+
+   divideRequests(0) <= PTP_DIVIDE_REQUEST80_INIT_C;
+
+   dutRequest <=
+   (
+      valid        => inputValid,
+      sync         => syncSample,
+      delay        => delaySample,
+      ratio        => ratio,
+      maxPathDelay => maxPathDelay
+   );
+   resultValid <= dutResult.valid;
+   resultError <= dutResult.error;
 
    normalizedMaster <=
    (
@@ -108,18 +121,13 @@ begin
          NUM_CLIENTS_G   => 2,
          DIVISOR_WIDTH_G => 80)
       port map (
-         clk          => clk,                 -- [in]
-         rst          => rst,                 -- [in]
-         cancel       => divideCancel,        -- [in]
-         inputValid   => divideValid,         -- [in]
-         inputReady   => divideReady,         -- [out]
-         roundNearest => "11",                -- [in]
-         operandA     => divideOperandA,      -- [in]
-         operandB     => divideOperandB,      -- [in]
-         resultValid  => divideResultValid,   -- [out]
-         resultReady  => divideResultReady,   -- [in]
-         resultValue  => divideResultValue,   -- [out]
-         resultError  => divideResultError);  -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => divideCancel,        -- [in]
+         requests    => divideRequests,      -- [in]
+         inputReady  => divideReady,         -- [out]
+         results     => divideResults,       -- [out]
+         resultReady => divideResultReady);  -- [in]
 
    syncSample.capture.timestamp  <= syncTime;
    syncSample.capture.ticks      <= syncTicks;
@@ -129,13 +137,13 @@ begin
    syncSample.sequenceId         <= syncSequence;
    delaySample.generation        <= delayGeneration;
    delaySample.sequenceId        <= delaySequence;
-   resultGeneration              <= measurement.generation;
-   resultSyncSequence            <= measurement.syncSequence;
-   resultDelaySequence           <= measurement.delaySequence;
-   resultTicks                   <= measurement.ticks;
-   resultRatio                   <= measurement.ratio;
-   resultRatioValid              <= measurement.ratioValid;
-   resultIsDelay                 <= measurement.isDelay;
+   resultGeneration              <= dutResult.data.generation;
+   resultSyncSequence            <= dutResult.data.syncSequence;
+   resultDelaySequence           <= dutResult.data.delaySequence;
+   resultTicks                   <= dutResult.data.ticks;
+   resultRatio                   <= dutResult.data.ratio;
+   resultRatioValid              <= dutResult.data.ratioValid;
+   resultIsDelay                 <= dutResult.data.isDelay;
    syncSample.remoteTime         <= syncRemote;
    syncSample.correction         <= syncCorrection;
    delaySample.capture.ticks     <= txTicks;
@@ -143,8 +151,8 @@ begin
    delaySample.capture.increment <= txIncrement;
    delaySample.remoteTime        <= responseRemote;
    delaySample.correction        <= responseCorrection;
-   forwardValue                  <= measurement.forward;
-   delayValue                    <= measurement.delayValue;
+   forwardValue                  <= dutResult.data.forward;
+   delayValue                    <= dutResult.data.delayValue;
 
    U_DUT : entity surf.PtpE2e
       generic map (
@@ -152,29 +160,19 @@ begin
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          NORMALIZED_SYNC_G => NORMALIZED_SYNC_G)
       port map (
-         normalizedMaster  => normalizedMaster,  -- [in]
-         normalizedReady   => normalizedReady,  -- [out]
-         divideValid       => divideValid(1),
-         divideReady       => divideReady(1),
-         divideOperandA    => divideOperandA(1),
-         divideOperandB    => divideOperandB(159 downto 80),
-         divideCancel      => divideCancel(1),
-         divideResultValid => divideResultValid(1),
-         divideResultReady => divideResultReady(1),
-         divideResultValue => divideResultValue(1),
-         divideResultError => divideResultError(1),
-         clk               => clk,           -- [in]
-         rst               => rst,           -- [in]
-         cancel            => cancel,        -- [in]
-         inputValid        => inputValid,    -- [in]
-         inputReady        => inputReady,    -- [out]
-         syncSample        => syncSample,    -- [in]
-         delaySample       => delaySample,   -- [in]
-         ratio             => ratio,         -- [in]
-         maxPathDelay      => maxPathDelay,  -- [in]
-         resultValue       => measurement,   -- [out]
-         resultValid       => resultValid,   -- [out]
-         resultReady       => resultReady,   -- [in]
-         resultError       => resultError);  -- [out]
+         clk               => clk,                    -- [in]
+         rst               => rst,                    -- [in]
+         cancel            => cancel,                 -- [in]
+         normalizedMaster  => normalizedMaster,       -- [in]
+         normalizedReady   => normalizedReady,        -- [out]
+         request           => dutRequest,             -- [in]
+         inputReady        => inputReady,             -- [out]
+         result            => dutResult,              -- [out]
+         resultReady       => resultReady,            -- [in]
+         divideRequest     => divideRequests(1),      -- [out]
+         divideReady       => divideReady(1),         -- [in]
+         divideCancel      => divideCancel(1),        -- [out]
+         divideResult      => divideResults(1),       -- [in]
+         divideResultReady => divideResultReady(1));  -- [out]
 
 end architecture rtl;

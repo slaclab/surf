@@ -90,14 +90,28 @@ package PtpRegisterPkg is
 
    procedure ptpRegisterBus(
       variable v          : inout PtpRegisterBusType;
-      constant r          : PtpRegisterBusType;
-      constant slave      : PtpRegisterSlaveType;
+      constant r     : PtpRegisterBusType;
+      constant slave : PtpRegisterSlaveType;
       variable ep         : inout AxiLiteEndpointType;
       constant readIndex  : integer;
       constant writeIndex : integer;
-      constant writeMask  : slv(31 downto 0);
-      constant readBank   : slv(1 downto 0) := "00";
-      constant reset      : sl              := '0');
+      constant writeMask : slv(31 downto 0);
+      constant readBank  : slv(1 downto 0) := "00";
+      constant reset     : sl              := '0');
+
+   -- Registered candidate scan in clk, without backpressure. valid qualifies a
+   -- 32-bit data word and its word index. prepare freezes the candidate; this
+   -- stream finishes before prepared. Reset cancels preparation.
+   type PtpConfigScanType is record
+      valid : sl;
+      index : slv(7 downto 0);
+      data  : slv(31 downto 0);
+   end record;
+
+   constant PTP_CONFIG_SCAN_INIT_C : PtpConfigScanType := (
+      valid => '0',
+      index => (others => '0'),
+      data  => (others => '0'));
 
 end package PtpRegisterPkg;
 
@@ -105,17 +119,17 @@ package body PtpRegisterPkg is
 
    procedure ptpRegisterBus(
       variable v          : inout PtpRegisterBusType;
-      constant r          : PtpRegisterBusType;
-      constant slave      : PtpRegisterSlaveType;
+      constant r     : PtpRegisterBusType;
+      constant slave : PtpRegisterSlaveType;
       variable ep         : inout AxiLiteEndpointType;
       constant readIndex  : integer;
       constant writeIndex : integer;
-      constant writeMask  : slv(31 downto 0);
-      constant readBank   : slv(1 downto 0) := "00";
-      constant reset      : sl              := '0') is
+      constant writeMask : slv(31 downto 0);
+      constant readBank  : slv(1 downto 0) := "00";
+      constant reset     : sl              := '0') is
    begin
       v.master.responseReady := '1';
-      v.master.cancel := reset;
+      v.master.cancel        := reset;
 
       if r.master.valid = '1' and slave.ready = '1' then
          v.master.valid := '0';
@@ -123,21 +137,21 @@ package body PtpRegisterPkg is
 
       if r.busy = '0' and reset = '0' then
          if ep.axiStatus.readEnable = '1' and readIndex >= 0 then
-            v.busy := '1';
-            v.write := '0';
+            v.busy         := '1';
+            v.write        := '0';
             v.master.valid := '1';
             v.master.write := '0';
-            v.master.bank := readBank;
+            v.master.bank  := readBank;
             v.master.index := toSlv(readIndex, 8);
          elsif ep.axiStatus.writeEnable = '1' and writeIndex >= 0 and unsigned(writeMask) /= 0 then
-            v.busy := '1';
-            v.write := '1';
+            v.busy         := '1';
+            v.write        := '1';
             v.master.valid := '1';
             v.master.write := '1';
-            v.master.bank := "00";
+            v.master.bank  := "00";
             v.master.index := toSlv(writeIndex, 8);
-            v.master.data := ep.axiWriteMaster.wdata;
-            v.master.mask := writeMask;
+            v.master.data  := ep.axiWriteMaster.wdata;
+            v.master.mask  := writeMask;
          end if;
       end if;
 
@@ -162,8 +176,8 @@ package body PtpRegisterPkg is
       end if;
 
       if reset = '1' then
-         v := PTP_REGISTER_BUS_INIT_C;
-         v.master.cancel := '1';
+         v                      := PTP_REGISTER_BUS_INIT_C;
+         v.master.cancel        := '1';
          v.master.responseReady := '1';
       end if;
 

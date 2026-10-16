@@ -57,19 +57,19 @@ entity EthMacPtpEndpoint is
       EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0'));
    port (
       -- Common Ethernet/PHC clock domain.
-      clk            : in  sl;
-      rst            : in  sl;
-      portRst        : in  sl                  := '0';
-      regRst         : in  sl                  := '0';
-      phyReady       : in  sl;
-      ethConfig      : in  EthMacConfigType;
-      ethStatus      : out EthMacStatusType;
+      clk       : in  sl;
+      rst       : in  sl;
+      portRst   : in  sl                  := '0';
+      regRst    : in  sl                  := '0';
+      phyReady  : in  sl;
+      ethConfig : in  EthMacConfigType;
+      ethStatus : out EthMacStatusType;
 
       -- Primary application streams; RX is always accepted by default.
-      sAxisMaster    : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
-      sAxisSlave     : out AxiStreamSlaveType;
-      mAxisMaster    : out AxiStreamMasterType;
-      mAxisSlave     : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
+      sAxisMaster : in  AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+      sAxisSlave  : out AxiStreamSlaveType;
+      mAxisMaster : out AxiStreamMasterType;
+      mAxisSlave  : in  AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
       -- AXI-Lite management in the same clock domain.
       axiReadMaster  : in  AxiLiteReadMasterType;
@@ -78,16 +78,16 @@ entity EthMacPtpEndpoint is
       axiWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Selected physical interface, synchronous to clk.
-      xgmiiRxd       : in  slv(63 downto 0)    := (others => '0');
-      xgmiiRxc       : in  slv(7 downto 0)     := (others => '1');
-      xgmiiTxd       : out slv(63 downto 0);
-      xgmiiTxc       : out slv(7 downto 0);
-      gmiiRxd        : in  slv(7 downto 0)     := (others => '0');
-      gmiiRxDv       : in  sl                  := '0';
-      gmiiRxEr       : in  sl                  := '0';
-      gmiiTxd        : out slv(7 downto 0);
-      gmiiTxEn       : out sl;
-      gmiiTxEr       : out sl;
+      xgmiiRxd : in  slv(63 downto 0)    := (others => '0');
+      xgmiiRxc : in  slv(7 downto 0)     := (others => '1');
+      xgmiiTxd : out slv(63 downto 0);
+      xgmiiTxc : out slv(7 downto 0);
+      gmiiRxd  : in  slv(7 downto 0)     := (others => '0');
+      gmiiRxDv : in  sl                  := '0';
+      gmiiRxEr : in  sl                  := '0';
+      gmiiTxd  : out slv(7 downto 0);
+      gmiiTxEn : out sl;
+      gmiiTxEr : out sl;
 
       -- Live PHC and endpoint status.
       phcTime        : out PtpTimeType;
@@ -105,15 +105,11 @@ architecture rtl of EthMacPtpEndpoint is
    signal guardedSlave    : AxiStreamSlaveType;
    signal macBypMaster    : AxiStreamMasterType;
    signal macBypSlave     : AxiStreamSlaveType;
-   signal rxMessage       : PtpRxMessageType;
-   signal rxValid         : sl;
    signal rxReady         : sl;
    signal rxQueueOverflow : sl;
    signal rxAbort         : sl;
    signal rxFlush         : sl;
    signal rxCounters      : PtpRxCountersType;
-   signal txMessage       : PtpRxMessageType;
-   signal txValid         : sl;
    signal txMessageReady  : sl;
    signal txAbort         : sl;
    signal timeValue       : PtpTimeType;
@@ -134,6 +130,9 @@ architecture rtl of EthMacPtpEndpoint is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal rxTapMessageMaster    : PtpRxMessageMasterType;
+   signal txTapCompletionMaster : PtpRxMessageMasterType;
 
 begin
 
@@ -184,9 +183,9 @@ begin
    -- select it for PtpEndpoint's ready/valid TX output below.
    U_Mac : entity surf.EthMacTop
       generic map (
-         TPD_G             => TPD_G,
-         RST_POLARITY_G    => RST_POLARITY_G,
-         PHY_TYPE_G        => PHY_TYPE_G,
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PHY_TYPE_G     => PHY_TYPE_G,
          -- One pause quantum is 512 bits: 64 GMII or 8 XGMII cycles.
          PAUSE_512BITS_G   => ite(PHY_TYPE_G = "GMII", 64, 8),
          JUMBO_G           => false,
@@ -240,24 +239,23 @@ begin
          MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G)
       port map (
-         clk           => clk,                -- [in]
-         rst           => rst,                -- [in]
-         rxFlush       => rxFlush,            -- [in]
-         phyReady      => phyReady,           -- [in]
-         phcTime       => timeValue,          -- [in]
-         phcStatus     => status,             -- [in]
-         xgmiiRxd      => xgmiiRxd,           -- [in]
-         xgmiiRxc      => xgmiiRxc,           -- [in]
-         gmiiRxd       => gmiiRxd,            -- [in]
-         gmiiRxDv      => gmiiRxDv,           -- [in]
-         gmiiRxEr      => gmiiRxEr,           -- [in]
-         message       => rxMessage,          -- [out]
-         messageValid  => rxValid,            -- [out]
-         messageReady  => rxReady,            -- [in]
-         rxAbort       => rxAbort,            -- [out]
-         queueOverflow => rxQueueOverflow,    -- [out]
-         rxEpoch       => open,               -- [out]
-         counters      => rxCounters);        -- [out]
+         clk           => clk,                 -- [in]
+         rst           => rst,                 -- [in]
+         rxFlush       => rxFlush,             -- [in]
+         phyReady      => phyReady,            -- [in]
+         phcTime       => timeValue,           -- [in]
+         phcStatus     => status,              -- [in]
+         xgmiiRxd      => xgmiiRxd,            -- [in]
+         xgmiiRxc      => xgmiiRxc,            -- [in]
+         gmiiRxd       => gmiiRxd,             -- [in]
+         gmiiRxDv      => gmiiRxDv,            -- [in]
+         gmiiRxEr      => gmiiRxEr,            -- [in]
+         messageMaster => rxTapMessageMaster,  -- [out]
+         messageReady  => rxReady,             -- [in]
+         rxAbort       => rxAbort,             -- [out]
+         queueOverflow => rxQueueOverflow,     -- [out]
+         rxEpoch       => open,                -- [out]
+         counters      => rxCounters);         -- [out]
 
    U_TxTap : entity surf.PtpTxTimestampTap
       generic map (
@@ -268,21 +266,20 @@ begin
          MAX_FRAME_G      => MAX_FRAME_G,
          EGRESS_LATENCY_G => EGRESS_LATENCY_G)
       port map (
-         clk             => clk,           -- [in]
-         rst             => rst,           -- [in]
-         phyReady        => phyReady,      -- [in]
-         phcTime         => timeValue,     -- [in]
-         phcStatus       => status,        -- [in]
-         captureAbort    => abortCapture,  -- [in]
-         xgmiiTxd        => txData,        -- [in]
-         xgmiiTxc        => txControl,     -- [in]
-         gmiiTxd         => gmiiData,      -- [in]
-         gmiiTxEn        => gmiiEnable,    -- [in]
-         gmiiTxEr        => gmiiError,     -- [in]
-         completion      => txMessage,     -- [out]
-         completionValid => txValid,       -- [out]
-         completionReady => txMessageReady,  -- [in]
-         completionAbort => txAbort);      -- [out]
+         clk              => clk,                    -- [in]
+         rst              => rst,                    -- [in]
+         phyReady         => phyReady,               -- [in]
+         phcTime          => timeValue,              -- [in]
+         phcStatus        => status,                 -- [in]
+         captureAbort     => abortCapture,           -- [in]
+         xgmiiTxd         => txData,                 -- [in]
+         xgmiiTxc         => txControl,              -- [in]
+         gmiiTxd          => gmiiData,               -- [in]
+         gmiiTxEn         => gmiiEnable,             -- [in]
+         gmiiTxEr         => gmiiError,              -- [in]
+         completionMaster => txTapCompletionMaster,  -- [out]
+         completionReady  => txMessageReady,         -- [in]
+         completionAbort  => txAbort);               -- [out]
 
    U_Endpoint : entity surf.PtpEndpoint
       generic map (
@@ -295,37 +292,35 @@ begin
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C)
       port map (
-         clk             => clk,                   -- [in]
-         rst             => rst,                   -- [in]
-         regRst          => regRst,                -- [in]
-         portRst         => portRst,               -- [in]
-         linkReady       => phyReady,              -- [in]
-         macResetDone    => r.resetDone,           -- [in]
-         localMac        => ethConfig.macAddress,  -- [in]
-         axiReadMaster   => axiReadMaster,         -- [in]
-         axiReadSlave    => axiReadSlave,          -- [out]
-         axiWriteMaster  => axiWriteMaster,        -- [in]
-         axiWriteSlave   => axiWriteSlave,         -- [out]
-         rxMessage       => rxMessage,             -- [in]
-         rxValid         => rxValid,               -- [in]
-         rxReady         => rxReady,               -- [out]
-         rxAbort         => rxAbort,               -- [in]
-         rxQueueOverflow => rxQueueOverflow,       -- [in]
-         rxCounters      => rxCounters,            -- [in]
-         txMessage       => txMessage,             -- [in]
-         txValid         => txValid,               -- [in]
-         txMessageReady  => txMessageReady,        -- [out]
-         txAbort         => txAbort,               -- [in]
-         txMaster        => macBypMaster,          -- [out]
-         txSlave         => macBypSlave,           -- [in]
-         phcTime         => timeValue,             -- [out]
-         phcStatus       => status,                -- [out]
-         captureAbort    => abortCapture,          -- [out]
-         rxFlush         => rxFlush,               -- [out]
-         pps             => pps,                   -- [out]
-         irq             => irq,                   -- [out]
-         portActive      => portActive,            -- [out]
-         servoState      => servoState);           -- [out]
+         clk             => clk,                    -- [in]
+         rst             => rst,                    -- [in]
+         regRst          => regRst,                 -- [in]
+         portRst         => portRst,                -- [in]
+         linkReady       => phyReady,               -- [in]
+         macResetDone    => r.resetDone,            -- [in]
+         localMac        => ethConfig.macAddress,   -- [in]
+         axiReadMaster   => axiReadMaster,          -- [in]
+         axiReadSlave    => axiReadSlave,           -- [out]
+         axiWriteMaster  => axiWriteMaster,         -- [in]
+         axiWriteSlave   => axiWriteSlave,          -- [out]
+         rxMessageMaster => rxTapMessageMaster,     -- [in]
+         rxReady         => rxReady,                -- [out]
+         rxQueueOverflow => rxQueueOverflow,        -- [in]
+         rxAbort         => rxAbort,                -- [in]
+         rxCounters      => rxCounters,             -- [in]
+         txMessageMaster => txTapCompletionMaster,  -- [in]
+         txMessageReady  => txMessageReady,         -- [out]
+         txAbort         => txAbort,                -- [in]
+         txMaster        => macBypMaster,           -- [out]
+         txSlave         => macBypSlave,            -- [in]
+         phcTime         => timeValue,              -- [out]
+         phcStatus       => status,                 -- [out]
+         captureAbort    => abortCapture,           -- [out]
+         rxFlush         => rxFlush,                -- [out]
+         pps             => pps,                    -- [out]
+         irq             => irq,                    -- [out]
+         portActive      => portActive,             -- [out]
+         servoState      => servoState);            -- [out]
 
    xgmiiTxd  <= txData;
    xgmiiTxc  <= txControl;

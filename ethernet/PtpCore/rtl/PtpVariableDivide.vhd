@@ -40,32 +40,28 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 
 entity PtpVariableDivide is
    generic (
-      TPD_G           : time                    := 1 ns;
-      RST_POLARITY_G  : sl                      := '1';
-      RST_ASYNC_G     : boolean                 := false;
-      NUM_CLIENTS_G   : positive                := 2;
+      TPD_G          : time                    := 1 ns;
+      RST_POLARITY_G : sl                      := '1';
+      RST_ASYNC_G    : boolean                 := false;
+      NUM_CLIENTS_G  : positive                := 2;
       -- Unsigned divisor magnitude width. The endpoint union is 78 bits: an
       -- admitted PHC increment shifted left 16, and the rate estimator's
       -- 67-bit raw span. 80 bits covers a standalone E2E leaf exposing all 64
       -- increment bits.
       DIVISOR_WIDTH_G : positive range 1 to 127 := 80);
    port (
-      clk          : in  sl;
-      rst          : in  sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Owner-local cancellation, one bit per client.
-      cancel       : in  slv(NUM_CLIENTS_G-1 downto 0);
-      inputValid   : in  slv(NUM_CLIENTS_G-1 downto 0);
-      inputReady   : out slv(NUM_CLIENTS_G-1 downto 0);
-      roundNearest : in  slv(NUM_CLIENTS_G-1 downto 0);
-      operandA     : in  Slv128Array(NUM_CLIENTS_G-1 downto 0);
-      operandB     : in  slv(NUM_CLIENTS_G*DIVISOR_WIDTH_G-1 downto 0);
-      resultValid  : out slv(NUM_CLIENTS_G-1 downto 0);
-      resultReady  : in  slv(NUM_CLIENTS_G-1 downto 0);
-      resultValue  : out Slv128Array(NUM_CLIENTS_G-1 downto 0);
-      resultError  : out slv(NUM_CLIENTS_G-1 downto 0));
+      cancel      : in  slv(NUM_CLIENTS_G-1 downto 0);
+      requests    : in  PtpDivideRequestArray(NUM_CLIENTS_G-1 downto 0)(operandB(DIVISOR_WIDTH_G-1 downto 0));
+      inputReady  : out slv(NUM_CLIENTS_G-1 downto 0);
+      results     : out PtpDivideResultArray(NUM_CLIENTS_G-1 downto 0);
+      resultReady : in  slv(NUM_CLIENTS_G-1 downto 0));
 end entity PtpVariableDivide;
 
 architecture rtl of PtpVariableDivide is
@@ -75,9 +71,7 @@ architecture rtl of PtpVariableDivide is
       owner      : natural range 0 to NUM_CLIENTS_G-1;
       cursor     : natural range 0 to NUM_CLIENTS_G-1;
       inputReady : slv(NUM_CLIENTS_G-1 downto 0);
-      valid      : slv(NUM_CLIENTS_G-1 downto 0);
-      value      : Slv128Array(NUM_CLIENTS_G-1 downto 0);
-      error      : slv(NUM_CLIENTS_G-1 downto 0);
+      results    : PtpDivideResultArray(NUM_CLIENTS_G-1 downto 0);
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -85,24 +79,31 @@ architecture rtl of PtpVariableDivide is
       owner      => 0,
       cursor     => 0,
       inputReady => (others => '0'),
-      valid      => (others => '0'),
-      value      => (others => (others => '0')),
-      error      => (others => '0'));
+      results    => (others => PTP_DIVIDE_RESULT_INIT_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal coreCancel      : sl;
-   signal coreValid       : sl;
-   signal coreReady       : sl;
-   signal coreRound       : sl;
-   signal coreOperandA    : slv(127 downto 0);
-   signal coreOperandB    : slv(127 downto 0);
-   signal coreResultValid : sl;
-   signal coreResultValue : slv(127 downto 0);
-   signal coreError       : sl;
+   signal coreCancel   : sl;
+   signal coreValid    : sl;
+   signal coreReady    : sl;
+   signal coreRound    : sl;
+   signal coreOperandA : slv(127 downto 0);
+   signal coreOperandB : slv(127 downto 0);
+
+   signal dividerRequest : PtpMathRequestType;
+   signal dividerResult  : PtpMathResultType;
 
 begin
+
+   dividerRequest <=
+   (
+      valid        => coreValid,
+      divide       => '1',
+      roundNearest => coreRound,
+      operandA     => coreOperandA,
+      operandB     => coreOperandB
+   );
 
    -- Zero-extending the divisor at this boundary lets synthesis remove the
    -- core's negative-divisor and high-word rejection circuitry.
@@ -113,20 +114,13 @@ begin
          RST_ASYNC_G     => RST_ASYNC_G,
          DIVISOR_WIDTH_G => DIVISOR_WIDTH_G)
       port map (
-         clk             => clk,              -- [in]
-         rst             => rst,              -- [in]
-         cancel          => coreCancel,       -- [in]
-         inputValid      => coreValid,        -- [in]
-         inputReady      => coreReady,        -- [out]
-         divide          => '1',              -- [in]
-         roundNearest    => coreRound,        -- [in]
-         operandA        => coreOperandA,     -- [in]
-         operandB        => coreOperandB,     -- [in]
-         resultValid     => coreResultValid,  -- [out]
-         resultReady     => '1',              -- [in]
-         resultValue     => coreResultValue,  -- [out]
-         resultRemainder => open,             -- [out]
-         resultError     => coreError);       -- [out]
+         clk         => clk,             -- [in]
+         rst         => rst,             -- [in]
+         cancel      => coreCancel,      -- [in]
+         request     => dividerRequest,  -- [in]
+         inputReady  => coreReady,       -- [out]
+         result      => dividerResult,   -- [out]
+         resultReady => '1');            -- [in]
 
    comb : process (all) is
       variable v         : RegType;
@@ -135,12 +129,14 @@ begin
       variable cancelNow : sl;
       variable issue     : sl;
    begin
-      v := r;
+      v            := r;
       v.inputReady := (others => '0');
 
       -- An owner holding an unread response is not eligible, so a stalled
       -- consumer cannot deny service to the other owners.
-      eligible := inputValid and not r.valid and not cancel;
+      for i in 0 to NUM_CLIENTS_G-1 loop
+         eligible(i) := requests(i).valid and not r.results(i).valid and not cancel(i);
+      end loop;
 
       -- Round-robin from the cursor, taking the first eligible owner.
       selected := r.cursor;
@@ -154,26 +150,26 @@ begin
       -- Release consumed or cancelled responses before admitting new work.
       for i in 0 to NUM_CLIENTS_G-1 loop
          if resultReady(i) = '1' or cancel(i) = '1' then
-            v.valid(i) := '0';
+            v.results(i).valid := '0';
          end if;
       end loop;
 
       cancelNow := '0';
-      issue := '0';
+      issue     := '0';
 
       if r.active = '1' then
          cancelNow := cancel(r.owner);
 
-         if coreResultValid = '1' then
-            v.value(r.owner) := coreResultValue;
-            v.error(r.owner) := coreError;
-            v.valid(r.owner) := '1';
+         if dividerResult.valid = '1' then
+            v.results(r.owner).value := dividerResult.value;
+            v.results(r.owner).error := dividerResult.error;
+            v.results(r.owner).valid := '1';
             v.active := '0';
          end if;
 
          -- Owner-local cancellation discards this owner's work and response.
          if cancel(r.owner) = '1' then
-            v.valid(r.owner) := '0';
+            v.results(r.owner).valid := '0';
             v.active := '0';
          end if;
 
@@ -183,19 +179,19 @@ begin
 
          if coreReady = '1' then
             v.active := '1';
-            v.owner := selected;
+            v.owner  := selected;
             v.cursor := (selected+1) mod NUM_CLIENTS_G;
          end if;
       end if;
 
       -- Combinatorial outputs before the reset. Admission describes this
       -- edge's capacity; the shared reset domain excludes transfers.
-      coreValid <= issue;
-      coreCancel <= cancelNow;
-      coreRound <= roundNearest(selected);
-      coreOperandA <= operandA(selected);
+      coreValid    <= issue;
+      coreCancel   <= cancelNow;
+      coreRound    <= requests(selected).roundNearest;
+      coreOperandA <= requests(selected).operandA;
       coreOperandB <= slv(resize(unsigned(
-         operandB(DIVISOR_WIDTH_G*selected+DIVISOR_WIDTH_G-1 downto DIVISOR_WIDTH_G*selected)), 128));
+         requests(selected).operandB), 128));
 
       inputReady <= v.inputReady;
 
@@ -203,11 +199,8 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValid <= r.valid;
-      resultValue <= r.value;
-      resultError <= r.error;
+      rin     <= v;
+      results <= r.results;
    end process comb;
 
    seq : process (clk, rst) is

@@ -29,6 +29,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpProtocolPkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.PtpPkg.all;
@@ -39,23 +40,21 @@ entity PtpDelayReqTx is
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false);
    port (
-      clk : in sl;
-      rst : in sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Current-edge policy; cancellation resets scheduling, never frame drain.
-      enable        : in sl;
-      cancel        : in sl;
-      ticks         : in slv(63 downto 0);
-      config        : in PtpPortConfigType;
-      localMac      : in slv(47 downto 0);
-      intervalValid : in sl;
-      intervalTicks : in slv(63 downto 0);
+      enable   : in  sl;
+      cancel   : in  sl;
+      ticks    : in  slv(63 downto 0);
+      config   : in  PtpPortConfigType;
+      localMac : in  slv(47 downto 0);
+      interval : in  PtpIntervalType;
       -- Registered protocol cancellation shared with PtpTxLedger.
-      ledgerCancel     : in  sl;
-      allocate         : out sl;
-      allocateReady    : in  sl;
-      allocateSequence : in  slv(15 downto 0);
-      txMaster         : out AxiStreamMasterType;
-      txSlave          : in  AxiStreamSlaveType);
+      ledgerCancel : in  sl;
+      allocate     : out sl;
+      allocation   : in  PtpLedgerAllocationType;
+      txMaster     : out AxiStreamMasterType;
+      txSlave      : in  AxiStreamSlaveType);
 end entity PtpDelayReqTx;
 
 architecture rtl of PtpDelayReqTx is
@@ -70,7 +69,7 @@ architecture rtl of PtpDelayReqTx is
    constant TX_LAST_KEEP_C   : slv(TX_BEAT_BYTES_C-1 downto 0) := toSlv(2**TX_LAST_BYTES_C-1, TX_BEAT_BYTES_C);
 
    type RegType is record
-      allocate        : sl;
+      allocate : sl;
       master          : AxiStreamMasterType;
       frame           : slv(8*TX_FRAME_BYTES_C-1 downto 0);
       beat            : natural range 0 to TX_LAST_BEAT_C;
@@ -93,9 +92,9 @@ architecture rtl of PtpDelayReqTx is
       lfsr            => LFSR_SEED_C);
 
    function buildRequest (
-      cfg   : PtpPortConfigType;
-      mac   : slv(47 downto 0);
-      seqId : slv(15 downto 0)) return slv is
+      cfg                       : PtpPortConfigType;
+      mac                       : slv(47 downto 0);
+      seqId                     : slv(15 downto 0)) return slv is
       constant MESSAGE_LENGTH_C : slv(15 downto 0)                   := toSlv(PTP_TIMESTAMP_MSG_BYTES_C, 16);
       variable bytes            : Slv8Array(0 to TX_FRAME_BYTES_C-1) := (others => (others => '0'));
       variable resultValue      : slv(8*TX_FRAME_BYTES_C-1 downto 0);
@@ -146,8 +145,8 @@ begin
    begin
       v := r;
 
-      if intervalValid = '1' and cancel = '0' then
-         v.minimumInterval := unsigned(intervalTicks);
+      if interval.valid = '1' and cancel = '0' then
+         v.minimumInterval := unsigned(interval.ticks);
       end if;
 
       -- TX ownership survives abort. Once valid is presented, every byte and
@@ -160,7 +159,7 @@ begin
             if v.beat = TX_LAST_BEAT_C then
                v.master.tData(8*TX_LAST_BYTES_C-1 downto 0) := r.frame(8*TX_FRAME_BYTES_C-1 downto 8*TX_LAST_BEAT_C*TX_BEAT_BYTES_C);
                v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0)   := TX_LAST_KEEP_C;
-               v.master.tLast                             := '1';
+               v.master.tLast := '1';
             else
                -- Static slices make the seven-way beat mux explicit to both
                -- synthesis frontends; the final two-byte beat is handled above.
@@ -184,11 +183,11 @@ begin
          v.allocate := '1';
       end if;
 
-      if r.allocate = '1' and allocateReady = '1' and ledgerCancel = '0' then
-         v.allocate                                := '0';
-         v.frame                                   := buildRequest(config, localMac, allocateSequence);
-         v.master                                  := AXI_STREAM_MASTER_INIT_C;
-         v.master.tValid                            := '1';
+      if r.allocate = '1' and allocation.ready = '1' and ledgerCancel = '0' then
+         v.allocate      := '0';
+         v.frame         := buildRequest(config, localMac, allocation.sequenceId);
+         v.master        := AXI_STREAM_MASTER_INIT_C;
+         v.master.tValid := '1';
          v.master.tKeep(TX_BEAT_BYTES_C-1 downto 0)   := (others => '1');
          v.master.tData(8*TX_BEAT_BYTES_C-1 downto 0) := v.frame(8*TX_BEAT_BYTES_C-1 downto 0);
          ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v.master, '1');
@@ -226,7 +225,7 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
+      rin      <= v;
       allocate <= r.allocate;
       txMaster <= r.master;
    end process comb;

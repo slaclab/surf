@@ -817,7 +817,7 @@ AXI snapshots. Either read or PHC reset cancels both mailbox directions; a read
 reset never resets the clock itself. Requests survive a stopped peer clock after
 reset recovery: each FIFO write waits for acknowledgement rather than assuming
 that deasserted full proves the peer domain is ready. Consumers accept only
-`readValid` responses in their current reset session.
+`readResult.valid` responses in their current reset session.
 
 
 

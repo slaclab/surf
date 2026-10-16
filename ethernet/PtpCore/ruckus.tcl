@@ -14,7 +14,8 @@
 source $::env(RUCKUS_PROC_TCL)
 # Includes protocol policy, register and Sync-flow owners, Delay_Req TX,
 # pair/history tables and their shared scan ALU, fixed-function arithmetic and services.
-# The two-process bodies use VHDL-2008 `process(all)`, so Vivado must not
+# PtpMathPkg, PtpProtocolPkg and PtpServoPkg own their typed transaction interfaces.
+# The process(all) bodies and constrained arithmetic records use VHDL-2008; do not
 # analyze these as VHDL-93; GHDL regressions already run with --std=08.
 loadSource -lib surf -dir "$::DIR_PATH/rtl" -fileType "VHDL 2008"
 

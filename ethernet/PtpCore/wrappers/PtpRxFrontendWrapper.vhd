@@ -40,28 +40,28 @@ entity PtpRxFrontendWrapper is
    port (
       clk                : in  sl;
       rst                : in  sl;
-      rxFlush            : in  sl               := '0';
-      phyReady           : in  sl               := '1';
-      generation         : in  slv(31 downto 0) := (others => '0');
-      phcSeconds         : in  slv(47 downto 0) := (others => '0');
-      phcNanoseconds     : in  slv(31 downto 0) := (others => '0');
-      phcFraction        : in  slv(31 downto 0) := (others => '0');
-      phcIncrement       : in  slv(63 downto 0) := x"0000000666666666";
-      tickCount          : in  slv(63 downto 0) := (others => '0');
-      timeValid          : in  sl               := '0';
-      xgmiiRxd           : in  slv(63 downto 0) := (others => '0');
-      xgmiiRxc           : in  slv(7 downto 0)  := (others => '1');
-      gmiiRxd            : in  slv(7 downto 0)  := (others => '0');
-      gmiiRxDv           : in  sl               := '0';
-      gmiiRxEr           : in  sl               := '0';
-      directValid        : in  sl               := '0';
-      directData         : in  slv(63 downto 0) := (others => '0');
-      directKeep         : in  slv(7 downto 0)  := (others => '0');
-      directSof          : in  sl               := '0';
-      directLast         : in  sl               := '0';
-      directError        : in  sl               := '0';
-      directPhase        : in  slv(2 downto 0)  := (others => '0');
-      directCaptureError : in sl                := '0';
+      rxFlush            : in  sl                := '0';
+      phyReady           : in  sl                := '1';
+      generation         : in  slv(31 downto 0)  := (others => '0');
+      phcSeconds         : in  slv(47 downto 0)  := (others => '0');
+      phcNanoseconds     : in  slv(31 downto 0)  := (others => '0');
+      phcFraction        : in  slv(31 downto 0)  := (others => '0');
+      phcIncrement       : in  slv(63 downto 0)  := x"0000000666666666";
+      tickCount          : in  slv(63 downto 0)  := (others => '0');
+      timeValid          : in  sl                := '0';
+      xgmiiRxd           : in  slv(63 downto 0)  := (others => '0');
+      xgmiiRxc           : in  slv(7 downto 0)   := (others => '1');
+      gmiiRxd            : in  slv(7 downto 0)   := (others => '0');
+      gmiiRxDv           : in  sl                := '0';
+      gmiiRxEr           : in  sl                := '0';
+      directValid        : in  sl                := '0';
+      directData         : in  slv(63 downto 0)  := (others => '0');
+      directKeep         : in  slv(7 downto 0)   := (others => '0');
+      directSof          : in  sl                := '0';
+      directLast         : in  sl                := '0';
+      directError        : in  sl                := '0';
+      directPhase        : in  slv(2 downto 0)   := (others => '0');
+      directCaptureError : in  sl                := '0';
       normValid          : out sl;
       normData           : out slv(63 downto 0);
       normKeep           : out slv(7 downto 0);
@@ -79,7 +79,7 @@ entity PtpRxFrontendWrapper is
       messageIncrement   : out slv(63 downto 0);
       messageError       : out sl;
       messageValid       : out sl;
-      messageReady       : in  sl               := '1';
+      messageReady       : in  sl                := '1';
       rxAbort            : out sl;
       rxEpoch            : out slv(31 downto 0);
       acceptedCount      : out slv(31 downto 0);
@@ -92,14 +92,17 @@ architecture rtl of PtpRxFrontendWrapper is
    signal phcStatus : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
    signal phcTime   : PtpTimeType;
    signal master    : AxiStreamMasterType;
-   signal capture   : PtpRxCaptureType;
-   signal rxMessage : PtpRxMessageType;
-   signal flush     : sl;
+   signal capture : PtpRxCaptureType;
+   signal flush   : sl;
    -- Record-typed interfaces are assembled below rather than associated
    -- element by element, which older GHDL releases reject in a port map.
-   signal counters  : PtpRxCountersType;
+   signal counters : PtpRxCountersType;
+
+   signal dutMessageMaster : PtpRxMessageMasterType;
 
 begin
+
+   messageValid <= dutMessageMaster.valid;
 
    -- The test supplies PHC samples; this wrapper contains no PHC or time model.
    -- Link loss flushes the frontend as well as stopping the physical adapter,
@@ -129,8 +132,8 @@ begin
             rst       => rst,        -- [in]
             rxFlush   => rxFlush,    -- [in]
             phyReady  => phyReady,   -- [in]
-            phcStatus => phcStatus,  -- [in]
             phcTime   => phcTime,    -- [in]
+            phcStatus => phcStatus,  -- [in]
             xgmiiRxd  => xgmiiRxd,   -- [in]
             xgmiiRxc  => xgmiiRxc,   -- [in]
             gmiiRxd   => gmiiRxd,    -- [in]
@@ -147,15 +150,15 @@ begin
       comb : process (directValid, directData, directKeep, directSof, directLast, directError) is
          variable v : AxiStreamMasterType;
       begin
-         v := AXI_STREAM_MASTER_INIT_C;
-         v.tValid             := directValid;
+         v        := AXI_STREAM_MASTER_INIT_C;
+         v.tValid := directValid;
          v.tData(63 downto 0) := directData;
-         v.tKeep              := (others => '0');
+         v.tKeep := (others => '0');
          v.tKeep(7 downto 0)  := directKeep;
-         v.tLast              := directLast;
+         v.tLast := directLast;
          ssiSetUserSof(PTP_RX_AXIS_CONFIG_C, v, directSof);
          ssiSetUserEofe(PTP_RX_AXIS_CONFIG_C, v, directError);
-         master               <= v;
+         master <= v;
       end process comb;
       capture.timestamp  <= phcSeconds & phcNanoseconds & phcFraction(31 downto 16);
       capture.ticks      <= tickCount;
@@ -180,9 +183,9 @@ begin
    normTimeValid    <= capture.timeValid;
    normCaptureError <= capture.error;
    normIncrement    <= capture.increment;
-   messageData      <= toSlv(rxMessage);
-   messageIncrement <= rxMessage.capture.increment;
-   messageError     <= rxMessage.capture.error;
+   messageData      <= toSlv(dutMessageMaster.data);
+   messageIncrement <= dutMessageMaster.data.capture.increment;
+   messageError     <= dutMessageMaster.data.capture.error;
    acceptedCount    <= counters.accepted;
    droppedCount     <= counters.dropped;
    overflowCount    <= counters.overflow;
@@ -198,18 +201,17 @@ begin
             TLV_EN_G       => TLV_EN_G,
             MAX_FRAME_G    => MAX_FRAME_G)
          port map (
-            clk          => clk,             -- [in]
-            rst          => rst,             -- [in]
-            rxFlush      => flush,           -- [in]
-            generation   => generation,      -- [in]
-            rxMaster     => master,          -- [in]
-            rxCapture    => capture,         -- [in]
-            message      => rxMessage,       -- [out]
-            messageValid => messageValid,    -- [out]
-            messageReady => messageReady,    -- [in]
-            rxAbort      => rxAbort,         -- [out]
-            rxEpoch      => rxEpoch,         -- [out]
-            counters     => counters);       -- [out]
+            clk           => clk,               -- [in]
+            rst           => rst,               -- [in]
+            rxFlush       => flush,             -- [in]
+            generation    => generation,        -- [in]
+            rxMaster      => master,            -- [in]
+            rxCapture     => capture,           -- [in]
+            messageMaster => dutMessageMaster,  -- [out]
+            messageReady  => messageReady,      -- [in]
+            rxAbort       => rxAbort,           -- [out]
+            rxEpoch       => rxEpoch,           -- [out]
+            counters      => counters);         -- [out]
 
    end generate;
    GEN_TX : if TX_OBSERVE_G generate
@@ -223,18 +225,17 @@ begin
             TLV_EN_G       => TLV_EN_G,
             MAX_FRAME_G    => MAX_FRAME_G)
          port map (
-            clk          => clk,             -- [in]
-            rst          => rst,             -- [in]
-            rxFlush      => flush,           -- [in]
-            generation   => generation,      -- [in]
-            rxMaster     => master,          -- [in]
-            rxCapture    => capture,         -- [in]
-            message      => rxMessage,       -- [out]
-            messageValid => messageValid,    -- [out]
-            messageReady => messageReady,    -- [in]
-            rxAbort      => rxAbort,         -- [out]
-            rxEpoch      => rxEpoch,         -- [out]
-            counters     => counters);       -- [out]
+            clk           => clk,               -- [in]
+            rst           => rst,               -- [in]
+            rxFlush       => flush,             -- [in]
+            generation    => generation,        -- [in]
+            rxMaster      => master,            -- [in]
+            rxCapture     => capture,           -- [in]
+            messageMaster => dutMessageMaster,  -- [out]
+            messageReady  => messageReady,      -- [in]
+            rxAbort       => rxAbort,           -- [out]
+            rxEpoch       => rxEpoch,           -- [out]
+            counters      => counters);         -- [out]
 
    end generate;
 

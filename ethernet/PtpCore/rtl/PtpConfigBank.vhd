@@ -31,18 +31,16 @@ entity PtpConfigBank is
       RST_ASYNC_G    : boolean := false;
       DEFAULTS_G     : Slv32Array;
       -- One-cycle inferred RAM; supported values: "distributed" or "block".
-      MEMORY_TYPE_G  : string := "distributed");
+      MEMORY_TYPE_G : string := "distributed");
    port (
-      clk       : in sl;
-      rst       : in sl;
-      prepare   : in sl;
-      apply     : in sl;
-      prepared  : out sl;
-      scanValid : out sl;
-      scanIndex : out slv(7 downto 0);
-      scanData  : out slv(31 downto 0);
-      masters   : in PtpRegisterMasterArray(0 to 1);
-      slaves    : out PtpRegisterSlaveArray(0 to 1));
+      clk      : in  sl;
+      rst      : in  sl;
+      prepare  : in  sl;
+      apply    : in  sl;
+      prepared : out sl;
+      scan     : out PtpConfigScanType;
+      masters  : in  PtpRegisterMasterArray(0 to 1);
+      slaves   : out PtpRegisterSlaveArray(0 to 1));
 end entity PtpConfigBank;
 
 architecture rtl of PtpConfigBank is
@@ -63,9 +61,7 @@ architecture rtl of PtpConfigBank is
       index         : natural range 0 to WORDS_C-1;
       copyPending   : sl;
       prepared      : sl;
-      scanValid     : sl;
-      scanIndex     : slv(7 downto 0);
-      scanData      : slv(31 downto 0);
+      scan          : PtpConfigScanType;
       owner         : natural range 0 to 1;
       cursor        : natural range 0 to 1;
       request       : PtpRegisterMasterType;
@@ -87,9 +83,7 @@ architecture rtl of PtpConfigBank is
       index         => 0,
       copyPending   => '0',
       prepared      => '1',
-      scanValid     => '0',
-      scanIndex     => (others => '0'),
-      scanData      => (others => '0'),
+      scan          => PTP_CONFIG_SCAN_INIT_C,
       owner         => 0,
       cursor        => 0,
       request       => PTP_REGISTER_MASTER_INIT_C,
@@ -143,12 +137,12 @@ begin
       variable bank      : natural range 0 to 2;
       variable address   : natural;
    begin
-      v := r;
-      v.readEnable := '0';
+      v             := r;
+      v.readEnable  := '0';
       v.writeEnable := '0';
-      v.scanValid := '0';
-      selected := -1;
-      bank     := r.shadowBank;
+      v.scan.valid  := '0';
+      selected      := -1;
+      bank          := r.shadowBank;
       for i in 0 to 1 loop
          v.responses(i).ready := '0';
 
@@ -164,9 +158,9 @@ begin
 
       case r.state is
          when INIT_S =>
-            v.writeEnable := '1';
+            v.writeEnable  := '1';
             v.writeAddress := toSlv(r.initialize, ADDR_BITS_C);
-            v.writeData := DEFAULTS_G(r.initialize mod WORDS_C);
+            v.writeData    := DEFAULTS_G(r.initialize mod WORDS_C);
 
             if r.initialize = 3*WORDS_C-1 then
                v.state := INIT_DRAIN_S;
@@ -180,10 +174,10 @@ begin
 
             if r.copyPending = '1' then
                v.copyPending := '0';
-               v.index := 0;
-               v.readEnable := '1';
+               v.index       := 0;
+               v.readEnable  := '1';
                v.readAddress := toSlv(r.candidateBank*WORDS_C, ADDR_BITS_C);
-               v.state := COPY_WAIT_S;
+               v.state       := COPY_WAIT_S;
             elsif prepare = '0' then
                for i in 0 to 1 loop
                   candidate := (r.cursor+i) mod 2;
@@ -194,8 +188,8 @@ begin
                end loop;
                if selected /= -1 then
                   v.responses(selected).ready := '1';
-                  v.owner := selected;
-                  v.cursor := 1-selected;
+                  v.owner   := selected;
+                  v.cursor  := 1-selected;
                   v.request := masters(selected);
                   v.discard := '0';
                   if masters(selected).bank = "01" then
@@ -203,11 +197,11 @@ begin
                   elsif masters(selected).bank = "10" then
                      bank := r.candidateBank;
                   end if;
-                  address := bank*WORDS_C+to_integer(unsigned(masters(selected).index));
-                  v.readEnable := '1';
-                  v.readAddress := toSlv(address, ADDR_BITS_C);
+                  address        := bank*WORDS_C+to_integer(unsigned(masters(selected).index));
+                  v.readEnable   := '1';
+                  v.readAddress  := toSlv(address, ADDR_BITS_C);
                   v.writeAddress := toSlv(address, ADDR_BITS_C);
-                  v.state := READ_WAIT_S;
+                  v.state        := READ_WAIT_S;
                end if;
             end if;
 
@@ -217,9 +211,9 @@ begin
             v.responses(r.owner).data := readData;
 
             if r.request.write = '1' then
-               v.writeData := (readData and not r.request.mask) or (r.request.data and r.request.mask);
+               v.writeData   := (readData and not r.request.mask) or (r.request.data and r.request.mask);
                v.writeEnable := '1';
-               v.state := WRITE_S;
+               v.state       := WRITE_S;
             else
                v.state := FINISH_S;
             end if;
@@ -236,34 +230,34 @@ begin
          when COPY_WAIT_S =>
             v.state := COPY_S;
          when COPY_S =>
-            v.scanValid := '1';
-            v.scanIndex := toSlv(r.index, 8);
-            v.scanData := readData;
-            v.writeEnable := '1';
+            v.scan.valid   := '1';
+            v.scan.index   := toSlv(r.index, 8);
+            v.scan.data    := readData;
+            v.writeEnable  := '1';
             v.writeAddress := toSlv(r.shadowBank*WORDS_C+r.index, ADDR_BITS_C);
-            v.writeData := readData;
-            v.state := COPY_NEXT_S;
+            v.writeData    := readData;
+            v.state        := COPY_NEXT_S;
          when COPY_NEXT_S =>
 
             if r.index = WORDS_C-1 then
                v.state := COPY_DONE_S;
             else
-               v.index := r.index+1;
-               v.readEnable := '1';
+               v.index       := r.index+1;
+               v.readEnable  := '1';
                v.readAddress := toSlv(r.candidateBank*WORDS_C+r.index+1, ADDR_BITS_C);
-               v.state := COPY_WAIT_S;
+               v.state       := COPY_WAIT_S;
             end if;
 
          when COPY_DONE_S =>
             v.prepared := '1';
-            v.state := IDLE_S;
+            v.state    := IDLE_S;
       end case;
 
       if prepare = '1' then
          v.candidateBank := r.shadowBank;
-         v.shadowBank := 3-r.activeBank-r.shadowBank;
-         v.prepared := '0';
-         v.copyPending := '1';
+         v.shadowBank    := 3-r.activeBank-r.shadowBank;
+         v.prepared      := '0';
+         v.copyPending   := '1';
       end if;
 
       if apply = '1' then
@@ -276,14 +270,12 @@ begin
 
       rin <= v;
       for i in 0 to 1 loop
-         slaves(i).ready <= v.responses(i).ready;
+         slaves(i).ready         <= v.responses(i).ready;
          slaves(i).responseValid <= r.responses(i).responseValid;
-         slaves(i).data <= r.responses(i).data;
+         slaves(i).data          <= r.responses(i).data;
       end loop;
       prepared <= r.prepared;
-      scanValid <= r.scanValid;
-      scanIndex <= r.scanIndex;
-      scanData <= r.scanData;
+      scan     <= r.scan;
    end process;
 
    seq : process(clk,rst) is

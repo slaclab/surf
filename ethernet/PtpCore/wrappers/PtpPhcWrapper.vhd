@@ -30,6 +30,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
 
@@ -112,7 +113,7 @@ end entity PtpPhcWrapper;
 
 architecture rtl of PtpPhcWrapper is
 
-   signal resetN         : sl;
+   signal resetN : sl;
    signal axiReadMaster  : AxiLiteReadMasterType;
    signal axiReadSlave   : AxiLiteReadSlaveType;
    signal axiWriteMaster : AxiLiteWriteMasterType;
@@ -120,7 +121,6 @@ architecture rtl of PtpPhcWrapper is
    signal command      : PtpPhcCommandType;
    signal status       : PtpPhcStatusType;
    signal timeValue    : PtpTimeType;
-   signal snapshot     : PtpTimeType;
    signal abortCapture : sl;
    signal resetHigh    : sl;
    -- Record-typed interfaces are assembled below rather than associated
@@ -131,17 +131,22 @@ architecture rtl of PtpPhcWrapper is
    signal commandSlave    : PtpPhcCommandSlaveType;
    -- The fixture supplies a private SECOND converter so manual phase
    -- preparation is exercised without the endpoint's sharing arbiter.
-   signal secondValid       : slv(0 downto 0);
    signal secondReady       : slv(0 downto 0);
-   signal secondRound       : slv(0 downto 0);
-   signal secondOperand     : slv(127 downto 0);
    signal secondCancel      : slv(0 downto 0);
-   signal secondResultValid : slv(0 downto 0);
    signal secondResultReady : slv(0 downto 0);
-   signal secondQuotient    : slv(127 downto 0);
-   signal secondRemainder   : slv(127 downto 0);
+
+   signal readResult : PtpPhcReadResultType;
+
+   signal secondRequests : PtpConstDivideRequestArray(1-1 downto 0)(operand(128-1 downto 0));
+   signal secondResults  : PtpConstDivideResultArray(1-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
 
 begin
+
+   readValid      <= readResult.valid;
+   readGeneration <= readResult.generation;
+   readTicks      <= readResult.ticks;
+   readTimeValid  <= readResult.timeValid;
+   readSequence   <= readResult.sequenceId;
 
    U_Second : entity surf.PtpSecondService
       generic map (
@@ -151,17 +156,13 @@ begin
          NUM_CLIENTS_G  => 1,
          WIDTH_G        => 128)
       port map (
-         clk             => clk,                -- [in]
-         rst             => rst,                -- [in]
-         cancel          => secondCancel,       -- [in]
-         inputValid      => secondValid,        -- [in]
-         inputReady      => secondReady,        -- [out]
-         roundNearest    => secondRound,        -- [in]
-         operand         => secondOperand,      -- [in]
-         resultValid     => secondResultValid,  -- [out]
-         resultReady     => secondResultReady,  -- [in]
-         resultValue     => secondQuotient,     -- [out]
-         resultRemainder => secondRemainder);   -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => secondCancel,        -- [in]
+         requests    => secondRequests,      -- [in]
+         inputReady  => secondReady,         -- [out]
+         results     => secondResults,       -- [out]
+         resultReady => secondResultReady);  -- [in]
 
    command.kind                <= commandKind;
    command.generation          <= commandGeneration;
@@ -172,7 +173,7 @@ begin
    command.phaseFraction       <= phaseFraction;
    command.rate                <= commandRate;
    command.value               <= commandValue;
-   resetHigh       <= '1' when rst = RST_POLARITY_G else
+   resetHigh                   <= '1' when rst = RST_POLARITY_G else
    '0';
    resetN          <= not resetHigh;
    timeSeconds     <= timeValue.seconds;
@@ -186,9 +187,9 @@ begin
    discontinuity   <= status.discontinuity;
    fault           <= status.fault;
    captureAbort    <= abortCapture;
-   readSeconds     <= snapshot.seconds;
-   readNanoseconds <= snapshot.nanoseconds;
-   readFraction    <= snapshot.fraction;
+   readSeconds     <= readResult.time.seconds;
+   readNanoseconds <= readResult.time.nanoseconds;
+   readFraction    <= readResult.time.fraction;
 
    configControl.prepare      <= prepareConfig;
    configControl.apply        <= applyConfig;
@@ -247,52 +248,43 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         secondValid       => secondValid(0),
-         secondReady       => secondReady(0),
-         secondRound       => secondRound(0),
-         secondOperand     => secondOperand,
-         secondCancel      => secondCancel(0),
-         secondResultValid => secondResultValid(0),
-         secondResultReady => secondResultReady(0),
-         secondQuotient    => secondQuotient,
-         secondRemainder   => secondRemainder,
-         clk            => clk,             -- [in]
-         rst            => rst,             -- [in]
-         axiReadMaster  => axiReadMaster,   -- [in]
-         axiReadSlave   => axiReadSlave,    -- [out]
-         axiWriteMaster => axiWriteMaster,  -- [in]
-         axiWriteSlave  => axiWriteSlave,   -- [out]
-         configControl    => configControl,    -- [in]
-         configValid      => configValid,      -- [out]
-         snapshotControl  => snapshotControl,  -- [in]
-         snapshotPrepared => snapshotPrepared, -- [out]
-         servoEnable      => '1',              -- [in]
-         clearValid       => clearValid,       -- [in]
-         commandMaster    => commandMaster,    -- [in]
-         commandSlave     => commandSlave,     -- [out]
-         phcTime      => timeValue,       -- [out]
-         status       => status,          -- [out]
-         pps          => pps,             -- [out]
-         captureAbort => abortCapture);   -- [out]
+         clk               => clk,                    -- [in]
+         rst               => rst,                    -- [in]
+         axiReadMaster     => axiReadMaster,          -- [in]
+         axiReadSlave      => axiReadSlave,           -- [out]
+         axiWriteMaster    => axiWriteMaster,         -- [in]
+         axiWriteSlave     => axiWriteSlave,          -- [out]
+         configControl     => configControl,          -- [in]
+         snapshotControl   => snapshotControl,        -- [in]
+         snapshotPrepared  => snapshotPrepared,       -- [out]
+         configValid       => configValid,            -- [out]
+         servoEnable       => '1',                    -- [in]
+         clearValid        => clearValid,             -- [in]
+         phcTime           => timeValue,              -- [out]
+         status            => status,                 -- [out]
+         pps               => pps,                    -- [out]
+         captureAbort      => abortCapture,           -- [out]
+         commandMaster     => commandMaster,          -- [in]
+         commandSlave      => commandSlave,           -- [out]
+         secondRequest     => secondRequests(0),      -- [out]
+         secondReady       => secondReady(0),         -- [in]
+         secondCancel      => secondCancel(0),        -- [out]
+         secondResult      => secondResults(0),       -- [in]
+         secondResultReady => secondResultReady(0));  -- [out]
 
    U_Read : entity surf.PtpPhcRead
       generic map (
          TPD_G => TPD_G)
       port map (
-         phcClk         => clk,             -- [in]
-         phcRst         => resetHigh,       -- [in]
-         phcTime        => timeValue,       -- [in]
-         phcStatus      => status,          -- [in]
-         captureAbort   => abortCapture,    -- [in]
-         readClk        => readClk,         -- [in]
-         readRst        => readRst,         -- [in]
-         readRequest    => readRequest,     -- [in]
-         readReady      => readReady,       -- [out]
-         readValid      => readValid,       -- [out]
-         readTime       => snapshot,        -- [out]
-         readGeneration => readGeneration,  -- [out]
-         readTicks      => readTicks,       -- [out]
-         readTimeValid  => readTimeValid,   -- [out]
-         readSequence   => readSequence);   -- [out]
+         phcClk       => clk,           -- [in]
+         phcRst       => resetHigh,     -- [in]
+         phcTime      => timeValue,     -- [in]
+         phcStatus    => status,        -- [in]
+         captureAbort => abortCapture,  -- [in]
+         readClk      => readClk,       -- [in]
+         readRst      => readRst,       -- [in]
+         readRequest  => readRequest,   -- [in]
+         readReady    => readReady,     -- [out]
+         readResult   => readResult);   -- [out]
 
 end architecture rtl;

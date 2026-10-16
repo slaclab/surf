@@ -128,6 +128,7 @@ async def check_converter(dut):
 ])
 def test_ptp_const_divide(width, divisor):
     run_surf_vhdl_test(
-        test_file=__file__, toplevel="surf.PtpConstDivide",
+        test_file=__file__, toplevel="surf.PtpConstDivideWrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpConstDivideWrapper.vhd"]},
         parameters={"WIDTH_G": width, "DIVISOR_G": format(divisor, "064b")},
         extra_env={"CONVERTER_WIDTH": width, "CONVERTER_DIVISOR": divisor})

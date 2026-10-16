@@ -45,6 +45,8 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
+use surf.PtpServoPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpServoPi is
@@ -54,28 +56,21 @@ entity PtpServoPi is
       RST_ASYNC_G    : boolean  := false;
       CLK_FREQ_G     : positive := 156250000);
    port (
-      clk    : in sl;
-      rst    : in sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Discards pending arithmetic and revokes an uncommitted command.
-      cancel : in sl;
-      enable : in sl;
+      cancel : in  sl;
+      enable : in  sl;
 
       -- Active configuration and shared limits, read directly from their owner.
-      config       : in PtpServoConfigType;
-      sharedConfig : in PtpSharedConfigType;
-      phcStatus    : in PtpPhcStatusType;
+      config       : in  PtpServoConfigType;
+      sharedConfig : in  PtpSharedConfigType;
+      phcStatus    : in  PtpPhcStatusType;
 
       -- One forward measurement with the filter state it is evaluated against.
-      inputValid       : in  sl;
-      inputReady       : out sl;
-      sampleTicks      : in  slv(63 downto 0);
-      sampleGeneration : in  slv(31 downto 0);
-      forwardValue     : in  slv(127 downto 0);
-      ratio            : in  slv(63 downto 0);
-      ratioValid       : in  sl;
-      filteredDelay    : in  slv(127 downto 0);
-      filterValid      : in  sl;
-      filterTicks      : in  slv(63 downto 0);
+      request      : in  PtpPiRequestType;
+      inputReady   : out sl;
+      filterStatus : in  PtpFilterStatusType;
 
       -- PHC command lifecycle and registered validity revocation.
       commandMaster : out PtpPhcCommandMasterType;
@@ -83,19 +78,15 @@ entity PtpServoPi is
       expireTime    : out sl;
       status        : out PtpServoStatusType;
       -- One-cycle strobes for the owner's publication bank.
-      offsetUpdate  : out sl;
-      rateUpdate    : out sl;
+      offsetUpdate : out sl;
+      rateUpdate   : out sl;
 
       -- Shared SECOND service; cancellation is owner-local.
-      secondValid       : out sl;
+      secondRequest     : out PtpSecondRequestType;
       secondReady       : in  sl;
-      secondRound       : out sl;
-      secondOperand     : out slv(127 downto 0);
       secondCancel      : out sl;
-      secondResultValid : in  sl;
-      secondResultReady : out sl;
-      secondQuotient    : in  slv(127 downto 0);
-      secondRemainder   : in  slv(127 downto 0));
+      secondResult      : in  PtpSecondResultType;
+      secondResultReady : out sl);
 end entity PtpServoPi;
 
 architecture rtl of PtpServoPi is
@@ -259,22 +250,17 @@ architecture rtl of PtpServoPi is
 
    signal arithmeticCancel : sl;
    signal mulReady         : sl;
-   signal mulResultValid   : sl;
    signal mulResultReady   : sl;
-   signal mulOverflow      : sl;
-   signal mulResult        : slv(PRODUCT_A_C+PRODUCT_B_C-1 downto 0);
    signal divRequest       : slv(2 downto 0);
    signal divReady         : slv(2 downto 0);
    signal divResultValid   : slv(2 downto 0);
    signal divResult        : Slv128Array(0 to 2);
-   signal billionResult    : slv(BILLION_WIDTH_C-1 downto 0);
-   signal nominalResult    : slv(NOMINAL_WIDTH_C-1 downto 0);
 
    procedure multiply (
       variable v         : inout RegType;
-      constant a         : in    signed;
-      constant b         : in    unsigned;
-      constant nextState : in    StateType) is
+      constant a         : in  signed;
+      constant b         : in  unsigned;
+      constant nextState : in  StateType) is
    begin
       assert resize(resize(a, PRODUCT_A_C), a'length) = a
          report "PtpServoPi multiplier A operand exceeds its proven bound"
@@ -283,19 +269,19 @@ architecture rtl of PtpServoPi is
          report "PtpServoPi multiplier B operand exceeds its proven bound"
          severity failure;
 
-      v.mulA := slv(resize(a, PRODUCT_A_C));
-      v.mulB := slv(resize(b, PRODUCT_B_C));
-      v.mulValid := '1';
+      v.mulA        := slv(resize(a, PRODUCT_A_C));
+      v.mulB        := slv(resize(b, PRODUCT_B_C));
+      v.mulValid    := '1';
       v.returnState := nextState;
-      v.state := PRODUCT_WAIT_S;
+      v.state       := PRODUCT_WAIT_S;
    end procedure multiply;
 
    procedure divide (
       variable v         : inout RegType;
-      constant value     : in    signed;
-      constant kind      : in    natural;
-      constant round     : in    sl;
-      constant nextState : in    StateType) is
+      constant value     : in  signed;
+      constant kind      : in  natural;
+      constant round     : in  sl;
+      constant nextState : in  StateType) is
    begin
       if kind = BILLION_ID_C then
          assert resize(resize(value, BILLION_WIDTH_C), value'length) = value
@@ -307,15 +293,43 @@ architecture rtl of PtpServoPi is
             severity failure;
       end if;
 
-      v.divOperand := slv(resize(value, 128));
-      v.divKind := kind;
-      v.divRound := round;
-      v.divValid := '1';
+      v.divOperand  := slv(resize(value, 128));
+      v.divKind     := kind;
+      v.divRound    := round;
+      v.divValid    := '1';
       v.returnState := nextState;
-      v.state := DIVIDE_WAIT_S;
+      v.state       := DIVIDE_WAIT_S;
    end procedure divide;
 
+   signal productRequest    : PtpProductRequestType(operandA((PRODUCT_A_C)-1 downto 0), operandB((PRODUCT_B_C)-1 downto 0));
+   signal productResult     : PtpProductResultType(value((PRODUCT_A_C)+(PRODUCT_B_C)-1 downto 0));
+   signal billionRequest    : PtpConstDivideRequestType(operand((BILLION_WIDTH_C)-1 downto 0));
+   signal billionResultPort : PtpConstDivideResultType(value((BILLION_WIDTH_C)-1 downto 0), remainder((BILLION_WIDTH_C)-1 downto 0));
+   signal nominalRequest    : PtpConstDivideRequestType(operand((NOMINAL_WIDTH_C)-1 downto 0));
+   signal nominalResultPort : PtpConstDivideResultType(value((NOMINAL_WIDTH_C)-1 downto 0), remainder((NOMINAL_WIDTH_C)-1 downto 0));
+
 begin
+
+   productRequest <=
+   (
+      valid    => r.mulValid,
+      operandA => r.mulA,
+      operandB => r.mulB
+   );
+   billionRequest <=
+   (
+      valid        => divRequest(BILLION_ID_C),
+      roundNearest => r.divRound,
+      operand      => r.divOperand(BILLION_WIDTH_C-1 downto 0)
+   );
+   divResultValid(BILLION_ID_C) <= billionResultPort.valid;
+   nominalRequest <=
+   (
+      valid        => divRequest(NOMINAL_ID_C),
+      roundNearest => r.divRound,
+      operand      => r.divOperand(NOMINAL_WIDTH_C-1 downto 0)
+   );
+   divResultValid(NOMINAL_ID_C) <= nominalResultPort.valid;
 
    U_Product : entity surf.PtpLimbProduct
       generic map (
@@ -328,14 +342,10 @@ begin
          clk         => clk,               -- [in]
          rst         => rst,               -- [in]
          cancel      => arithmeticCancel,  -- [in]
-         inputValid  => r.mulValid,        -- [in]
+         request     => productRequest,    -- [in]
          inputReady  => mulReady,          -- [out]
-         operandA    => r.mulA,            -- [in]
-         operandB    => r.mulB,            -- [in]
-         resultValid => mulResultValid,    -- [out]
-         resultReady => mulResultReady,    -- [in]
-         resultValue => mulResult,         -- [out]
-         overflow    => mulOverflow);      -- [out]
+         result      => productResult,     -- [out]
+         resultReady => mulResultReady);   -- [in]
 
    -- BILLION and NOMINAL stay local: only this loop converts them, so sharing
    -- would add arbitration and response storage without a second owner.
@@ -347,17 +357,13 @@ begin
          WIDTH_G        => BILLION_WIDTH_C,
          DIVISOR_G      => PTP_NANOSECOND_DIVISOR_C)
       port map (
-         clk             => clk,                                   -- [in]
-         rst             => rst,                                   -- [in]
-         cancel          => arithmeticCancel,                      -- [in]
-         inputValid      => divRequest(BILLION_ID_C),              -- [in]
-         inputReady      => divReady(BILLION_ID_C),                -- [out]
-         roundNearest    => r.divRound,                            -- [in]
-         operand         => r.divOperand(BILLION_WIDTH_C-1 downto 0),  -- [in]
-         resultValid     => divResultValid(BILLION_ID_C),          -- [out]
-         resultReady     => '1',                                   -- [in]
-         resultValue     => billionResult,                         -- [out]
-         resultRemainder => open);                                 -- [out]
+         clk         => clk,                     -- [in]
+         rst         => rst,                     -- [in]
+         cancel      => arithmeticCancel,        -- [in]
+         request     => billionRequest,          -- [in]
+         inputReady  => divReady(BILLION_ID_C),  -- [out]
+         result      => billionResultPort,       -- [out]
+         resultReady => '1');                    -- [in]
 
    U_Nominal : entity surf.PtpConstDivide
       generic map (
@@ -367,28 +373,24 @@ begin
          WIDTH_G        => NOMINAL_WIDTH_C,
          DIVISOR_G      => slv(NOMINAL_C))
       port map (
-         clk             => clk,                                   -- [in]
-         rst             => rst,                                   -- [in]
-         cancel          => arithmeticCancel,                      -- [in]
-         inputValid      => divRequest(NOMINAL_ID_C),              -- [in]
-         inputReady      => divReady(NOMINAL_ID_C),                -- [out]
-         roundNearest    => r.divRound,                            -- [in]
-         operand         => r.divOperand(NOMINAL_WIDTH_C-1 downto 0),  -- [in]
-         resultValid     => divResultValid(NOMINAL_ID_C),          -- [out]
-         resultReady     => '1',                                   -- [in]
-         resultValue     => nominalResult,                         -- [out]
-         resultRemainder => open);                                 -- [out]
+         clk         => clk,                     -- [in]
+         rst         => rst,                     -- [in]
+         cancel      => arithmeticCancel,        -- [in]
+         request     => nominalRequest,          -- [in]
+         inputReady  => divReady(NOMINAL_ID_C),  -- [out]
+         result      => nominalResultPort,       -- [out]
+         resultReady => '1');                    -- [in]
 
    GEN_REQUEST : for i in 0 to 2 generate
       divRequest(i) <= r.divValid when r.divKind = i else '0';
    end generate GEN_REQUEST;
 
    -- The SECOND converter is shared with manual PHC preparation.
-   divReady(SECOND_ID_C) <= secondReady;
-   divResultValid(SECOND_ID_C) <= secondResultValid;
-   divResult(SECOND_ID_C) <= secondQuotient;
-   divResult(BILLION_ID_C) <= slv(resize(signed(billionResult), 128));
-   divResult(NOMINAL_ID_C) <= slv(resize(signed(nominalResult), 128));
+   divReady(SECOND_ID_C)       <= secondReady;
+   divResultValid(SECOND_ID_C) <= secondResult.valid;
+   divResult(SECOND_ID_C)      <= secondResult.value;
+   divResult(BILLION_ID_C)     <= slv(resize(signed(billionResultPort.value), 128));
+   divResult(NOMINAL_ID_C)     <= slv(resize(signed(nominalResultPort.value), 128));
 
    comb : process (all) is
       variable v          : RegType;
@@ -401,19 +403,19 @@ begin
       variable limit      : signed(67 downto 0);
       variable bootstrap  : signed(127 downto 0);
    begin
-      v := r;
-      v.inputReady := '0';
-      v.mulTake := '0';
+      v                   := r;
+      v.inputReady        := '0';
+      v.mulTake           := '0';
       v.secondResultReady := '0';
-      v.offsetUpdate := '0';
-      v.rateUpdate := '0';
+      v.offsetUpdate      := '0';
+      v.rateUpdate        := '0';
 
-      accepted := false;
-      deltaTicks := unsigned(sampleTicks)-unsigned(r.lastTicks);
+      accepted   := false;
+      deltaTicks := unsigned(request.ticks)-unsigned(r.lastTicks);
       correction := (others => '0');
-      magnitude := (others => '0');
-      limit := (others => '0');
-      bootstrap := (others => '0');
+      magnitude  := (others => '0');
+      limit      := (others => '0');
+      bootstrap  := (others => '0');
 
       -- A command whose sample aged out beyond the association timeout is
       -- marked stale so the PHC rejects it on the commit edge.
@@ -427,11 +429,11 @@ begin
       cancelNow := v.command.stale = '1' or cancel = '1' or
                    phcStatus.generation /= r.generation or enable = '0';
       v.command.cancel := toSl(cancelNow);
-      v.generation := phcStatus.generation;
+      v.generation     := phcStatus.generation;
 
       stale := r.haveSample = '1' and
-               (cancel = '1' or filterValid = '0' or
-                ptpAgeExpired(phcStatus.ticks, filterTicks, config.maxDelayAge) or
+               (cancel = '1' or filterStatus.valid = '0' or
+                ptpAgeExpired(phcStatus.ticks, filterStatus.ticks, config.maxDelayAge) or
                 ptpAgeExpired(phcStatus.ticks, r.lastTicks, sharedConfig.syncTimeout));
 
       -- Registered expiry level; the PHC consumes it on the following edge.
@@ -445,8 +447,8 @@ begin
       end if;
 
       if stale then
-         v.tracking := '0';
-         v.good := (others => '0');
+         v.tracking     := '0';
+         v.good         := (others => '0');
          v.status.state := PTP_SERVO_HOLDOVER_C;
       end if;
 
@@ -455,36 +457,36 @@ begin
 
             if stale and r.holdApplied = '0' then
                -- Holdover preserves the committed frequency and removes slew.
-               v.holding := '1';
+               v.holding        := '1';
                v.status.ratePpb := slv(resize(clamp(r.frequency, config.maxRatePpb), 64));
-               v.rateUpdate := '1';
-               v.state := RATE_START_S;
+               v.rateUpdate     := '1';
+               v.state          := RATE_START_S;
             elsif r.command.cancel = '0' then
                v.inputReady := '1';
 
-               if inputValid = '1' and cancel = '0' then
-                  if sampleGeneration /= phcStatus.generation or
-                     unsigned(sampleTicks) > unsigned(phcStatus.ticks) or
-                     ptpAgeExpired(phcStatus.ticks, sampleTicks, sharedConfig.associationTimeout) then
+               if request.valid = '1' and cancel = '0' then
+                  if request.generation /= phcStatus.generation or
+                     unsigned(request.ticks) > unsigned(phcStatus.ticks) or
+                     ptpAgeExpired(phcStatus.ticks, request.ticks, sharedConfig.associationTimeout) then
                      v.status.rejectedCount := ptpSatInc(r.status.rejectedCount);
-                  elsif filterValid = '1' and ratioValid = '1' and
-                        not ptpAgeExpired(phcStatus.ticks, filterTicks, config.maxDelayAge) and
-                        (r.haveSample = '0' or unsigned(sampleTicks) > unsigned(r.lastTicks)) then
+                  elsif filterStatus.valid = '1' and request.ratioValid = '1' and
+                        not ptpAgeExpired(phcStatus.ticks, filterStatus.ticks, config.maxDelayAge) and
+                        (r.haveSample = '0' or unsigned(request.ticks) > unsigned(r.lastTicks)) then
 
                      if r.tracking = '1' and
                         (deltaTicks < unsigned(config.minSampleTicks) or
                          deltaTicks > unsigned(config.maxSampleTicks)) then
                         v.status.rejectedCount := ptpSatInc(r.status.rejectedCount);
                      else
-                        v.sampleTicks := sampleTicks;
-                        v.forwardValue := signed(forwardValue);
-                        v.delayValue := signed(filteredDelay);
-                        v.status.filteredDelay := filteredDelay;
-                        v.ratio := unsigned(ratio);
-                        v.holding := '0';
-                        v.command.data := PTP_PHC_COMMAND_INIT_C;
+                        v.sampleTicks             := request.ticks;
+                        v.forwardValue            := signed(request.forwardValue);
+                        v.delayValue              := signed(filterStatus.delayValue);
+                        v.status.filteredDelay    := filterStatus.delayValue;
+                        v.ratio                   := unsigned(request.ratio);
+                        v.holding                 := '0';
+                        v.command.data            := PTP_PHC_COMMAND_INIT_C;
                         v.command.data.generation := phcStatus.generation;
-                        v.state := OFFSET_DELAY_S;
+                        v.state                   := OFFSET_DELAY_S;
                      end if;
                   end if;
                end if;
@@ -492,20 +494,20 @@ begin
 
          when OFFSET_DELAY_S =>
             v.offsetWide := r.forwardValue-r.delayValue;
-            v.state := OFFSET_ASYMMETRY_S;
+            v.state      := OFFSET_ASYMMETRY_S;
 
          when OFFSET_ASYMMETRY_S =>
             v.offsetWide := r.offsetWide-resize(signed(config.delayAsymmetry), 128);
-            v.state := OFFSET_PUBLISH_S;
+            v.state      := OFFSET_PUBLISH_S;
 
          when OFFSET_PUBLISH_S =>
             v.status.offsetValue := slv(r.offsetWide);
-            v.offsetUpdate := '1';
-            v.state := OFFSET_DECIDE_S;
+            v.offsetUpdate       := '1';
+            v.state              := OFFSET_DECIDE_S;
 
          when OFFSET_DECIDE_S =>
-            magnitude := abs(r.offsetWide);
-            v.inLock := toSl(magnitude <= resize(signed(config.lockThreshold), 128));
+            magnitude   := abs(r.offsetWide);
+            v.inLock    := toSl(magnitude <= resize(signed(config.lockThreshold), 128));
             v.outUnlock := toSl(magnitude >= resize(signed(config.unlockThreshold), 128));
 
             -- A large step can establish the epoch while time is invalid. This
@@ -514,10 +516,10 @@ begin
             if phcStatus.timeValid = '0' and config.allowStep = '1' and
                magnitude > resize(signed(config.stepThreshold), 128) then
                v.stepping := '1';
-               v.state := PHASE_REQUEST_S;
+               v.state    := PHASE_REQUEST_S;
             elsif resize(resize(r.offsetWide, 64), 128) /= r.offsetWide then
                v.status.rejectedCount := ptpSatInc(r.status.rejectedCount);
-               v.state := IDLE_S;
+               v.state                := IDLE_S;
             else
                v.offsetValue := resize(r.offsetWide, 64);
                multiply(v, r.offsetWide, unsigned(config.kp), PROPORTIONAL_DONE_S);
@@ -532,11 +534,11 @@ begin
             if resize(resize(r.mathValue, 64), 128) /= r.mathValue or
                resize(resize(r.remainderValue, 48), 128) /= r.remainderValue then
                v.status.state := PTP_SERVO_FAULT_C;
-               v.state := IDLE_S;
+               v.state        := IDLE_S;
             else
-               v.command.data := PTP_PHC_COMMAND_INIT_C;
-               v.command.data.kind := PTP_CMD_PHASE_C;
-               v.command.data.generation := r.generation;
+               v.command.data              := PTP_PHC_COMMAND_INIT_C;
+               v.command.data.kind         := PTP_CMD_PHASE_C;
+               v.command.data.generation   := r.generation;
                v.command.data.phaseSeconds := slv(resize(r.mathValue, 64));
                v.command.data.phaseFraction :=
                   slv(shift_left(resize(r.remainderValue, 64), PTP_TIME_FRAC_BITS_C));
@@ -548,20 +550,20 @@ begin
             -- is the accepting edge. Clear the request there and only then
             -- look at the result.
             if r.mulValid = '1' and mulReady = '1' then
-               v.mulValid := '0';
+               v.mulValid   := '0';
                v.mulPending := '1';
             end if;
 
-            if r.mulPending = '1' and mulResultValid = '1' then
+            if r.mulPending = '1' and productResult.valid = '1' then
                v.mulPending := '0';
-               v.mulTake := '1';
-               v.mathValue := resize(signed(mulResult), 128);
-               v.state := r.returnState;
+               v.mulTake    := '1';
+               v.mathValue  := resize(signed(productResult.value), 128);
+               v.state      := r.returnState;
 
                -- Reject an overflowing product before any rounding shift.
-               if mulOverflow = '1' then
+               if productResult.overflow = '1' then
                   v.status.rejectedCount := ptpSatInc(r.status.rejectedCount);
-                  v.state := IDLE_S;
+                  v.state                := IDLE_S;
                end if;
             end if;
 
@@ -570,19 +572,18 @@ begin
                v.divValid := '0';
             end if;
 
-
             if r.divKind = SECOND_ID_C then
                v.secondResultReady := '1';
             end if;
 
             if r.divValid = '0' and divResultValid(r.divKind) = '1' then
                v.mathValue := signed(divResult(r.divKind));
-               v.state := r.returnState;
+               v.state     := r.returnState;
 
                -- Only the SECOND service returns a remainder, and only the
                -- phase path consumes it.
                if r.divKind = SECOND_ID_C then
-                  v.remainderValue := signed(secondRemainder);
+                  v.remainderValue := signed(secondResult.remainder);
                end if;
             end if;
 
@@ -611,11 +612,11 @@ begin
 
          when BOOT_DONE_S =>
             v.proposed := resize(clamp(r.mathValue, config.maxFrequencyPpb), 68);
-            v.state := BOOT_SUBTRACT_S;
+            v.state    := BOOT_SUBTRACT_S;
 
          when BOOT_SUBTRACT_S =>
             v.proposed := r.proposed-resize(r.proportional, 68);
-            v.state := FREQUENCY_LIMIT_S;
+            v.state    := FREQUENCY_LIMIT_S;
 
          when INTERVAL_PRODUCT_S =>
             divide(v, r.mathValue, BILLION_ID_C, '1', INTERVAL_DONE_S);
@@ -640,18 +641,18 @@ begin
             assert resize(resize(correction, 67), 128) = correction
                report "PtpServoPi integral correction exceeds signed67"
                severity failure;
-            v.correction := resize(correction, 67);
+            v.correction         := resize(correction, 67);
             v.correctionNegative := correction(127);
-            v.correctionNonzero := toSl(correction /= 0);
-            v.state := FREQUENCY_PROPOSE_S;
+            v.correctionNonzero  := toSl(correction /= 0);
+            v.state              := FREQUENCY_PROPOSE_S;
 
          when FREQUENCY_PROPOSE_S =>
             v.proposed := resize(r.frequency, 68)+resize(r.correction, 68);
-            v.state := FREQUENCY_LIMIT_S;
+            v.state    := FREQUENCY_LIMIT_S;
 
          when FREQUENCY_LIMIT_S =>
             v.candidate := resize(clamp(r.proposed, config.maxFrequencyPpb), 64);
-            v.state := RATE_SUM_S;
+            v.state     := RATE_SUM_S;
 
             if r.integrating = '1' then
                limit := signed(shift_left(resize(unsigned(config.maxFrequencyPpb), 68),
@@ -695,11 +696,11 @@ begin
 
          when RATE_LIMIT_S =>
             v.status.ratePpb := slv(resize(clamp(r.trial, config.maxRatePpb), 64));
-            v.state := RATE_PUBLISH_S;
+            v.state          := RATE_PUBLISH_S;
 
          when RATE_PUBLISH_S =>
             v.rateUpdate := '1';
-            v.state := RATE_START_S;
+            v.state      := RATE_START_S;
 
          when RATE_START_S =>
             multiply(v, signed(r.status.ratePpb), NOMINAL_C, RATE_PRODUCT_S);
@@ -710,13 +711,13 @@ begin
          when RATE_COMMAND_S =>
             if resize(resize(r.mathValue, 64), 128) /= r.mathValue then
                v.status.state := PTP_SERVO_FAULT_C;
-               v.state := IDLE_S;
+               v.state        := IDLE_S;
             else
-               v.command.data := PTP_PHC_COMMAND_INIT_C;
-               v.command.data.kind := PTP_CMD_RATE_C;
+               v.command.data            := PTP_PHC_COMMAND_INIT_C;
+               v.command.data.kind       := PTP_CMD_RATE_C;
                v.command.data.generation := r.generation;
-               v.command.data.rate := slv(resize(r.mathValue, 64));
-               v.state := COMMAND_S;
+               v.command.data.rate       := slv(resize(r.mathValue, 64));
+               v.state                   := COMMAND_S;
             end if;
 
          when COMMAND_S =>
@@ -733,31 +734,31 @@ begin
                elsif r.command.data.kind = PTP_CMD_PHASE_C then
                   -- A successful phase step establishes the epoch; frequency
                   -- control starts from the next forward measurement.
-                  v.stepping := '0';
-                  v.lastTicks := r.sampleTicks;
+                  v.stepping   := '0';
+                  v.lastTicks  := r.sampleTicks;
                   v.haveSample := '1';
 
                   if phcStatus.timeValid = '0' then
-                     v.command.data.kind := PTP_CMD_VALID_C;
+                     v.command.data.kind  := PTP_CMD_VALID_C;
                      v.command.data.value := '1';
-                     v.state := COMMAND_S;
+                     v.state              := COMMAND_S;
                   end if;
                elsif r.command.data.kind = PTP_CMD_RATE_C then
                   if r.holding = '1' then
                      v.holdApplied := '1';
                   else
                      -- Frequency and history commit only here.
-                     v.frequency := r.candidate;
-                     v.tracking := '1';
-                     v.haveSample := '1';
-                     v.lastTicks := r.sampleTicks;
+                     v.frequency   := r.candidate;
+                     v.tracking    := '1';
+                     v.haveSample  := '1';
+                     v.lastTicks   := r.sampleTicks;
                      v.holdApplied := '0';
-                     accepted := true;
+                     accepted      := true;
 
                      if phcStatus.timeValid = '0' then
-                        v.command.data.kind := PTP_CMD_VALID_C;
+                        v.command.data.kind  := PTP_CMD_VALID_C;
                         v.command.data.value := '1';
-                        v.state := COMMAND_S;
+                        v.state              := COMMAND_S;
                      end if;
                   end if;
                end if;
@@ -791,14 +792,14 @@ begin
       -- Cancellation overrides pending work but not a successful ACK's
       -- already committed frequency and history.
       if cancelNow then
-         v.state := IDLE_S;
-         v.mulValid := '0';
-         v.divValid := '0';
-         v.stepping := '0';
-         v.tracking := '0';
-         v.holdApplied := '0';
-         v.good := (others => '0');
-         v.bad := (others => '0');
+         v.state        := IDLE_S;
+         v.mulValid     := '0';
+         v.divValid     := '0';
+         v.stepping     := '0';
+         v.tracking     := '0';
+         v.holdApplied  := '0';
+         v.good         := (others => '0');
+         v.bad          := (others => '0');
          v.status.state := PTP_SERVO_ACQUIRING_C;
 
          if r.haveSample = '1' then
@@ -807,12 +808,12 @@ begin
       end if;
 
       if enable = '0' then
-         v.haveSample := '0';
+         v.haveSample   := '0';
          v.status.state := PTP_SERVO_DISABLED_C;
       end if;
 
       if phcStatus.fault = '1' or r.status.state = PTP_SERVO_FAULT_C then
-         v.state := IDLE_S;
+         v.state        := IDLE_S;
          v.status.state := PTP_SERVO_FAULT_C;
       end if;
 
@@ -826,18 +827,18 @@ begin
          v.inputReady := '1';
       end if;
 
-      v.command.valid := toSl(v.state = COMMAND_S);
+      v.command.valid    := toSl(v.state = COMMAND_S);
       v.arithmeticCancel := toSl(cancelNow or phcStatus.fault = '1' or
                                  v.status.state = PTP_SERVO_FAULT_C);
 
       -- Combinatorial outputs before the reset.
       -- Arithmetic cancellation also covers a fault, which stops the loop
       -- without being a command cancellation.
-      arithmeticCancel <= v.arithmeticCancel;
-      secondCancel <= v.arithmeticCancel;
+      arithmeticCancel  <= v.arithmeticCancel;
+      secondCancel      <= v.arithmeticCancel;
       secondResultReady <= v.secondResultReady;
-      mulResultReady <= v.mulTake;
-      inputReady <= v.inputReady;
+      mulResultReady    <= v.mulTake;
+      inputReady        <= v.inputReady;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
@@ -847,15 +848,19 @@ begin
 
       -- The SECOND request is registered like the local converter requests, so
       -- valid, operand and rounding mode reach the shared service together.
-      secondValid <= divRequest(SECOND_ID_C);
-      secondRound <= r.divRound;
-      secondOperand <= r.divOperand;
+      -- Borrow the selected converter operands; they remain held through acceptance.
+      secondRequest <=
+      (
+         valid        => divRequest(SECOND_ID_C),
+         roundNearest => r.divRound,
+         operand      => r.divOperand
+      );
 
       commandMaster <= r.command;
-      expireTime <= r.expireTime;
-      status <= r.status;
-      offsetUpdate <= r.offsetUpdate;
-      rateUpdate <= r.rateUpdate;
+      expireTime    <= r.expireTime;
+      status        <= r.status;
+      offsetUpdate  <= r.offsetUpdate;
+      rateUpdate    <= r.rateUpdate;
    end process comb;
 
    seq : process (clk, rst) is

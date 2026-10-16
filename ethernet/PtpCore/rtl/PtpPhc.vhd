@@ -68,6 +68,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
 use surf.PtpRegisterPkg.all;
@@ -107,15 +108,11 @@ entity PtpPhc is
       -- Shared SECOND service, also used by the servo. Manual phase
       -- preparation is the only arithmetic this core performs; the tick and
       -- PPS datapath needs no multiply or divide.
-      secondValid       : out sl;
-      secondReady       : in  sl                := '0';
-      secondRound       : out sl;
-      secondOperand     : out slv(127 downto 0);
+      secondRequest     : out PtpSecondRequestType;
+      secondReady       : in  sl                  := '0';
       secondCancel      : out sl;
-      secondResultValid : in  sl                := '0';
-      secondResultReady : out sl;
-      secondQuotient    : in  slv(127 downto 0) := (others => '0');
-      secondRemainder   : in  slv(127 downto 0) := (others => '0'));
+      secondResult      : in  PtpSecondResultType := PTP_SECOND_RESULT_INIT_C;
+      secondResultReady : out sl);
 end entity PtpPhc;
 
 architecture rtl of PtpPhc is
@@ -133,8 +130,8 @@ architecture rtl of PtpPhc is
    -- One billion needs 30 bits; Q16 encoding gives a 46-bit divisor magnitude.
    -- Q32 ns: the encoded value is ns * 2**32. The signed status.rate uses the
    -- same scale, so adding it changes ns/tick directly, without a ppb conversion.
-   constant NOMINAL_C : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
-   constant SECOND_C  : signed(66 downto 0)   := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
+   constant NOMINAL_C     : unsigned(63 downto 0) := unsigned(ptpNominalIncrement(CLK_FREQ_G));
+   constant SECOND_C      : signed(66 downto 0)   := shift_left(to_signed(PTP_NANOSECONDS_PER_SECOND_C, 67), PTP_PHC_FRAC_BITS_C);
    constant EPOCH_LIMIT_C : signed(65 downto 0) := shift_left(to_signed(1, 66), 48);
    -- Capture consumers need the nominal increment even before the first tick.
    function initialStatus return PtpPhcStatusType is
@@ -156,8 +153,8 @@ architecture rtl of PtpPhc is
       operandPrepare     : sl;
       operandWord        : natural range 0 to 9;
       -- Accepted manual work survives AXI reset and later operand writes.
-      manualState   : ManualStateType;
-      manualBusy    : sl;
+      manualState : ManualStateType;
+      manualBusy : sl;
       -- Four 32-bit submission words are frozen on admission. The fourth is
       -- an admission guard, not a converter operand: it makes an oversized
       -- software write observable in hardware, which a three-word register
@@ -167,15 +164,15 @@ architecture rtl of PtpPhc is
       secondValid     : sl;
       secondReady     : sl;
       phaseError      : sl;
-      manualCommand : PtpPhcCommandType;
-      manualAck     : sl;
-      manualError   : sl;
+      manualCommand   : PtpPhcCommandType;
+      manualAck       : sl;
+      manualError     : sl;
       -- Local copies of the common pre-edge diagnostic snapshot.
       snapshotSequence : slv(31 downto 0);
       snapshotBus      : PtpRegisterBusType;
       -- Clock state and the shared one-command commit slot.
-      timeValue    : PtpTimeType;
-      status       : PtpPhcStatusType;
+      timeValue : PtpTimeType;
+      status    : PtpPhcStatusType;
       owner        : OwnerType;
       commandSlave : PtpPhcCommandSlaveType;
       captureAbort : sl;
@@ -219,10 +216,10 @@ architecture rtl of PtpPhc is
       ppsEnable          => '0',
       pps                => '0');
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
-   signal operandMasters : PtpRegisterMasterArray(0 to 1);
-   signal operandSlaves : PtpRegisterSlaveArray(0 to 1);
+   signal r               : RegType := REG_INIT_C;
+   signal rin             : RegType;
+   signal operandMasters  : PtpRegisterMasterArray(0 to 1);
+   signal operandSlaves   : PtpRegisterSlaveArray(0 to 1);
    signal operandPrepared : sl;
    signal snapshotScalars : Slv32Array(0 to 9);
    signal snapshotSlave : PtpRegisterSlaveType;
@@ -250,13 +247,13 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          WORDS_G        => 10)
       port map (
-         clk      => clk,
-         rst      => rst,
-         scalars  => snapshotScalars,
-         snapshot => snapshotControl,
-         prepared => snapshotPrepared,
-         master   => r.snapshotBus.master,
-         slave    => snapshotSlave);
+         clk      => clk,                   -- [in]
+         rst      => rst,                   -- [in]
+         scalars  => snapshotScalars,       -- [in]
+         snapshot => snapshotControl,       -- [in]
+         prepared => snapshotPrepared,      -- [out]
+         master   => r.snapshotBus.master,  -- [in]
+         slave    => snapshotSlave);        -- [out]
 
    operandMasters(0) <= r.operandBus.master;
    operandMasters(1) <= r.operandMaster;
@@ -268,16 +265,14 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          DEFAULTS_G     => Slv32Array'(0 to 9 => (others => '0')))
       port map (
-         clk       => clk,
-         rst       => rst,
-         prepare   => r.operandPrepare,
-         apply     => '0',
-         prepared  => operandPrepared,
-         scanValid => open,
-         scanIndex => open,
-         scanData  => open,
-         masters   => operandMasters,
-         slaves    => operandSlaves);
+         clk      => clk,               -- [in]
+         rst      => rst,               -- [in]
+         prepare  => r.operandPrepare,  -- [in]
+         apply    => '0',               -- [in]
+         prepared => operandPrepared,   -- [out]
+         scan     => open,              -- [out]
+         masters  => operandMasters,    -- [in]
+         slaves   => operandSlaves);    -- [out]
 
    comb : process (all) is
       variable readAddress  : slv(11 downto 0);
@@ -300,10 +295,10 @@ begin
    begin
       -- r is pre-edge state. v collects the state to register next; ordinary
       -- ticking happens even while command preparation or arbitration is busy.
-      v := r;
-      v.secondValid := r.secondValid;
-      v.secondReady := '0';
-      v.operandPrepare := '0';
+      v                             := r;
+      v.secondValid                 := r.secondValid;
+      v.secondReady                 := '0';
+      v.operandPrepare              := '0';
       v.operandMaster.responseReady := '1';
 
       if r.operandMaster.valid = '1' and operandSlaves(1).ready = '1' then
@@ -317,7 +312,7 @@ begin
       v.status.discontinuity := '0';
       v.pps                  := '0';
       v.abortSeen            := portCommandAbort;
-      commandWord := (others => '0');
+      commandWord            := (others => '0');
       v.commandSlave         := PTP_PHC_COMMAND_SLAVE_INIT_C;
       -------------------------------------------------------------------------
       -- AXI-Lite: decode, map, qualify submission, then close the transaction.
@@ -325,7 +320,7 @@ begin
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
       -- An inactive AXI address is unspecified. Decode only admitted requests;
       -- RAM responses retain their address/ownership inside ptpRegisterBus.
-      readAddress := (others => '0');
+      readAddress  := (others => '0');
       writeAddress := (others => '0');
       if ep.axiStatus.readEnable = '1' then
          readAddress := ep.axiReadMaster.araddr(11 downto 0);
@@ -390,8 +385,8 @@ begin
             if commandWord(2 downto 0) = PTP_CMD_SET_C or commandWord(2 downto 0) = PTP_CMD_PHASE_C or
                commandWord(2 downto 0) = PTP_CMD_RATE_C then
                v.operandPrepare := '1';
-               v.phaseError := '0';
-               v.manualState := FREEZE_S;
+               v.phaseError     := '0';
+               v.manualState    := FREEZE_S;
             else
                v.manualState := REQUEST_S;
             end if;
@@ -441,9 +436,9 @@ begin
          when OPERAND_READ_S =>
             v.operandMaster.valid := '1';
             v.operandMaster.write := '0';
-            v.operandMaster.bank := "10";
+            v.operandMaster.bank  := "10";
             v.operandMaster.index := toSlv(r.operandWord, 8);
-            v.manualState := OPERAND_WAIT_S;
+            v.manualState         := OPERAND_WAIT_S;
          when OPERAND_WAIT_S =>
 
             if operandSlaves(1).responseValid = '1' then
@@ -490,11 +485,11 @@ begin
 
             if resize(signed(r.phaseSubmission(95 downto 0)), 128) /=
                signed(r.phaseSubmission) then
-               v.phaseError := '1';
+               v.phaseError  := '1';
                v.manualState := PHASE_CHECK_S;
             else
                v.phaseOperand := r.phaseSubmission(95 downto 0);
-               v.secondValid := '1';
+               v.secondValid  := '1';
             end if;
 
          when PHASE_REQUEST_S =>
@@ -508,19 +503,19 @@ begin
          when PHASE_WAIT_S =>
             v.secondReady := '1';
 
-            if secondResultValid = '1' then
+            if secondResult.valid = '1' then
                v.secondReady := '0';
                v.manualState := PHASE_CHECK_S;
 
                -- The quotient must fit signed64 and the remainder signed48,
                -- the widths the command record carries.
-               if resize(signed(secondQuotient(63 downto 0)), 128) /= signed(secondQuotient) or
-                  resize(signed(secondRemainder(47 downto 0)), 128) /= signed(secondRemainder) then
+               if resize(signed(secondResult.value(63 downto 0)), 128) /= signed(secondResult.value) or
+                  resize(signed(secondResult.remainder(47 downto 0)), 128) /= signed(secondResult.remainder) then
                   v.phaseError := '1';
                else
-                  v.manualCommand.phaseSeconds := secondQuotient(63 downto 0);
+                  v.manualCommand.phaseSeconds := secondResult.value(63 downto 0);
                   v.manualCommand.phaseFraction :=
-                     slv(shift_left(resize(signed(secondRemainder), 64), PTP_TIME_FRAC_BITS_C));
+                     slv(shift_left(resize(signed(secondResult.remainder), 64), PTP_TIME_FRAC_BITS_C));
                end if;
             end if;
 
@@ -529,7 +524,7 @@ begin
 
             if r.phaseError = '1' then
                v.manualState := IDLE_S;
-               v.manualAck := '1';
+               v.manualAck   := '1';
                v.manualError := '1';
             end if;
 
@@ -602,7 +597,7 @@ begin
       tickNanoseconds := signed(resize(unsigned(slv'(r.timeValue.nanoseconds & r.timeValue.fraction)), 67) +
          resize(unsigned(r.status.increment), 67));
       nextNanoseconds := tickNanoseconds;
-      nextSeconds := signed(resize(unsigned(r.timeValue.seconds), 66));
+      nextSeconds     := signed(resize(unsigned(r.timeValue.seconds), 66));
       -- Check epoch bounds in parallel with seconds arithmetic. Do not route
       -- the late nanosecond carry through a seconds sum and then a wide fault
       -- comparison back to every time register's enable.
@@ -619,7 +614,7 @@ begin
          nextNanoseconds := nextNanoseconds-SECOND_C;
          nextSeconds     := nextSeconds+1;
          v.pps           := r.ppsEnable and r.status.timeValid;
-         epochError := r.timeValue.seconds = x"FFFFFFFFFFFF";
+         epochError      := r.timeValue.seconds = x"FFFFFFFFFFFF";
       end if;
 
       -- The admission-to-commit cycle allows registered servo cancellation
@@ -649,10 +644,10 @@ begin
                   elsif r.activeMonotonic = '1' and r.status.timeValid = '1' then
                      v.status.error := '1';
                   else
-                     nextSeconds     := signed(resize(unsigned(r.command.setTime.seconds), 66));
-                     nextNanoseconds := signed(resize(unsigned(slv'(r.command.setTime.nanoseconds & r.command.setTime.fraction)), 67));
+                     nextSeconds            := signed(resize(unsigned(r.command.setTime.seconds), 66));
+                     nextNanoseconds        := signed(resize(unsigned(slv'(r.command.setTime.nanoseconds & r.command.setTime.fraction)), 67));
                      v.status.discontinuity := '1';
-                     epochError := false;
+                     epochError             := false;
                   end if;
                when PTP_CMD_PHASE_C =>
                   -- The producer supplies whole seconds and a signed remainder
@@ -669,22 +664,22 @@ begin
                      -- serializes two wide carry/compare/select paths.
                      phaseSeconds := signed(resize(unsigned(r.timeValue.seconds), 66)) +
                         resize(signed(r.command.phaseSeconds), 66);
-                     nextSeconds := phaseSeconds;
-                     epochError := phaseSeconds < 0 or phaseSeconds >= EPOCH_LIMIT_C;
+                     nextSeconds     := phaseSeconds;
+                     epochError      := phaseSeconds < 0 or phaseSeconds >= EPOCH_LIMIT_C;
                      nextNanoseconds := tickNanoseconds +
                         resize(signed(r.command.phaseFraction), 67);
                      if nextNanoseconds < 0 then
                         nextNanoseconds := nextNanoseconds+SECOND_C;
                         nextSeconds     := phaseSeconds-1;
-                        epochError := phaseSeconds < 1 or phaseSeconds >= EPOCH_LIMIT_C+1;
+                        epochError      := phaseSeconds < 1 or phaseSeconds >= EPOCH_LIMIT_C+1;
                      elsif nextNanoseconds >= shift_left(SECOND_C, 1) then
                         nextNanoseconds := nextNanoseconds-shift_left(SECOND_C, 1);
                         nextSeconds     := phaseSeconds+2;
-                        epochError := phaseSeconds < -2 or phaseSeconds >= EPOCH_LIMIT_C-2;
+                        epochError      := phaseSeconds < -2 or phaseSeconds >= EPOCH_LIMIT_C-2;
                      elsif nextNanoseconds >= SECOND_C then
                         nextNanoseconds := nextNanoseconds-SECOND_C;
                         nextSeconds     := phaseSeconds+1;
-                        epochError := phaseSeconds < -1 or phaseSeconds >= EPOCH_LIMIT_C-1;
+                        epochError      := phaseSeconds < -1 or phaseSeconds >= EPOCH_LIMIT_C-1;
                      end if;
                      v.status.discontinuity := '1';
                   end if;
@@ -802,18 +797,23 @@ begin
       -------------------------------------------------------------------------
       -- Registered functional outputs, including admission and completion.
       -------------------------------------------------------------------------
-      commandSlave   <= r.commandSlave;
-      captureAbort   <= r.captureAbort;
-      manualBusy     <= r.manualBusy;
-      secondValid <= r.secondValid;
-      secondRound <= '0';  -- Truncate; the remainder is the subsecond part.
-      secondOperand <= slv(resize(signed(r.phaseOperand), 128));
-      secondCancel <= '0';
-      axiReadSlave   <= r.readSlave;
-      axiWriteSlave  <= r.writeSlave;
-      phcTime        <= r.timeValue;
-      status         <= r.status;
-      pps            <= r.pps;
+      commandSlave <= r.commandSlave;
+      captureAbort <= r.captureAbort;
+      manualBusy   <= r.manualBusy;
+      -- Representation-only extension of the retained signed96 phase operand.
+      -- Rounding is truncation; the exact remainder supplies the subsecond part.
+      secondRequest <=
+      (
+         valid        => r.secondValid,
+         roundNearest => '0',
+         operand      => slv(resize(signed(r.phaseOperand), 128))
+      );
+      secondCancel  <= '0';
+      axiReadSlave  <= r.readSlave;
+      axiWriteSlave <= r.writeSlave;
+      phcTime       <= r.timeValue;
+      status        <= r.status;
+      pps           <= r.pps;
    end process comb;
    seq : process (clk, rst) is
    begin

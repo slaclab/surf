@@ -36,6 +36,8 @@ accumulate into qualification of the latest source automatically.
 | October 15 protocol ownership split and direct-test runtime repair over `a3f821fd9` | 32 distinct simulation configurations pass across focused batches: all 18 table/negative-guard cases, both direct-sample RAM modes, four ordinary exchange cases, three rejection cases, three TX cases and two protocol-specification cases. Five refined/new RTL files pass VSG; source import resolves. The matched 14-case batch fell from 458.24 s to 167.65 s; summed case execution time fell 52%. [Method and scope](../../../tests/ethernet/PtpCore/README.md#selecting-tests) | Both RAM modes retain all sixteen history-cancellation phases. Public engine ports and table word packing are unchanged. No new continuous-clock endpoint/real-MAC, synthesis, routed timing or hardware result. |
 | October 15 Sync transaction records over `513abd870` | Eleven focused configurations pass: history selection/cancellation/publication priority, pair cancellation/expiry and negative-result guard in both RAM modes, plus normalized E2E with both calibration planes. All six changed VHDL files pass VSG; source import resolves. | Pair/history/E2E state transitions and datapaths also compare unchanged after field substitution; completion fields are registered on their existing edge. One case needed a rebuild after a concurrent formatting edit invalidated GHDL analysis. No full-suite, synthesis, timing or hardware result. |
 
+| October 15 PtpCore-wide port records over `649bea094` | 59 distinct configurations pass with Python 3.12.7/GHDL 6.0.0: 14 math/service/servo/PHC/E2E/register cases; four ledger cases; 41 arithmetic-leaf, exchange/rejection, interval, TX, pair/history/negative-guard, direct-sample, RX and GMII/XGMII port cases. All 48 changed/new VHDL files pass VSG. [Record interfaces](../../../ethernet/PtpCore/interfaces.md#record-interfaces-and-source-compatibility) | VHDL source API changes; register/wire formats and operand widths retained. Initial integration failures exposed a duplicated RX-wrapper declaration and a missing scalar monitor alias; both are fixed and affected cases pass. Final formatting preserves tested VHDL tokens. No full-suite, closed-loop endpoint/real-MAC, synthesis, routed timing or hardware result. |
+
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
 the acceptance backlog does not require a full-suite replay after routine edits.
@@ -77,6 +79,20 @@ pass uses cohesive `PtpSyncPkg` records for pair completion, lookup command/resu
 append command/status and normalized words through E2E. Result records have one
 state owner; borrowed payloads retain their existing storage and lifetimes.
 Lookup's separately retained Delay sample remains distinct from its start command.
+
+The wider PtpCore interface pass extends records to RX/TX message heads, completed
+ledger samples, policy admission and events, configuration scans, PHC read results,
+filter/PI inputs and arithmetic requests/results. Shared services now use arrays
+of client records. `PtpProtocolPkg`, `PtpServoPkg` and `PtpMathPkg` keep those
+contracts with their owners; existing common, Sync and register packages retain
+their related interfaces. Generic math records constrain each operand/result to
+the existing width. Published records live in the owning state, with explicit
+views for existing FIFO/DSP storage and narrower arithmetic operands. Clocks,
+reset/cancel, reverse handshakes and physical pins remain separate. All callers
+are migrated; cocotb wrappers preserve their flat signal interfaces. This changes
+the VHDL source API, with no intended datapath, storage-layout or cycle change.
+See [record contracts and migration](../../../ethernet/PtpCore/interfaces.md#record-interfaces-and-source-compatibility).
+
 `PtpDelayReqTx` retains scheduling, reservation requests and stalled-frame drain;
 `PtpTxLedger` retains its existing physical ownership contract. The parent is
 structural. Diagnostic serialization stays with held RX/E2E payloads in the flow;

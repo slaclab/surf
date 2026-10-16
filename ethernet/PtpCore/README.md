@@ -35,6 +35,9 @@ adapters live in [GigEthCore](../GigEthCore/README.md). The
 `Phc`, `ProtocolEngine` and `Servo` children. `ruckus.tcl` owns the source
 inventory for production RTL. Tests load their simulation wrappers explicitly
 through `extra_vhdl_sources`.
+Production transactions use package-owned records; the
+[record interface guide](interfaces.md#record-interfaces-and-source-compatibility)
+lists their owners, lifetimes and source-API migration.
 
 ## Integration essentials
 

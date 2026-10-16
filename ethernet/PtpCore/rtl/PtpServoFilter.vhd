@@ -35,6 +35,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpServoPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpServoFilter is
@@ -44,30 +45,24 @@ entity PtpServoFilter is
       RST_ASYNC_G    : boolean               := false;
       DEPTH_G        : positive range 5 to 5 := 5);
    port (
-      clk    : in sl;
-      rst    : in sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Clears population and replacement ownership; retains the last payload.
-      cancel : in sl;
+      cancel : in  sl;
       -- Delay-sample admission. The caller has already qualified generation
       -- and association age; this block applies the value and chronology
       -- rules. The sample arrives at the measurement record's full signed128
       -- width and is qualified there before being retained as signed64, which
       -- is lossless because an admitted value is bounded by maxPathDelay.
-      inputValid   : in  sl;
-      inputReady   : out sl;
-      delayValue   : in  slv(127 downto 0);
-      sampleTicks  : in  slv(63 downto 0);
-      maxPathDelay : in  slv(63 downto 0);
-      -- Published filter state. filterCount is zero when no sample is valid.
-      filterValid   : out sl;
-      filteredDelay : out slv(127 downto 0);
-      filterCount   : out slv(2 downto 0);
-      filterTicks   : out slv(63 downto 0);
+      request    : in  PtpFilterRequestType;
+      inputReady : out sl;
+      -- Published filter state. count is zero when no sample is valid.
+      filterStatus : out PtpFilterStatusType;
       -- One-cycle strobe on an atomic median/population publication.
-      filterUpdate  : out sl;
+      filterUpdate : out sl;
       -- One-cycle strobe when an admitted sample fails the value or
       -- chronology rules. The owner counts these for its diagnostics.
-      filterReject  : out sl);
+      filterReject : out sl);
 end entity PtpServoFilter;
 
 architecture rtl of PtpServoFilter is
@@ -87,35 +82,29 @@ architecture rtl of PtpServoFilter is
    type StateType is (IDLE_S, SORT_COMPARE_S, PUBLISH_S);
 
    type RegType is record
-      state       : StateType;
-      history     : SampleArray(0 to DEPTH_G-1);
-      sorted      : SampleArray(0 to DEPTH_G-1);
-      population  : natural range 0 to DEPTH_G;
-      writePtr    : natural range 0 to DEPTH_G-1;
-      medianStep  : natural range MEDIAN_LEFT_C'range;
-      inputReady  : sl;
-      filterValid : sl;
-      median      : slv(127 downto 0);
-      count       : slv(2 downto 0);
-      ticks       : slv(63 downto 0);
-      update      : sl;
-      rejected    : sl;
+      state        : StateType;
+      history      : SampleArray(0 to DEPTH_G-1);
+      sorted       : SampleArray(0 to DEPTH_G-1);
+      population   : natural range 0 to DEPTH_G;
+      writePtr     : natural range 0 to DEPTH_G-1;
+      medianStep   : natural range MEDIAN_LEFT_C'range;
+      inputReady   : sl;
+      filterStatus : PtpFilterStatusType;
+      update       : sl;
+      rejected     : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state       => IDLE_S,
-      history     => (others => (others => '0')),
-      sorted      => (others => (others => '0')),
-      population  => 0,
-      writePtr    => 0,
-      medianStep  => 0,
-      inputReady  => '0',
-      filterValid => '0',
-      median      => (others => '0'),
-      count       => (others => '0'),
-      ticks       => (others => '0'),
-      update      => '0',
-      rejected    => '0');
+      state        => IDLE_S,
+      history      => (others => (others => '0')),
+      sorted       => (others => (others => '0')),
+      population   => 0,
+      writePtr     => 0,
+      medianStep   => 0,
+      inputReady   => '0',
+      filterStatus => PTP_FILTER_STATUS_INIT_C,
+      update       => '0',
+      rejected     => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -129,31 +118,31 @@ begin
       variable swap       : signed(63 downto 0);
       variable median     : signed(63 downto 0);
    begin
-      v := r;
+      v            := r;
       v.inputReady := '0';
-      v.update := '0';
-      v.rejected := '0';
+      v.update     := '0';
+      v.rejected   := '0';
 
-      leftIndex := MEDIAN_LEFT_C(r.medianStep);
+      leftIndex  := MEDIAN_LEFT_C(r.medianStep);
       rightIndex := MEDIAN_RIGHT_C(r.medianStep);
-      swap := (others => '0');
-      median := (others => '0');
+      swap       := (others => '0');
+      median     := (others => '0');
 
       case r.state is
          when IDLE_S =>
             v.inputReady := '1';
 
-            if inputValid = '1' then
+            if request.valid = '1' then
                -- Nonnegative, within the shared limit, and newer than the
                -- stored sample. The comparison uses the full submitted width,
                -- so an out-of-range high word cannot be truncated away. A
                -- rejected sample is consumed, not retried.
-               if signed(delayValue) >= 0 and
-                  signed(delayValue) <= resize(signed(maxPathDelay), 128) and
-                  (r.population = 0 or unsigned(sampleTicks) > unsigned(r.ticks)) then
-                  v.history(r.writePtr) := resize(signed(delayValue), 64);
-                  v.writePtr := (r.writePtr+1) mod DEPTH_G;
-                  v.ticks := sampleTicks;
+               if signed(request.delayValue) >= 0 and
+                  signed(request.delayValue) <= resize(signed(request.maxPathDelay), 128) and
+                  (r.population = 0 or unsigned(request.ticks) > unsigned(r.filterStatus.ticks)) then
+                  v.history(r.writePtr) := resize(signed(request.delayValue), 64);
+                  v.writePtr           := (r.writePtr+1) mod DEPTH_G;
+                  v.filterStatus.ticks := request.ticks;
 
                   if r.population < DEPTH_G then
                      v.population := r.population+1;
@@ -173,7 +162,7 @@ begin
                   -- Preserve ready on the accepting edge. The new state
                   -- withdraws it while sorting on subsequent cycles.
                   v.medianStep := 0;
-                  v.state := SORT_COMPARE_S;
+                  v.state      := SORT_COMPARE_S;
                else
                   v.rejected := '1';
                end if;
@@ -197,12 +186,12 @@ begin
          when PUBLISH_S =>
             -- Lower median for an even population, matching the behavior this
             -- replaces. Population is published with its payload.
-            median := r.sorted((r.population-1)/2);
-            v.median := slv(resize(median, 128));
-            v.count := toSlv(r.population, 3);
-            v.filterValid := '1';
-            v.update := '1';
-            v.state := IDLE_S;
+            median                    := r.sorted((r.population-1)/2);
+            v.filterStatus.delayValue := slv(resize(median, 128));
+            v.filterStatus.count      := toSlv(r.population, 3);
+            v.filterStatus.valid      := '1';
+            v.update                  := '1';
+            v.state                   := IDLE_S;
       end case;
 
       -- Cancellation clears validity and replacement ownership but retains the
@@ -211,16 +200,16 @@ begin
       -- of an in-flight sort, which would otherwise commit a median whose
       -- population has just been invalidated.
       if cancel = '1' then
-         v.state := IDLE_S;
-         v.population := 0;
-         v.writePtr := 0;
-         v.medianStep := 0;
-         v.filterValid := '0';
-         v.median := r.median;
-         v.count := (others => '0');
-         v.update := '0';
-         v.rejected := '0';
-         v.inputReady := '0';
+         v.state                   := IDLE_S;
+         v.population              := 0;
+         v.writePtr                := 0;
+         v.medianStep              := 0;
+         v.filterStatus.valid      := '0';
+         v.filterStatus.delayValue := r.filterStatus.delayValue;
+         v.filterStatus.count      := (others => '0');
+         v.update                  := '0';
+         v.rejected                := '0';
+         v.inputReady              := '0';
       end if;
 
       -- Combinatorial outputs before the reset. Rejection accompanies the
@@ -228,19 +217,15 @@ begin
       -- the owner's counter advances one register after the event rather than
       -- three. A registered strobe here would put the filter's register, the
       -- owner's counter and the owner's status output in series.
-      inputReady <= v.inputReady;
+      inputReady   <= v.inputReady;
       filterReject <= v.rejected;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      filterValid <= r.filterValid;
-      filteredDelay <= r.median;
-      filterCount <= r.count;
-      filterTicks <= r.ticks;
+      rin          <= v;
+      filterStatus <= r.filterStatus;
       filterUpdate <= r.update;
    end process comb;
 

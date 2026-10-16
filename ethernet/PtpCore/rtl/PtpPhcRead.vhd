@@ -43,23 +43,18 @@ entity PtpPhcRead is
       TPD_G : time := 1 ns);
    port (
       -- PHC clock domain and snapshot source.
-      phcClk         : in  sl;
-      phcRst         : in  sl;
-      phcTime        : in  PtpTimeType;
-      phcStatus      : in  PtpPhcStatusType;
-      captureAbort   : in  sl;
+      phcClk       : in  sl;
+      phcRst       : in  sl;
+      phcTime      : in  PtpTimeType;
+      phcStatus    : in  PtpPhcStatusType;
+      captureAbort : in  sl;
 
       -- Independent reader clock domain and request/response interface.
-      readClk        : in  sl;
-      readRst        : in  sl;
-      readRequest    : in  sl;
-      readReady      : out sl;
-      readValid      : out sl;
-      readTime       : out PtpTimeType;
-      readGeneration : out slv(31 downto 0);
-      readTicks      : out slv(63 downto 0);
-      readTimeValid  : out sl;
-      readSequence   : out slv(31 downto 0));
+      readClk     : in  sl;
+      readRst     : in  sl;
+      readRequest : in  sl;
+      readReady   : out sl;
+      readResult  : out PtpPhcReadResultType);
 end entity PtpPhcRead;
 
 architecture rtl of PtpPhcRead is
@@ -235,9 +230,9 @@ begin
       -- acknowledged. Registered ready is derived from the slot's next busy
       -- state; a returning response cannot admit a new request on that same
       -- edge and reuse its completion sequence.
-      v.readReady     := '0';
-      v.requestWrite  := '0';
-      v.responseTake  := '0';
+      v.readReady    := '0';
+      v.requestWrite := '0';
+      v.responseTake := '0';
       if localReset = '0' and reset = '0' then
          if r.readReady = '1' then
             if readRequest = '1' then
@@ -255,9 +250,9 @@ begin
             v.responseTake := '1';
          end if;
          if r.responseTake = '1' then
-            v.data          := responseData;
-            v.valid         := '1';
-            v.busy          := '0';
+            v.data  := responseData;
+            v.valid := '1';
+            v.busy  := '0';
          end if;
       end if;
 
@@ -267,18 +262,18 @@ begin
          v.readReady := '1';
       end if;
 
-      rin                  <= v;
-      readReady            <= r.readReady;
-      requestWrite         <= r.requestWrite;
-      responseTake         <= r.responseTake;
-      readValid            <= r.valid;
-      readTime.seconds     <= r.data(WIDTH_C-1 downto SECONDS_LOW_C);
-      readTime.nanoseconds <= r.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C);
-      readTime.fraction    <= r.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C);
-      readGeneration       <= r.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C);
-      readTicks            <= r.data(GENERATION_LOW_C-1 downto TICKS_LOW_C);
-      readTimeValid        <= r.data(VALID_BIT_C);
-      readSequence         <= slv(r.sequenceId);
+      rin                         <= v;
+      readReady                   <= r.readReady;
+      requestWrite                <= r.requestWrite;
+      responseTake                <= r.responseTake;
+      readResult.valid            <= r.valid;
+      readResult.time.seconds     <= r.data(WIDTH_C-1 downto SECONDS_LOW_C);
+      readResult.time.nanoseconds <= r.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C);
+      readResult.time.fraction    <= r.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C);
+      readResult.generation       <= r.data(FRACTION_LOW_C-1 downto GENERATION_LOW_C);
+      readResult.ticks            <= r.data(GENERATION_LOW_C-1 downto TICKS_LOW_C);
+      readResult.timeValid        <= r.data(VALID_BIT_C);
+      readResult.sequenceId       <= slv(r.sequenceId);
    end process comb;
 
    phcComb : process (p, requestValid, responseAck, responseFull, captureAbort,
@@ -301,8 +296,8 @@ begin
          elsif requestValid = '1' and captureAbort = '0' then
             -- Sample all fields at this PHC edge. A discontinuity defers the
             -- request; it cannot produce a partially old/new snapshot.
-            v.requestTake                                     := '1';
-            v.pending                                         := '1';
+            v.requestTake := '1';
+            v.pending     := '1';
             v.data(WIDTH_C-1 downto SECONDS_LOW_C)            := phcTime.seconds;
             v.data(SECONDS_LOW_C-1 downto NANOSECONDS_LOW_C)  := phcTime.nanoseconds;
             v.data(NANOSECONDS_LOW_C-1 downto FRACTION_LOW_C) := phcTime.fraction;

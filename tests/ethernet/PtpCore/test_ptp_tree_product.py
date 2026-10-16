@@ -93,4 +93,5 @@ async def check_pipeline(d):
 
 
 def test_ptp_tree_product():
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.PtpTreeProduct")
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.PtpTreeProductWrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpTreeProductWrapper.vhd"]})

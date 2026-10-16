@@ -175,5 +175,6 @@ async def check_epoch_normalize(d):
 @pytest.mark.parametrize("timestamp_format", ("local", "wire"))
 def test_ptp_epoch_normalize(timestamp_format):
     run_surf_vhdl_test(
-        test_file=__file__, toplevel="surf.PtpEpochNormalize",
+        test_file=__file__, toplevel="surf.PtpEpochNormalizeWrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpEpochNormalizeWrapper.vhd"]},
         extra_env={"EPOCH_FORMAT": timestamp_format})

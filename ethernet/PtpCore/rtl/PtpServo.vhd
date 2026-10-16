@@ -58,6 +58,8 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
+use surf.PtpServoPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
 use surf.PtpRegisterPkg.all;
@@ -70,8 +72,8 @@ entity PtpServo is
       CLK_FREQ_G     : positive := 156250000);
    port (
       -- Shared endpoint clock domain.
-      clk : in sl;
-      rst : in sl;
+      clk : in  sl;
+      rst : in  sl;
 
       -- Local AXI-Lite bank and endpoint coordination (clk domain).
       regRst           : in  sl                     := '0';
@@ -100,15 +102,11 @@ entity PtpServo is
       status        : out PtpServoStatusType;
 
       -- Shared SECOND service, also used by manual PHC preparation.
-      secondValid       : out sl;
-      secondReady       : in  sl                := '0';
-      secondRound       : out sl;
-      secondOperand     : out slv(127 downto 0);
+      secondRequest     : out PtpSecondRequestType;
+      secondReady       : in  sl                  := '0';
       secondCancel      : out sl;
-      secondResultValid : in  sl                := '0';
-      secondResultReady : out sl;
-      secondQuotient    : in  slv(127 downto 0) := (others => '0');
-      secondRemainder   : in  slv(127 downto 0) := (others => '0'));
+      secondResult      : in  PtpSecondResultType := PTP_SECOND_RESULT_INIT_C;
+      secondResultReady : out sl);
 end entity PtpServo;
 
 architecture rtl of PtpServo is
@@ -180,8 +178,8 @@ architecture rtl of PtpServo is
    end function;
 
    function configMask (
-      index  : integer;
-      strobe : slv(3 downto 0)) return slv is
+      index         : integer;
+      strobe        : slv(3 downto 0)) return slv is
       variable mask : slv(31 downto 0) := (others => '0');
    begin
 
@@ -300,9 +298,6 @@ architecture rtl of PtpServo is
    -- fetching each operand word at arithmetic time.
    signal configMasters : PtpRegisterMasterArray(0 to 1);
    signal configSlaves  : PtpRegisterSlaveArray(0 to 1);
-   signal scanValid     : sl;
-   signal scanIndex     : slv(7 downto 0);
-   signal scanData      : slv(31 downto 0);
    signal snapshotSlave : PtpRegisterSlaveType;
    signal counterSlave  : PtpRegisterSlaveType;
 
@@ -311,10 +306,6 @@ architecture rtl of PtpServo is
    -- Filter interface.
    signal filterInputValid : sl;
    signal filterInputReady : sl;
-   signal filterValid      : sl;
-   signal filteredDelay    : slv(127 downto 0);
-   signal filterCount      : slv(2 downto 0);
-   signal filterTicks      : slv(63 downto 0);
    signal filterUpdate     : sl;
    signal filterReject     : sl;
 
@@ -325,7 +316,37 @@ architecture rtl of PtpServo is
    signal piOffsetUpd  : sl;
    signal piRateUpd    : sl;
 
+   signal configScan         : PtpConfigScanType;
+   signal filterRequest      : PtpFilterRequestType;
+   signal filterFilterStatus : PtpFilterStatusType;
+   signal piFilterStatus     : PtpFilterStatusType;
+   signal piRequest          : PtpPiRequestType;
+
 begin
+
+   filterRequest <=
+   (
+      valid        => filterInputValid,
+      delayValue   => r.delayValue,
+      ticks        => r.sampleTicks,
+      maxPathDelay => sharedConfig.maxPathDelay
+   );
+   piFilterStatus <=
+   (
+      valid      => filterFilterStatus.valid,
+      delayValue => filterFilterStatus.delayValue,
+      count      => (others => '0'),
+      ticks      => filterFilterStatus.ticks
+   );
+   piRequest <=
+   (
+      valid        => piInputValid,
+      ticks        => r.sampleTicks,
+      generation   => r.sampleGen,
+      forwardValue => r.forwardValue,
+      ratio        => r.ratio,
+      ratioValid   => r.ratioValid
+   );
 
    U_Publication : entity surf.PtpPublicationBank
       generic map (
@@ -334,12 +355,12 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          RECORD_WORDS_G => IntegerArray'(4, 4, 2))
       port map (
-         clk         => clk,                  -- [in]
-         rst         => rst,                  -- [in]
-         publication => r.publicationPort,    -- [in]
-         snapshot    => snapshotControl,      -- [in]
-         master      => r.snapshotBus.master, -- [in]
-         slave       => snapshotSlave);       -- [out]
+         clk         => clk,                   -- [in]
+         rst         => rst,                   -- [in]
+         publication => r.publicationPort,     -- [in]
+         snapshot    => snapshotControl,       -- [in]
+         master      => r.snapshotBus.master,  -- [in]
+         slave       => snapshotSlave);        -- [out]
 
    U_Snapshot : entity surf.PtpSnapshotBank
       generic map (
@@ -348,13 +369,13 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          WORDS_G        => 1)
       port map (
-         clk      => clk,                                     -- [in]
-         rst      => rst,                                     -- [in]
-         scalars  => Slv32Array'(0 => r.rejectedCount),       -- [in]
-         snapshot => snapshotControl,                         -- [in]
-         prepared => snapshotPrepared,                        -- [out]
-         master   => r.counterBus.master,                     -- [in]
-         slave    => counterSlave);                           -- [out]
+         clk      => clk,                                -- [in]
+         rst      => rst,                                -- [in]
+         scalars  => Slv32Array'(0 => r.rejectedCount),  -- [in]
+         snapshot => snapshotControl,                    -- [in]
+         prepared => snapshotPrepared,                   -- [out]
+         master   => r.counterBus.master,                -- [in]
+         slave    => counterSlave);                      -- [out]
 
    configMasters(0) <= r.configBus.master;
    configMasters(1) <= PTP_REGISTER_MASTER_INIT_C;
@@ -367,16 +388,14 @@ begin
          DEFAULTS_G     => initialWords,
          MEMORY_TYPE_G  => "block")
       port map (
-         clk       => clk,            -- [in]
-         rst       => rst,            -- [in]
-         prepare   => configControl.prepare,  -- [in]
-         apply     => configControl.apply,    -- [in]
-         prepared  => configPrepared,  -- [out]
-         scanValid => scanValid,       -- [out]
-         scanIndex => scanIndex,       -- [out]
-         scanData  => scanData,        -- [out]
-         masters   => configMasters,   -- [in]
-         slaves    => configSlaves);   -- [out]
+         clk      => clk,                    -- [in]
+         rst      => rst,                    -- [in]
+         prepare  => configControl.prepare,  -- [in]
+         apply    => configControl.apply,    -- [in]
+         prepared => configPrepared,         -- [out]
+         scan     => configScan,             -- [out]
+         masters  => configMasters,          -- [in]
+         slaves   => configSlaves);          -- [out]
 
    U_Filter : entity surf.PtpServoFilter
       generic map (
@@ -385,20 +404,14 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          DEPTH_G        => DELAY_FILTER_DEPTH_C)
       port map (
-         clk           => clk,                       -- [in]
-         rst           => rst,                       -- [in]
-         cancel        => childCancel,               -- [in]
-         inputValid    => filterInputValid,          -- [in]
-         inputReady    => filterInputReady,          -- [out]
-         delayValue    => r.delayValue,              -- [in]
-         sampleTicks   => r.sampleTicks,             -- [in]
-         maxPathDelay  => sharedConfig.maxPathDelay, -- [in]
-         filterValid   => filterValid,               -- [out]
-         filteredDelay => filteredDelay,             -- [out]
-         filterCount   => filterCount,               -- [out]
-         filterTicks   => filterTicks,               -- [out]
-         filterUpdate  => filterUpdate,              -- [out]
-         filterReject  => filterReject);             -- [out]
+         clk          => clk,                 -- [in]
+         rst          => rst,                 -- [in]
+         cancel       => childCancel,         -- [in]
+         request      => filterRequest,       -- [in]
+         inputReady   => filterInputReady,    -- [out]
+         filterStatus => filterFilterStatus,  -- [out]
+         filterUpdate => filterUpdate,        -- [out]
+         filterReject => filterReject);       -- [out]
 
    U_Pi : entity surf.PtpServoPi
       generic map (
@@ -407,38 +420,27 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk               => clk,                -- [in]
-         rst               => rst,                -- [in]
-         cancel            => childCancel,        -- [in]
-         enable            => servoEnable,        -- [in]
-         config            => r.activeConfig,     -- [in]
-         sharedConfig      => sharedConfig,       -- [in]
-         phcStatus         => phcStatus,          -- [in]
-         inputValid        => piInputValid,       -- [in]
-         inputReady        => piInputReady,       -- [out]
-         sampleTicks       => r.sampleTicks,      -- [in]
-         sampleGeneration  => r.sampleGen,        -- [in]
-         forwardValue      => r.forwardValue,     -- [in]
-         ratio             => r.ratio,            -- [in]
-         ratioValid        => r.ratioValid,       -- [in]
-         filteredDelay     => filteredDelay,      -- [in]
-         filterValid       => filterValid,        -- [in]
-         filterTicks       => filterTicks,        -- [in]
-         commandMaster     => commandMaster,      -- [out]
-         commandSlave      => commandSlave,       -- [in]
-         expireTime        => expireTime,         -- [out]
-         status            => piStatus,           -- [out]
-         offsetUpdate      => piOffsetUpd,        -- [out]
-         rateUpdate        => piRateUpd,          -- [out]
-         secondValid       => secondValid,        -- [out]
-         secondReady       => secondReady,        -- [in]
-         secondRound       => secondRound,        -- [out]
-         secondOperand     => secondOperand,      -- [out]
-         secondCancel      => secondCancel,       -- [out]
-         secondResultValid => secondResultValid,  -- [in]
-         secondResultReady => secondResultReady,  -- [out]
-         secondQuotient    => secondQuotient,     -- [in]
-         secondRemainder   => secondRemainder);   -- [out]
+         clk               => clk,                 -- [in]
+         rst               => rst,                 -- [in]
+         cancel            => childCancel,         -- [in]
+         enable            => servoEnable,         -- [in]
+         config            => r.activeConfig,      -- [in]
+         sharedConfig      => sharedConfig,        -- [in]
+         phcStatus         => phcStatus,           -- [in]
+         request           => piRequest,           -- [in]
+         inputReady        => piInputReady,        -- [out]
+         filterStatus      => piFilterStatus,      -- [in]
+         commandMaster     => commandMaster,       -- [out]
+         commandSlave      => commandSlave,        -- [in]
+         expireTime        => expireTime,          -- [out]
+         status            => piStatus,            -- [out]
+         offsetUpdate      => piOffsetUpd,         -- [out]
+         rateUpdate        => piRateUpd,           -- [out]
+         secondRequest     => secondRequest,       -- [out]
+         secondReady       => secondReady,         -- [in]
+         secondCancel      => secondCancel,        -- [out]
+         secondResult      => secondResult,        -- [in]
+         secondResultReady => secondResultReady);  -- [out]
 
    comb : process (all) is
       variable readAddress      : slv(11 downto 0);
@@ -452,9 +454,9 @@ begin
       variable snapshotIndex    : integer range -1 to 9;
       variable cancelNow        : boolean;
    begin
-      v := r;
-      v.measurementSlave := PTP_MEASUREMENT_SLAVE_INIT_C;
-      v.publicationPort.write := '0';
+      v                        := r;
+      v.measurementSlave       := PTP_MEASUREMENT_SLAVE_INIT_C;
+      v.publicationPort.write  := '0';
       v.publicationPort.commit := '0';
 
       -- A held link/port abort cancels once, allowing later holdover work.
@@ -464,8 +466,8 @@ begin
                    phcStatus.generation /= r.generation or servoEnable = '0' or
                    ((r.delayBusy = '1' or r.forwardBusy = '1') and
                     ptpAgeExpired(phcStatus.ticks, r.sampleTicks, sharedConfig.associationTimeout));
-      v.cancel := toSl(cancelNow);
-      v.abortSeen := measurementMaster.abort;
+      v.cancel     := toSl(cancelNow);
+      v.abortSeen  := measurementMaster.abort;
       v.generation := phcStatus.generation;
 
       -------------------------------------------------------------------------
@@ -502,18 +504,18 @@ begin
                              sharedConfig.associationTimeout) then
                v.rejectedCount := ptpSatInc(r.rejectedCount);
             elsif measurementMaster.data.isDelay = '1' then
-               v.delayValue := measurementMaster.data.delayValue;
+               v.delayValue  := measurementMaster.data.delayValue;
                v.sampleTicks := measurementMaster.data.ticks;
-               v.delayValid := '1';
-               v.delayBusy := '1';
+               v.delayValid  := '1';
+               v.delayBusy   := '1';
             else
                v.forwardValue := measurementMaster.data.forward;
-               v.ratio := measurementMaster.data.ratio;
-               v.ratioValid := measurementMaster.data.ratioValid;
-               v.sampleTicks := measurementMaster.data.ticks;
-               v.sampleGen := measurementMaster.data.generation;
+               v.ratio        := measurementMaster.data.ratio;
+               v.ratioValid   := measurementMaster.data.ratioValid;
+               v.sampleTicks  := measurementMaster.data.ticks;
+               v.sampleGen    := measurementMaster.data.generation;
                v.forwardValid := '1';
-               v.forwardBusy := '1';
+               v.forwardBusy  := '1';
             end if;
          end if;
       end if;
@@ -553,31 +555,31 @@ begin
             if r.pendingOffset = '1' then
                v.pendingOffset := '0';
                v.publishRecord := OFFSET_RECORD_C;
-               v.publishValue := piStatus.offsetValue;
-               v.publishWords := 4;
-               v.publishWord := 0;
-               v.publishState := WRITE_S;
+               v.publishValue  := piStatus.offsetValue;
+               v.publishWords  := 4;
+               v.publishWord   := 0;
+               v.publishState  := WRITE_S;
             elsif r.pendingFilter = '1' then
                v.pendingFilter := '0';
                v.publishRecord := FILTER_RECORD_C;
-               v.publishValue := filteredDelay;
-               v.publishWords := 4;
-               v.publishWord := 0;
-               v.publishState := WRITE_S;
+               v.publishValue  := filterFilterStatus.delayValue;
+               v.publishWords  := 4;
+               v.publishWord   := 0;
+               v.publishState  := WRITE_S;
             elsif r.pendingRate = '1' then
-               v.pendingRate := '0';
+               v.pendingRate   := '0';
                v.publishRecord := RATE_RECORD_C;
-               v.publishValue := slv(resize(signed(piStatus.ratePpb), 128));
-               v.publishWords := 2;
-               v.publishWord := 0;
-               v.publishState := WRITE_S;
+               v.publishValue  := slv(resize(signed(piStatus.ratePpb), 128));
+               v.publishWords  := 2;
+               v.publishWord   := 0;
+               v.publishState  := WRITE_S;
             end if;
 
          when WRITE_S =>
-            v.publicationPort.write := '1';
-            v.publicationPort.first := toSl(r.publishWord = 0);
+            v.publicationPort.write       := '1';
+            v.publicationPort.first       := toSl(r.publishWord = 0);
             v.publicationPort.recordIndex := r.publishRecord;
-            v.publicationPort.wordIndex := toSlv(r.publishWord, 8);
+            v.publicationPort.wordIndex   := toSlv(r.publishWord, 8);
             v.publicationPort.data :=
                r.publishValue(32*r.publishWord+31 downto 32*r.publishWord);
 
@@ -588,24 +590,24 @@ begin
             end if;
 
          when COMMIT_S =>
-            v.publicationPort.commit := '1';
+            v.publicationPort.commit       := '1';
             v.publicationPort.commitRecord := r.publishRecord;
-            v.publishState := IDLE_S;
+            v.publishState                 := IDLE_S;
       end case;
 
       -- Cancellation discards queued publication work; a commit already
       -- issued belongs to the bank.
       if cancelNow then
-         v.delayBusy := '0';
-         v.forwardBusy := '0';
+         v.delayBusy              := '0';
+         v.forwardBusy            := '0';
          v.measurementSlave.ready := '0';
-         v.delayValid := '0';
-         v.forwardValid := '0';
-         v.pendingOffset := '0';
-         v.pendingFilter := '0';
-         v.pendingRate := '0';
-         v.publishState := IDLE_S;
-         v.publicationPort.write := '0';
+         v.delayValid             := '0';
+         v.forwardValid           := '0';
+         v.pendingOffset          := '0';
+         v.pendingFilter          := '0';
+         v.pendingRate            := '0';
+         v.publishState           := IDLE_S;
+         v.publicationPort.write  := '0';
          v.publicationPort.commit := '0';
       end if;
 
@@ -621,7 +623,7 @@ begin
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
       -- An inactive AXI address is unspecified. Decode only admitted requests;
       -- RAM responses retain their address/ownership inside ptpRegisterBus.
-      readAddress := (others => '0');
+      readAddress  := (others => '0');
       writeAddress := (others => '0');
 
       if ep.axiStatus.readEnable = '1' then
@@ -645,16 +647,16 @@ begin
       axiSlaveRegisterR(ep, x"0B0", 0, sharedConfig.maxPathDelay);
       -- Coherent measurement and diagnostic snapshots.
       axiSlaveRegisterR(ep, x"3FC", 0, r.sequenceId);
-      configReadIndex := configIndex(readAddress);
+      configReadIndex  := configIndex(readAddress);
       configWriteIndex := configIndex(writeAddress);
-      configReadBank := "00";
+      configReadBank   := "00";
 
       if readAddress(11 downto 2) = slv(to_unsigned(16#094#/4, 10)) then
          configReadIndex := 8;
-         configReadBank := "01";
+         configReadBank  := "01";
       elsif readAddress(11 downto 2) = slv(to_unsigned(16#098#/4, 10)) then
          configReadIndex := 9;
-         configReadBank := "01";
+         configReadBank  := "01";
       end if;
 
       ptpRegisterBus(v.configBus, r.configBus, configSlaves(0), ep, configReadIndex,
@@ -682,7 +684,7 @@ begin
       -- The bus reset cancels responses only. Accepted operations and active
       -- settings belong to the system-reset lifetime, not the AXI transaction.
       if regRst = '1' then
-         v.readSlave := AXI_LITE_READ_SLAVE_INIT_C;
+         v.readSlave  := AXI_LITE_READ_SLAVE_INIT_C;
          v.writeSlave := AXI_LITE_WRITE_SLAVE_INIT_C;
       end if;
 
@@ -696,37 +698,37 @@ begin
          v.configValid := '1';
       end if;
 
-      if scanValid = '1' then
-         configIndexValue := to_integer(unsigned(scanIndex));
+      if configScan.valid = '1' then
+         configIndexValue := to_integer(unsigned(configScan.index));
 
          if configIndexValue mod 2 = 0 then
-            v.validateValue(31 downto 0) := scanData;
+            v.validateValue(31 downto 0) := configScan.data;
          else
-            v.validateValue(63 downto 32) := scanData;
+            v.validateValue(63 downto 32) := configScan.data;
          end if;
 
          case configIndexValue is
             when 1 =>
-               v.candidate.allowStep := scanData(2);
+               v.candidate.allowStep := configScan.data(2);
             when 8 =>
-               v.candidate.kp := scanData;
+               v.candidate.kp := configScan.data;
             when 9 =>
-               v.candidate.ki := scanData;
+               v.candidate.ki := configScan.data;
             when 10 =>
-               v.candidate.maxFrequencyPpb := scanData;
-               v.validateFrequency := scanData;
+               v.candidate.maxFrequencyPpb := configScan.data;
+               v.validateFrequency         := configScan.data;
             when 11 =>
-               v.candidate.maxSlewPpb := scanData;
-               v.validateSlew := scanData;
+               v.candidate.maxSlewPpb := configScan.data;
+               v.validateSlew         := configScan.data;
             when 12 =>
-               v.candidate.maxRatePpb := scanData;
-               if unsigned(scanData) > MAX_ACTUATOR_PPB_C or
-                  unsigned(r.validateFrequency) > unsigned(scanData) or
-                  unsigned(r.validateSlew) > unsigned(scanData) then
+               v.candidate.maxRatePpb := configScan.data;
+               if unsigned(configScan.data) > MAX_ACTUATOR_PPB_C or
+                  unsigned(r.validateFrequency) > unsigned(configScan.data) or
+                  unsigned(r.validateSlew) > unsigned(configScan.data) then
                   v.configValid := '0';
                end if;
             when 15 | 17 =>
-               if scanData(31) = '1' then
+               if configScan.data(31) = '1' then
                   v.configValid := '0';
                end if;
                if configIndexValue = 15 then
@@ -741,13 +743,13 @@ begin
                   v.configValid := '0';
                end if;
             when 20 =>
-               v.candidate.lockCount := scanData(7 downto 0);
-               if unsigned(scanData(7 downto 0)) = 0 then
+               v.candidate.lockCount := configScan.data(7 downto 0);
+               if unsigned(configScan.data(7 downto 0)) = 0 then
                   v.configValid := '0';
                end if;
             when 21 =>
-               v.candidate.unlockCount := scanData(7 downto 0);
-               if unsigned(scanData(7 downto 0)) = 0 then
+               v.candidate.unlockCount := configScan.data(7 downto 0);
+               if unsigned(configScan.data(7 downto 0)) = 0 then
                   v.configValid := '0';
                end if;
             when 25 =>
@@ -762,7 +764,7 @@ begin
                end if;
             when 29 =>
                v.candidate.minSampleTicks := v.validateValue;
-               v.validatePrevious := v.validateValue;
+               v.validatePrevious         := v.validateValue;
                if not ptpValidTimeout(v.validateValue) then
                   v.configValid := '0';
                end if;
@@ -789,9 +791,9 @@ begin
       end if;
 
       -- Retained copy for the AXI read below, which needs a registered source.
-      v.status := piStatus;
-      v.status.filteredDelay := filteredDelay;
-      v.status.filterCount := filterCount;
+      v.status               := piStatus;
+      v.status.filteredDelay := filterFilterStatus.delayValue;
+      v.status.filterCount   := filterFilterStatus.count;
       v.status.rejectedCount := v.rejectedCount;
 
       -- Combinatorial outputs before the reset. Measurement ready is the
@@ -800,7 +802,7 @@ begin
       -- reserved sample slot. The rejection counter is published from `v` so a
       -- rejection reported on an accepting edge becomes visible one register
       -- later, as it was before the filter was split into its own entity.
-      measurementSlave <= v.measurementSlave;
+      measurementSlave     <= v.measurementSlave;
       status.rejectedCount <= v.rejectedCount;
 
       -- Cancellation must enter the child state equations on the detection
@@ -823,11 +825,11 @@ begin
       -- then accept once immediately and again when it next idles, counting
       -- one measurement twice.
       filterInputValid <= r.delayValid;
-      piInputValid <= r.forwardValid;
+      piInputValid     <= r.forwardValid;
 
-      axiReadSlave <= r.readSlave;
+      axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
-      configValid <= r.configValid;
+      configValid   <= r.configValid;
 
       -- The published status joins each owner's fields: the PI loop owns
       -- quality, offset and rate; the filter owns the delay median and its
@@ -836,11 +838,11 @@ begin
       -- than re-registered here. A second stage would delay the filter's
       -- population by one clock past the ready that announces it, so a
       -- consumer polling ready would read the previous population.
-      status.state <= piStatus.state;
-      status.offsetValue <= piStatus.offsetValue;
-      status.ratePpb <= piStatus.ratePpb;
-      status.filteredDelay <= filteredDelay;
-      status.filterCount <= filterCount;
+      status.state         <= piStatus.state;
+      status.offsetValue   <= piStatus.offsetValue;
+      status.ratePpb       <= piStatus.ratePpb;
+      status.filteredDelay <= filterFilterStatus.delayValue;
+      status.filterCount   <= filterFilterStatus.count;
    end process comb;
 
    seq : process (clk, rst) is

@@ -84,7 +84,7 @@ package PtpPkg is
    constant PTP_ETH_TYPE_C      : slv(15 downto 0) := x"88F7";
    constant PTP_ETH_TYPE_AXIS_C : slv(15 downto 0) := PTP_ETH_TYPE_C(7 downto 0) & PTP_ETH_TYPE_C(15 downto 8);
    -- PTP common header and fixed message sizes, before optional TLVs.
-   constant PTP_HEADER_BYTES_C          : positive := 34;
+   constant PTP_HEADER_BYTES_C        : positive := 34;
    constant PTP_TIMESTAMP_BYTES_C     : positive := 10;
    constant PTP_PORT_ID_BYTES_C       : positive := 10;
    constant PTP_TIMESTAMP_MSG_BYTES_C : positive := PTP_HEADER_BYTES_C+PTP_TIMESTAMP_BYTES_C;
@@ -122,16 +122,16 @@ package PtpPkg is
    constant PTP_CLOCK_ID_INSERT_C : slv(15 downto 0) := x"FFFE";
    -- PTPv2 wire messageType nibble and legacy controlField encodings.
    -- Announce uses the OTHER control value.
-   constant PTP_MSG_SYNC_C       : slv(3 downto 0) := x"0";
-   constant PTP_MSG_DELAY_REQ_C  : slv(3 downto 0) := x"1";
-   constant PTP_MSG_FOLLOW_UP_C  : slv(3 downto 0) := x"8";
-   constant PTP_MSG_DELAY_RESP_C : slv(3 downto 0) := x"9";
-   constant PTP_MSG_ANNOUNCE_C   : slv(3 downto 0) := x"B";
-   constant PTP_CONTROL_SYNC_C       : slv(7 downto 0) := x"00";
-   constant PTP_CONTROL_DELAY_REQ_C  : slv(7 downto 0) := x"01";
-   constant PTP_CONTROL_FOLLOW_UP_C  : slv(7 downto 0) := x"02";
-   constant PTP_CONTROL_DELAY_RESP_C : slv(7 downto 0) := x"03";
-   constant PTP_CONTROL_OTHER_C      : slv(7 downto 0) := x"05";
+   constant PTP_MSG_SYNC_C                 : slv(3 downto 0) := x"0";
+   constant PTP_MSG_DELAY_REQ_C            : slv(3 downto 0) := x"1";
+   constant PTP_MSG_FOLLOW_UP_C            : slv(3 downto 0) := x"8";
+   constant PTP_MSG_DELAY_RESP_C           : slv(3 downto 0) := x"9";
+   constant PTP_MSG_ANNOUNCE_C             : slv(3 downto 0) := x"B";
+   constant PTP_CONTROL_SYNC_C             : slv(7 downto 0) := x"00";
+   constant PTP_CONTROL_DELAY_REQ_C        : slv(7 downto 0) := x"01";
+   constant PTP_CONTROL_FOLLOW_UP_C        : slv(7 downto 0) := x"02";
+   constant PTP_CONTROL_DELAY_RESP_C       : slv(7 downto 0) := x"03";
+   constant PTP_CONTROL_OTHER_C            : slv(7 downto 0) := x"05";
    constant PTP_LOG_INTERVAL_UNSPECIFIED_C : slv(7 downto 0) := x"7F";
    -- IEEE 1588-2019 13.3.2.9: this encoding is not a finite Q16 correction.
    constant PTP_CORRECTION_OVERFLOW_C : slv(63 downto 0) := x"7FFFFFFFFFFFFFFF";
@@ -703,10 +703,10 @@ package PtpPkg is
    -- Walk at most two complete TLV headers per normalized eight-byte beat.
    -- Only the bytes in [firstByte, endByte) belong to the TLV stream.
    procedure ptpTlvBeat (
-      constant data        : in slv(63 downto 0);
-      constant firstByte   : in natural;
-      constant endByte     : in natural;
-      constant messageLeft : in natural;
+      constant data        : in  slv(63 downto 0);
+      constant firstByte   : in  natural;
+      constant endByte     : in  natural;
+      constant messageLeft : in  natural;
       variable headerBytes : inout natural;
       variable length      : inout slv(15 downto 0);
       variable remaining   : inout natural;
@@ -724,13 +724,57 @@ package PtpPkg is
    -- the sampled cycle. GMII supplies lane zero. ingressLatency is signed
    -- Q16 ns and must be an elaboration-time value at the current call sites.
    function ptpRxCapture (
-      phcTime    : PtpTimeType;
-      increment  : slv(63 downto 0);
-      lane       : natural;
-      ticks      : slv(63 downto 0);
-      generation : slv(31 downto 0);
-      timeValid  : sl;
+      phcTime                 : PtpTimeType;
+      increment               : slv(63 downto 0);
+      lane                    : natural;
+      ticks                   : slv(63 downto 0);
+      generation              : slv(31 downto 0);
+      timeValid               : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType;
+
+   -- Produced in the local protocol clk. valid/data are held until messageReady.
+   -- Abort/flush is a separate lifecycle event and invalidates a same-edge transfer.
+   -- The data record retains the wire timestamp, generation and message metadata.
+   type PtpRxMessageMasterType is record
+      valid : sl;
+      data  : PtpRxMessageType;
+   end record;
+
+   constant PTP_RX_MESSAGE_MASTER_INIT_C : PtpRxMessageMasterType := (
+      valid => '0',
+      data  => PTP_RX_MESSAGE_INIT_C);
+
+   -- Ledger-produced in clk. Hold valid/data until sampleReady; restart/reset
+   -- invalidates transfer. data retains the completed physical request's provenance.
+   type PtpDelaySampleMasterType is record
+      valid : sl;
+      data  : PtpDelaySampleType;
+   end record;
+
+   constant PTP_DELAY_SAMPLE_MASTER_INIT_C : PtpDelaySampleMasterType := (
+      valid => '0',
+      data  => PTP_DELAY_SAMPLE_INIT_C);
+
+   -- Published in readClk: valid pulses with a coherent PHC snapshot, no ready.
+   -- timeValid qualifies the timestamp; ticks/generation come from that PHC edge.
+   -- sequenceId identifies the local request. Either domain reset cancels the session;
+   -- this record never combines readClk signals with live phcClk status.
+   type PtpPhcReadResultType is record
+      valid      : sl;
+      time       : PtpTimeType;
+      generation : slv(31 downto 0);
+      ticks      : slv(63 downto 0);
+      timeValid  : sl;
+      sequenceId : slv(31 downto 0);
+   end record;
+
+   constant PTP_PHC_READ_RESULT_INIT_C : PtpPhcReadResultType := (
+      valid      => '0',
+      time       => PTP_TIME_INIT_C,
+      generation => (others => '0'),
+      ticks      => (others => '0'),
+      timeValid  => '0',
+      sequenceId => (others => '0'));
 
 end package PtpPkg;
 
@@ -753,26 +797,26 @@ package body PtpPkg is
    end function;
 
    procedure ptpTlvBeat (
-      constant data        : in slv(63 downto 0);
-      constant firstByte   : in natural;
-      constant endByte     : in natural;
-      constant messageLeft : in natural;
+      constant data        : in  slv(63 downto 0);
+      constant firstByte   : in  natural;
+      constant endByte     : in  natural;
+      constant messageLeft : in  natural;
       variable headerBytes : inout natural;
       variable length      : inout slv(15 downto 0);
       variable remaining   : inout natural;
       variable bad         : inout sl) is
-      variable count      : natural range 0 to 8;
-      variable start      : integer range -3 to PTP_ETH_MAX_FRAME_C;
-      variable firstLow   : natural range 0 to PTP_ETH_MAX_FRAME_C+11;
-      variable firstAt    : slv(7 downto 0);
-      variable laneLength : Slv16Array(0 to 7);
-      variable reachable  : boolean;
-      variable value      : natural range 0 to 65535;
-      variable left       : natural range 0 to 7;
-      variable partial    : natural range 0 to 11;
+      variable count : natural range 0 to 8;
+      variable start       : integer range -3 to PTP_ETH_MAX_FRAME_C;
+      variable firstLow : natural range 0 to PTP_ETH_MAX_FRAME_C+11;
+      variable firstAt  : slv(7 downto 0);
+      variable laneLength  : Slv16Array(0 to 7);
+      variable reachable : boolean;
+      variable value     : natural range 0 to 65535;
+      variable left      : natural range 0 to 7;
+      variable partial   : natural range 0 to 11;
    begin
-      count := endByte-firstByte;
-      start := remaining-integer(headerBytes);
+      count    := endByte-firstByte;
+      start    := remaining-integer(headerBytes);
       firstLow := firstByte+start+3;
       -- Decode candidate header endings in parallel at fixed physical lanes.
       -- The only possible second ending is four or six bytes after the first:
@@ -814,10 +858,10 @@ package body PtpPkg is
             reachable := reachable or (firstAt(i-6) = '1' and laneLength(i-6) = x"0002");
          end if;
          if reachable and i < endByte then
-            value := to_integer(unsigned(laneLength(i)));
-            length := laneLength(i);
+            value       := to_integer(unsigned(laneLength(i)));
+            length      := laneLength(i);
             headerBytes := 0;
-            remaining := 0;
+            remaining   := 0;
             if laneLength(i)(0) = '1' or value > messageLeft-(i-firstByte)-1 then
                bad := '1';
             else
@@ -839,7 +883,6 @@ package body PtpPkg is
          end if;
       end loop;
    end procedure;
-
 
    function ptpMessageTimestamp (message : PtpRxMessageType) return slv is
    begin
@@ -872,8 +915,8 @@ package body PtpPkg is
    end function;
 
    function ptpPortIdentity (
-      mac        : slv(47 downto 0);
-      portNumber : slv(15 downto 0)) return slv is
+      mac               : slv(47 downto 0);
+      portNumber        : slv(15 downto 0)) return slv is
       variable identity : slv(79 downto 0);
    begin
       identity(79 downto 56) := mac(7 downto 0) & mac(15 downto 8) & mac(23 downto 16);
@@ -907,8 +950,8 @@ package body PtpPkg is
    end function;
 
    function ptpRoundShift (
-      value : signed;
-      bits  : natural) return signed is
+      value                : signed;
+      bits                 : natural) return signed is
       variable magnitude   : unsigned(value'length downto 0);
       variable resultValue : signed(value'length downto 0);
    begin
@@ -1037,12 +1080,12 @@ package body PtpPkg is
    end function;
 
    function ptpRxCapture (
-      phcTime    : PtpTimeType;
-      increment  : slv(63 downto 0);
-      lane       : natural;
-      ticks      : slv(63 downto 0);
-      generation : slv(31 downto 0);
-      timeValid  : sl;
+      phcTime                 : PtpTimeType;
+      increment               : slv(63 downto 0);
+      lane                    : natural;
+      ticks                   : slv(63 downto 0);
+      generation              : slv(31 downto 0);
+      timeValid               : sl;
       constant ingressLatency : slv(63 downto 0)) return PtpRxCaptureType is
       -- Split the elaboration-time latency into whole seconds and a signed
       -- remainder smaller than one second. VHDL rem preserves the dividend's

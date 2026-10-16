@@ -45,24 +45,23 @@ entity PtpRxTimestampTap is
       MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C);
    port (
       -- Common Ethernet/PHC clock domain.
-      clk           : in  sl;
-      rst           : in  sl;
-      rxFlush       : in  sl;
-      phyReady      : in  sl;
-      phcTime       : in  PtpTimeType;
-      phcStatus     : in  PtpPhcStatusType;
-      captureAbort  : in  sl               := '0';
+      clk          : in  sl;
+      rst          : in  sl;
+      rxFlush      : in  sl;
+      phyReady     : in  sl;
+      phcTime      : in  PtpTimeType;
+      phcStatus    : in  PtpPhcStatusType;
+      captureAbort : in  sl               := '0';
 
       -- Selected physical interface; no backpressure.
-      xgmiiRxd      : in  slv(63 downto 0) := (others => '0');
-      xgmiiRxc      : in  slv(7 downto 0)  := (others => '1');
-      gmiiRxd       : in  slv(7 downto 0)  := (others => '0');
-      gmiiRxDv      : in  sl               := '0';
-      gmiiRxEr      : in  sl               := '0';
+      xgmiiRxd : in  slv(63 downto 0) := (others => '0');
+      xgmiiRxc : in  slv(7 downto 0)  := (others => '1');
+      gmiiRxd  : in  slv(7 downto 0)  := (others => '0');
+      gmiiRxDv : in  sl               := '0';
+      gmiiRxEr : in  sl               := '0';
 
       -- Validated messages; transfer excludes rxAbort and system reset.
-      message       : out PtpRxMessageType;
-      messageValid  : out sl;
+      messageMaster : out PtpRxMessageMasterType;
       messageReady  : in  sl;
       rxAbort       : out sl;
       queueOverflow : out sl;
@@ -115,11 +114,10 @@ begin
          generation    => phcStatus.generation,  -- [in]
          rxMaster      => master,                -- [in]
          rxCapture     => capture,               -- [in]
-         message       => message,               -- [out]
-         messageValid  => messageValid,          -- [out]
+         messageMaster => messageMaster,         -- [out]
          messageReady  => messageReady,          -- [in]
-         rxAbort       => rxAbort,               -- [out]
          queueOverflow => queueOverflow,         -- [out]
+         rxAbort       => rxAbort,               -- [out]
          rxEpoch       => rxEpoch,               -- [out]
          counters      => counters);             -- [out]
 

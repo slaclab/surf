@@ -38,6 +38,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpSecondService is
@@ -49,20 +50,16 @@ entity PtpSecondService is
       -- Signed dividend width. The servo's phase path retains signed128
       -- because its forward/offset storage has signed128 contracts; manual
       -- PHASE narrows to signed96 at admission but shares this instance.
-      WIDTH_G        : positive := 128);
+      WIDTH_G : positive := 128);
    port (
-      clk             : in  sl;
-      rst             : in  sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Owner-local cancellation, one bit per client.
-      cancel          : in  slv(NUM_CLIENTS_G-1 downto 0);
-      inputValid      : in  slv(NUM_CLIENTS_G-1 downto 0);
-      inputReady      : out slv(NUM_CLIENTS_G-1 downto 0);
-      roundNearest    : in  slv(NUM_CLIENTS_G-1 downto 0);
-      operand         : in  slv(NUM_CLIENTS_G*WIDTH_G-1 downto 0);
-      resultValid     : out slv(NUM_CLIENTS_G-1 downto 0);
-      resultReady     : in  slv(NUM_CLIENTS_G-1 downto 0);
-      resultValue     : out slv(NUM_CLIENTS_G*WIDTH_G-1 downto 0);
-      resultRemainder : out slv(NUM_CLIENTS_G*WIDTH_G-1 downto 0));
+      cancel      : in  slv(NUM_CLIENTS_G-1 downto 0);
+      requests    : in  PtpConstDivideRequestArray(NUM_CLIENTS_G-1 downto 0)(operand(WIDTH_G-1 downto 0));
+      inputReady  : out slv(NUM_CLIENTS_G-1 downto 0);
+      results     : out PtpConstDivideResultArray(NUM_CLIENTS_G-1 downto 0)(value(WIDTH_G-1 downto 0), remainder(WIDTH_G-1 downto 0));
+      resultReady : in  slv(NUM_CLIENTS_G-1 downto 0));
 end entity PtpSecondService;
 
 architecture rtl of PtpSecondService is
@@ -72,9 +69,7 @@ architecture rtl of PtpSecondService is
       owner      : natural range 0 to NUM_CLIENTS_G-1;
       cursor     : natural range 0 to NUM_CLIENTS_G-1;
       inputReady : slv(NUM_CLIENTS_G-1 downto 0);
-      valid      : slv(NUM_CLIENTS_G-1 downto 0);
-      value      : slv(NUM_CLIENTS_G*WIDTH_G-1 downto 0);
-      remainder  : slv(NUM_CLIENTS_G*WIDTH_G-1 downto 0);
+      results    : PtpConstDivideResultArray(NUM_CLIENTS_G-1 downto 0)(value(WIDTH_G-1 downto 0), remainder(WIDTH_G-1 downto 0));
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -82,23 +77,28 @@ architecture rtl of PtpSecondService is
       owner      => 0,
       cursor     => 0,
       inputReady => (others => '0'),
-      valid      => (others => '0'),
-      value      => (others => '0'),
-      remainder  => (others => '0'));
+      results    => (others => ptpConstDivideResultInit(WIDTH_G)));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal coreCancel    : sl;
-   signal coreValid     : sl;
-   signal coreReady     : sl;
-   signal coreRound     : sl;
-   signal coreOperand   : slv(WIDTH_G-1 downto 0);
-   signal coreValidOut  : sl;
-   signal coreValue     : slv(WIDTH_G-1 downto 0);
-   signal coreRemainder : slv(WIDTH_G-1 downto 0);
+   signal coreCancel  : sl;
+   signal coreValid   : sl;
+   signal coreReady   : sl;
+   signal coreRound   : sl;
+   signal coreOperand : slv(WIDTH_G-1 downto 0);
+
+   signal secondRequest : PtpConstDivideRequestType(operand((WIDTH_G)-1 downto 0));
+   signal secondResult  : PtpConstDivideResultType(value((WIDTH_G)-1 downto 0), remainder((WIDTH_G)-1 downto 0));
 
 begin
+
+   secondRequest <=
+   (
+      valid        => coreValid,
+      roundNearest => coreRound,
+      operand      => coreOperand
+   );
 
    U_Second : entity surf.PtpConstDivide
       generic map (
@@ -108,17 +108,13 @@ begin
          WIDTH_G        => WIDTH_G,
          DIVISOR_G      => PTP_SECOND_Q16_DIVISOR_C)
       port map (
-         clk             => clk,            -- [in]
-         rst             => rst,            -- [in]
-         cancel          => coreCancel,     -- [in]
-         inputValid      => coreValid,      -- [in]
-         inputReady      => coreReady,      -- [out]
-         roundNearest    => coreRound,      -- [in]
-         operand         => coreOperand,    -- [in]
-         resultValid     => coreValidOut,   -- [out]
-         resultReady     => '1',            -- [in]
-         resultValue     => coreValue,      -- [out]
-         resultRemainder => coreRemainder);  -- [out]
+         clk         => clk,            -- [in]
+         rst         => rst,            -- [in]
+         cancel      => coreCancel,     -- [in]
+         request     => secondRequest,  -- [in]
+         inputReady  => coreReady,      -- [out]
+         result      => secondResult,   -- [out]
+         resultReady => '1');           -- [in]
 
    comb : process (all) is
       variable v         : RegType;
@@ -127,11 +123,13 @@ begin
       variable cancelNow : sl;
       variable issue     : sl;
    begin
-      v := r;
+      v            := r;
       v.inputReady := (others => '0');
 
       -- An owner holding an unread response is not eligible.
-      eligible := inputValid and not r.valid and not cancel;
+      for i in 0 to NUM_CLIENTS_G-1 loop
+         eligible(i) := requests(i).valid and not r.results(i).valid and not cancel(i);
+      end loop;
 
       selected := r.cursor;
       for i in 0 to NUM_CLIENTS_G-1 loop
@@ -144,25 +142,25 @@ begin
       -- Release consumed or cancelled responses before admitting new work.
       for i in 0 to NUM_CLIENTS_G-1 loop
          if resultReady(i) = '1' or cancel(i) = '1' then
-            v.valid(i) := '0';
+            v.results(i).valid := '0';
          end if;
       end loop;
 
       cancelNow := '0';
-      issue := '0';
+      issue     := '0';
 
       if r.active = '1' then
          cancelNow := cancel(r.owner);
 
-         if coreValidOut = '1' then
-            v.value(WIDTH_G*r.owner+WIDTH_G-1 downto WIDTH_G*r.owner) := coreValue;
-            v.remainder(WIDTH_G*r.owner+WIDTH_G-1 downto WIDTH_G*r.owner) := coreRemainder;
-            v.valid(r.owner) := '1';
+         if secondResult.valid = '1' then
+            v.results(r.owner).value := secondResult.value;
+            v.results(r.owner).remainder := secondResult.remainder;
+            v.results(r.owner).valid := '1';
             v.active := '0';
          end if;
 
          if cancel(r.owner) = '1' then
-            v.valid(r.owner) := '0';
+            v.results(r.owner).valid := '0';
             v.active := '0';
          end if;
 
@@ -172,17 +170,17 @@ begin
 
          if coreReady = '1' then
             v.active := '1';
-            v.owner := selected;
+            v.owner  := selected;
             v.cursor := (selected+1) mod NUM_CLIENTS_G;
          end if;
       end if;
 
       -- Combinatorial outputs before the reset. Admission describes this
       -- edge's capacity; the shared reset domain excludes transfers.
-      coreValid <= issue;
-      coreCancel <= cancelNow;
-      coreRound <= roundNearest(selected);
-      coreOperand <= operand(WIDTH_G*selected+WIDTH_G-1 downto WIDTH_G*selected);
+      coreValid   <= issue;
+      coreCancel  <= cancelNow;
+      coreRound   <= requests(selected).roundNearest;
+      coreOperand <= requests(selected).operand;
 
       inputReady <= v.inputReady;
 
@@ -190,11 +188,8 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValid <= r.valid;
-      resultValue <= r.value;
-      resultRemainder <= r.remainder;
+      rin     <= v;
+      results <= r.results;
    end process comb;
 
    seq : process (clk, rst) is

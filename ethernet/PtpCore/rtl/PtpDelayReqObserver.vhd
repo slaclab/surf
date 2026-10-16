@@ -46,8 +46,8 @@ entity PtpDelayReqObserver is
       -- When false, accept only a Delay_Req whose declared length equals the
       -- fixed timestamp body, rejecting any suffix instead of walking it.
       -- See PtpRxFrontend for the conformance note.
-      TLV_EN_G       : boolean                   := true;
-      MAX_FRAME_G    : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
+      TLV_EN_G    : boolean                   := true;
+      MAX_FRAME_G : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
    port (
       clk        : in  sl;
       rst        : in  sl;
@@ -57,12 +57,11 @@ entity PtpDelayReqObserver is
       -- contiguous low-byte TKEEP. The capture sidecar is sampled only at SOF.
       rxMaster  : in  AxiStreamMasterType;
       rxCapture : in  PtpRxCaptureType;
-      -- Transfer requires messageValid AND messageReady AND NOT rxAbort.
+      -- Transfer requires messageMaster.valid AND messageReady AND NOT rxAbort.
       -- Abort/overflow are registered with the queue update. Consumers give
       -- the published abort priority on its consumption edge. A transfer on
       -- the earlier detection edge may enter revocable downstream work.
-      message       : out PtpRxMessageType;
-      messageValid  : out sl;
+      messageMaster : out PtpRxMessageMasterType;
       messageReady  : in  sl;
       queueOverflow : out sl;
       rxAbort       : out sl;
@@ -129,20 +128,19 @@ architecture rtl of PtpDelayReqObserver is
 
    type RegType is record
       -- Registered queue boundary and invalidation events.
-      message       : PtpRxMessageType;
       queueOverflow : sl;
       abortNow      : sl;
       -- Registered FIFO write/reset and recomputed FWFT read acknowledgement.
-      fifoWrite          : sl;
-      fifoWriteData      : slv(DESCRIPTOR_BITS_C-1 downto 0);
-      fifoRst            : sl;
-      fifoRead           : sl;
-      counters           : PtpRxCountersType;
-      messageValid       : sl;
+      fifoWrite     : sl;
+      fifoWriteData : slv(DESCRIPTOR_BITS_C-1 downto 0);
+      fifoRst       : sl;
+      fifoRead      : sl;
+      counters      : PtpRxCountersType;
+      messageMaster : PtpRxMessageMasterType;
       frame              : FrameType;
-      fill               : natural range 0 to FIFO_DEPTH_G;
-      tail               : natural range 0 to BANKS_C-1;
-      storeWrite         : slv(7 downto 0);
+      fill       : natural range 0 to FIFO_DEPTH_G;
+      tail       : natural range 0 to BANKS_C-1;
+      storeWrite : slv(7 downto 0);
       storeAddress       : AddressArray;
       storeData          : Slv8Array(0 to 7);
       captureWrite       : sl;
@@ -161,7 +159,6 @@ architecture rtl of PtpDelayReqObserver is
    end record;
 
    constant REG_INIT_C : RegType := (
-      message            => PTP_RX_MESSAGE_INIT_C,
       queueOverflow      => '0',
       abortNow           => '0',
       fifoWrite          => '0',
@@ -169,7 +166,7 @@ architecture rtl of PtpDelayReqObserver is
       fifoRst            => '1',
       fifoRead           => '0',
       counters           => PTP_RX_COUNTERS_INIT_C,
-      messageValid       => '0',
+      messageMaster      => PTP_RX_MESSAGE_MASTER_INIT_C,
       frame              => FRAME_INIT_C,
       fill               => 0,
       tail               => 0,
@@ -199,7 +196,7 @@ architecture rtl of PtpDelayReqObserver is
    signal fifoRead     : sl;
    signal fifoReadData : slv(DESCRIPTOR_BITS_C-1 downto 0);
 
-   signal fifoValid     : sl;
+   signal fifoValid : sl;
    signal storeReadData : Slv8Array(0 to 7);
 
    signal captureReadData : slv(CAPTURE_BITS_C-1 downto 0);
@@ -361,63 +358,63 @@ begin
       captureIndex    := 0;
       descriptorBank  := 0;
       frameComplete   := false;
-      v.abortNow       := '0';
-      v.queueOverflow  := '0';
-      v.fifoWrite      := '0';
-      v.fifoRead       := '0';
-      v.fifoRst        := '0';
-      byteCount := 0;
-      crcData   := (others => '0');
-      v.storeWrite := (others => '0');
-      v.captureWrite := '0';
-      v.readEnable := '0';
-      v.returnValid := r.readEnable;
-      v.returnGroup := to_integer(unsigned(r.readAddress)) mod STORE_GROUPS_C;
+      v.abortNow      := '0';
+      v.queueOverflow := '0';
+      v.fifoWrite     := '0';
+      v.fifoRead      := '0';
+      v.fifoRst       := '0';
+      byteCount       := 0;
+      crcData         := (others => '0');
+      v.storeWrite    := (others => '0');
+      v.captureWrite  := '0';
+      v.readEnable    := '0';
+      v.returnValid   := r.readEnable;
+      v.returnGroup   := to_integer(unsigned(r.readAddress)) mod STORE_GROUPS_C;
 
-      if r.messageValid = '1' and messageReady = '1' then
-         v.messageValid := '0';
-         v.fill := r.fill-1;
+      if r.messageMaster.valid = '1' and messageReady = '1' then
+         v.messageMaster.valid := '0';
+         v.fill                := r.fill-1;
       end if;
 
       -- Issue one group every clock; the registered request and synchronous
       -- RAM contribute two edges before a returned group updates the head.
       if r.decoding = '1' then
          if r.issueGroup < STORE_GROUPS_C then
-            v.readEnable := '1';
+            v.readEnable  := '1';
             v.readAddress := toSlv(r.decodeBank*STORE_GROUPS_C+r.issueGroup, STORE_ADDR_BITS_C);
-            v.issueGroup := r.issueGroup+1;
+            v.issueGroup  := r.issueGroup+1;
          end if;
          if r.returnValid = '1' then
             if r.returnGroup = 0 then
                captureIndex := 0;
-               assignRecord(captureIndex, captureReadData, v.message.rxEpoch);
-               assignRecord(captureIndex, captureReadData, v.message.capture.error);
-               assignRecord(captureIndex, captureReadData, v.message.capture.timeValid);
-               assignRecord(captureIndex, captureReadData, v.message.capture.increment);
-               assignRecord(captureIndex, captureReadData, v.message.capture.generation);
-               assignRecord(captureIndex, captureReadData, v.message.capture.tickPhase);
-               assignRecord(captureIndex, captureReadData, v.message.capture.ticks);
-               assignRecord(captureIndex, captureReadData, v.message.capture.timestamp);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.rxEpoch);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.error);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.timeValid);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.increment);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.generation);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.tickPhase);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.ticks);
+               assignRecord(captureIndex, captureReadData, v.messageMaster.data.capture.timestamp);
             end if;
             for i in 0 to 7 loop
-               takeByte(v.message, 8*r.returnGroup+i, storeReadData(i));
+               takeByte(v.messageMaster.data, 8*r.returnGroup+i, storeReadData(i));
             end loop;
             if r.returnGroup = STORE_GROUPS_C-1 then
-               v.messageValid := '1';
-               v.decoding := '0';
+               v.messageMaster.valid := '1';
+               v.decoding            := '0';
             end if;
          end if;
-      elsif v.messageValid = '0' and fifoValid = '1' and r.fifoRst = '0' then
-         descriptorBank  := to_integer(unsigned(fifoReadData(BANK_BITS_C-1 downto 0)));
-         v.message := PTP_RX_MESSAGE_INIT_C;
-         v.message.messageType := PTP_MSG_DELAY_REQ_C;
-         v.decoding := '1';
-         v.decodeBank := descriptorBank;
-         v.issueGroup := 1;
-         v.readEnable := '1';
-         v.readAddress := toSlv(descriptorBank*STORE_GROUPS_C, STORE_ADDR_BITS_C);
-         v.captureReadAddress := toSlv(descriptorBank, BANK_BITS_C);
-         v.fifoRead := '1';
+      elsif v.messageMaster.valid = '0' and fifoValid = '1' and r.fifoRst = '0' then
+         descriptorBank                   := to_integer(unsigned(fifoReadData(BANK_BITS_C-1 downto 0)));
+         v.messageMaster.data             := PTP_RX_MESSAGE_INIT_C;
+         v.messageMaster.data.messageType := PTP_MSG_DELAY_REQ_C;
+         v.decoding                       := '1';
+         v.decodeBank                     := descriptorBank;
+         v.issueGroup                     := 1;
+         v.readEnable                     := '1';
+         v.readAddress                    := toSlv(descriptorBank*STORE_GROUPS_C, STORE_ADDR_BITS_C);
+         v.captureReadAddress             := toSlv(descriptorBank, BANK_BITS_C);
+         v.fifoRead                       := '1';
       end if;
 
       if rxMaster.tValid = '1' then
@@ -428,10 +425,10 @@ begin
             -- capture validity cannot suppress observation of physical TX fate.
             v.frame := FRAME_INIT_C;
             if r.frame.active = '0' then
-               v.frame.active  := '1';
-               v.captureWrite := '1';
+               v.frame.active   := '1';
+               v.captureWrite   := '1';
                v.captureAddress := toSlv(r.tail, BANK_BITS_C);
-               v.captureData := rxCapture.timestamp & rxCapture.ticks & rxCapture.tickPhase &
+               v.captureData    := rxCapture.timestamp & rxCapture.ticks & rxCapture.tickPhase &
                   rxCapture.generation & rxCapture.increment & rxCapture.timeValid & rxCapture.error & slv(r.epoch);
                -- TX always reports a structurally valid wire completion. Its
                -- capture.error may prohibit measurement, but must not hide that
@@ -457,7 +454,7 @@ begin
             end case;
             for i in 0 to 7 loop
                if rxMaster.tKeep(i) = '1' then
-                  octet     := rxMaster.tData(8*i+7 downto 8*i);
+                  octet := rxMaster.tData(8*i+7 downto 8*i);
                   -- CrcPkg expects the first byte at the high end and reversed
                   -- bit order within each octet. Ethernet arrives low AXI byte
                   -- first; this transpose is separate from networkField decode.
@@ -518,7 +515,7 @@ begin
             end loop;
             if last > MAX_FRAME_G then
                v.frame.count := MAX_FRAME_G+1;
-               v.frame.bad := '1';
+               v.frame.bad   := '1';
             else
                v.frame.count := last;
             end if;
@@ -531,7 +528,7 @@ begin
             if TLV_EN_G and first < r.frame.messageEnd and
                last > PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C then
                tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+PTP_TIMESTAMP_MSG_BYTES_C);
-               tlvLast := minimum(last, r.frame.messageEnd);
+               tlvLast  := minimum(last, r.frame.messageEnd);
                ptpTlvBeat(rxMaster.tData(63 downto 0), tlvFirst-first,
                   tlvLast-first, r.frame.messageEnd-tlvFirst,
                   v.frame.tlvBytes, v.frame.tlvLength, v.frame.tlvRemaining, v.frame.bad);
@@ -599,24 +596,24 @@ begin
       -- A coincident old-head transfer precedes the registered invalidation.
       -- Downstream work remains revocable until that event is consumed next edge.
       if frameComplete and r.fill = FIFO_DEPTH_G then
-         v.fill              := 0;
-         v.messageValid      := '0';
+         v.fill                := 0;
+         v.messageMaster.valid := '0';
          -- A simultaneous descriptor pop is harmless: decoder ownership is
          -- revoked here and the registered FIFO reset discards all remaining
          -- descriptors next edge. Do not feed frame validation into FWFT ready.
          v.fifoRst           := '1';
-         v.tail := 0;
-         v.decoding := '0';
-         v.readEnable := '0';
-         v.returnValid := '0';
+         v.tail              := 0;
+         v.decoding          := '0';
+         v.readEnable        := '0';
+         v.returnValid       := '0';
          v.epoch             := r.epoch+1;
          v.counters.overflow := ptpSatInc(r.counters.overflow);
          v.queueOverflow     := '1';
          v.abortNow          := '1';
       elsif frameComplete then
          v.fifoWrite         := '1';
-         v.fifoWriteData := toSlv(r.tail, BANK_BITS_C);
-         v.tail := (r.tail+1) mod BANKS_C;
+         v.fifoWriteData     := toSlv(r.tail, BANK_BITS_C);
+         v.tail              := (r.tail+1) mod BANKS_C;
          v.fill              := v.fill+1;
          v.counters.accepted := ptpSatInc(r.counters.accepted);
       end if;
@@ -629,31 +626,31 @@ begin
       -- An already registered write may commit on this invalidation edge;
       -- the FIFO reset discards it before another head can be published.
       if rxFlush = '1' then
-         v := r;
-         v.queueOverflow := '0';
-         v.frame         := FRAME_INIT_C;
-         v.fill          := 0;
-         v.messageValid  := '0';
-         v.generation    := generation;
-         v.epoch         := r.epoch+1;
-         v.abortNow      := '1';
-         v.fifoWrite     := '0';
-         v.fifoRead      := '0';
-         v.fifoRst       := '1';
-         v.tail := 0;
-         v.decoding := '0';
-         v.readEnable := '0';
-         v.returnValid := '0';
-         v.storeWrite := (others => '0');
-         v.captureWrite := '0';
+         v                     := r;
+         v.queueOverflow       := '0';
+         v.frame               := FRAME_INIT_C;
+         v.fill                := 0;
+         v.messageMaster.valid := '0';
+         v.generation          := generation;
+         v.epoch               := r.epoch+1;
+         v.abortNow            := '1';
+         v.fifoWrite           := '0';
+         v.fifoRead            := '0';
+         v.fifoRst             := '1';
+         v.tail                := 0;
+         v.decoding            := '0';
+         v.readEnable          := '0';
+         v.returnValid         := '0';
+         v.storeWrite          := (others => '0');
+         v.captureWrite        := '0';
       end if;
 
       -- Shared system reset excludes transfers. Unlike a logical flush,
       -- it resets epoch/counters; the owner must coordinate reset with consumers
       -- before reusing that epoch space. Async state reset occurs in seq.
       if rst = RST_POLARITY_G then
-         v.abortNow  := '1';
-         v.fifoRead  := '0';
+         v.abortNow := '1';
+         v.fifoRead := '0';
       end if;
 
       -- Apply synchronous reset before publishing next state and outputs.
@@ -661,14 +658,13 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
+      rin           <= v;
       fifoWrite     <= r.fifoWrite;
       fifoWriteData <= r.fifoWriteData;
       fifoRst       <= r.fifoRst;
       fifoRead      <= v.fifoRead;
-      message       <= r.message;
       queueOverflow <= r.queueOverflow;
-      messageValid  <= r.messageValid;
+      messageMaster <= r.messageMaster;
       rxAbort       <= r.abortNow;
       rxEpoch       <= slv(r.epoch);
       counters      <= r.counters;

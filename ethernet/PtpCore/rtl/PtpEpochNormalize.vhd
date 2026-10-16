@@ -34,6 +34,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpEpochNormalize is
@@ -42,17 +43,14 @@ entity PtpEpochNormalize is
       RST_POLARITY_G : sl      := '1';
       RST_ASYNC_G    : boolean := false);
    port (
-      clk          : in  sl;
-      rst          : in  sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Owner-local cancellation; discards pending and held work.
-      cancel       : in  sl;
-      inputValid   : in  sl;
-      inputReady   : out sl;
-      seconds      : in  slv(47 downto 0);
-      subsecondQ16 : in  slv(47 downto 0);
-      resultValid  : out sl;
-      resultReady  : in  sl;
-      resultValue  : out slv(94 downto 0));
+      cancel      : in  sl;
+      request     : in  PtpEpochRequestType;
+      inputReady  : out sl;
+      result      : out PtpEpochResultType;
+      resultReady : in  sl);
 end entity PtpEpochNormalize;
 
 architecture rtl of PtpEpochNormalize is
@@ -72,8 +70,7 @@ architecture rtl of PtpEpochNormalize is
       seconds      : unsigned(47 downto 0);
       subsecondQ16 : unsigned(47 downto 0);
       product      : unsigned(68 downto 0);
-      value        : slv(94 downto 0);
-      valid        : sl;
+      result       : PtpEpochResultType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -82,8 +79,7 @@ architecture rtl of PtpEpochNormalize is
       seconds      => (others => '0'),
       subsecondQ16 => (others => '0'),
       product      => (others => '0'),
-      value        => (others => '0'),
-      valid        => '0');
+      result       => PTP_EPOCH_RESULT_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -105,33 +101,33 @@ begin
    comb : process (all) is
       variable v : RegType;
    begin
-      v := r;
+      v            := r;
       v.inputReady := '0';
 
       case r.state is
          when IDLE_S =>
             v.inputReady := '1';
 
-            if inputValid = '1' then
-               v.seconds := unsigned(seconds);
-               v.subsecondQ16 := unsigned(subsecondQ16);
-               v.state := MULTIPLY_S;
+            if request.valid = '1' then
+               v.seconds      := unsigned(request.seconds);
+               v.subsecondQ16 := unsigned(request.subsecondQ16);
+               v.state        := MULTIPLY_S;
             end if;
 
          when MULTIPLY_S =>
             v.product := fullProduct;
-            v.state := ADD_S;
+            v.state   := ADD_S;
 
          when ADD_S =>
-            v.value := '0' & slv(shift_left(resize(r.product, 94), SECOND_SHIFT_C) +
+            v.result.value := '0' & slv(shift_left(resize(r.product, 94), SECOND_SHIFT_C) +
                                 resize(r.subsecondQ16, 94));
-            v.valid := '1';
-            v.state := DONE_S;
+            v.result.valid := '1';
+            v.state        := DONE_S;
 
          when DONE_S =>
             if resultReady = '1' then
-               v.valid := '0';
-               v.state := IDLE_S;
+               v.result.valid := '0';
+               v.state        := IDLE_S;
             end if;
       end case;
 
@@ -146,10 +142,8 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValid <= r.valid;
-      resultValue <= r.value;
+      rin    <= v;
+      result <= r.result;
    end process comb;
 
    seq : process (clk, rst) is

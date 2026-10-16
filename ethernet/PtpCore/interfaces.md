@@ -7,6 +7,50 @@ supersede the previous immediate-control implementation. Progress and verificati
 remain in
 [current validation](../../docs/plans/ethernet-ptp/README.md#current-validation).
 
+## Record interfaces and source compatibility
+
+Production PTP transactions travel as whole records. Records follow ownership
+and transfer lifetime; ready, cancellation, clocks and resets remain separate
+when they travel in the opposite direction or invalidate more than one
+transaction. Simulation wrappers keep flat ports for cocotb and assemble records
+at that boundary. No record conversion changes wire formats, software offsets,
+RAM packing or an acceptance/publication edge.
+
+| Interface family | Owning package | Production boundary |
+| --- | --- | --- |
+| RX and TX-completion messages | `PtpPkg` | `PtpRxMessageMasterType` holds valid/data through ready; abort/overflow remain distinct lifecycle events. |
+| Completed ledger samples and PHC read snapshots | `PtpPkg` | `PtpDelaySampleMasterType` is held through ready; `PtpPhcReadResultType` pulses in the reader domain. |
+| Protocol admission, events, response interval and ledger offer | `PtpProtocolPkg` | Same-edge decision records retain policy priority; ledger reservation uses its ready/sequence offer. |
+| Pair/history, rate/E2E requests and results | `PtpSyncPkg` | Each command/result carries its own payload and qualifiers; borrowed history operands retain separate lifetimes. |
+| Filter and PI requests, live filtered estimate | `PtpServoPkg` | Requests capture sample provenance; filter status is a live registered record, with update/rejection events separate. |
+| Math, products, constant division, epoch normalization and shared services | `PtpMathPkg` | Request/result records retain exact operand widths; shared services use arrays indexed by client. |
+| Candidate scan and existing register/publication/snapshot interfaces | `PtpRegisterPkg` | Scan valid/index/data belongs to the frozen candidate; existing register transactions remain records. |
+
+These are VHDL source-interface changes: callers of the affected entities must
+replace separate payload/valid associations with the corresponding record.
+For example, a protocol receiver now supplies `rxMessageMaster.valid/data`;
+arithmetic clients use `request`/`result`, or `secondRequest`/`secondResult` and
+`divideRequest`/`divideResult`. `PtpProtocolEngine` and `PtpSyncFlow` forward the
+whole two-client `divideRequests`/`divideResults` arrays. The endpoint and all
+checked-in simulation wrappers use the new associations.
+
+Generic arithmetic records use VHDL-2008 element constraints. A product request
+constrains its two operands independently; a constant-divider result constrains
+quotient and remainder to the dividend width. Width-taking initialization
+functions replace impossible unconstrained `_INIT_C` constants; fixed endpoint
+subtypes have ordinary initialization constants. The SECOND service still
+accepts generic widths and the variable divider retains its configured divisor
+width. Records do not pad every arithmetic operation to a common maximum.
+
+The audit also covers unchanged interfaces. AXI/AXI Stream, PHC commands,
+configuration, publication and measurement ports already use records. Physical
+GMII/XGMII and family-specific PHY pins remain flat at MAC/vendor boundaries.
+`PtpEndpointControl` retains named inputs from distinct state owners rather than
+assigning them one artificial status owner. Clocks/resets, independent lifecycle
+pulses, single-bit reverse handshakes and generic snapshot word arrays remain
+explicit. `PtpPrimaryGuard`, snapshot/publication banks and PHY compositions
+need no new transaction records for those boundaries.
+
 ## Parameter and implementation contracts
 
 At `EthMacPtpEndpoint`, GMII requires 125 MHz and XGMII requires 156.25 MHz;
@@ -299,17 +343,17 @@ until result consumption or cancellation. The port does not admit replacement
 work while the registered child cancellation is being consumed.
 
 The rate estimator captures the complete Sync sample and minimum span on input
-acceptance. Its registered `resultValid`, `sampleAccepted` and `ratioUpdate`
+acceptance. Its registered `result.valid`, `result.accepted` and `result.ratioUpdate`
 remain held until `resultReady`; input acceptance alone does not publish a
 measurement. `PtpSyncFlow` waits for completion and requests a history append
 from `PtpSyncHistory`, using the held combined signed128 correction. It
 acknowledges the rate result after the append and measurement publication.
 Rejected samples publish no history/forward measurement. A rejected rate
 candidate still permits an otherwise accepted Sync to publish the retained
-ratio; only `ratioUpdate` renews ratio freshness.
+ratio; only `result.ratioUpdate` renews ratio freshness.
 
-The private table transactions use `PtpSyncPkg` and do not change `PtpPkg`'s
-endpoint ABI. Whole records connect production owners; the E2E simulation wrapper
+The private table transactions use `PtpSyncPkg`; their storage and edge
+contracts remain independent of the endpoint's record-port wiring. Whole records connect production owners; the E2E simulation wrapper
 flattens the normalized stream. Each type documents its clock, units, hold rule
 and cancellation priority beside its initializer.
 

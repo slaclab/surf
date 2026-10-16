@@ -21,6 +21,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
@@ -40,9 +41,9 @@ entity PtpProtocolEngineWrapper is
       applyConfig           : in  sl;
       configValid           : out sl;
       configPrepared        : out sl;
-      snapshotPublish       : in sl                                     := '0';
+      snapshotPublish       : in  sl                                     := '0';
       snapshotPrepared      : out sl;
-      snapshotCapture       : in  sl                                    := '0';
+      snapshotCapture       : in  sl                                     := '0';
       ticks                 : in  slv(63 downto 0);
       generation            : in  slv(31 downto 0);
       rxAbort               : in  sl;
@@ -57,11 +58,11 @@ entity PtpProtocolEngineWrapper is
       rxSource              : in  slv(79 downto 0);
       rxTimestamp           : in  slv(79 downto 0);
       rxCorrection          : in  slv(63 downto 0);
-      rxLogInterval         : in  slv(7 downto 0)                       := x"7F";
-      rxBodyTail            : in  slv(159 downto 0)                     := (others => '0');
+      rxLogInterval         : in  slv(7 downto 0)                        := x"7F";
+      rxBodyTail            : in  slv(159 downto 0)                      := (others => '0');
       captureTime           : in  slv(95 downto 0);
       captureTicks          : in  slv(63 downto 0);
-      capturePhase          : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0) := (others => '0');
+      capturePhase          : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0)  := (others => '0');
       captureGeneration     : in  slv(31 downto 0);
       measurementReady      : in  sl;
       measurementValid      : out sl;
@@ -78,15 +79,15 @@ entity PtpProtocolEngineWrapper is
       delayCount            : out slv(31 downto 0);
       ledgerStatus          : out slv(31 downto 0);
       wireReady             : out sl;
-      wireValid             : in  sl                                    := '0';
-      wireSequence          : in  slv(15 downto 0)                      := (others => '0');
-      wireTime              : in  slv(95 downto 0)                      := (others => '0');
-      wireTicks             : in  slv(63 downto 0)                      := (others => '0');
-      wirePhase             : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0) := (others => '0');
-      wireGeneration        : in  slv(31 downto 0)                      := (others => '0');
+      wireValid             : in  sl                                     := '0';
+      wireSequence          : in  slv(15 downto 0)                       := (others => '0');
+      wireTime              : in  slv(95 downto 0)                       := (others => '0');
+      wireTicks             : in  slv(63 downto 0)                       := (others => '0');
+      wirePhase             : in  slv(PTP_TICK_PHASE_BITS_C-1 downto 0)  := (others => '0');
+      wireGeneration        : in  slv(31 downto 0)                       := (others => '0');
       syncCount             : out slv(31 downto 0);
       rejectedCount         : out slv(31 downto 0);
-      txReady               : in  sl                                    := '1';
+      txReady               : in  sl                                     := '1';
       txValid               : out sl;
       txData                : out slv(63 downto 0);
       txKeep                : out slv(7 downto 0);
@@ -114,10 +115,10 @@ end entity PtpProtocolEngineWrapper;
 
 architecture rtl of PtpProtocolEngineWrapper is
 
-   signal readMaster  : AxiLiteReadMasterType;
-   signal readSlave   : AxiLiteReadSlaveType;
-   signal writeMaster : AxiLiteWriteMasterType;
-   signal writeSlave  : AxiLiteWriteSlaveType;
+   signal readMaster        : AxiLiteReadMasterType;
+   signal readSlave         : AxiLiteReadSlaveType;
+   signal writeMaster       : AxiLiteWriteMasterType;
+   signal writeSlave        : AxiLiteWriteSlaveType;
    signal config      : PtpConfigControlType := PTP_CONFIG_CONTROL_INIT_C;
    signal snapshot    : PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
    signal phcStatus   : PtpPhcStatusType     := PTP_PHC_STATUS_INIT_C;
@@ -127,37 +128,43 @@ architecture rtl of PtpProtocolEngineWrapper is
    signal take        : PtpMeasurementSlaveType;
    signal status      : PtpPortStatusType;
    signal resetN      : sl;
-   signal txMaster    : AxiStreamMasterType;
-   signal txSlave     : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
-   signal divideValid       : slv(1 downto 0);
+   signal txMaster          : AxiStreamMasterType;
+   signal txSlave           : AxiStreamSlaveType := AXI_STREAM_SLAVE_INIT_C;
    signal divideReady       : slv(1 downto 0);
-   signal divideOperandA    : Slv128Array(1 downto 0);
-   signal divideOperandB    : slv(159 downto 0);
    signal divideCancel      : slv(1 downto 0);
-   signal divideResultValid : slv(1 downto 0);
    signal divideResultReady : slv(1 downto 0);
-   signal divideResultValue : Slv128Array(1 downto 0);
-   signal divideResultError : slv(1 downto 0);
+
+   signal dutRxMessageMaster : PtpRxMessageMasterType;
+   signal dutTxMessageMaster : PtpRxMessageMasterType;
+
+   signal divideRequests : PtpDivideRequestArray(2-1 downto 0)(operandB(80-1 downto 0));
+   signal divideResults  : PtpDivideResultArray(2-1 downto 0);
 
 begin
+
+   dutRxMessageMaster <=
+   (
+      valid => rxValid,
+      data  => rxMessage
+   );
+   dutTxMessageMaster <=
+   (
+      valid => wireValid,
+      data  => wireMessage
+   );
 
    U_Divide : entity surf.PtpVariableDivide
       generic map (
          NUM_CLIENTS_G   => 2,
          DIVISOR_WIDTH_G => 80)
       port map (
-         clk          => clk,                 -- [in]
-         rst          => rst,                 -- [in]
-         cancel       => divideCancel,        -- [in]
-         inputValid   => divideValid,         -- [in]
-         inputReady   => divideReady,         -- [out]
-         roundNearest => "11",                -- [in]
-         operandA     => divideOperandA,      -- [in]
-         operandB     => divideOperandB,      -- [in]
-         resultValid  => divideResultValid,   -- [out]
-         resultReady  => divideResultReady,   -- [in]
-         resultValue  => divideResultValue,   -- [out]
-         resultError  => divideResultError);  -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => divideCancel,        -- [in]
+         requests    => divideRequests,      -- [in]
+         inputReady  => divideReady,         -- [out]
+         results     => divideResults,       -- [out]
+         resultReady => divideResultReady);  -- [in]
 
    resetN <= not rst;
 
@@ -197,60 +204,60 @@ begin
          axilWriteSlave  => writeSlave);   -- [in]
 
    -- Fixed record slices only: no protocol behavior in this fixture.
-   config.prepare                        <= prepare;
-   config.apply                          <= applyConfig;
-   snapshot.publish <= snapshotPublish;
-   snapshot.capture                      <= snapshotCapture;
-   phcStatus.ticks                       <= ticks;
-   phcStatus.generation                  <= generation;
-   phcStatus.increment                   <= ptpNominalIncrement(125000000);
-   rxMessage.destination                 <= PTP_PRIMARY_MULTICAST_MAC_C;
-   rxMessage.sourcePortIdentity          <= rxSource;
-   rxMessage.domainNumber                <= rxDomain;
-   rxMessage.messageType                 <= rxKind;
-   rxMessage.flags                       <= rxFlags;
-   rxMessage.control                     <= rxControl;
-   rxMessage.sequenceId                  <= rxSequence;
-   rxMessage.logInterval                 <= rxLogInterval;
+   config.prepare               <= prepare;
+   config.apply                 <= applyConfig;
+   snapshot.publish             <= snapshotPublish;
+   snapshot.capture             <= snapshotCapture;
+   phcStatus.ticks              <= ticks;
+   phcStatus.generation         <= generation;
+   phcStatus.increment          <= ptpNominalIncrement(125000000);
+   rxMessage.destination        <= PTP_PRIMARY_MULTICAST_MAC_C;
+   rxMessage.sourcePortIdentity <= rxSource;
+   rxMessage.domainNumber       <= rxDomain;
+   rxMessage.messageType        <= rxKind;
+   rxMessage.flags              <= rxFlags;
+   rxMessage.control            <= rxControl;
+   rxMessage.sequenceId         <= rxSequence;
+   rxMessage.logInterval        <= rxLogInterval;
    rxMessage.messageBody(239 downto 160) <= rxTimestamp;
    rxMessage.messageBody(159 downto 0)   <= rxBodyTail;
-   rxMessage.correction                  <= rxCorrection;
-   rxMessage.capture.timestamp           <= captureTime;
-   rxMessage.capture.ticks               <= captureTicks;
-   rxMessage.capture.tickPhase            <= capturePhase;
-   rxMessage.capture.generation          <= captureGeneration;
-   rxMessage.capture.increment           <= ptpNominalIncrement(125000000);
-   take.ready                            <= measurementReady;
-   measurementValid                      <= measurement.valid;
-   measurementAbort                      <= measurement.abort;
-   measurementForward                    <= measurement.data.forward;
-   measurementTicks                      <= measurement.data.ticks;
-   measurementSequence                   <= measurement.data.syncSequence;
-   measurementGeneration                 <= measurement.data.generation;
-   measurementRatio                      <= measurement.data.ratio;
-   ratioValid                            <= measurement.data.ratioValid;
-   measurementDelayValid                 <= measurement.data.isDelay;
-   measurementDelay                      <= measurement.data.delayValue;
-   measurementDelaySeq                    <= measurement.data.delaySequence;
-   delayCount                            <= status.delayCount;
-   ledgerStatus                          <= status.ledgerStatus;
-   syncCount                             <= status.syncCount;
-   rejectedCount                         <= status.rejectedCount;
-   txSlave.tReady                        <= txReady;
-   txValid                               <= txMaster.tValid;
-   txData                                <= txMaster.tData(63 downto 0);
-   txKeep                                <= txMaster.tKeep(7 downto 0);
-   txLast                                <= txMaster.tLast;
-   txSof                                 <= ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, txMaster);
-   txEofe                                <= ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, txMaster);
-   wireMessage.messageType               <= PTP_MSG_DELAY_REQ_C;
-   wireMessage.sourcePortIdentity        <= x"020000FFFE0000010001";
-   wireMessage.sequenceId                <= wireSequence;
-   wireMessage.capture.timestamp         <= wireTime;
-   wireMessage.capture.ticks             <= wireTicks;
-   wireMessage.capture.tickPhase          <= wirePhase;
-   wireMessage.capture.generation        <= wireGeneration;
-   wireMessage.capture.increment         <= ptpNominalIncrement(125000000);
+   rxMessage.correction           <= rxCorrection;
+   rxMessage.capture.timestamp    <= captureTime;
+   rxMessage.capture.ticks        <= captureTicks;
+   rxMessage.capture.tickPhase    <= capturePhase;
+   rxMessage.capture.generation   <= captureGeneration;
+   rxMessage.capture.increment    <= ptpNominalIncrement(125000000);
+   take.ready                     <= measurementReady;
+   measurementValid               <= measurement.valid;
+   measurementAbort               <= measurement.abort;
+   measurementForward             <= measurement.data.forward;
+   measurementTicks               <= measurement.data.ticks;
+   measurementSequence            <= measurement.data.syncSequence;
+   measurementGeneration          <= measurement.data.generation;
+   measurementRatio               <= measurement.data.ratio;
+   ratioValid                     <= measurement.data.ratioValid;
+   measurementDelayValid          <= measurement.data.isDelay;
+   measurementDelay               <= measurement.data.delayValue;
+   measurementDelaySeq            <= measurement.data.delaySequence;
+   delayCount                     <= status.delayCount;
+   ledgerStatus                   <= status.ledgerStatus;
+   syncCount                      <= status.syncCount;
+   rejectedCount                  <= status.rejectedCount;
+   txSlave.tReady                 <= txReady;
+   txValid                        <= txMaster.tValid;
+   txData                         <= txMaster.tData(63 downto 0);
+   txKeep                         <= txMaster.tKeep(7 downto 0);
+   txLast                         <= txMaster.tLast;
+   txSof                          <= ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, txMaster);
+   txEofe                         <= ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, txMaster);
+   wireMessage.messageType        <= PTP_MSG_DELAY_REQ_C;
+   wireMessage.sourcePortIdentity <= x"020000FFFE0000010001";
+   wireMessage.sequenceId         <= wireSequence;
+   wireMessage.capture.timestamp  <= wireTime;
+   wireMessage.capture.ticks      <= wireTicks;
+   wireMessage.capture.tickPhase  <= wirePhase;
+   wireMessage.capture.generation <= wireGeneration;
+   wireMessage.capture.increment  <= ptpNominalIncrement(125000000);
 
    U_DUT : entity surf.PtpProtocolEngine
       generic map (
@@ -259,49 +266,43 @@ begin
          CLK_FREQ_G            => 125000000,
          PACKET_LIFETIME_G     => PACKET_LIFETIME_G)
       port map (
-         divideValid       => divideValid,
-         divideReady       => divideReady,
-         divideOperandA    => divideOperandA,
-         divideOperandB    => divideOperandB,
-         divideCancel      => divideCancel,
-         divideResultValid => divideResultValid,
-         divideResultReady => divideResultReady,
-         divideResultValue => divideResultValue,
-         divideResultError => divideResultError,
-         clk               => clk,                       -- [in]
-         rst               => rst,                       -- [in]
-         regRst            => regRst,                    -- [in]
-         axiReadMaster     => readMaster,                -- [in]
-         axiReadSlave      => readSlave,                 -- [out]
-         axiWriteMaster    => writeMaster,               -- [in]
-         axiWriteSlave     => writeSlave,                -- [out]
-         configControl     => config,                    -- [in]
-         snapshotPrepared  => snapshotPrepared,
-         snapshotControl   => snapshot,                  -- [in]
-         configPrepared    => configPrepared,
-         configValid       => configValid,               -- [out]
-         enable            => '1',                       -- [in]
-         sharedConfig      => open,                      -- [out]
-         restart           => restart,                   -- [in]
-         linkReady         => '1',                       -- [in]
-         macResetDone      => '1',                       -- [in]
-         localMac          => x"010000000002",           -- [in]
-         phcStatus         => phcStatus,                 -- [in]
-         captureAbort      => '0',                       -- [in]
-         rxMessage         => rxMessage,                 -- [in]
-         rxValid           => rxValid,                   -- [in]
-         rxReady           => rxReady,                   -- [out]
-         rxQueueOverflow   => rxOverflow,                -- [in]
-         rxAbort           => rxAbort,                   -- [in]
-         txMessage         => wireMessage,               -- [in]
-         txValid           => wireValid,                 -- [in]
-         txMessageReady    => wireReady,                 -- [out]
-         txAbort           => '0',                       -- [in]
-         txMaster          => txMaster,                  -- [out]
-         txSlave           => txSlave,                   -- [in]
-         measurementMaster => measurement,               -- [out]
-         measurementSlave  => take,                      -- [in]
-         lifecycle         => open,                      -- [out]
-         status            => status);                   -- [out]
+         clk               => clk,                 -- [in]
+         rst               => rst,                 -- [in]
+         regRst            => regRst,              -- [in]
+         axiReadMaster     => readMaster,          -- [in]
+         axiReadSlave      => readSlave,           -- [out]
+         axiWriteMaster    => writeMaster,         -- [in]
+         axiWriteSlave     => writeSlave,          -- [out]
+         configControl     => config,              -- [in]
+         snapshotControl   => snapshot,            -- [in]
+         snapshotPrepared  => snapshotPrepared,    -- [out]
+         configValid       => configValid,         -- [out]
+         configPrepared    => configPrepared,      -- [out]
+         enable            => '1',                 -- [in]
+         sharedConfig      => open,                -- [out]
+         restart           => restart,             -- [in]
+         linkReady         => '1',                 -- [in]
+         macResetDone      => '1',                 -- [in]
+         localMac          => x"010000000002",     -- [in]
+         phcStatus         => phcStatus,           -- [in]
+         captureAbort      => '0',                 -- [in]
+         rxMessageMaster   => dutRxMessageMaster,  -- [in]
+         rxReady           => rxReady,             -- [out]
+         rxQueueOverflow   => rxOverflow,          -- [in]
+         rxAbort           => rxAbort,             -- [in]
+         txMessageMaster   => dutTxMessageMaster,  -- [in]
+         txMessageReady    => wireReady,           -- [out]
+         txAbort           => '0',                 -- [in]
+         txMaster          => txMaster,            -- [out]
+         txSlave           => txSlave,             -- [in]
+         measurementMaster => measurement,         -- [out]
+         measurementSlave  => take,                -- [in]
+         lifecycle         => open,                -- [out]
+         status            => status,              -- [out]
+         divideRequests    => divideRequests,      -- [out]
+         divideReady       => divideReady,         -- [in]
+         divideCancel      => divideCancel,        -- [out]
+         divideResults     => divideResults,       -- [in]
+         divideResultReady => divideResultReady);  -- [out]
 
 end architecture rtl;

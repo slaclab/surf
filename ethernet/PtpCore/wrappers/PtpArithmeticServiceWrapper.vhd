@@ -18,6 +18,7 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 
 entity PtpArithmeticServiceWrapper is
    generic (
@@ -43,9 +44,23 @@ architecture mapping of PtpArithmeticServiceWrapper is
    signal operands : Slv128Array(1 downto 0);
    signal results  : Slv128Array(1 downto 0);
 
+   signal divideRequests : PtpDivideRequestArray(2-1 downto 0)(operandB(80-1 downto 0));
+   signal divideResults  : PtpDivideResultArray(2-1 downto 0);
+   signal secondRequests : PtpConstDivideRequestArray(2-1 downto 0)(operand(128-1 downto 0));
+   signal secondResults  : PtpConstDivideResultArray(2-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
+
 begin
 
    GEN_VARIABLE : if VARIABLE_G generate
+      GEN_DIVIDE_RECORDS : for i in 0 to 2-1 generate
+         divideRequests(i).valid        <= inputValid(i);
+         divideRequests(i).roundNearest <= roundNearest(i);
+         divideRequests(i).operandA     <= operands(i);
+         divideRequests(i).operandB     <= operandB(80*i+80-1 downto 80*i);
+         resultValid(i)                 <= divideResults(i).valid;
+         results(i)                     <= divideResults(i).value;
+         resultError(i)                 <= divideResults(i).error;
+      end generate GEN_DIVIDE_RECORDS;
       GEN_OWNER : for i in 0 to 1 generate
          operands(i) <= operandA(128*i+127 downto 128*i);
          resultValue(128*i+127 downto 128*i) <= results(i);
@@ -56,39 +71,38 @@ begin
             NUM_CLIENTS_G   => 2,
             DIVISOR_WIDTH_G => 80)
          port map (
-            clk          => clk,
-            rst          => rst,
-            cancel       => cancel,
-            inputValid   => inputValid,
-            inputReady   => inputReady,
-            roundNearest => roundNearest,
-            operandA     => operands,
-            operandB     => operandB,
-            resultValid  => resultValid,
-            resultReady  => resultReady,
-            resultValue  => results,
-            resultError  => resultError);
+            clk         => clk,             -- [in]
+            rst         => rst,             -- [in]
+            cancel      => cancel,          -- [in]
+            requests    => divideRequests,  -- [in]
+            inputReady  => inputReady,      -- [out]
+            results     => divideResults,   -- [out]
+            resultReady => resultReady);    -- [in]
 
       resultRemainder <= (others => '0');
    end generate GEN_VARIABLE;
 
    GEN_SECOND : if not VARIABLE_G generate
+      GEN_SECOND_RECORDS : for i in 0 to 2-1 generate
+         secondRequests(i).valid        <= inputValid(i);
+         secondRequests(i).roundNearest <= roundNearest(i);
+         secondRequests(i).operand      <= operandA(128*i+128-1 downto 128*i);
+         resultValid(i)                 <= secondResults(i).valid;
+         resultValue(128*i+128-1 downto 128*i) <= secondResults(i).value;
+         resultRemainder(128*i+128-1 downto 128*i) <= secondResults(i).remainder;
+      end generate GEN_SECOND_RECORDS;
       U_Second : entity surf.PtpSecondService
          generic map (
             NUM_CLIENTS_G => 2,
             WIDTH_G       => 128)
          port map (
-            clk             => clk,
-            rst             => rst,
-            cancel          => cancel,
-            inputValid      => inputValid,
-            inputReady      => inputReady,
-            roundNearest    => roundNearest,
-            operand         => operandA,
-            resultValid     => resultValid,
-            resultReady     => resultReady,
-            resultValue     => resultValue,
-            resultRemainder => resultRemainder);
+            clk         => clk,             -- [in]
+            rst         => rst,             -- [in]
+            cancel      => cancel,          -- [in]
+            requests    => secondRequests,  -- [in]
+            inputReady  => inputReady,      -- [out]
+            results     => secondResults,   -- [out]
+            resultReady => resultReady);    -- [in]
 
       resultError <= (others => '0');
    end generate GEN_SECOND;

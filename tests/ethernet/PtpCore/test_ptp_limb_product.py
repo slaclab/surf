@@ -84,5 +84,6 @@ async def check_limb(d):
 @pytest.mark.parametrize("aw,bw", [(68, 64), (96, 95)], ids=["e2e", "pi"])
 def test_ptp_limb_product(aw, bw):
     run_surf_vhdl_test(
-        test_file=__file__, toplevel="surf.PtpLimbProduct",
+        test_file=__file__, toplevel="surf.PtpLimbProductWrapper",
+        extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpLimbProductWrapper.vhd"]},
         parameters={"A_G": aw, "B_G": bw}, extra_env={"LIMB_A": aw, "LIMB_B": bw})

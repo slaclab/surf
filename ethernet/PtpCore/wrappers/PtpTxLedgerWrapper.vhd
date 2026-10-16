@@ -32,6 +32,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpProtocolPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpTxLedgerWrapper is
@@ -99,43 +100,61 @@ architecture rtl of PtpTxLedgerWrapper is
    signal config      : PtpPortConfigType := PTP_PORT_CONFIG_INIT_C;
    signal wireMessage : PtpRxMessageType  := PTP_RX_MESSAGE_INIT_C;
    signal response    : PtpRxMessageType  := PTP_RX_MESSAGE_INIT_C;
-   signal sample      : PtpDelaySampleType;
+
+   signal dutWireMaster     : PtpRxMessageMasterType;
+   signal dutResponseMaster : PtpRxMessageMasterType;
+   signal dutSampleMaster   : PtpDelaySampleMasterType;
+   signal dutAllocation     : PtpLedgerAllocationType;
 
 begin
 
-   config.localIdentity                <= identity;
-   config.domainNumber                 <= domainNumber;
-   config.associationTimeout           <= timeout;
-   wireMessage.messageType             <= PTP_MSG_DELAY_REQ_C;
-   wireMessage.sequenceId              <= wireSequence;
-   wireMessage.sourcePortIdentity      <= wireIdentity;
-   wireMessage.domainNumber            <= wireDomain;
-   wireMessage.capture.ticks           <= wireTicks;
-   wireMessage.capture.generation      <= wireGeneration;
-   wireMessage.capture.error           <= wireError;
-   wireMessage.capture.timestamp       <= wireTimestamp;
-   wireMessage.capture.increment       <= wireIncrement;
-   wireMessage.capture.tickPhase       <= wirePhase;
-   wireMessage.capture.timeValid       <= wireTimeValid;
-   response.sequenceId                 <= responseSequence;
+   dutWireMaster <=
+   (
+      valid => wireValid,
+      data  => wireMessage
+   );
+   dutResponseMaster <=
+   (
+      valid => responseValid,
+      data  => response
+   );
+   sampleValid      <= dutSampleMaster.valid;
+   allocateReady    <= dutAllocation.ready;
+   allocateSequence <= dutAllocation.sequenceId;
+
+   config.localIdentity           <= identity;
+   config.domainNumber            <= domainNumber;
+   config.associationTimeout      <= timeout;
+   wireMessage.messageType        <= PTP_MSG_DELAY_REQ_C;
+   wireMessage.sequenceId         <= wireSequence;
+   wireMessage.sourcePortIdentity <= wireIdentity;
+   wireMessage.domainNumber       <= wireDomain;
+   wireMessage.capture.ticks      <= wireTicks;
+   wireMessage.capture.generation <= wireGeneration;
+   wireMessage.capture.error      <= wireError;
+   wireMessage.capture.timestamp  <= wireTimestamp;
+   wireMessage.capture.increment  <= wireIncrement;
+   wireMessage.capture.tickPhase  <= wirePhase;
+   wireMessage.capture.timeValid  <= wireTimeValid;
+   response.sequenceId            <= responseSequence;
    response.messageBody(159 downto 80) <= responseIdentity;
    response.messageBody(239 downto 160) <= responseTimestamp;
-   response.correction                 <= responseCorrection;
-   response.domainNumber               <= responseDomain;
-   response.capture.ticks              <= responseTicks;
-   response.capture.generation         <= responseGeneration;
-   sampleSequence                      <= sample.sequenceId;
-   sampleTicks                         <= sample.capture.ticks;
-   sampleGeneration                    <= sample.generation;
-   sampleTimestamp                     <= sample.capture.timestamp;
-   sampleIncrement                     <= sample.capture.increment;
-   samplePhase                         <= sample.capture.tickPhase;
-   sampleTimeValid                     <= sample.capture.timeValid;
-   sampleCaptureGeneration             <= sample.capture.generation;
-   sampleError                         <= sample.capture.error;
-   sampleRemoteTime                    <= sample.remoteTime;
-   sampleCorrection                    <= sample.correction;
-   sampleResponseTicks                 <= sample.responseTicks;
+   response.correction         <= responseCorrection;
+   response.domainNumber       <= responseDomain;
+   response.capture.ticks      <= responseTicks;
+   response.capture.generation <= responseGeneration;
+   sampleSequence              <= dutSampleMaster.data.sequenceId;
+   sampleTicks                 <= dutSampleMaster.data.capture.ticks;
+   sampleGeneration            <= dutSampleMaster.data.generation;
+   sampleTimestamp             <= dutSampleMaster.data.capture.timestamp;
+   sampleIncrement             <= dutSampleMaster.data.capture.increment;
+   samplePhase                 <= dutSampleMaster.data.capture.tickPhase;
+   sampleTimeValid             <= dutSampleMaster.data.capture.timeValid;
+   sampleCaptureGeneration     <= dutSampleMaster.data.capture.generation;
+   sampleError                 <= dutSampleMaster.data.capture.error;
+   sampleRemoteTime            <= dutSampleMaster.data.remoteTime;
+   sampleCorrection            <= dutSampleMaster.data.correction;
+   sampleResponseTicks         <= dutSampleMaster.data.responseTicks;
 
    U_DUT : entity surf.PtpTxLedger
       generic map (
@@ -144,28 +163,24 @@ begin
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          MEMORY_TYPE_G     => MEMORY_TYPE_G)
       port map (
-         clk              => clk,               -- [in]
-         rst              => rst,               -- [in]
-         restart          => restart,           -- [in]
-         macResetDone     => macResetDone,      -- [in]
-         ticks            => ticks,             -- [in]
-         generation       => generation,        -- [in]
-         config           => config,            -- [in]
-         allocate         => allocate,          -- [in]
-         allocateReady    => allocateReady,     -- [out]
-         allocateSequence => allocateSequence,  -- [out]
-         wireMessage      => wireMessage,       -- [in]
-         wireReady        => wireReady,         -- [out]
-         wireValid        => wireValid,         -- [in]
-         response         => response,          -- [in]
-         responseAccepted => responseAccepted,  -- [out]
-         responseReady    => responseReady,     -- [out]
-         responseValid    => responseValid,     -- [in]
-         sample           => sample,            -- [out]
-         sampleValid      => sampleValid,       -- [out]
-         sampleReady      => sampleReady,       -- [in]
-         ledgerStatus     => ledgerStatus,      -- [out]
-         timeoutCount     => timeoutCount,      -- [out]
-         rejectedCount    => rejectedCount);    -- [out]
+         clk              => clk,                -- [in]
+         rst              => rst,                -- [in]
+         restart          => restart,            -- [in]
+         macResetDone     => macResetDone,       -- [in]
+         ticks            => ticks,              -- [in]
+         generation       => generation,         -- [in]
+         config           => config,             -- [in]
+         allocate         => allocate,           -- [in]
+         allocation       => dutAllocation,      -- [out]
+         wireMaster       => dutWireMaster,      -- [in]
+         wireReady        => wireReady,          -- [out]
+         responseMaster   => dutResponseMaster,  -- [in]
+         responseReady    => responseReady,      -- [out]
+         sampleMaster     => dutSampleMaster,    -- [out]
+         sampleReady      => sampleReady,        -- [in]
+         ledgerStatus     => ledgerStatus,       -- [out]
+         responseAccepted => responseAccepted,   -- [out]
+         timeoutCount     => timeoutCount,       -- [out]
+         rejectedCount    => rejectedCount);     -- [out]
 
 end architecture rtl;

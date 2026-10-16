@@ -40,6 +40,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpConstDivide is
@@ -50,24 +51,20 @@ entity PtpConstDivide is
       -- Signed dividend width. Every supported divisor exceeds one, so a
       -- signed WIDTH_G-bit quotient cannot overflow; narrower consumers apply
       -- their own fit checks.
-      WIDTH_G        : positive         := 96;
+      WIDTH_G : positive         := 96;
       -- Positive constant divisor, as a 64-bit value because SECOND_Q16
       -- exceeds the range of a VHDL integer. Callers pass the named constant
       -- that carries the units for their conversion.
-      DIVISOR_G      : slv(63 downto 0) := (others => '1'));
+      DIVISOR_G : slv(63 downto 0) := (others => '1'));
    port (
-      clk             : in  sl;
-      rst             : in  sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Owner-local cancellation; discards pending and held work.
-      cancel          : in  sl;
-      inputValid      : in  sl;
-      inputReady      : out sl;
-      roundNearest    : in  sl;
-      operand         : in  slv(WIDTH_G-1 downto 0);
-      resultValid     : out sl;
-      resultReady     : in  sl;
-      resultValue     : out slv(WIDTH_G-1 downto 0);
-      resultRemainder : out slv(WIDTH_G-1 downto 0));
+      cancel      : in  sl;
+      request     : in  PtpConstDivideRequestType(operand(WIDTH_G-1 downto 0));
+      inputReady  : out sl;
+      result      : out PtpConstDivideResultType(value(WIDTH_G-1 downto 0), remainder(WIDTH_G-1 downto 0));
+      resultReady : in  sl);
 end entity PtpConstDivide;
 
 architecture rtl of PtpConstDivide is
@@ -89,33 +86,29 @@ architecture rtl of PtpConstDivide is
       IDLE_S, SERIAL_S, PUBLISH_S, DONE_S);
 
    type RegType is record
-      state           : StateType;
-      negative        : sl;
-      rounding        : sl;
-      highValue       : unsigned(HIGH_C-1 downto 0);
-      lowValue        : unsigned(SHIFT_C-1 downto 0);
-      quotient        : unsigned(HIGH_C-1 downto 0);
-      residual        : unsigned(ODD_BITS_C downto 0);
-      count           : natural range 0 to HIGH_C-1;
-      inputReady      : sl;
-      valid           : sl;
-      value           : slv(WIDTH_G-1 downto 0);
-      remainderValue  : slv(WIDTH_G-1 downto 0);
+      state      : StateType;
+      negative   : sl;
+      rounding   : sl;
+      highValue  : unsigned(HIGH_C-1 downto 0);
+      lowValue   : unsigned(SHIFT_C-1 downto 0);
+      quotient   : unsigned(HIGH_C-1 downto 0);
+      residual   : unsigned(ODD_BITS_C downto 0);
+      count      : natural range 0 to HIGH_C-1;
+      inputReady : sl;
+      result     : PtpConstDivideResultType(value(WIDTH_G-1 downto 0), remainder(WIDTH_G-1 downto 0));
    end record;
 
    constant REG_INIT_C : RegType := (
-      state           => IDLE_S,
-      negative        => '0',
-      rounding        => '0',
-      highValue       => (others => '0'),
-      lowValue        => (others => '0'),
-      quotient        => (others => '0'),
-      residual        => (others => '0'),
-      count           => 0,
-      inputReady      => '0',
-      valid           => '0',
-      value           => (others => '0'),
-      remainderValue  => (others => '0'));
+      state      => IDLE_S,
+      negative   => '0',
+      rounding   => '0',
+      highValue  => (others => '0'),
+      lowValue   => (others => '0'),
+      quotient   => (others => '0'),
+      residual   => (others => '0'),
+      count      => 0,
+      inputReady => '0',
+      result     => ptpConstDivideResultInit(WIDTH_G));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -137,44 +130,44 @@ begin
       variable quotientValue  : unsigned(WIDTH_G-1 downto 0);
       variable trial          : unsigned(ODD_BITS_C+1 downto 0);
    begin
-      v := r;
+      v            := r;
       v.inputReady := '0';
 
       -- Negating in the operand's own width covers the signed endpoint, where
       -- an absolute value in a narrower container would be invalid.
-      magnitude := unsigned(operand);
-      if operand(WIDTH_G-1) = '1' then
-         magnitude := unsigned(-signed(operand));
+      magnitude := unsigned(request.operand);
+      if request.operand(WIDTH_G-1) = '1' then
+         magnitude := unsigned(-signed(request.operand));
       end if;
 
       -- Exact truncation remainder, reassembled from the retained low bits.
       remainderValue := shift_left(resize(r.residual, REM_BITS_C), SHIFT_C) or
                         resize(r.lowValue, REM_BITS_C);
       quotientValue := resize(r.quotient, WIDTH_G);
-      trial := (others => '0');
+      trial         := (others => '0');
 
       case r.state is
          when IDLE_S =>
             v.inputReady := '1';
 
-            if inputValid = '1' then
+            if request.valid = '1' then
                -- Clear only the transaction state. A whole-record reset here
                -- would also clear the ready just advertised, so the accepting
                -- edge would never be observable to the client.
-               v.count := 0;
-               v.quotient := (others => '0');
-               v.residual := (others => '0');
-               v.valid := '0';
-               v.negative := operand(WIDTH_G-1);
-               v.rounding := roundNearest;
-               v.highValue := magnitude(WIDTH_G-1 downto SHIFT_C);
-               v.lowValue := magnitude(SHIFT_C-1 downto 0);
-               v.state := SERIAL_S;
+               v.count        := 0;
+               v.quotient     := (others => '0');
+               v.residual     := (others => '0');
+               v.result.valid := '0';
+               v.negative     := request.operand(WIDTH_G-1);
+               v.rounding     := request.roundNearest;
+               v.highValue    := magnitude(WIDTH_G-1 downto SHIFT_C);
+               v.lowValue     := magnitude(SHIFT_C-1 downto 0);
+               v.state        := SERIAL_S;
 
                -- A power-of-two divisor leaves the shifted value exact.
                if ODD_C = 1 then
                   v.quotient := magnitude(WIDTH_G-1 downto SHIFT_C);
-                  v.state := PUBLISH_S;
+                  v.state    := PUBLISH_S;
                end if;
             end if;
 
@@ -184,7 +177,7 @@ begin
             trial := shift_left(resize(r.residual, trial'length), 1);
             trial(0) := r.highValue(HIGH_C-1);
             v.highValue := shift_left(r.highValue, 1);
-            v.quotient := shift_left(r.quotient, 1);
+            v.quotient  := shift_left(r.quotient, 1);
 
             if trial >= ODD_C then
                trial := trial-resize(ODD_C, trial'length);
@@ -206,21 +199,21 @@ begin
                quotientValue := quotientValue+1;
             end if;
 
-            v.value := slv(quotientValue);
-            v.remainderValue := slv(resize(remainderValue, WIDTH_G));
+            v.result.value     := slv(quotientValue);
+            v.result.remainder := slv(resize(remainderValue, WIDTH_G));
 
             if r.negative = '1' then
-               v.value := slv(-signed(v.value));
-               v.remainderValue := slv(-signed(v.remainderValue));
+               v.result.value     := slv(-signed(v.result.value));
+               v.result.remainder := slv(-signed(v.result.remainder));
             end if;
 
-            v.valid := '1';
-            v.state := DONE_S;
+            v.result.valid := '1';
+            v.state        := DONE_S;
 
          when DONE_S =>
             if resultReady = '1' then
-               v.valid := '0';
-               v.state := IDLE_S;
+               v.result.valid := '0';
+               v.state        := IDLE_S;
             end if;
       end case;
 
@@ -235,11 +228,8 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValid <= r.valid;
-      resultValue <= r.value;
-      resultRemainder <= r.remainderValue;
+      rin    <= v;
+      result <= r.result;
    end process comb;
 
    seq : process (clk, rst) is

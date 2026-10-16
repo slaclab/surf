@@ -33,26 +33,26 @@ entity PtpProtocolReg is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
    port (
-      clk              : in sl;
-      rst              : in sl;
-      regRst           : in sl;
-      axiReadMaster    : in AxiLiteReadMasterType;
+      clk              : in  sl;
+      rst              : in  sl;
+      regRst           : in  sl;
+      axiReadMaster    : in  AxiLiteReadMasterType;
       axiReadSlave     : out AxiLiteReadSlaveType;
-      axiWriteMaster   : in AxiLiteWriteMasterType;
+      axiWriteMaster   : in  AxiLiteWriteMasterType;
       axiWriteSlave    : out AxiLiteWriteSlaveType;
-      configControl    : in PtpConfigControlType;
-      snapshotControl  : in PtpSnapshotControlType;
+      configControl    : in  PtpConfigControlType;
+      snapshotControl  : in  PtpSnapshotControlType;
       snapshotPrepared : out sl;
       configValid      : out sl;
       configPrepared   : out sl;
-      localMac         : in slv(47 downto 0);
+      localMac         : in  slv(47 downto 0);
       identityChanged  : out sl;
       activeConfig     : out PtpPortConfigType;
       sharedConfig     : out PtpSharedConfigType;
-      rxCounters       : in PtpRxCountersType;
-      status           : in PtpPortStatusType;
-      timeoutCount     : in slv(31 downto 0);
-      publication      : in PtpPublicationType);
+      rxCounters       : in  PtpRxCountersType;
+      status           : in  PtpPortStatusType;
+      timeoutCount     : in  slv(31 downto 0);
+      publication      : in  PtpPublicationType);
 end entity PtpProtocolReg;
 
 architecture rtl of PtpProtocolReg is
@@ -69,9 +69,9 @@ architecture rtl of PtpProtocolReg is
          v.associationTimeout := toSlv(PTP_MIN_ASSOCIATION_TICKS_C,64);
       end if;
 
-      v.maxExchange        := slv(resize(TICK_C*2, 64));  -- 2 s.
-      v.minRateSpan        := slv(TICK_C/2);             -- 0.5 s, rounded down to ticks.
-      v.maxRateAge         := slv(resize(TICK_C*4, 64));  -- 4 s.
+      v.maxExchange := slv(resize(TICK_C*2, 64));  -- 2 s.
+      v.minRateSpan := slv(TICK_C/2);             -- 0.5 s, rounded down to ticks.
+      v.maxRateAge  := slv(resize(TICK_C*4, 64));  -- 4 s.
       return v;
    end function;
 
@@ -171,29 +171,28 @@ architecture rtl of PtpProtocolReg is
    end record;
 
    constant REG_INIT_C : RegType := (
-      readSlave           => AXI_LITE_READ_SLAVE_INIT_C,
-      writeSlave          => AXI_LITE_WRITE_SLAVE_INIT_C,
-      candidate           => initialConfig,
-      configBus           => PTP_REGISTER_BUS_INIT_C,
-      validateValue       => (others => '0'),
-      validatePrevious    => (others => '0'),
-      configValid         => '1',
-      activeConfig        => initialConfig,
-      lastMac             => (others => '0'),
-      sequenceId          => (others => '0'),
-      snapshotBus         => PTP_REGISTER_BUS_INIT_C,
-      counterBus          => PTP_REGISTER_BUS_INIT_C);
+      readSlave        => AXI_LITE_READ_SLAVE_INIT_C,
+      writeSlave       => AXI_LITE_WRITE_SLAVE_INIT_C,
+      candidate        => initialConfig,
+      configBus        => PTP_REGISTER_BUS_INIT_C,
+      validateValue    => (others => '0'),
+      validatePrevious => (others => '0'),
+      configValid      => '1',
+      activeConfig     => initialConfig,
+      lastMac          => (others => '0'),
+      sequenceId       => (others => '0'),
+      snapshotBus      => PTP_REGISTER_BUS_INIT_C,
+      counterBus       => PTP_REGISTER_BUS_INIT_C);
 
-   signal r : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r               : RegType := REG_INIT_C;
+   signal rin             : RegType;
    signal snapshotSlave : PtpRegisterSlaveType;
-   signal counterSlave : PtpRegisterSlaveType;
+   signal counterSlave  : PtpRegisterSlaveType;
    signal snapshotScalars : Slv32Array(0 to 6);
    signal configMasters : PtpRegisterMasterArray(0 to 1);
-   signal configSlaves : PtpRegisterSlaveArray(0 to 1);
-   signal scanValid : sl;
-   signal scanIndex : slv(7 downto 0);
-   signal scanData : slv(31 downto 0);
+   signal configSlaves  : PtpRegisterSlaveArray(0 to 1);
+
+   signal configScan : PtpConfigScanType;
 
 begin
 
@@ -216,12 +215,12 @@ begin
          RECORD_WORDS_G => IntegerArray'(12,20),
          MEMORY_TYPE_G  => "block")
       port map (
-         clk         => clk,
-         rst         => rst,
-         publication => publication,
-         snapshot    => snapshotControl,
-         master      => r.snapshotBus.master,
-         slave       => snapshotSlave);
+         clk         => clk,                   -- [in]
+         rst         => rst,                   -- [in]
+         publication => publication,           -- [in]
+         snapshot    => snapshotControl,       -- [in]
+         master      => r.snapshotBus.master,  -- [in]
+         slave       => snapshotSlave);        -- [out]
 
    U_Snapshot : entity surf.PtpSnapshotBank
       generic map (
@@ -230,13 +229,13 @@ begin
          RST_ASYNC_G    => RST_ASYNC_G,
          WORDS_G        => 7)
       port map (
-         clk      => clk,
-         rst      => rst,
-         scalars  => snapshotScalars,
-         snapshot => snapshotControl,
-         prepared => snapshotPrepared,
-         master   => r.counterBus.master,
-         slave    => counterSlave);
+         clk      => clk,                  -- [in]
+         rst      => rst,                  -- [in]
+         scalars  => snapshotScalars,      -- [in]
+         snapshot => snapshotControl,      -- [in]
+         prepared => snapshotPrepared,     -- [out]
+         master   => r.counterBus.master,  -- [in]
+         slave    => counterSlave);        -- [out]
 
    configMasters(0) <= r.configBus.master;
    configMasters(1) <= PTP_REGISTER_MASTER_INIT_C;
@@ -249,16 +248,14 @@ begin
          DEFAULTS_G     => initialWords,
          MEMORY_TYPE_G  => "block")
       port map (
-         clk       => clk,
-         rst       => rst,
-         prepare   => configControl.prepare,
-         apply     => configControl.apply,
-         prepared  => configPrepared,
-         scanValid => scanValid,
-         scanIndex => scanIndex,
-         scanData  => scanData,
-         masters   => configMasters,
-         slaves    => configSlaves);
+         clk      => clk,                    -- [in]
+         rst      => rst,                    -- [in]
+         prepare  => configControl.prepare,  -- [in]
+         apply    => configControl.apply,    -- [in]
+         prepared => configPrepared,         -- [out]
+         scan     => configScan,             -- [out]
+         masters  => configMasters,          -- [in]
+         slaves   => configSlaves);          -- [out]
 
    comb : process (all) is
       variable readAddress      : slv(11 downto 0);
@@ -275,7 +272,7 @@ begin
       axiSlaveWaitTxn(ep, axiWriteMaster, axiReadMaster, v.writeSlave, v.readSlave);
       -- An inactive AXI address is unspecified. Decode only admitted requests;
       -- RAM responses retain their address/ownership inside ptpRegisterBus.
-      readAddress := (others => '0');
+      readAddress  := (others => '0');
       writeAddress := (others => '0');
       if ep.axiStatus.readEnable = '1' then
          readAddress := ep.axiReadMaster.araddr(11 downto 0);
@@ -360,37 +357,37 @@ begin
          v.configValid := '1';
       end if;
 
-      if scanValid = '1' then
-         configIndexValue := to_integer(unsigned(scanIndex));
+      if configScan.valid = '1' then
+         configIndexValue := to_integer(unsigned(configScan.index));
          if configIndexValue mod 2 = 0 then
-            v.validateValue(31 downto 0) := scanData;
+            v.validateValue(31 downto 0) := configScan.data;
          else
-            v.validateValue(63 downto 32) := scanData;
+            v.validateValue(63 downto 32) := configScan.data;
          end if;
 
          case configIndexValue is
             when 1 =>
-               v.candidate.identityOverride := scanData(4);
+               v.candidate.identityOverride := configScan.data(4);
             when 2 =>
-               v.candidate.domainNumber := scanData(7 downto 0);
-               v.candidate.minorVersion := scanData(11 downto 8);
-               if unsigned(scanData(11 downto 8)) > unsigned(PTP_MINOR_VERSION_MAX_C) then
+               v.candidate.domainNumber := configScan.data(7 downto 0);
+               v.candidate.minorVersion := configScan.data(11 downto 8);
+               if unsigned(configScan.data(11 downto 8)) > unsigned(PTP_MINOR_VERSION_MAX_C) then
                   v.configValid := '0';
                end if;
             when 4 to 5 =>
-               v.candidate.localIdentity(32*(configIndexValue-4)+31 downto 32*(configIndexValue-4)) := scanData;
-               if configIndexValue = 4 and unsigned(scanData(15 downto 0)) = 0 then
+               v.candidate.localIdentity(32*(configIndexValue-4)+31 downto 32*(configIndexValue-4)) := configScan.data;
+               if configIndexValue = 4 and unsigned(configScan.data(15 downto 0)) = 0 then
                   v.configValid := '0';
                end if;
             when 6 =>
-               v.candidate.localIdentity(79 downto 64) := scanData(15 downto 0);
+               v.candidate.localIdentity(79 downto 64) := configScan.data(15 downto 0);
             when 8 to 9 =>
-               v.candidate.sourceIdentity(32*(configIndexValue-8)+31 downto 32*(configIndexValue-8)) := scanData;
-               if configIndexValue = 8 and unsigned(scanData(15 downto 0)) = 0 then
+               v.candidate.sourceIdentity(32*(configIndexValue-8)+31 downto 32*(configIndexValue-8)) := configScan.data;
+               if configIndexValue = 8 and unsigned(configScan.data(15 downto 0)) = 0 then
                   v.configValid := '0';
                end if;
             when 10 =>
-               v.candidate.sourceIdentity(79 downto 64) := scanData(15 downto 0);
+               v.candidate.sourceIdentity(79 downto 64) := configScan.data(15 downto 0);
             when 33 =>
                v.candidate.delayInterval := v.validateValue;
             when 35 =>
@@ -404,14 +401,14 @@ begin
                v.candidate.maxExchange := v.validateValue;
             when 41 =>
                v.candidate.minRateSpan := v.validateValue;
-               v.validatePrevious := v.validateValue;
+               v.validatePrevious      := v.validateValue;
             when 43 =>
                v.candidate.maxRateAge := v.validateValue;
                if unsigned(v.validateValue) < unsigned(r.validatePrevious) then
                   v.configValid := '0';
                end if;
             when 44 =>
-               v.candidate.lfsrSeed := scanData(15 downto 0);
+               v.candidate.lfsrSeed := configScan.data(15 downto 0);
             when 47 =>
                v.candidate.maxPathDelay := v.validateValue;
                if signed(v.validateValue) <= 0 then
@@ -450,16 +447,16 @@ begin
       if not RST_ASYNC_G and rst = RST_POLARITY_G then
          v := REG_INIT_C;
       end if;
-      rin <= v;
-      configValid <= r.configValid;
-      axiReadSlave <= r.readSlave;
+      rin           <= v;
+      configValid   <= r.configValid;
+      axiReadSlave  <= r.readSlave;
       axiWriteSlave <= r.writeSlave;
-      activeConfig <= r.activeConfig;
+      activeConfig  <= r.activeConfig;
       -- Same-edge detection is required to cancel the old source session.
-      identityChanged <= toSl(localMac /= r.lastMac);
+      identityChanged                 <= toSl(localMac /= r.lastMac);
       sharedConfig.associationTimeout <= r.activeConfig.associationTimeout;
-      sharedConfig.syncTimeout <= r.activeConfig.syncTimeout;
-      sharedConfig.maxPathDelay <= r.activeConfig.maxPathDelay;
+      sharedConfig.syncTimeout        <= r.activeConfig.syncTimeout;
+      sharedConfig.maxPathDelay       <= r.activeConfig.maxPathDelay;
    end process comb;
    seq : process (clk, rst) is
    begin

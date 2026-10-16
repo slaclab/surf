@@ -24,6 +24,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
+use surf.PtpProtocolPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.PtpPkg.all;
@@ -66,14 +68,12 @@ entity PtpProtocolEngine is
       localMac        : in  slv(47 downto 0);
       phcStatus       : in  PtpPhcStatusType;
       captureAbort    : in  sl;
-      rxMessage       : in  PtpRxMessageType;
-      rxValid         : in  sl;
+      rxMessageMaster : in  PtpRxMessageMasterType;
       rxReady         : out sl;
       rxQueueOverflow : in  sl := '0';
       rxAbort         : in  sl;
       -- Physical completion producer holds its record through txMessageReady.
-      txMessage         : in  PtpRxMessageType;
-      txValid           : in  sl;
+      txMessageMaster   : in  PtpRxMessageMasterType;
       txMessageReady    : out sl;
       txAbort           : in  sl;
       txMaster          : out AxiStreamMasterType;
@@ -85,199 +85,181 @@ entity PtpProtocolEngine is
       -- Shared endpoint variable divider. Index 0 is the rate estimator and
       -- index 1 is the E2E calibration path; both use the positive-divisor,
       -- quotient-only contract and qualify their divisor before narrowing.
-      divideValid       : out slv(1 downto 0);
-      divideReady       : in  slv(1 downto 0)         := (others => '0');
-      divideOperandA    : out Slv128Array(1 downto 0);
-      divideOperandB    : out slv(159 downto 0);
+      divideRequests    : out PtpDivideRequestArray(1 downto 0)(operandB(79 downto 0));
+      divideReady       : in  slv(1 downto 0)                  := (others => '0');
       divideCancel      : out slv(1 downto 0);
-      divideResultValid : in  slv(1 downto 0)         := (others => '0');
-      divideResultReady : out slv(1 downto 0);
-      divideResultValue : in  Slv128Array(1 downto 0) := (others => (others => '0'));
-      divideResultError : in  slv(1 downto 0)         := (others => '0'));
+      divideResults     : in  PtpDivideResultArray(1 downto 0) := (others => PTP_DIVIDE_RESULT_INIT_C);
+      divideResultReady : out slv(1 downto 0));
 end entity PtpProtocolEngine;
 
 architecture rtl of PtpProtocolEngine is
 
-   signal activeConfig : PtpPortConfigType;
-   signal identityChanged : sl;
-   signal policyStatus : PtpPortStatusType;
-   signal flowStatus : PtpPortStatusType;
-   signal portStatus : PtpPortStatusType;
-   signal publication : PtpPublicationType;
-   signal policyValid : sl;
-   signal policyFlags : slv(15 downto 0);
-   signal announceValid : sl;
-   signal intervalValid : sl;
-   signal responseIntervalValid : sl;
-   signal responseIntervalTicks : slv(63 downto 0);
-   signal abortPort : sl;
-   signal abortNow : sl;
-   signal lastSyncTicks : slv(63 downto 0);
-   signal syncAdmitted : sl;
-   signal announceAdmitted : sl;
-   signal sampleAccepted : sl;
-   signal sampleTicks : slv(63 downto 0);
-   signal policyIdle : sl;
-   signal txEnable : sl;
-   signal txIntervalValid : sl;
-   signal allocate : sl;
-   signal allocateReady : sl;
+   signal activeConfig     : PtpPortConfigType;
+   signal identityChanged  : sl;
+   signal policyStatus     : PtpPortStatusType;
+   signal flowStatus       : PtpPortStatusType;
+   signal portStatus       : PtpPortStatusType;
+   signal publication      : PtpPublicationType;
+   signal abortPort        : sl;
+   signal abortNow         : sl;
+   signal lastSyncTicks    : slv(63 downto 0);
+   signal policyIdle       : sl;
+   signal txEnable         : sl;
+   signal txIntervalValid  : sl;
+   signal allocate         : sl;
+   signal allocateReady    : sl;
    signal allocateSequence : slv(15 downto 0);
-   signal response : PtpRxMessageType;
-   signal responseValid : sl;
-   signal responseReady : sl;
-   signal responseLog : slv(7 downto 0);
+   signal responseValid    : sl;
+   signal responseReady    : sl;
+   signal responseLog      : slv(7 downto 0);
    signal responseAccepted : sl;
-   signal delaySample : PtpDelaySampleType;
-   signal delayValid : sl;
-   signal delayReady : sl;
-   signal ledgerStatus : slv(31 downto 0);
-   signal timeoutCount : slv(31 downto 0);
+   signal delayValid       : sl;
+   signal delayReady       : sl;
+   signal ledgerStatus     : slv(31 downto 0);
+   signal timeoutCount     : slv(31 downto 0);
+
+   signal policyAdmission        : PtpAdmissionType;
+   signal policyResponseInterval : PtpIntervalType;
+   signal flowResponseMaster     : PtpRxMessageMasterType;
+   signal flowAdmissionEvents    : PtpAdmissionEventsType;
+   signal delayReqTxInterval     : PtpIntervalType;
+   signal ledgerSampleMaster     : PtpDelaySampleMasterType;
+   signal ledgerAllocation       : PtpLedgerAllocationType;
 
 begin
 
+   delayReqTxInterval <=
+   (
+      valid => txIntervalValid,
+      ticks => policyResponseInterval.ticks
+   );
+
+   responseValid    <= flowResponseMaster.valid;
+   delayValid       <= ledgerSampleMaster.valid;
+   allocateReady    <= ledgerAllocation.ready;
+   allocateSequence <= ledgerAllocation.sequenceId;
+
    -- Compose registered fields without introducing another sampling edge.
-   status <= portStatus;
-   portStatus.active <= policyStatus.active;
-   portStatus.announceValid <= policyStatus.announceValid;
-   portStatus.announceBody <= policyStatus.announceBody;
+   status                         <= portStatus;
+   portStatus.active              <= policyStatus.active;
+   portStatus.announceValid       <= policyStatus.announceValid;
+   portStatus.announceBody        <= policyStatus.announceBody;
    portStatus.grandmasterIdentity <= policyStatus.grandmasterIdentity;
-   portStatus.announceFlags <= policyStatus.announceFlags;
-   portStatus.utcOffset <= policyStatus.utcOffset;
-   portStatus.ratioValid <= flowStatus.ratioValid;
-   portStatus.rejectedCount <= flowStatus.rejectedCount;
-   portStatus.syncCount <= flowStatus.syncCount;
-   portStatus.delayCount <= flowStatus.delayCount;
-   portStatus.exchange <= flowStatus.exchange;
-   portStatus.ledgerStatus <= flowStatus.ledgerStatus;
-   portStatus.timeoutCount <= flowStatus.timeoutCount;
-   txIntervalValid <= responseAccepted and responseIntervalValid;
+   portStatus.announceFlags       <= policyStatus.announceFlags;
+   portStatus.utcOffset           <= policyStatus.utcOffset;
+   portStatus.ratioValid          <= flowStatus.ratioValid;
+   portStatus.rejectedCount       <= flowStatus.rejectedCount;
+   portStatus.syncCount           <= flowStatus.syncCount;
+   portStatus.delayCount          <= flowStatus.delayCount;
+   portStatus.exchange            <= flowStatus.exchange;
+   portStatus.ledgerStatus        <= flowStatus.ledgerStatus;
+   portStatus.timeoutCount        <= flowStatus.timeoutCount;
+   txIntervalValid                <= responseAccepted and policyResponseInterval.valid;
 
    U_Reg : entity surf.PtpProtocolReg
       generic map (
-         TPD_G => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         CLK_FREQ_G => CLK_FREQ_G,
+         TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
+         RST_ASYNC_G       => RST_ASYNC_G,
+         CLK_FREQ_G        => CLK_FREQ_G,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G => EGRESS_LATENCY_G)
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
       port map (
-         clk => clk,
-         rst => rst,
-         regRst => regRst,
-         axiReadMaster => axiReadMaster,
-         axiReadSlave => axiReadSlave,
-         axiWriteMaster => axiWriteMaster,
-         axiWriteSlave => axiWriteSlave,
-         configControl => configControl,
-         snapshotControl => snapshotControl,
-         snapshotPrepared => snapshotPrepared,
-         configValid => configValid,
-         configPrepared => configPrepared,
-         localMac => localMac,
-         identityChanged => identityChanged,
-         activeConfig => activeConfig,
-         sharedConfig => sharedConfig,
-         rxCounters => rxCounters,
-         status => portStatus,
-         timeoutCount => timeoutCount,
-         publication => publication);
+         clk              => clk,               -- [in]
+         rst              => rst,               -- [in]
+         regRst           => regRst,            -- [in]
+         axiReadMaster    => axiReadMaster,     -- [in]
+         axiReadSlave     => axiReadSlave,      -- [out]
+         axiWriteMaster   => axiWriteMaster,    -- [in]
+         axiWriteSlave    => axiWriteSlave,     -- [out]
+         configControl    => configControl,     -- [in]
+         snapshotControl  => snapshotControl,   -- [in]
+         snapshotPrepared => snapshotPrepared,  -- [out]
+         configValid      => configValid,       -- [out]
+         configPrepared   => configPrepared,    -- [out]
+         localMac         => localMac,          -- [in]
+         identityChanged  => identityChanged,   -- [out]
+         activeConfig     => activeConfig,      -- [out]
+         sharedConfig     => sharedConfig,      -- [out]
+         rxCounters       => rxCounters,        -- [in]
+         status           => portStatus,        -- [in]
+         timeoutCount     => timeoutCount,      -- [in]
+         publication      => publication);      -- [in]
 
    U_Policy : entity surf.PtpPortPolicy
       generic map (
-         TPD_G => TPD_G,
+         TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         CLK_FREQ_G => CLK_FREQ_G)
+         RST_ASYNC_G    => RST_ASYNC_G,
+         CLK_FREQ_G     => CLK_FREQ_G)
       port map (
-         clk => clk,
-         rst => rst,
-         config => activeConfig,
-         applyConfig => configControl.apply,
-         identityChanged => identityChanged,
-         enable => enable,
-         restart => restart,
-         linkReady => linkReady,
-         phcStatus => phcStatus,
-         captureAbort => captureAbort,
-         rxQueueOverflow => rxQueueOverflow,
-         rxAbort => rxAbort,
-         txAbort => txAbort,
-         rxMessage => rxMessage,
-         rxValid => rxValid,
-         idle => policyIdle,
-         syncAdmitted => syncAdmitted,
-         announceAdmitted => announceAdmitted,
-         sampleAccepted => sampleAccepted,
-         sampleTicks => sampleTicks,
-         responseLog => responseLog,
-         policyValid => policyValid,
-         policyFlags => policyFlags,
-         announceValid => announceValid,
-         intervalValid => intervalValid,
-         responseIntervalValid => responseIntervalValid,
-         responseIntervalTicks => responseIntervalTicks,
-         cancel => abortPort,
-         abortRegistered => abortNow,
-         lastSyncTicks => lastSyncTicks,
-         lifecycle => lifecycle,
-         status => policyStatus);
+         clk              => clk,                     -- [in]
+         rst              => rst,                     -- [in]
+         config           => activeConfig,            -- [in]
+         applyConfig      => configControl.apply,     -- [in]
+         identityChanged  => identityChanged,         -- [in]
+         enable           => enable,                  -- [in]
+         restart          => restart,                 -- [in]
+         linkReady        => linkReady,               -- [in]
+         phcStatus        => phcStatus,               -- [in]
+         captureAbort     => captureAbort,            -- [in]
+         rxQueueOverflow  => rxQueueOverflow,         -- [in]
+         rxAbort          => rxAbort,                 -- [in]
+         txAbort          => txAbort,                 -- [in]
+         rxMessageMaster  => rxMessageMaster,         -- [in]
+         idle             => policyIdle,              -- [in]
+         admissionEvents  => flowAdmissionEvents,     -- [in]
+         responseLog      => responseLog,             -- [in]
+         admission        => policyAdmission,         -- [out]
+         responseInterval => policyResponseInterval,  -- [out]
+         cancel           => abortPort,               -- [out]
+         abortRegistered  => abortNow,                -- [out]
+         lastSyncTicks    => lastSyncTicks,           -- [out]
+         lifecycle        => lifecycle,               -- [out]
+         status           => policyStatus);           -- [out]
 
    U_Flow : entity surf.PtpSyncFlow
       generic map (
-         TPD_G => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G => RST_ASYNC_G,
-         CLK_FREQ_G => CLK_FREQ_G,
-         INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G => EGRESS_LATENCY_G,
+         TPD_G                 => TPD_G,
+         RST_POLARITY_G        => RST_POLARITY_G,
+         RST_ASYNC_G           => RST_ASYNC_G,
+         CLK_FREQ_G            => CLK_FREQ_G,
+         INGRESS_LATENCY_G     => INGRESS_LATENCY_G,
+         EGRESS_LATENCY_G      => EGRESS_LATENCY_G,
          HISTORY_MEMORY_TYPE_G => HISTORY_MEMORY_TYPE_G,
-         PAIR_MEMORY_TYPE_G => PAIR_MEMORY_TYPE_G)
+         PAIR_MEMORY_TYPE_G    => PAIR_MEMORY_TYPE_G)
       port map (
-         clk => clk,
-         rst => rst,
-         activeConfig => activeConfig,
-         phcStatus => phcStatus,
-         rxMessage => rxMessage,
-         rxValid => rxValid,
-         rxReady => rxReady,
-         policyStatus => policyStatus,
-         policyValid => policyValid,
-         policyFlags => policyFlags,
-         announceValid => announceValid,
-         intervalValid => intervalValid,
-         abortPort => abortPort,
-         abortNow => abortNow,
-         lastSyncTicks => lastSyncTicks,
-         syncAdmitted => syncAdmitted,
-         announceAdmitted => announceAdmitted,
-         sampleAccepted => sampleAccepted,
-         sampleTicks => sampleTicks,
-         policyIdle => policyIdle,
-         txEnable => txEnable,
-         response => response,
-         responseValid => responseValid,
-         responseReady => responseReady,
-         responseLog => responseLog,
-         delaySample => delaySample,
-         delayValid => delayValid,
-         delayReady => delayReady,
-         ledgerStatus => ledgerStatus,
-         timeoutCount => timeoutCount,
-         measurementMaster => measurementMaster,
-         measurementSlave => measurementSlave,
-         status => flowStatus,
-         publication => publication,
-         divideValid => divideValid,
-         divideReady => divideReady,
-         divideOperandA => divideOperandA,
-         divideOperandB => divideOperandB,
-         divideCancel => divideCancel,
-         divideResultValid => divideResultValid,
-         divideResultReady => divideResultReady,
-         divideResultValue => divideResultValue,
-         divideResultError => divideResultError);
+         clk               => clk,                  -- [in]
+         rst               => rst,                  -- [in]
+         activeConfig      => activeConfig,         -- [in]
+         phcStatus         => phcStatus,            -- [in]
+         rxMessageMaster   => rxMessageMaster,      -- [in]
+         rxReady           => rxReady,              -- [out]
+         policyStatus      => policyStatus,         -- [in]
+         admission         => policyAdmission,      -- [in]
+         abortPort         => abortPort,            -- [in]
+         abortNow          => abortNow,             -- [in]
+         lastSyncTicks     => lastSyncTicks,        -- [in]
+         admissionEvents   => flowAdmissionEvents,  -- [out]
+         policyIdle        => policyIdle,           -- [out]
+         txEnable          => txEnable,             -- [out]
+         responseMaster    => flowResponseMaster,   -- [out]
+         responseReady     => responseReady,        -- [in]
+         responseLog       => responseLog,          -- [out]
+         delayMaster       => ledgerSampleMaster,   -- [in]
+         delayReady        => delayReady,           -- [out]
+         ledgerStatus      => ledgerStatus,         -- [in]
+         timeoutCount      => timeoutCount,         -- [in]
+         measurementMaster => measurementMaster,    -- [out]
+         measurementSlave  => measurementSlave,     -- [in]
+         status            => flowStatus,           -- [out]
+         publication       => publication,          -- [out]
+         divideRequests    => divideRequests,       -- [out]
+         divideReady       => divideReady,          -- [in]
+         divideCancel      => divideCancel,         -- [out]
+         divideResults     => divideResults,        -- [in]
+         divideResultReady => divideResultReady);   -- [out]
 
    U_DelayReqTx : entity surf.PtpDelayReqTx
       generic map (
@@ -285,21 +267,19 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G)
       port map (
-         clk              => clk,                         -- [in]
-         rst              => rst,                         -- [in]
-         enable           => txEnable,                    -- [in]
-         cancel           => abortPort,                    -- [in]
-         ticks            => phcStatus.ticks,             -- [in]
-         config           => activeConfig,  -- [in]
-         localMac         => localMac,                    -- [in]
-         intervalValid    => txIntervalValid,             -- [in]
-         intervalTicks    => responseIntervalTicks,             -- [in]
-         ledgerCancel     => abortNow,                    -- [in]
-         allocate         => allocate,                    -- [out]
-         allocateReady    => allocateReady,               -- [in]
-         allocateSequence => allocateSequence,            -- [in]
-         txMaster         => txMaster,                    -- [out]
-         txSlave          => txSlave);                    -- [in]
+         clk          => clk,                 -- [in]
+         rst          => rst,                 -- [in]
+         enable       => txEnable,            -- [in]
+         cancel       => abortPort,           -- [in]
+         ticks        => phcStatus.ticks,     -- [in]
+         config       => activeConfig,        -- [in]
+         localMac     => localMac,            -- [in]
+         interval     => delayReqTxInterval,  -- [in]
+         ledgerCancel => abortNow,            -- [in]
+         allocate     => allocate,            -- [out]
+         allocation   => ledgerAllocation,    -- [in]
+         txMaster     => txMaster,            -- [out]
+         txSlave      => txSlave);            -- [in]
 
    U_Ledger : entity surf.PtpTxLedger
       generic map (
@@ -314,22 +294,18 @@ begin
          macResetDone     => macResetDone,          -- [in]
          ticks            => phcStatus.ticks,       -- [in]
          generation       => phcStatus.generation,  -- [in]
-         config           => activeConfig,        -- [in]
+         config           => activeConfig,          -- [in]
          allocate         => allocate,              -- [in]
-         allocateReady    => allocateReady,         -- [out]
-         allocateSequence => allocateSequence,      -- [out]
-         wireMessage      => txMessage,             -- [in]
+         allocation       => ledgerAllocation,      -- [out]
+         wireMaster       => txMessageMaster,       -- [in]
          wireReady        => txMessageReady,        -- [out]
-         wireValid        => txValid,               -- [in]
-         response         => response,            -- [in]
+         responseMaster   => flowResponseMaster,    -- [in]
          responseReady    => responseReady,         -- [out]
-         responseValid    => responseValid,         -- [in]
-         sample           => delaySample,           -- [out]
-         sampleValid      => delayValid,            -- [out]
+         sampleMaster     => ledgerSampleMaster,    -- [out]
          sampleReady      => delayReady,            -- [in]
-         timeoutCount     => timeoutCount,          -- [out]
          ledgerStatus     => ledgerStatus,          -- [out]
          responseAccepted => responseAccepted,      -- [out]
-         rejectedCount    => open);       -- [out]
+         timeoutCount     => timeoutCount,          -- [out]
+         rejectedCount    => open);                 -- [out]
 
 end architecture rtl;

@@ -35,6 +35,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 
 entity PtpLimbProduct is
    generic (
@@ -44,21 +45,15 @@ entity PtpLimbProduct is
       A_G            : positive := 96;
       B_G            : positive := 95);
    port (
-      clk         : in  sl;
-      rst         : in  sl;
+      clk : in  sl;
+      rst : in  sl;
       -- Owner-local cancellation; discards pending and held work.
-      cancel      : in  sl;
-      inputValid  : in  sl;
-      inputReady  : out sl;
-      operandA    : in  slv(A_G-1 downto 0);
-      operandB    : in  slv(B_G-1 downto 0);
-      resultValid : out sl;
-      resultReady : in  sl;
-      resultValue : out slv(A_G+B_G-1 downto 0);
-      -- Asserted when the full product does not fit signed 128 bits,
-      -- independent of whether any later shifted result would be
-      -- representable.
-      overflow    : out sl);
+      cancel     : in  sl;
+      request    : in  PtpProductRequestType(operandA(A_G-1 downto 0), operandB(B_G-1 downto 0));
+      inputReady : out sl;
+      -- result.overflow checks full-product signed128 fit before any shift.
+      result      : out PtpProductResultType(value(A_G+B_G-1 downto 0));
+      resultReady : in  sl);
 end entity PtpLimbProduct;
 
 architecture rtl of PtpLimbProduct is
@@ -83,9 +78,7 @@ architecture rtl of PtpLimbProduct is
       negative    : sl;
       accumulator : unsigned(WIDTH_C+PAD_BITS_C-1 downto 0);
       inputReady  : sl;
-      value       : slv(WIDTH_C-1 downto 0);
-      valid       : sl;
-      overflow    : sl;
+      result      : PtpProductResultType(value(WIDTH_C-1 downto 0));
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -96,9 +89,7 @@ architecture rtl of PtpLimbProduct is
       negative    => '0',
       accumulator => (others => '0'),
       inputReady  => '0',
-      value       => (others => '0'),
-      valid       => '0',
-      overflow    => '0');
+      result      => ptpProductResultInit(WIDTH_C));
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -118,7 +109,7 @@ begin
       variable v     : RegType;
       variable value : signed(WIDTH_C-1 downto 0);
    begin
-      v := r;
+      v            := r;
       v.inputReady := '0';
 
       -- B was left-aligned into whole limbs, so the accumulator carries
@@ -134,28 +125,28 @@ begin
          when IDLE_S =>
             v.inputReady := '1';
 
-            if inputValid = '1' then
+            if request.valid = '1' then
                -- Clear only the transaction state. A whole-record reset here
                -- would also clear the ready just advertised, so the accepting
                -- edge would never be observable to the client.
-               v.count := 0;
-               v.accumulator := (others => '0');
-               v.valid := '0';
-               v.overflow := '0';
+               v.count           := 0;
+               v.accumulator     := (others => '0');
+               v.result.valid    := '0';
+               v.result.overflow := '0';
 
                -- Negate in the operand's own width so the signed endpoint is
                -- representable as a magnitude.
-               v.a := unsigned(operandA);
-               v.negative := operandA(A_G-1);
-               if operandA(A_G-1) = '1' then
-                  v.a := unsigned(-signed(operandA));
+               v.a        := unsigned(request.operandA);
+               v.negative := request.operandA(A_G-1);
+               if request.operandA(A_G-1) = '1' then
+                  v.a := unsigned(-signed(request.operandA));
                end if;
 
                -- Left-align B in its padded container so the first limb read
                -- is B's most significant limb. Plain resize would zero-pad on
                -- the left and shift every limb when B_G is not a multiple of
                -- the limb width.
-               v.b := shift_left(resize(unsigned(operandB), v.b'length), PAD_BITS_C);
+               v.b     := shift_left(resize(unsigned(request.operandB), v.b'length), PAD_BITS_C);
                v.state := MULTIPLY_S;
             end if;
 
@@ -175,20 +166,20 @@ begin
             end if;
 
          when FINISH_S =>
-            v.value := slv(value);
-            v.overflow := '0';
+            v.result.value    := slv(value);
+            v.result.overflow := '0';
 
             if resize(resize(value, 128), WIDTH_C) /= value then
-               v.overflow := '1';
+               v.result.overflow := '1';
             end if;
 
-            v.valid := '1';
-            v.state := DONE_S;
+            v.result.valid := '1';
+            v.state        := DONE_S;
 
          when DONE_S =>
             if resultReady = '1' then
-               v.valid := '0';
-               v.state := IDLE_S;
+               v.result.valid := '0';
+               v.state        := IDLE_S;
             end if;
       end case;
 
@@ -203,20 +194,17 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValid <= r.valid;
-      resultValue <= r.value;
-      overflow <= r.overflow;
+      rin    <= v;
+      result <= r.result;
    end process comb;
 
    seq : process (clk, rst) is
    begin
       if (RST_ASYNC_G and rst = RST_POLARITY_G) then
-         r <= REG_INIT_C after TPD_G;
+         r       <= REG_INIT_C after TPD_G;
          product <= (others => '0') after TPD_G;
       elsif rising_edge(clk) then
-         r <= rin after TPD_G;
+         r       <= rin after TPD_G;
          product <= partialProduct after TPD_G;
       end if;
    end process seq;

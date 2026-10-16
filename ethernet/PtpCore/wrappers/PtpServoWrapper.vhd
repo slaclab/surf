@@ -32,6 +32,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.PtpPkg.all;
 
@@ -41,14 +42,14 @@ entity PtpServoWrapper is
    port (
       clk                : in  sl;
       rst                : in  sl;
-      regRst             : in  sl               := '0';
-      restart            : in  sl               := '0';
-      generation         : in  slv(31 downto 0) := (others => '0');
-      associationTimeout : in  slv(63 downto 0) := x"3FFFFFFFFFFFFFFF";
-      snapshotPublish    : in sl                := '0';
+      regRst             : in  sl                := '0';
+      restart            : in  sl                := '0';
+      generation         : in  slv(31 downto 0)  := (others => '0');
+      associationTimeout : in  slv(63 downto 0)  := x"3FFFFFFFFFFFFFFF";
+      snapshotPublish    : in  sl                := '0';
       snapshotPrepared   : out sl;
-      snapshotCapture    : in  sl               := '0';
-      snapshotSequence   : in  slv(31 downto 0) := (others => '0');
+      snapshotCapture    : in  sl                := '0';
+      snapshotSequence   : in  slv(31 downto 0)  := (others => '0');
       axil_awaddr        : in  slv(31 downto 0);
       axil_awvalid       : in  sl;
       axil_awready       : out sl;
@@ -76,7 +77,7 @@ entity PtpServoWrapper is
       isDelay            : in  sl;
       forwardValue       : in  slv(127 downto 0);
       delayValue         : in  slv(127 downto 0);
-      maxPathDelay       : in  slv(63 downto 0) := x"0000000F42400000";
+      maxPathDelay       : in  slv(63 downto 0)  := x"0000000F42400000";
       ratio              : in  slv(63 downto 0);
       inputValid         : in  sl;
       inputReady         : out sl;
@@ -98,7 +99,7 @@ end entity PtpServoWrapper;
 
 architecture rtl of PtpServoWrapper is
 
-   signal resetN         : sl;
+   signal resetN : sl;
    signal axiReadMaster  : AxiLiteReadMasterType;
    signal axiReadSlave   : AxiLiteReadSlaveType;
    signal axiWriteMaster : AxiLiteWriteMasterType;
@@ -118,34 +119,27 @@ architecture rtl of PtpServoWrapper is
    signal servoStatus       : PtpServoStatusType;
    -- Private shared-service instances keep each fixture's arithmetic
    -- contract identical to the endpoint's without its cross-client arbiter.
-   signal secondValid       : slv(0 downto 0);
    signal secondReady       : slv(0 downto 0);
-   signal secondRound       : slv(0 downto 0);
-   signal secondOperand     : slv(127 downto 0);
    signal secondCancel      : slv(0 downto 0);
-   signal secondResultValid : slv(0 downto 0);
    signal secondResultReady : slv(0 downto 0);
-   signal secondQuotient    : slv(127 downto 0);
-   signal secondRemainder   : slv(127 downto 0);
+
+   signal secondRequests : PtpConstDivideRequestArray(1-1 downto 0)(operand(128-1 downto 0));
+   signal secondResults  : PtpConstDivideResultArray(1-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
 
 begin
 
    U_Second : entity surf.PtpSecondService
       generic map (
-         NUM_CLIENTS_G  => 1,
-         WIDTH_G        => 128)
+         NUM_CLIENTS_G => 1,
+         WIDTH_G       => 128)
       port map (
-         clk             => clk,                -- [in]
-         rst             => rst,                -- [in]
-         cancel          => secondCancel,       -- [in]
-         inputValid      => secondValid,        -- [in]
-         inputReady      => secondReady,        -- [out]
-         roundNearest    => secondRound,        -- [in]
-         operand         => secondOperand,      -- [in]
-         resultValid     => secondResultValid,  -- [out]
-         resultReady     => secondResultReady,  -- [in]
-         resultValue     => secondQuotient,     -- [out]
-         resultRemainder => secondRemainder);   -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => secondCancel,        -- [in]
+         requests    => secondRequests,      -- [in]
+         inputReady  => secondReady,         -- [out]
+         results     => secondResults,       -- [out]
+         resultReady => secondResultReady);  -- [in]
 
    resetN                          <= not rst;
    sharedConfig.syncTimeout        <= x"3FFFFFFFFFFFFFFF";
@@ -227,36 +221,32 @@ begin
       generic map (
          CLK_FREQ_G => CLK_FREQ_G)
       port map (
-         secondValid       => secondValid(0),
-         secondReady       => secondReady(0),
-         secondRound       => secondRound(0),
-         secondOperand     => secondOperand,
-         secondCancel      => secondCancel(0),
-         secondResultValid => secondResultValid(0),
-         secondResultReady => secondResultReady(0),
-         secondQuotient    => secondQuotient,
-         secondRemainder   => secondRemainder,
-         clk            => clk,             -- [in]
-         rst            => rst,             -- [in]
-         regRst         => regRst,          -- [in]
-         restart        => restart,         -- [in]
-         axiReadMaster  => axiReadMaster,   -- [in]
-         axiReadSlave   => axiReadSlave,    -- [out]
-         axiWriteMaster => axiWriteMaster,  -- [in]
-         axiWriteSlave  => axiWriteSlave,   -- [out]
-         configControl      => configControl,      -- [in]
-         configPrepared     => configPrepared,     -- [out]
-         configValid        => configValid,        -- [out]
-         snapshotPrepared   => snapshotPrepared,   -- [out]
-         snapshotControl    => snapshotControl,    -- [in]
-         servoEnable        => '1',                -- [in]
-         sharedConfig       => sharedConfig,       -- [in]
-         phcStatus          => status,             -- [in]
-         measurementMaster  => measurementMaster,  -- [in]
-         measurementSlave   => measurementSlave,   -- [out]
-         commandMaster      => commandMaster,      -- [out]
-         commandSlave       => commandSlave,       -- [in]
-         expireTime         => expireTime,         -- [out]
-         status             => servoStatus);       -- [out]
+         clk               => clk,                    -- [in]
+         rst               => rst,                    -- [in]
+         regRst            => regRst,                 -- [in]
+         axiReadMaster     => axiReadMaster,          -- [in]
+         axiReadSlave      => axiReadSlave,           -- [out]
+         axiWriteMaster    => axiWriteMaster,         -- [in]
+         axiWriteSlave     => axiWriteSlave,          -- [out]
+         configControl     => configControl,          -- [in]
+         snapshotControl   => snapshotControl,        -- [in]
+         snapshotPrepared  => snapshotPrepared,       -- [out]
+         configValid       => configValid,            -- [out]
+         configPrepared    => configPrepared,         -- [out]
+         servoEnable       => '1',                    -- [in]
+         sharedConfig      => sharedConfig,           -- [in]
+         measurementMaster => measurementMaster,      -- [in]
+         measurementSlave  => measurementSlave,       -- [out]
+         restart           => restart,                -- [in]
+         phcStatus         => status,                 -- [in]
+         expireTime        => expireTime,             -- [out]
+         commandMaster     => commandMaster,          -- [out]
+         commandSlave      => commandSlave,           -- [in]
+         status            => servoStatus,            -- [out]
+         secondRequest     => secondRequests(0),      -- [out]
+         secondReady       => secondReady(0),         -- [in]
+         secondCancel      => secondCancel(0),        -- [out]
+         secondResult      => secondResults(0),       -- [in]
+         secondResultReady => secondResultReady(0));  -- [out]
 
 end architecture rtl;

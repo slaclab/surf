@@ -146,12 +146,81 @@ package PtpSyncPkg is
    procedure takeSyncWord(variable sample : inout PtpSyncSampleType;
       constant index : natural; constant word : slv(31 downto 0));
 
+   -- Rate request in clk. Hold through inputReady; acceptance captures all fields.
+   -- minimumSpan is raw cycles. cancel/reset invalidates same-edge acceptance.
+   type PtpRateRequestType is record
+      valid       : sl;
+      sample      : PtpSyncSampleType;
+      minimumSpan : slv(63 downto 0);
+   end record;
+
+   constant PTP_RATE_REQUEST_INIT_C : PtpRateRequestType := (
+      valid       => '0',
+      sample      => PTP_SYNC_SAMPLE_INIT_C,
+      minimumSpan => (others => '0'));
+
+   -- Rate result in clk, held until resultReady. ratio is Q48 ns/raw cycle;
+   -- normalizedTime, correction and forwardValue are signed128 Q16 ns. accepted
+   -- qualifies the sample; ratioUpdate independently renews ratio freshness.
+   -- The live rejected counter is separate. cancel/reset discards the result.
+   type PtpRateResultType is record
+      valid          : sl;
+      ratio          : slv(63 downto 0);
+      ratioValid     : sl;
+      ratioUpdate    : sl;
+      normalizedTime : slv(127 downto 0);
+      correction     : slv(127 downto 0);
+      forwardValue   : slv(127 downto 0);
+      accepted       : sl;
+   end record;
+
+   constant PTP_RATE_RESULT_INIT_C : PtpRateResultType := (
+      valid          => '0',
+      ratio          => (others => '0'),
+      ratioValid     => '0',
+      ratioUpdate    => '0',
+      normalizedTime => (others => '0'),
+      correction     => (others => '0'),
+      forwardValue   => (others => '0'),
+      accepted       => '0');
+
+   -- E2E request in clk, held through inputReady. Acceptance freezes both samples,
+   -- Q48 ratio and Q16 ns path limit. The normalized upload has a separate lifetime.
+   -- Cancel/reset invalidates acceptance and pending work.
+   type PtpE2eRequestType is record
+      valid        : sl;
+      sync         : PtpSyncSampleType;
+      delay        : PtpDelaySampleType;
+      ratio        : slv(63 downto 0);
+      maxPathDelay : slv(63 downto 0);
+   end record;
+
+   constant PTP_E2E_REQUEST_INIT_C : PtpE2eRequestType := (
+      valid        => '0',
+      sync         => PTP_SYNC_SAMPLE_INIT_C,
+      delay        => PTP_DELAY_SAMPLE_INIT_C,
+      ratio        => (others => '0'),
+      maxPathDelay => (others => '0'));
+
+   -- E2E result in clk, held until resultReady; error qualifies data. Payload
+   -- units are defined by PtpMeasurementType. Cancel/reset invalidates transfer.
+   type PtpE2eResultType is record
+      valid : sl;
+      data  : PtpMeasurementType;
+      error : sl;
+   end record;
+
+   constant PTP_E2E_RESULT_INIT_C : PtpE2eResultType := (
+      valid => '0',
+      data  => PTP_MEASUREMENT_INIT_C,
+      error => '0');
+
 end package PtpSyncPkg;
 
 package body PtpSyncPkg is
 
    function syncWord(sample : PtpSyncSampleType;
-   index            : natural) return slv is
+   index : natural) return slv is
       variable word : slv(31 downto 0) := (others => '0');
    begin
 
@@ -194,7 +263,7 @@ package body PtpSyncPkg is
          when 2 =>
             sample.capture.tickPhase := word(PTP_TICK_PHASE_BITS_C-1 downto 0);
             sample.capture.timeValid := word(3);
-            sample.capture.error := word(4);
+            sample.capture.error     := word(4);
          when 3 =>
             sample.capture.generation := word;
          when 4 =>

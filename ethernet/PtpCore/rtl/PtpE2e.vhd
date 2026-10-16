@@ -49,6 +49,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.PtpPkg.all;
 use surf.PtpSyncPkg.all;
 
@@ -61,40 +62,28 @@ entity PtpE2e is
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       NORMALIZED_SYNC_G : boolean          := false);
    port (
-      clk    : in sl;
-      rst    : in sl;
-      cancel : in sl;
+      clk    : in  sl;
+      rst    : in  sl;
+      cancel : in  sl;
 
       -- Private history stream: words 0..3 the forward value, 4..7 the
       -- corrected Sync time in Q16 nanoseconds. Only used when the production
       -- normalized-Sync path supplies them.
-      normalizedMaster : in PtpSyncNormalizedMasterType := PTP_SYNC_NORMALIZED_MASTER_INIT_C;
+      normalizedMaster : in  PtpSyncNormalizedMasterType := PTP_SYNC_NORMALIZED_MASTER_INIT_C;
       normalizedReady  : out sl;
-
-      inputValid   : in  sl;
-      inputReady   : out sl;
-      syncSample   : in  PtpSyncSampleType;
-      delaySample  : in  PtpDelaySampleType;
-      ratio        : in  slv(63 downto 0);
-      maxPathDelay : in slv(63 downto 0);
-
-      resultValue : out PtpMeasurementType;
+      request          : in  PtpE2eRequestType;
+      inputReady       : out sl;
       -- Registered valid; transfer requires valid/ready high and cancel/reset
       -- inactive.
-      resultValid : out sl;
+      result      : out PtpE2eResultType;
       resultReady : in  sl;
-      resultError : out sl;
 
       -- Shared endpoint variable divider for the calibration planes.
-      divideValid       : out sl;
-      divideReady       : in  sl                := '0';
-      divideOperandA    : out slv(127 downto 0);
-      divideOperandB    : out slv(79 downto 0);
+      divideRequest     : out PtpDivideRequest80Type;
+      divideReady       : in  sl                  := '0';
       divideCancel      : out sl;
-      divideResultValid : in  sl                := '0';
-      divideResultReady : out sl;
-      divideResultValue : in  slv(127 downto 0) := (others => '0');
-      divideResultError : in  sl                := '0');
+      divideResult      : in  PtpDivideResultType := PTP_DIVIDE_RESULT_INIT_C;
+      divideResultReady : out sl);
 end entity PtpE2e;
 
 architecture rtl of PtpE2e is
@@ -126,111 +115,125 @@ architecture rtl of PtpE2e is
    type EpochSelectType is (LOCAL_E, SYNC_E, REMOTE_E);
 
    type RegType is record
-      state       : StateType;
-      returnState : StateType;
-      epochSelect : EpochSelectType;
-      inputReady  : sl;
+      state        : StateType;
+      returnState  : StateType;
+      epochSelect  : EpochSelectType;
+      inputReady   : sl;
       historyReady : sl;
 
       -- Named working values, all Q16 nanoseconds unless stated.
-      localTime   : signed(127 downto 0);
-      syncTime    : signed(127 downto 0);
-      remoteTime  : signed(127 downto 0);
-      forwardValue : signed(127 downto 0);
-      elapsedValue : signed(127 downto 0);
-      productValue : signed(127 downto 0);
+      localTime     : signed(127 downto 0);
+      syncTime      : signed(127 downto 0);
+      remoteTime    : signed(127 downto 0);
+      forwardValue  : signed(127 downto 0);
+      elapsedValue  : signed(127 downto 0);
+      productValue  : signed(127 downto 0);
       rawSeparation : signed(67 downto 0);
 
       -- Every operand is captured at the accepting edge. The producer is
       -- free to change its sample records immediately afterward, so reading
       -- them in a later state would use perturbed values.
-      ratio          : unsigned(63 downto 0);
-      rxIncrement    : unsigned(63 downto 0);
-      txIncrement    : unsigned(63 downto 0);
-      maximum        : signed(63 downto 0);
-      localSeconds   : slv(47 downto 0);
-      localSubsecond : slv(47 downto 0);
-      syncSeconds    : slv(47 downto 0);
-      syncSubsecond  : slv(47 downto 0);
-      remoteSeconds  : slv(47 downto 0);
+      ratio           : unsigned(63 downto 0);
+      rxIncrement     : unsigned(63 downto 0);
+      txIncrement     : unsigned(63 downto 0);
+      maximum         : signed(63 downto 0);
+      localSeconds    : slv(47 downto 0);
+      localSubsecond  : slv(47 downto 0);
+      syncSeconds     : slv(47 downto 0);
+      syncSubsecond   : slv(47 downto 0);
+      remoteSeconds   : slv(47 downto 0);
       remoteSubsecond : slv(47 downto 0);
-      syncCorrection : signed(127 downto 0);
+      syncCorrection  : signed(127 downto 0);
       delayCorrection : signed(63 downto 0);
 
-      epochValid  : sl;
-      epochSeconds : slv(47 downto 0);
+      epochValid     : sl;
+      epochSeconds   : slv(47 downto 0);
       epochSubsecond : slv(47 downto 0);
 
-      mulA        : slv(PRODUCT_A_C-1 downto 0);
-      mulB        : slv(PRODUCT_B_C-1 downto 0);
-      mulValid    : sl;
-      mulTake     : sl;
-      mulPending  : sl;
-
-      divOperandA : slv(127 downto 0);
-      divOperandB : slv(79 downto 0);
-      divValid    : sl;
-      divReady    : sl;
-
-      resultValue : PtpMeasurementType;
-      resultValid : sl;
-      error       : sl;
+      mulA          : slv(PRODUCT_A_C-1 downto 0);
+      mulB          : slv(PRODUCT_B_C-1 downto 0);
+      mulValid      : sl;
+      mulTake       : sl;
+      mulPending    : sl;
+      divideRequest : PtpDivideRequest80Type;
+      divReady      : sl;
+      result        : PtpE2eResultType;
    end record;
 
    constant REG_INIT_C : RegType := (
-      state          => IDLE_S,
-      returnState    => IDLE_S,
-      epochSelect    => LOCAL_E,
-      inputReady     => '0',
-      historyReady   => '0',
-      localTime      => (others => '0'),
-      syncTime       => (others => '0'),
-      remoteTime     => (others => '0'),
-      forwardValue   => (others => '0'),
-      elapsedValue   => (others => '0'),
-      productValue   => (others => '0'),
-      rawSeparation  => (others => '0'),
-      ratio          => (others => '0'),
-      rxIncrement    => (others => '0'),
-      txIncrement    => (others => '0'),
-      maximum        => (others => '0'),
-      localSeconds   => (others => '0'),
-      localSubsecond => (others => '0'),
-      syncSeconds    => (others => '0'),
-      syncSubsecond  => (others => '0'),
-      remoteSeconds  => (others => '0'),
+      state           => IDLE_S,
+      returnState     => IDLE_S,
+      epochSelect     => LOCAL_E,
+      inputReady      => '0',
+      historyReady    => '0',
+      localTime       => (others => '0'),
+      syncTime        => (others => '0'),
+      remoteTime      => (others => '0'),
+      forwardValue    => (others => '0'),
+      elapsedValue    => (others => '0'),
+      productValue    => (others => '0'),
+      rawSeparation   => (others => '0'),
+      ratio           => (others => '0'),
+      rxIncrement     => (others => '0'),
+      txIncrement     => (others => '0'),
+      maximum         => (others => '0'),
+      localSeconds    => (others => '0'),
+      localSubsecond  => (others => '0'),
+      syncSeconds     => (others => '0'),
+      syncSubsecond   => (others => '0'),
+      remoteSeconds   => (others => '0'),
       remoteSubsecond => (others => '0'),
-      syncCorrection => (others => '0'),
+      syncCorrection  => (others => '0'),
       delayCorrection => (others => '0'),
-      epochValid     => '0',
-      epochSeconds   => (others => '0'),
-      epochSubsecond => (others => '0'),
-      mulA           => (others => '0'),
-      mulB           => (others => '0'),
-      mulValid       => '0',
-      mulTake        => '0',
-      mulPending     => '0',
-      divOperandA    => (others => '0'),
-      divOperandB    => (others => '0'),
-      divValid       => '0',
-      divReady       => '0',
-      resultValue    => PTP_MEASUREMENT_INIT_C,
-      resultValid    => '0',
-      error          => '0');
+      epochValid      => '0',
+      epochSeconds    => (others => '0'),
+      epochSubsecond  => (others => '0'),
+      mulA            => (others => '0'),
+      mulB            => (others => '0'),
+      mulValid        => '0',
+      mulTake         => '0',
+      mulPending      => '0',
+      divideRequest   => (
+         valid        => '0',
+         operandA     => (others => '0'),
+         operandB     => (others => '0'),
+         roundNearest => '1'),
+      divReady => '0',
+      result   => PTP_E2E_RESULT_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal epochReady       : sl;
-   signal epochResultValid : sl;
-   signal epochResultValue : slv(94 downto 0);
-   signal mulReady         : sl;
-   signal mulResultValid   : sl;
-   signal mulResultReady   : sl;
-   signal mulOverflow      : sl;
-   signal mulResult        : slv(PRODUCT_A_C+PRODUCT_B_C-1 downto 0);
+   signal epochReady     : sl;
+   signal mulReady       : sl;
+   signal mulResultReady : sl;
+
+   -- Scalar views for bounded simulation retirement probes; no state ownership.
+   signal inputValid  : sl;
+   signal resultValid : sl;
+
+   signal epochRequest   : PtpEpochRequestType;
+   signal epochResult    : PtpEpochResultType;
+   signal productRequest : PtpProductRequestType(operandA((PRODUCT_A_C)-1 downto 0), operandB((PRODUCT_B_C)-1 downto 0));
+   signal productResult  : PtpProductResultType(value((PRODUCT_A_C)+(PRODUCT_B_C)-1 downto 0));
 
 begin
+
+   epochRequest <=
+   (
+      valid        => r.epochValid,
+      seconds      => r.epochSeconds,
+      subsecondQ16 => r.epochSubsecond
+   );
+   productRequest <=
+   (
+      valid    => r.mulValid,
+      operandA => r.mulA,
+      operandB => r.mulB
+   );
+
+   inputValid  <= request.valid;
+   resultValid <= result.valid;
 
    -- One normalizer serves every seconds/subsecond conversion in this chain.
    U_Epoch : entity surf.PtpEpochNormalize
@@ -239,16 +242,13 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G)
       port map (
-         clk          => clk,               -- [in]
-         rst          => rst,               -- [in]
-         cancel       => cancel,            -- [in]
-         inputValid   => r.epochValid,      -- [in]
-         inputReady   => epochReady,        -- [out]
-         seconds      => r.epochSeconds,    -- [in]
-         subsecondQ16 => r.epochSubsecond,  -- [in]
-         resultValid  => epochResultValid,  -- [out]
-         resultReady  => '1',               -- [in]
-         resultValue  => epochResultValue);  -- [out]
+         clk         => clk,           -- [in]
+         rst         => rst,           -- [in]
+         cancel      => cancel,        -- [in]
+         request     => epochRequest,  -- [in]
+         inputReady  => epochReady,    -- [out]
+         result      => epochResult,   -- [out]
+         resultReady => '1');          -- [in]
 
    U_Product : entity surf.PtpTreeProduct
       generic map (
@@ -258,31 +258,27 @@ begin
          A_G            => PRODUCT_A_C,
          B_G            => PRODUCT_B_C)
       port map (
-         clk         => clk,             -- [in]
-         rst         => rst,             -- [in]
-         cancel      => cancel,          -- [in]
-         inputValid  => r.mulValid,      -- [in]
-         inputReady  => mulReady,        -- [out]
-         operandA    => r.mulA,          -- [in]
-         operandB    => r.mulB,          -- [in]
-         resultValid => mulResultValid,  -- [out]
-         resultReady => mulResultReady,  -- [in]
-         resultValue => mulResult,       -- [out]
-         overflow    => mulOverflow);    -- [out]
+         clk         => clk,              -- [in]
+         rst         => rst,              -- [in]
+         cancel      => cancel,           -- [in]
+         request     => productRequest,   -- [in]
+         inputReady  => mulReady,         -- [out]
+         result      => productResult,    -- [out]
+         resultReady => mulResultReady);  -- [in]
 
    comb : process (all) is
       variable v          : RegType;
       variable separation : signed(67 downto 0);
       variable delayHalf  : signed(127 downto 0);
    begin
-      v := r;
-      v.inputReady := '0';
+      v              := r;
+      v.inputReady   := '0';
       v.historyReady := '0';
-      v.mulTake := '0';
-      v.divReady := '0';
+      v.mulTake      := '0';
+      v.divReady     := '0';
 
       separation := (others => '0');
-      delayHalf := (others => '0');
+      delayHalf  := (others => '0');
 
       -- Release an accepted epoch request as soon as the normalizer takes it.
       if r.epochValid = '1' and epochReady = '1' then
@@ -307,41 +303,41 @@ begin
 
             v.inputReady := '1';
 
-            if inputValid = '1' then
-               v.resultValue := PTP_MEASUREMENT_INIT_C;
-               v.resultValue.isDelay := '1';
-               v.resultValue.generation := delaySample.generation;
-               v.resultValue.ticks := delaySample.capture.ticks;
-               v.resultValue.syncSequence := syncSample.sequenceId;
-               v.resultValue.delaySequence := delaySample.sequenceId;
-               v.resultValue.ratio := ratio;
-               v.resultValue.ratioValid := '1';
-               v.error := '0';
+            if request.valid = '1' then
+               v.result.data               := PTP_MEASUREMENT_INIT_C;
+               v.result.data.isDelay       := '1';
+               v.result.data.generation    := request.delay.generation;
+               v.result.data.ticks         := request.delay.capture.ticks;
+               v.result.data.syncSequence  := request.sync.sequenceId;
+               v.result.data.delaySequence := request.delay.sequenceId;
+               v.result.data.ratio         := request.ratio;
+               v.result.data.ratioValid    := '1';
+               v.result.error              := '0';
 
-               v.ratio := unsigned(ratio);
-               v.rxIncrement := unsigned(syncSample.capture.increment);
-               v.txIncrement := unsigned(delaySample.capture.increment);
-               v.maximum := signed(maxPathDelay);
+               v.ratio       := unsigned(request.ratio);
+               v.rxIncrement := unsigned(request.sync.capture.increment);
+               v.txIncrement := unsigned(request.delay.capture.increment);
+               v.maximum     := signed(request.maxPathDelay);
 
                -- Local Sync RX capture already carries a Q16 subsecond; the
                -- two wire times carry integer nanoseconds that become Q16 by
                -- placement.
-               v.localSeconds := syncSample.capture.timestamp(95 downto 48);
-               v.localSubsecond := syncSample.capture.timestamp(47 downto 0);
-               v.syncSeconds := syncSample.remoteTime(79 downto 32);
-               v.syncSubsecond := syncSample.remoteTime(31 downto 0) & x"0000";
-               v.remoteSeconds := delaySample.remoteTime(79 downto 32);
-               v.remoteSubsecond := delaySample.remoteTime(31 downto 0) & x"0000";
-               v.syncCorrection := signed(syncSample.correction);
-               v.delayCorrection := signed(delaySample.correction);
+               v.localSeconds    := request.sync.capture.timestamp(95 downto 48);
+               v.localSubsecond  := request.sync.capture.timestamp(47 downto 0);
+               v.syncSeconds     := request.sync.remoteTime(79 downto 32);
+               v.syncSubsecond   := request.sync.remoteTime(31 downto 0) & x"0000";
+               v.remoteSeconds   := request.delay.remoteTime(79 downto 32);
+               v.remoteSubsecond := request.delay.remoteTime(31 downto 0) & x"0000";
+               v.syncCorrection  := signed(request.sync.correction);
+               v.delayCorrection := signed(request.delay.correction);
 
                -- The raw separation is formed from the two captures directly;
                -- both are unsigned67 Q3 tick/phase values.
                v.rawSeparation :=
-                  signed(resize(unsigned(delaySample.capture.ticks) &
-                                unsigned(delaySample.capture.tickPhase), 68)) -
-                  signed(resize(unsigned(syncSample.capture.ticks) &
-                                unsigned(syncSample.capture.tickPhase), 68));
+                  signed(resize(unsigned(request.delay.capture.ticks) &
+                                unsigned(request.delay.capture.tickPhase), 68)) -
+                  signed(resize(unsigned(request.sync.capture.ticks) &
+                                unsigned(request.sync.capture.tickPhase), 68));
 
                if NORMALIZED_SYNC_G then
                   v.state := EPOCH_REMOTE_S;
@@ -351,49 +347,49 @@ begin
 
                -- A zero ratio or captured increment cannot produce a
                -- measurement, and a generation mismatch invalidates it.
-               if unsigned(ratio) = 0 or
-                  unsigned(syncSample.capture.increment) = 0 or
-                  unsigned(delaySample.capture.increment) = 0 or
-                  syncSample.capture.generation /= delaySample.generation then
-                  v.error := '1';
-                  v.resultValid := '1';
-                  v.state := DONE_S;
+               if unsigned(request.ratio) = 0 or
+                  unsigned(request.sync.capture.increment) = 0 or
+                  unsigned(request.delay.capture.increment) = 0 or
+                  request.sync.capture.generation /= request.delay.generation then
+                  v.result.error := '1';
+                  v.result.valid := '1';
+                  v.state        := DONE_S;
                end if;
             end if;
 
          when EPOCH_LOCAL_S =>
-            v.epochSeconds := r.localSeconds;
+            v.epochSeconds   := r.localSeconds;
             v.epochSubsecond := r.localSubsecond;
-            v.epochSelect := LOCAL_E;
-            v.epochValid := '1';
-            v.returnState := EPOCH_SYNC_S;
-            v.state := EPOCH_WAIT_S;
+            v.epochSelect    := LOCAL_E;
+            v.epochValid     := '1';
+            v.returnState    := EPOCH_SYNC_S;
+            v.state          := EPOCH_WAIT_S;
 
          when EPOCH_SYNC_S =>
-            v.epochSeconds := r.syncSeconds;
+            v.epochSeconds   := r.syncSeconds;
             v.epochSubsecond := r.syncSubsecond;
-            v.epochSelect := SYNC_E;
-            v.epochValid := '1';
-            v.returnState := CORRECT_SYNC_S;
-            v.state := EPOCH_WAIT_S;
+            v.epochSelect    := SYNC_E;
+            v.epochValid     := '1';
+            v.returnState    := CORRECT_SYNC_S;
+            v.state          := EPOCH_WAIT_S;
 
          when EPOCH_REMOTE_S =>
-            v.epochSeconds := r.remoteSeconds;
+            v.epochSeconds   := r.remoteSeconds;
             v.epochSubsecond := r.remoteSubsecond;
-            v.epochSelect := REMOTE_E;
-            v.epochValid := '1';
-            v.returnState := CORRECT_REMOTE_S;
-            v.state := EPOCH_WAIT_S;
+            v.epochSelect    := REMOTE_E;
+            v.epochValid     := '1';
+            v.returnState    := CORRECT_REMOTE_S;
+            v.state          := EPOCH_WAIT_S;
 
          when EPOCH_WAIT_S =>
-            if epochResultValid = '1' then
+            if epochResult.valid = '1' then
                case r.epochSelect is
                   when LOCAL_E =>
-                     v.localTime := resize(signed(epochResultValue), 128);
+                     v.localTime := resize(signed(epochResult.value), 128);
                   when SYNC_E =>
-                     v.syncTime := resize(signed(epochResultValue), 128);
+                     v.syncTime := resize(signed(epochResult.value), 128);
                   when REMOTE_E =>
-                     v.remoteTime := resize(signed(epochResultValue), 128);
+                     v.remoteTime := resize(signed(epochResult.value), 128);
                end case;
 
                v.state := r.returnState;
@@ -402,18 +398,18 @@ begin
          when CORRECT_SYNC_S =>
             -- Correction additions intentionally wrap signed128.
             v.syncTime := r.syncTime+r.syncCorrection;
-            v.state := EPOCH_REMOTE_S;
+            v.state    := EPOCH_REMOTE_S;
 
          when CORRECT_REMOTE_S =>
             v.remoteTime := r.remoteTime-resize(r.delayCorrection, 128);
-            v.state := ELAPSED_PRODUCT_S;
+            v.state      := ELAPSED_PRODUCT_S;
 
          when ELAPSED_PRODUCT_S =>
-            v.mulA := slv(r.rawSeparation);
-            v.mulB := slv(r.ratio);
-            v.mulValid := '1';
+            v.mulA        := slv(r.rawSeparation);
+            v.mulB        := slv(r.ratio);
+            v.mulValid    := '1';
             v.returnState := ELAPSED_SHIFT_S;
-            v.state := PRODUCT_WAIT_S;
+            v.state       := PRODUCT_WAIT_S;
 
          when PRODUCT_WAIT_S =>
             -- The product asserts ready only while idle, so valid-and-ready
@@ -421,22 +417,22 @@ begin
             -- look at the result; the leaf holds its previous result until
             -- consumed, so an early test would latch the prior product.
             if r.mulValid = '1' and mulReady = '1' then
-               v.mulValid := '0';
+               v.mulValid   := '0';
                v.mulPending := '1';
             end if;
 
-            if r.mulPending = '1' and mulResultValid = '1' then
-               v.mulPending := '0';
-               v.mulTake := '1';
-               v.productValue := resize(signed(mulResult), 128);
-               v.state := r.returnState;
+            if r.mulPending = '1' and productResult.valid = '1' then
+               v.mulPending   := '0';
+               v.mulTake      := '1';
+               v.productValue := resize(signed(productResult.value), 128);
+               v.state        := r.returnState;
 
                -- Reject an overflowing product before its rounding shift, so
                -- the discarded-measurement set is unchanged.
-               if mulOverflow = '1' then
-                  v.error := '1';
-                  v.resultValid := '1';
-                  v.state := DONE_S;
+               if productResult.overflow = '1' then
+                  v.result.error := '1';
+                  v.result.valid := '1';
+                  v.state        := DONE_S;
                end if;
             end if;
 
@@ -452,66 +448,66 @@ begin
             end if;
 
          when RX_PRODUCT_S =>
-            v.mulA := slv(resize(signed(INGRESS_LATENCY_G), PRODUCT_A_C));
-            v.mulB := slv(r.ratio);
-            v.mulValid := '1';
+            v.mulA        := slv(resize(signed(INGRESS_LATENCY_G), PRODUCT_A_C));
+            v.mulB        := slv(r.ratio);
+            v.mulValid    := '1';
             v.returnState := RX_DIVIDE_S;
-            v.state := PRODUCT_WAIT_S;
+            v.state       := PRODUCT_WAIT_S;
 
          when RX_DIVIDE_S =>
             -- Each plane converts through its own captured increment; the
             -- current or nominal increment would change the measurement.
-            v.divOperandA := slv(r.productValue);
-            v.divOperandB := slv(shift_left(resize(r.rxIncrement, 80),
+            v.divideRequest.operandA := slv(r.productValue);
+            v.divideRequest.operandB := slv(shift_left(resize(r.rxIncrement, 80),
                                             PTP_TIME_FRAC_BITS_C));
-            v.divValid := '1';
-            v.returnState := RX_ADD_S;
-            v.state := DIVIDE_WAIT_S;
+            v.divideRequest.valid := '1';
+            v.returnState         := RX_ADD_S;
+            v.state               := DIVIDE_WAIT_S;
 
          when DIVIDE_WAIT_S =>
             if divideReady = '1' then
-               v.divValid := '0';
+               v.divideRequest.valid := '0';
             end if;
 
             v.divReady := '1';
 
-            if r.divValid = '0' and divideResultValid = '1' then
-               v.productValue := signed(divideResultValue);
-               v.state := r.returnState;
+            if r.divideRequest.valid = '0' and divideResult.valid = '1' then
+               v.productValue := signed(divideResult.value);
+               v.state        := r.returnState;
 
-               if divideResultError = '1' then
-                  v.error := '1';
-                  v.resultValid := '1';
-                  v.state := DONE_S;
+               if divideResult.error = '1' then
+                  v.result.error := '1';
+                  v.result.valid := '1';
+                  v.state        := DONE_S;
                end if;
             end if;
 
          when RX_ADD_S =>
             v.elapsedValue := r.elapsedValue+r.productValue;
-            v.state := FORWARD_S;
+            v.state        := FORWARD_S;
 
             if EGRESS_ACTIVE_C then
                v.state := TX_PRODUCT_S;
             end if;
 
          when TX_PRODUCT_S =>
-            v.mulA := slv(resize(signed(EGRESS_LATENCY_G), PRODUCT_A_C));
-            v.mulB := slv(r.ratio);
-            v.mulValid := '1';
+            v.mulA        := slv(resize(signed(EGRESS_LATENCY_G), PRODUCT_A_C));
+            v.mulB        := slv(r.ratio);
+            v.mulValid    := '1';
             v.returnState := TX_DIVIDE_S;
-            v.state := PRODUCT_WAIT_S;
+            v.state       := PRODUCT_WAIT_S;
 
          when TX_DIVIDE_S =>
-            v.divOperandA := slv(r.productValue);
-            v.divOperandB := slv(shift_left(resize(r.txIncrement, 80),
+            v.divideRequest.operandA := slv(r.productValue);
+            v.divideRequest.operandB := slv(shift_left(resize(r.txIncrement, 80),
                                             PTP_TIME_FRAC_BITS_C));
-            v.divValid := '1';
-            v.returnState := TX_ADD_S;
-            v.state := DIVIDE_WAIT_S;
+            v.divideRequest.valid := '1';
+            v.returnState         := TX_ADD_S;
+            v.state               := DIVIDE_WAIT_S;
 
          when TX_ADD_S =>
             v.elapsedValue := r.elapsedValue+r.productValue;
-            v.state := FORWARD_S;
+            v.state        := FORWARD_S;
 
          when FORWARD_S =>
             -- In normalized mode the history already supplied the forward
@@ -524,32 +520,32 @@ begin
 
          when REMOTE_DIFF_S =>
             v.remoteTime := r.remoteTime-r.syncTime;
-            v.state := DELAY_DIFF_S;
+            v.state      := DELAY_DIFF_S;
 
          when DELAY_DIFF_S =>
             v.elapsedValue := r.remoteTime-r.elapsedValue;
-            v.state := DELAY_HALF_S;
+            v.state        := DELAY_HALF_S;
 
          when DELAY_HALF_S =>
             v.elapsedValue := resize(ptpRoundShiftExact(r.elapsedValue, 1), 128);
-            v.state := DELAY_CHECK_S;
+            v.state        := DELAY_CHECK_S;
 
          when DELAY_CHECK_S =>
             -- Negative or excessive path delay is rejected before publication.
-            v.resultValue.forward := slv(r.forwardValue);
-            v.resultValue.delayValue := slv(r.elapsedValue);
-            v.resultValid := '1';
-            v.state := DONE_S;
+            v.result.data.forward    := slv(r.forwardValue);
+            v.result.data.delayValue := slv(r.elapsedValue);
+            v.result.valid           := '1';
+            v.state                  := DONE_S;
 
             if r.elapsedValue < 0 or
                r.elapsedValue > resize(r.maximum, 128) then
-               v.error := '1';
+               v.result.error := '1';
             end if;
 
          when DONE_S =>
             if resultReady = '1' then
-               v.resultValid := '0';
-               v.state := IDLE_S;
+               v.result.valid := '0';
+               v.state        := IDLE_S;
             end if;
       end case;
 
@@ -558,25 +554,19 @@ begin
       end if;
 
       -- Combinatorial outputs before the reset
-      inputReady <= v.inputReady;
-      normalizedReady <= v.historyReady;
-      mulResultReady <= v.mulTake;
+      inputReady        <= v.inputReady;
+      normalizedReady   <= v.historyReady;
+      mulResultReady    <= v.mulTake;
       divideResultReady <= v.divReady;
 
       if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
-      rin <= v;
-
-      resultValue <= r.resultValue;
-      resultValid <= r.resultValid;
-      resultError <= r.error;
-
-      divideValid <= r.divValid;
-      divideOperandA <= r.divOperandA;
-      divideOperandB <= r.divOperandB;
-      divideCancel <= cancel;
+      rin           <= v;
+      divideRequest <= r.divideRequest;
+      result        <= r.result;
+      divideCancel  <= cancel;
    end process comb;
 
    seq : process (clk, rst) is

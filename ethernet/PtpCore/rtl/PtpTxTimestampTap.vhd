@@ -49,21 +49,20 @@ entity PtpTxTimestampTap is
       MAX_FRAME_G      : PtpFrameCapacityType  := PTP_ETH_MAX_FRAME_C;
       EGRESS_LATENCY_G : slv(63 downto 0)      := (others => '0'));
    port (
-      clk             : in  sl;
-      rst             : in  sl;
-      phyReady        : in  sl;
-      phcTime         : in  PtpTimeType;
-      phcStatus       : in  PtpPhcStatusType;
-      captureAbort    : in  sl;
-      xgmiiTxd        : in  slv(63 downto 0) := (others => '0');
-      xgmiiTxc        : in  slv(7 downto 0)  := (others => '1');
-      gmiiTxd         : in  slv(7 downto 0)  := (others => '0');
-      gmiiTxEn        : in  sl               := '0';
-      gmiiTxEr        : in  sl               := '0';
-      completion      : out PtpRxMessageType;
-      completionValid : out sl;
-      completionReady : in  sl;
-      completionAbort : out sl);
+      clk              : in  sl;
+      rst              : in  sl;
+      phyReady         : in  sl;
+      phcTime          : in  PtpTimeType;
+      phcStatus        : in  PtpPhcStatusType;
+      captureAbort     : in  sl;
+      xgmiiTxd         : in  slv(63 downto 0) := (others => '0');
+      xgmiiTxc         : in  slv(7 downto 0)  := (others => '1');
+      gmiiTxd          : in  slv(7 downto 0)  := (others => '0');
+      gmiiTxEn         : in  sl               := '0';
+      gmiiTxEr         : in  sl               := '0';
+      completionMaster : out PtpRxMessageMasterType;
+      completionReady  : in  sl;
+      completionAbort  : out sl);
 end entity PtpTxTimestampTap;
 
 architecture rtl of PtpTxTimestampTap is
@@ -96,8 +95,8 @@ begin
          rst          => rst,           -- [in]
          rxFlush      => '0',           -- [in]
          phyReady     => phyReady,      -- [in]
-         phcStatus    => phcStatus,     -- [in]
          phcTime      => phcTime,       -- [in]
+         phcStatus    => phcStatus,     -- [in]
          captureAbort => captureAbort,  -- [in]
          xgmiiRxd     => xgmiiTxd,      -- [in]
          xgmiiRxc     => xgmiiTxc,      -- [in]
@@ -115,17 +114,16 @@ begin
          TLV_EN_G       => TLV_EN_G,
          MAX_FRAME_G    => MAX_FRAME_G)
       port map (
-         clk          => clk,                   -- [in]
-         rst          => rst,                   -- [in]
-         rxFlush      => flush,                 -- [in]
-         generation   => phcStatus.generation,  -- [in]
-         rxMaster     => master,                -- [in]
-         rxCapture    => capture,               -- [in]
-         message      => completion,            -- [out]
-         messageValid => completionValid,       -- [out]
-         messageReady => completionReady,       -- [in]
-         rxAbort      => completionAbort,       -- [out]
-         rxEpoch      => open,                  -- [out]
-         counters     => open);                 -- [out]
+         clk           => clk,                   -- [in]
+         rst           => rst,                   -- [in]
+         rxFlush       => flush,                 -- [in]
+         generation    => phcStatus.generation,  -- [in]
+         rxMaster      => master,                -- [in]
+         rxCapture     => capture,               -- [in]
+         messageMaster => completionMaster,      -- [out]
+         messageReady  => completionReady,       -- [in]
+         rxAbort       => completionAbort,       -- [out]
+         rxEpoch       => open,                  -- [out]
+         counters      => open);                 -- [out]
 
 end architecture rtl;

@@ -21,6 +21,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 
 entity PtpTreeProduct is
    generic (
@@ -33,28 +34,24 @@ entity PtpTreeProduct is
       clk         : in  sl;
       rst         : in  sl;
       cancel      : in  sl;
-      inputValid  : in  sl;
+      request     : in  PtpProductRequestType(operandA(A_G-1 downto 0), operandB(B_G-1 downto 0));
       inputReady  : out sl;
-      operandA    : in  slv(A_G-1 downto 0);
-      operandB    : in  slv(B_G-1 downto 0);
-      resultValid : out sl;
-      resultReady : in  sl;
-      resultValue : out slv(A_G+B_G-1 downto 0);
-      overflow    : out sl);
+      result      : out PtpProductResultType(value(A_G+B_G-1 downto 0));
+      resultReady : in  sl);
 end entity PtpTreeProduct;
 
 architecture rtl of PtpTreeProduct is
 
-   constant LIMBS_C : positive := (B_G+16)/17;
+   constant LIMBS_C  : positive := (B_G+16)/17;
    constant LEVELS_C : natural := bitSize(LIMBS_C-1);
-   constant PIPE_C : positive := LEVELS_C+2;
+   constant PIPE_C   : positive := LEVELS_C+2;
    constant LEAVES_C : positive := 2**LEVELS_C;
-   constant WIDTH_C : positive := A_G+B_G+1;
+   constant WIDTH_C  : positive := A_G+B_G+1;
    type ProductArray is array (natural range <>) of signed(WIDTH_C-1 downto 0);
 
    type RegType is record
-      a        : signed(A_G downto 0);
-      b        : unsigned(17*LIMBS_C-1 downto 0);
+      a : signed(A_G downto 0);
+      b : unsigned(17*LIMBS_C-1 downto 0);
       nodes    : ProductArray(0 to 2*LEAVES_C-2);
       valid    : slv(PIPE_C downto 0);
       value    : slv(WIDTH_C-1 downto 0);
@@ -69,8 +66,8 @@ architecture rtl of PtpTreeProduct is
       value    => (others => '0'),
       overflow => '0');
 
-   signal r : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r      : RegType := REG_INIT_C;
+   signal rin    : RegType;
    signal leaves : ProductArray(0 to LEAVES_C-1);
 
 begin
@@ -82,7 +79,7 @@ begin
          attribute use_dsp of partialProduct : signal is "yes";
       begin
          partialProduct <= r.a*signed('0' & r.b(17*i+16 downto 17*i));
-         leaves(i) <= shift_left(resize(partialProduct, WIDTH_C), 17*i);
+         leaves(i)      <= shift_left(resize(partialProduct, WIDTH_C), 17*i);
       end generate GEN_PRODUCT;
       GEN_ZERO : if i >= LIMBS_C generate
          leaves(i) <= (others => '0');
@@ -92,19 +89,19 @@ begin
    comb : process (all) is
       variable v : RegType;
    begin
-      v := r;
+      v          := r;
       inputReady <= '0';
       if r.valid(PIPE_C) = '0' or resultReady = '1' then
-         v.a := resize(signed(operandA), A_G+1);
-         v.b := resize(unsigned(operandB), v.b'length);
-         v.valid := r.valid(PIPE_C-1 downto 0) & inputValid;
+         v.a     := resize(signed(request.operandA), A_G+1);
+         v.b     := resize(unsigned(request.operandB), v.b'length);
+         v.valid := r.valid(PIPE_C-1 downto 0) & request.valid;
          for i in 0 to LEAVES_C-1 loop
             v.nodes(LEAVES_C-1+i) := leaves(i);
          end loop;
          for i in 0 to LEAVES_C-2 loop
             v.nodes(i) := r.nodes(2*i+1)+r.nodes(2*i+2);
          end loop;
-         v.value := slv(r.nodes(0));
+         v.value    := slv(r.nodes(0));
          v.overflow := '0';
          if resize(resize(r.nodes(0), 128), WIDTH_C) /= r.nodes(0) then
             v.overflow := '1';
@@ -120,9 +117,13 @@ begin
          v := REG_INIT_C;
       end if;
       rin <= v;
-      resultValid <= r.valid(PIPE_C);
-      resultValue <= r.value(A_G+B_G-1 downto 0);
-      overflow <= r.overflow;
+      -- Pack existing DSP-pipeline registers without another product copy or stage.
+      result <=
+      (
+         valid    => r.valid(PIPE_C),
+         value    => r.value(A_G+B_G-1 downto 0),
+         overflow => r.overflow
+      );
    end process comb;
 
    seq : process (clk, rst) is

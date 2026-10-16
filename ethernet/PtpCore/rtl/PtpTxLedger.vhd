@@ -48,6 +48,7 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpProtocolPkg.all;
 use surf.PtpPkg.all;
 
 entity PtpTxLedger is
@@ -60,26 +61,22 @@ entity PtpTxLedger is
       PACKET_LIFETIME_G : positive               := 156250000;
       MEMORY_TYPE_G     : string                 := "block");
    port (
-      clk              : in  sl;
-      rst              : in  sl;
-      restart          : in  sl;
-      macResetDone     : in  sl;
-      ticks            : in  slv(63 downto 0);
-      generation       : in  slv(31 downto 0);
-      config           : in  PtpPortConfigType;
-      allocate         : in  sl;
-      allocateReady    : out sl;
-      allocateSequence : out slv(15 downto 0);
-      wireMessage      : in  PtpRxMessageType;
-      wireValid        : in  sl;
-      wireReady        : out sl;
-      response         : in  PtpRxMessageType;
-      responseValid    : in  sl;
-      responseReady    : out sl;
-      sample           : out PtpDelaySampleType;
+      clk            : in  sl;
+      rst            : in  sl;
+      restart        : in  sl;
+      macResetDone   : in  sl;
+      ticks          : in  slv(63 downto 0);
+      generation     : in  slv(31 downto 0);
+      config         : in  PtpPortConfigType;
+      allocate       : in  sl;
+      allocation     : out PtpLedgerAllocationType;
+      wireMaster     : in  PtpRxMessageMasterType;
+      wireReady      : out sl;
+      responseMaster : in  PtpRxMessageMasterType;
+      responseReady  : out sl;
       -- Registered valid; restart/system reset cancel a coincident transfer.
       -- macResetDone confirms that shared system reset has drained the MAC.
-      sampleValid  : out sl;
+      sampleMaster : out PtpDelaySampleMasterType;
       sampleReady  : in  sl;
       ledgerStatus : out slv(31 downto 0);
       -- Registered completion for the response transferred on the previous edge.
@@ -93,7 +90,7 @@ architecture rtl of PtpTxLedger is
 
    -- Each row has 22 addressed words. Padding is local to a field so a scan
    -- compares keys and updates capture/response fields without a full-row latch.
-   constant WORDS_C : positive := 22;
+   constant WORDS_C          : positive := 22;
    constant RAM_ADDR_WIDTH_C : positive := log2(DEPTH_G*WORDS_C);
    constant STARTUP_BIT_C    : natural := 0;
    constant RESET_SEEN_BIT_C : natural := 1;
@@ -140,8 +137,7 @@ architecture rtl of PtpTxLedger is
       nextSequence         : unsigned(SEQUENCE_BITS_G-1 downto 0);
       resetTick            : slv(63 downto 0);
       resetPrevious        : sl;
-      sample               : PtpDelaySampleType;
-      sampleValid          : sl;
+      sampleMaster         : PtpDelaySampleMasterType;
       writeEnable          : sl;
       writeAddress         : slv(RAM_ADDR_WIDTH_C-1 downto 0);
       writeData            : slv(31 downto 0);
@@ -191,8 +187,7 @@ architecture rtl of PtpTxLedger is
       nextSequence         => (others => '0'),
       resetTick            => (others => '0'),
       resetPrevious        => '0',
-      sample               => PTP_DELAY_SAMPLE_INIT_C,
-      sampleValid          => '0',
+      sampleMaster         => PTP_DELAY_SAMPLE_MASTER_INIT_C,
       writeEnable          => '0',
       writeAddress         => (others => '0'),
       writeData            => (others => '0'),
@@ -201,8 +196,8 @@ architecture rtl of PtpTxLedger is
       timeoutCount         => (others => '0'),
       rejectedCount        => (others => '0'));
 
-   signal r   : RegType := REG_INIT_C;
-   signal rin : RegType;
+   signal r        : RegType := REG_INIT_C;
+   signal rin      : RegType;
    signal readData : slv(31 downto 0);
    -- One row can contribute a wire rejection and a response/sample rejection.
    -- Sum local events before the single saturating diagnostic update.
@@ -252,7 +247,7 @@ begin
          doutb => readData);       -- [out]
 
    comb : process (r, rst, restart, macResetDone, ticks, generation, config, allocate,
-                   wireMessage, wireValid, response, responseValid, sampleReady, readData) is
+                   wireMaster.data, wireMaster.valid, responseMaster.data, responseMaster.valid, sampleReady, readData) is
       variable v              : RegType;
       variable word           : slv(31 downto 0);
       variable expected       : slv(31 downto 0);
@@ -266,12 +261,12 @@ begin
       variable scanDifference : unsigned(64 downto 0);
       variable scanWithin     : boolean;
    begin
-      v              := r;
-      word           := readData;
-      expected       := (others => '0');
-      identity       := x"0000" & ptpRequestingIdentity(response);
-      remoteTime     := x"0000" & ptpMessageTimestamp(response);
-      rejectedEvents := 0;
+      v                  := r;
+      word               := readData;
+      expected           := (others => '0');
+      identity           := x"0000" & ptpRequestingIdentity(responseMaster.data);
+      remoteTime         := x"0000" & ptpMessageTimestamp(responseMaster.data);
+      rejectedEvents     := 0;
       v.ready            := '0';
       v.wireReady        := '0';
       v.responseReady    := '0';
@@ -280,26 +275,26 @@ begin
       v.readEnable       := '0';
       v.resetPrevious    := macResetDone;
 
-      if r.sampleValid = '1' and sampleReady = '1' then
-         v.sampleValid := '0';
+      if r.sampleMaster.valid = '1' and sampleReady = '1' then
+         v.sampleMaster.valid := '0';
       end if;
 
       -- Inputs are held by their producers through the end-of-scan handshake.
       -- A flush may withdraw valid; it cannot substitute a new record halfway
       -- through the scan. Logical restart cancels only response eligibility.
-      if wireValid = '0' then
+      if wireMaster.valid = '0' then
          v.wireActive := '0';
       end if;
 
-      if responseValid = '0' or restart = '1' then
+      if responseMaster.valid = '0' or restart = '1' then
          v.responseActive := '0';
          v.accepted       := '0';
       end if;
 
       -- Do not publish or reclaim past a record that arrived after START.
       -- Its next scan may retire a completed association or renew quarantine.
-      pendingInput := (wireValid = '1' and v.wireActive = '0') or
-                      (responseValid = '1' and v.responseActive = '0');
+      pendingInput := (wireMaster.valid = '1' and v.wireActive = '0') or
+                      (responseMaster.valid = '1' and v.responseActive = '0');
 
       -- One age datapath serves mutually exclusive scan phases. Select the
       -- returning high word before subtraction, including a new response word.
@@ -314,25 +309,25 @@ begin
       elsif r.state = CHECK_S and r.field = 10 then
          scanLeft := unsigned(slv'(readData & r.scanTicks(31 downto 0)));
          if r.responseNew = '1' then
-            scanLeft(63 downto 32) := unsigned(response.capture.ticks(63 downto 32));
+            scanLeft(63 downto 32) := unsigned(responseMaster.data.capture.ticks(63 downto 32));
          end if;
       end if;
       scanDifference := resize(scanLeft,65)-resize(scanRight,65);
-      scanWithin := scanDifference(63 downto 0) <= scanLimit;
+      scanWithin     := scanDifference(63 downto 0) <= scanLimit;
 
       case r.state is
          when START_S =>
-            v.index := 0;
-            v.field := 0;
-            v.freeFound := '0';
-            v.collision := '0';
-            v.accepted := '0';
-            v.wireActive := wireValid;
-            v.responseActive := responseValid and not restart;
-            v.publish := not v.sampleValid;
-            v.readAddress := (others => '0');
-            v.readEnable := '1';
-            v.state := READ_S;
+            v.index          := 0;
+            v.field          := 0;
+            v.freeFound      := '0';
+            v.collision      := '0';
+            v.accepted       := '0';
+            v.wireActive     := wireMaster.valid;
+            v.responseActive := responseMaster.valid and not restart;
+            v.publish        := not v.sampleMaster.valid;
+            v.readAddress    := (others => '0');
+            v.readEnable     := '1';
+            v.state          := READ_S;
          when READ_S =>
             v.state := CHECK_S;
          when CHECK_S =>
@@ -341,32 +336,32 @@ begin
 
                case r.field is
                   when 0 =>
-                     v.wireMatch := toSl(v.wireActive = '1' and wireMessage.messageType = PTP_MSG_DELAY_REQ_C and
-                        wireMessage.sequenceId = word(15 downto 0) and wireMessage.domainNumber = word(23 downto 16));
-                     v.responseMatch := toSl(v.responseActive = '1' and response.sequenceId = word(15 downto 0) and
-                        response.domainNumber = word(23 downto 16));
-                     v.wireUpdate := '0';
-                     v.responseNew := '0';
+                     v.wireMatch := toSl(v.wireActive = '1' and wireMaster.data.messageType = PTP_MSG_DELAY_REQ_C and
+                        wireMaster.data.sequenceId = word(15 downto 0) and wireMaster.data.domainNumber = word(23 downto 16));
+                     v.responseMatch := toSl(v.responseActive = '1' and responseMaster.data.sequenceId = word(15 downto 0) and
+                        responseMaster.data.domainNumber = word(23 downto 16));
+                     v.wireUpdate      := '0';
+                     v.responseNew     := '0';
                      v.responseCompare := '0';
-                     v.responseEqual := '1';
-                     v.sequenceMatch := toSl(word(15 downto 0) = slv(resize(r.nextSequence, 16)));
+                     v.responseEqual   := '1';
+                     v.sequenceMatch   := toSl(word(15 downto 0) = slv(resize(r.nextSequence, 16)));
                      if r.publish = '1' then
-                        v.sample := PTP_DELAY_SAMPLE_INIT_C;
-                        v.sample.sequenceId := word(15 downto 0);
+                        v.sampleMaster.data            := PTP_DELAY_SAMPLE_INIT_C;
+                        v.sampleMaster.data.sequenceId := word(15 downto 0);
                      end if;
                   when 1 =>
                      v.entryGeneration := word;
-                     v.wireBad := toSl(wireMessage.capture.error = '1' or wireMessage.capture.generation /= word);
-                     v.responseMatch := r.responseMatch and toSl(response.capture.generation = word);
+                     v.wireBad         := toSl(wireMaster.data.capture.error = '1' or wireMaster.data.capture.generation /= word);
+                     v.responseMatch   := r.responseMatch and toSl(responseMaster.data.capture.generation = word);
                      if r.publish = '1' then
-                        v.sample.generation := word;
-                        v.sample.capture.generation := word;
+                        v.sampleMaster.data.generation         := word;
+                        v.sampleMaster.data.capture.generation := word;
                      end if;
                   when 2 to 4 =>
                      -- The padded high identity word is compared too.
-                     identity := x"0000" & wireMessage.sourcePortIdentity;
-                     v.wireMatch := r.wireMatch and toSl(word = identity(32*(r.field-2)+31 downto 32*(r.field-2)));
-                     identity := x"0000" & ptpRequestingIdentity(response);
+                     identity        := x"0000" & wireMaster.data.sourcePortIdentity;
+                     v.wireMatch     := r.wireMatch and toSl(word = identity(32*(r.field-2)+31 downto 32*(r.field-2)));
+                     identity        := x"0000" & ptpRequestingIdentity(responseMaster.data);
                      v.responseMatch := r.responseMatch and toSl(word = identity(32*(r.field-2)+31 downto 32*(r.field-2)));
                   when 5 =>
                      v.scanTicks(31 downto 0) := word;
@@ -379,7 +374,7 @@ begin
                      end if;
                   when 7 =>
                      if r.wireMatch = '1' and v.wireActive = '1' then
-                        word := wireMessage.capture.ticks(31 downto 0);
+                        word          := wireMaster.data.capture.ticks(31 downto 0);
                         v.writeEnable := '1';
                         if r.wireSeen(r.index) = '1' or r.wireBad = '1' then
                            v.retired(r.index) := '1';
@@ -390,53 +385,53 @@ begin
                      end if;
                      v.scanWireTicks(31 downto 0) := word;
                      if r.publish = '1' then
-                        v.sample.capture.ticks(31 downto 0) := word;
+                        v.sampleMaster.data.capture.ticks(31 downto 0) := word;
                      end if;
                   when 8 =>
                      if r.wireMatch = '1' and v.wireActive = '1' then
-                        word := wireMessage.capture.ticks(63 downto 32);
+                        word          := wireMaster.data.capture.ticks(63 downto 32);
                         v.writeEnable := '1';
                         v.wireSeen(r.index) := '1';
                      end if;
                      v.scanWireTicks(63 downto 32) := word;
                      if r.publish = '1' then
-                        v.sample.capture.ticks(63 downto 32) := word;
+                        v.sampleMaster.data.capture.ticks(63 downto 32) := word;
                      end if;
                   when 9 =>
                      if r.responseMatch = '1' and v.responseActive = '1' and v.retired(r.index) = '0' then
-                        if response.correction = PTP_CORRECTION_OVERFLOW_C then
+                        if responseMaster.data.correction = PTP_CORRECTION_OVERFLOW_C then
                            v.retired(r.index) := '1';
                            rejectedEvents := rejectedEvents+1;
                         elsif r.responseSeen(r.index) = '1' then
                            v.responseCompare := '1';
                         else
                            v.responseNew := '1';
-                           word := response.capture.ticks(31 downto 0);
+                           word          := responseMaster.data.capture.ticks(31 downto 0);
                            v.writeEnable := '1';
                         end if;
                      end if;
                      v.scanTicks(31 downto 0) := word;
                      if r.publish = '1' then
-                        v.sample.responseTicks(31 downto 0) := word;
+                        v.sampleMaster.data.responseTicks(31 downto 0) := word;
                      end if;
                   when 10 =>
                      if r.responseNew = '1' then
-                        word := response.capture.ticks(63 downto 32);
+                        word          := responseMaster.data.capture.ticks(63 downto 32);
                         v.writeEnable := '1';
                      end if;
                      v.scanTicks(63 downto 32) := word;
                      v.lifetimeValid := toSl(scanDifference(64) = '0' and scanWithin);
                      if r.publish = '1' then
-                        v.sample.responseTicks(63 downto 32) := word;
+                        v.sampleMaster.data.responseTicks(63 downto 32) := word;
                      end if;
                   when 11 to 15 =>
                      if r.field <= 13 then
                         expected := remoteTime(32*(r.field-11)+31 downto 32*(r.field-11));
                      else
-                        expected := response.correction(32*(r.field-14)+31 downto 32*(r.field-14));
+                        expected := responseMaster.data.correction(32*(r.field-14)+31 downto 32*(r.field-14));
                      end if;
                      if r.responseNew = '1' then
-                        word := expected;
+                        word          := expected;
                         v.writeEnable := '1';
                      elsif r.responseCompare = '1' then
                         v.responseEqual := r.responseEqual and toSl(word = expected);
@@ -445,11 +440,11 @@ begin
 
                         case r.field is
                            when 11 to 12 =>
-                              v.sample.remoteTime(32*(r.field-11)+31 downto 32*(r.field-11)) := word;
+                              v.sampleMaster.data.remoteTime(32*(r.field-11)+31 downto 32*(r.field-11)) := word;
                            when 13 =>
-                              v.sample.remoteTime(79 downto 64) := word(15 downto 0);
+                              v.sampleMaster.data.remoteTime(79 downto 64) := word(15 downto 0);
                            when others =>
-                              v.sample.correction(32*(r.field-14)+31 downto 32*(r.field-14)) := word;
+                              v.sampleMaster.data.correction(32*(r.field-14)+31 downto 32*(r.field-14)) := word;
                         end case;
 
                      end if;
@@ -458,13 +453,13 @@ begin
 
                         case r.field is
                            when 16 to 18 =>
-                              word := wireMessage.capture.timestamp(32*(r.field-16)+31 downto 32*(r.field-16));
+                              word := wireMaster.data.capture.timestamp(32*(r.field-16)+31 downto 32*(r.field-16));
                            when 19 to 20 =>
-                              word := wireMessage.capture.increment(32*(r.field-19)+31 downto 32*(r.field-19));
+                              word := wireMaster.data.capture.increment(32*(r.field-19)+31 downto 32*(r.field-19));
                            when others =>
                               word := (others => '0');
-                              word(PTP_TICK_PHASE_BITS_C-1 downto 0) := wireMessage.capture.tickPhase;
-                              word(PTP_TICK_PHASE_BITS_C) := wireMessage.capture.timeValid;
+                              word(PTP_TICK_PHASE_BITS_C-1 downto 0) := wireMaster.data.capture.tickPhase;
+                              word(PTP_TICK_PHASE_BITS_C) := wireMaster.data.capture.timeValid;
                         end case;
 
                         v.writeEnable := '1';
@@ -473,12 +468,12 @@ begin
 
                         case r.field is
                            when 16 to 18 =>
-                              v.sample.capture.timestamp(32*(r.field-16)+31 downto 32*(r.field-16)) := word;
+                              v.sampleMaster.data.capture.timestamp(32*(r.field-16)+31 downto 32*(r.field-16)) := word;
                            when 19 to 20 =>
-                              v.sample.capture.increment(32*(r.field-19)+31 downto 32*(r.field-19)) := word;
+                              v.sampleMaster.data.capture.increment(32*(r.field-19)+31 downto 32*(r.field-19)) := word;
                            when others =>
-                              v.sample.capture.tickPhase := word(PTP_TICK_PHASE_BITS_C-1 downto 0);
-                              v.sample.capture.timeValid := word(PTP_TICK_PHASE_BITS_C);
+                              v.sampleMaster.data.capture.tickPhase := word(PTP_TICK_PHASE_BITS_C-1 downto 0);
+                              v.sampleMaster.data.capture.timeValid := word(PTP_TICK_PHASE_BITS_C);
                         end case;
 
                      end if;
@@ -487,15 +482,15 @@ begin
             end if;
 
             v.writeAddress := toSlv(WORDS_C*r.index+r.field, RAM_ADDR_WIDTH_C);
-            v.writeData := word;
+            v.writeData    := word;
 
             if r.field = WORDS_C-1 then
                v.state := FINISH_S;
             else
-               v.field := r.field+1;
+               v.field       := r.field+1;
                v.readAddress := toSlv(WORDS_C*r.index+r.field+1, RAM_ADDR_WIDTH_C);
-               v.readEnable := '1';
-               v.state := READ_S;
+               v.readEnable  := '1';
+               v.state       := READ_S;
             end if;
 
          when FINISH_S =>
@@ -513,7 +508,7 @@ begin
                   v.retired(r.index) := '1';
                   if r.lifetimeValid = '1' and scanWithin and
                      r.entryGeneration = generation then
-                     v.sampleValid := '1';
+                     v.sampleMaster.valid := '1';
                   else
                      rejectedEvents := rejectedEvents+1;
                   end if;
@@ -525,14 +520,14 @@ begin
             end if;
 
             if v.used(r.index) = '0' then
-               v.freeSlot := r.index;
+               v.freeSlot  := r.index;
                v.freeFound := '1';
             elsif r.sequenceMatch = '1' then
                v.collision := '1';
             end if;
 
             if r.index = DEPTH_G-1 then
-               v.wireReady := v.wireActive;
+               v.wireReady     := v.wireActive;
                v.responseReady := v.responseActive;
                if v.collision = '1' then
                   v.nextSequence := r.nextSequence+1;
@@ -541,35 +536,35 @@ begin
                end if;
                v.state := ADMIT_S;
             else
-               v.index := r.index+1;
-               v.field := 0;
-               v.publish := not v.sampleValid;
+               v.index       := r.index+1;
+               v.field       := 0;
+               v.publish     := not v.sampleMaster.valid;
                v.readAddress := toSlv(WORDS_C*(r.index+1), RAM_ADDR_WIDTH_C);
-               v.readEnable := '1';
-               v.state := READ_S;
+               v.readEnable  := '1';
+               v.state       := READ_S;
             end if;
 
          when ADMIT_S =>
 
-            if r.responseReady = '1' and responseValid = '1' then
+            if r.responseReady = '1' and responseMaster.valid = '1' then
                v.responseAccepted := r.accepted;
             end if;
 
             v.state := START_S;
 
             if r.ready = '1' and allocate = '1' and restart = '0' then
-               v.allocationSequence := slv(resize(r.nextSequence, 16));
+               v.allocationSequence   := slv(resize(r.nextSequence, 16));
                v.allocationGeneration := generation;
-               v.allocationIdentity := config.localIdentity;
-               v.allocationDomain := config.domainNumber;
-               v.allocationTicks := ticks;
+               v.allocationIdentity   := config.localIdentity;
+               v.allocationDomain     := config.domainNumber;
+               v.allocationTicks      := ticks;
                v.used(r.freeSlot) := '1';
                v.retired(r.freeSlot) := '0';
                v.wireSeen(r.freeSlot) := '0';
                v.responseSeen(r.freeSlot) := '0';
                v.nextSequence := r.nextSequence+1;
-               v.field := 0;
-               v.state := ALLOCATE_S;
+               v.field        := 0;
+               v.state        := ALLOCATE_S;
             end if;
 
          when ALLOCATE_S =>
@@ -590,9 +585,9 @@ begin
                   null;
             end case;
 
-            v.writeEnable := '1';
+            v.writeEnable  := '1';
             v.writeAddress := toSlv(WORDS_C*r.freeSlot+r.field, RAM_ADDR_WIDTH_C);
-            v.writeData := word;
+            v.writeData    := word;
 
             if r.field = WORDS_C-1 then
                v.state := START_S;
@@ -610,31 +605,31 @@ begin
       end if;
 
       if restart = '1' then
-         v.retired          := (others => '1');
-         v.sampleValid      := '0';
-         v.ready            := '0';
-         v.accepted         := '0';
-         v.responseAccepted := '0';
+         v.retired            := (others => '1');
+         v.sampleMaster.valid := '0';
+         v.ready              := '0';
+         v.accepted           := '0';
+         v.responseAccepted   := '0';
       end if;
 
       if macResetDone = '1' and r.resetPrevious = '0' then
          -- Reset validity, never the RAM. Stale rows are ignored until a fresh
          -- allocation overwrites their entire payload. Preserve diagnostics.
-         v.used                           := (others => '0');
-         v.retired                        := (others => '0');
-         v.wireSeen                       := (others => '0');
-         v.responseSeen                   := (others => '0');
+         v.used         := (others => '0');
+         v.retired      := (others => '0');
+         v.wireSeen     := (others => '0');
+         v.responseSeen := (others => '0');
          v.ledgerStatus(STARTUP_BIT_C)    := '1';
          v.ledgerStatus(RESET_SEEN_BIT_C) := '1';
-         v.resetTick                      := ticks;
-         v.sampleValid                    := '0';
-         v.writeEnable                    := '0';
-         v.readEnable                     := '0';
-         v.ready                          := '0';
-         v.wireReady                      := '0';
-         v.responseReady                  := '0';
-         v.responseAccepted               := '0';
-         v.state                          := START_S;
+         v.resetTick          := ticks;
+         v.sampleMaster.valid := '0';
+         v.writeEnable        := '0';
+         v.readEnable         := '0';
+         v.ready              := '0';
+         v.wireReady          := '0';
+         v.responseReady      := '0';
+         v.responseAccepted   := '0';
+         v.state              := START_S;
       end if;
 
       v.ledgerStatus(15 downto 8)  := (others => '0');
@@ -655,16 +650,19 @@ begin
       end if;
 
       rin <= v;
-      allocateReady <= r.ready;
-      allocateSequence <= slv(resize(r.nextSequence, 16));
-      wireReady <= r.wireReady;
-      responseReady <= r.responseReady;
+      -- The offered identifier and registered capacity describe one reservation edge.
+      allocation <=
+      (
+         ready      => r.ready,
+         sequenceId => slv(resize(r.nextSequence, 16))
+      );
+      wireReady        <= r.wireReady;
+      responseReady    <= r.responseReady;
       responseAccepted <= r.responseAccepted;
-      sample <= r.sample;
-      sampleValid <= r.sampleValid;
-      ledgerStatus <= r.ledgerStatus;
-      timeoutCount <= r.timeoutCount;
-      rejectedCount <= r.rejectedCount;
+      sampleMaster     <= r.sampleMaster;
+      ledgerStatus     <= r.ledgerStatus;
+      timeoutCount     <= r.timeoutCount;
+      rejectedCount    <= r.rejectedCount;
    end process comb;
    seq : process (clk, rst) is
    begin

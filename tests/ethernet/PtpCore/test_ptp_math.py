@@ -138,11 +138,13 @@ async def checked_arithmetic(d):
 
 
 def test_ptp_math():
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpmath")
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpmathwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpMathWrapper.vhd"]})
 
 
 @pytest.mark.parametrize('divisor_width', [1, 46], ids=['minimum', 'phc'])
 def test_ptp_math_bounded_divisor(divisor_width):
     parameters = {'DIVISOR_WIDTH_G': divisor_width}
-    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpmath",
+    run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpmathwrapper",
+                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpMathWrapper.vhd"]},
                       parameters=parameters, extra_env=parameters)

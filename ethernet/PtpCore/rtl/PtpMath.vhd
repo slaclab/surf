@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Description: Checked sequential signed 128-bit multiplier and divider.
 --
--- Accepts one operand pair and operation on inputValid/inputReady.
+-- Accepts one operand pair and operation on request.valid/inputReady.
 -- Multiplication uses unsigned magnitudes, a 128-bit shift/add accumulator
 -- and sticky overflow bits; division uses restoring division with a widened trial
 -- subtraction. DIVISOR_WIDTH_G bounds the unsigned divisor magnitude and sizes
@@ -38,6 +38,7 @@ use ieee.numeric_std.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 
 entity PtpMath is
    generic (
@@ -46,21 +47,14 @@ entity PtpMath is
       RST_ASYNC_G     : boolean                       := false;
       DIVISOR_WIDTH_G : positive range 1 to 128       := 128);
    port (
-      clk             : in  sl;
-      rst             : in  sl;
-      cancel          : in  sl := '0';
-      inputValid      : in  sl;
-      inputReady      : out sl;
-      divide          : in  sl;
-      roundNearest    : in  sl := '1';
-      operandA        : in  slv(127 downto 0);
-      operandB        : in  slv(127 downto 0);
+      clk        : in  sl;
+      rst        : in  sl;
+      cancel     : in  sl := '0';
+      request    : in  PtpMathRequestType;
+      inputReady : out sl;
       -- Registered valid; transfer requires valid/ready high and cancel/reset inactive.
-      resultValid     : out sl;
-      resultReady     : in  sl := '1';  -- Default consumer accepts every result.
-      resultValue     : out slv(127 downto 0);
-      resultRemainder : out slv(127 downto 0);
-      resultError     : out sl);
+      result      : out PtpMathResultType;
+      resultReady : in  sl := '1');  -- Default consumer accepts every result.
 end entity PtpMath;
 
 architecture rtl of PtpMath is
@@ -74,7 +68,7 @@ architecture rtl of PtpMath is
       -- Combinational interface controls; resolve and publish from v.
       -- Ready includes current cancel/reset: no second operand slot is
       -- reserved to honor a delayed withdrawal of admission.
-      inputReady      : sl;
+      inputReady : sl;
 
       state           : StateType;
       count           : natural range 0 to 127;
@@ -89,10 +83,7 @@ architecture rtl of PtpMath is
       multiplicand    : unsigned(127 downto 0);
       shiftOverflow   : sl;
       remainderValue  : unsigned(DIVISOR_WIDTH_G-1 downto 0);
-      resultValid     : sl;
-      resultValue     : slv(127 downto 0);
-      resultRemainder : slv(127 downto 0);
-      error           : sl;
+      result          : PtpMathResultType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -110,17 +101,14 @@ architecture rtl of PtpMath is
       multiplicand    => (others => '0'),
       shiftOverflow   => '0',
       remainderValue  => (others => '0'),
-      resultValid     => '0',
-      resultValue     => (others => '0'),
-      resultRemainder => (others => '0'),
-      error           => '0');
+      result          => PTP_MATH_RESULT_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
 begin
 
-   comb : process (r, rst, cancel, inputValid, divide, roundNearest, operandA, operandB, resultReady) is
+   comb : process (r, rst, cancel, request.valid, request.divide, request.roundNearest, request.operandA, request.operandB, resultReady) is
       variable v : RegType;
 
       -- Calculations used only during this evaluation.
@@ -142,29 +130,29 @@ begin
       -- hold the signed result until the consumer takes it.
       case r.state is
          when IDLE_S =>
-            if inputValid = '1' then
+            if request.valid = '1' then
                v           := REG_INIT_C;
                v.state     := RUN_S;
-               v.divide    := divide;
-               v.rounding  := roundNearest;
-               v.negative  := operandA(127) xor operandB(127);
-               v.negativeA := operandA(127);
+               v.divide    := request.divide;
+               v.rounding  := request.roundNearest;
+               v.negative  := request.operandA(127) xor request.operandB(127);
+               v.negativeA := request.operandA(127);
                -- Unsigned magnitudes retain abs(MIN_SIGNED), which needs all
                -- 128 bits. Never take abs in a narrower signed representation.
-               v.a := unsigned(operandA);
-               if operandA(127) = '1' then
-                  v.a := unsigned(-signed(operandA));
+               v.a := unsigned(request.operandA);
+               if request.operandA(127) = '1' then
+                  v.a := unsigned(-signed(request.operandA));
                end if;
 
-               v.b := unsigned(operandB);
-               if operandB(127) = '1' then
-                  v.b := unsigned(-signed(operandB));
+               v.b := unsigned(request.operandB);
+               if request.operandB(127) = '1' then
+                  v.b := unsigned(-signed(request.operandB));
                end if;
 
                v.multiplicand := v.b;
-               if divide = '1' and (v.b = 0 or shift_right(v.b, DIVISOR_WIDTH_G) /= 0) then
-                  v.error := '1';
-                  v.state := DONE_S;
+               if request.divide = '1' and (v.b = 0 or shift_right(v.b, DIVISOR_WIDTH_G) /= 0) then
+                  v.result.error := '1';
+                  v.state        := DONE_S;
                end if;
             end if;
 
@@ -182,7 +170,7 @@ begin
                -- remainder is less than the divisor, so it fits the configured
                -- width. Widen before shifting and add one more subtraction bit
                -- for borrow; this selects the quotient without another compare.
-               shiftedRemainder    := shift_left(resize(r.remainderValue, DIVISOR_WIDTH_G+1), 1);
+               shiftedRemainder := shift_left(resize(r.remainderValue, DIVISOR_WIDTH_G+1), 1);
                shiftedRemainder(0) := r.a(127);
 
                trialRemainder := resize(shiftedRemainder, DIVISOR_WIDTH_G+2) -
@@ -226,19 +214,19 @@ begin
 
                   -- Remainder always describes truncation toward zero, even
                   -- when the separately returned quotient is rounded nearest.
-                  v.resultRemainder := slv(resize(v.remainderValue, 128));
+                  v.result.remainder := slv(resize(v.remainderValue, 128));
                   if r.negativeA = '1' then
-                     v.resultRemainder := slv(-signed(v.resultRemainder));
+                     v.result.remainder := slv(-signed(v.result.remainder));
                   end if;
                end if;
 
                if magnitude > limitValue or (r.divide = '0' and v.productOverflow = '1') then
-                  v.error := '1';
+                  v.result.error := '1';
                end if;
 
-               v.resultValue := slv(magnitude(127 downto 0));
+               v.result.value := slv(magnitude(127 downto 0));
                if r.negative = '1' then
-                  v.resultValue := slv(-signed(v.resultValue));
+                  v.result.value := slv(-signed(v.result.value));
                end if;
 
                v.state := DONE_S;
@@ -253,9 +241,9 @@ begin
 
       -- A generation/port abort cancels both active arithmetic and a stalled
       -- result before transfer. The caller owns the associated provenance.
-      v.resultValid := '0';
+      v.result.valid := '0';
       if v.state = DONE_S then
-         v.resultValid := '1';
+         v.result.valid := '1';
       end if;
 
       -- Owner-local cancellation discards pending and held work. It is a
@@ -271,11 +259,8 @@ begin
          v := REG_INIT_C;
       end if;
 
-      rin             <= v;
-      resultValid     <= r.resultValid;
-      resultValue     <= r.resultValue;
-      resultRemainder <= r.resultRemainder;
-      resultError     <= r.error;
+      rin    <= v;
+      result <= r.result;
    end process comb;
 
    seq : process (clk, rst) is

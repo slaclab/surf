@@ -26,6 +26,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.PtpPkg.all;
@@ -84,110 +85,107 @@ architecture rtl of PtpRegWrapper is
    constant PACKET_LIFETIME_C : positive         := 5000;
    constant INGRESS_LATENCY_C : slv(63 downto 0) := x"FFFFFFFFFFFF0000";
    constant EGRESS_LATENCY_C  : slv(63 downto 0) := x"0000000000020000";
-   signal resetN         : sl;
-   signal axiReadMaster  : AxiLiteReadMasterType;
-   signal axiReadSlave   : AxiLiteReadSlaveType;
-   signal axiWriteMaster : AxiLiteWriteMasterType;
-   signal axiWriteSlave  : AxiLiteWriteSlaveType;
+   signal resetN              : sl;
+   signal axiReadMaster        : AxiLiteReadMasterType;
+   signal axiReadSlave         : AxiLiteReadSlaveType;
+   signal axiWriteMaster       : AxiLiteWriteMasterType;
+   signal axiWriteSlave        : AxiLiteWriteSlaveType;
    constant NUM_AXIL_MASTERS_C : positive := 4;
    -- Bank order defines the development register offsets within the 16 KiB aperture.
    constant CONTROL_AXIL_INDEX_C : natural := 0;
    constant PHC_AXIL_INDEX_C     : natural := 1;
    constant PORT_AXIL_INDEX_C    : natural := 2;
    constant SERVO_AXIL_INDEX_C   : natural := 3;
-   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
+   constant AXIL_CONFIG_C        : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
       genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, 14, 12);
-   signal readMasters   : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal readSlaves    : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal writeMasters  : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal writeSlaves   : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
-   signal axiReset      : sl;
-   signal snapshotAbort : sl;
-   signal enable        : sl;
-   signal servoEnable   : sl;
-   signal manualBusy    : sl;
-   signal restart       : sl;
-   signal sharedConfig  : PtpSharedConfigType;
-   signal timeValue     : PtpTimeType;
-   signal status        : PtpPhcStatusType;
-   signal abortCapture  : sl;
-   signal clearValid    : sl;
-   signal phcConfigValid   : sl;
-   signal portConfigValid  : sl;
-   signal servoConfigValid : sl;
-   signal portConfigPrepared : sl;
-   signal servoConfigPrepared : sl;
-   signal configControl     : PtpConfigControlType;
-   signal phcSnapshotPrepared : sl;
-   signal portSnapshotPrepared : sl;
+   signal readMasters           : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal readSlaves            : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal writeMasters          : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal writeSlaves           : AxiLiteWriteSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   signal axiReset              : sl;
+   signal snapshotAbort         : sl;
+   signal enable                : sl;
+   signal servoEnable           : sl;
+   signal manualBusy            : sl;
+   signal restart               : sl;
+   signal sharedConfig          : PtpSharedConfigType;
+   signal timeValue             : PtpTimeType;
+   signal status                : PtpPhcStatusType;
+   signal abortCapture          : sl;
+   signal clearValid            : sl;
+   signal phcConfigValid        : sl;
+   signal portConfigValid       : sl;
+   signal servoConfigValid      : sl;
+   signal portConfigPrepared    : sl;
+   signal servoConfigPrepared   : sl;
+   signal configControl         : PtpConfigControlType;
+   signal phcSnapshotPrepared   : sl;
+   signal portSnapshotPrepared  : sl;
    signal servoSnapshotPrepared : sl;
-   signal snapshotControl   : PtpSnapshotControlType;
-   signal commandMaster     : PtpPhcCommandMasterType;
-   signal commandSlave      : PtpPhcCommandSlaveType;
-   signal servoStatus       : PtpServoStatusType;
-   signal bankConfigControl : PtpConfigControlType;
-   signal measurementMaster : PtpMeasurementMasterType;
-   signal measurementSlave  : PtpMeasurementSlaveType;
-   signal portStatus        : PtpPortStatusType;
-   signal portLifecycle     : PtpPortLifecycleType;
+   signal snapshotControl       : PtpSnapshotControlType;
+   signal commandMaster         : PtpPhcCommandMasterType;
+   signal commandSlave          : PtpPhcCommandSlaveType;
+   signal servoStatus           : PtpServoStatusType;
+   signal bankConfigControl     : PtpConfigControlType;
+   signal measurementMaster     : PtpMeasurementMasterType;
+   signal measurementSlave      : PtpMeasurementSlaveType;
+   signal portStatus            : PtpPortStatusType;
+   signal portLifecycle         : PtpPortLifecycleType;
    -- Match the endpoint's distinct PHC (0) and servo (1) converter owners.
    -- Sharing a client slot would give request/cancel buses multiple drivers.
-   signal secondValid       : slv(1 downto 0);
    signal secondReady       : slv(1 downto 0);
-   signal secondRound       : slv(1 downto 0);
-   signal secondOperand     : slv(255 downto 0);
    signal secondCancel      : slv(1 downto 0);
-   signal secondResultValid : slv(1 downto 0);
    signal secondResultReady : slv(1 downto 0);
-   signal secondQuotient    : slv(255 downto 0);
-   signal secondRemainder   : slv(255 downto 0);
-
-   signal divideValid       : slv(1 downto 0);
    signal divideReady       : slv(1 downto 0);
-   signal divideOperandA    : Slv128Array(1 downto 0);
-   signal divideOperandB    : slv(159 downto 0);
    signal divideCancel      : slv(1 downto 0);
-   signal divideResultValid : slv(1 downto 0);
    signal divideResultReady : slv(1 downto 0);
-   signal divideResultValue : Slv128Array(1 downto 0);
-   signal divideResultError : slv(1 downto 0);
+
+   signal protocolEngineRxMessageMaster : PtpRxMessageMasterType;
+   signal protocolEngineTxMessageMaster : PtpRxMessageMasterType;
+
+   signal secondRequests : PtpConstDivideRequestArray(2-1 downto 0)(operand(128-1 downto 0));
+   signal secondResults  : PtpConstDivideResultArray(2-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
+   signal divideRequests : PtpDivideRequestArray(2-1 downto 0)(operandB(80-1 downto 0));
+   signal divideResults  : PtpDivideResultArray(2-1 downto 0);
 
 begin
 
+   protocolEngineRxMessageMaster <=
+   (
+      valid => '0',
+      data  => PTP_RX_MESSAGE_INIT_C
+   );
+   protocolEngineTxMessageMaster <=
+   (
+      valid => '0',
+      data  => PTP_RX_MESSAGE_INIT_C
+   );
+
    U_Second : entity surf.PtpSecondService
       generic map (
-         NUM_CLIENTS_G  => 2,
-         WIDTH_G        => 128)
+         NUM_CLIENTS_G => 2,
+         WIDTH_G       => 128)
       port map (
-         clk             => clk,                -- [in]
-         rst             => rst,                -- [in]
-         cancel          => secondCancel,       -- [in]
-         inputValid      => secondValid,        -- [in]
-         inputReady      => secondReady,        -- [out]
-         roundNearest    => secondRound,        -- [in]
-         operand         => secondOperand,      -- [in]
-         resultValid     => secondResultValid,  -- [out]
-         resultReady     => secondResultReady,  -- [in]
-         resultValue     => secondQuotient,     -- [out]
-         resultRemainder => secondRemainder);   -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => secondCancel,        -- [in]
+         requests    => secondRequests,      -- [in]
+         inputReady  => secondReady,         -- [out]
+         results     => secondResults,       -- [out]
+         resultReady => secondResultReady);  -- [in]
 
    U_Divide : entity surf.PtpVariableDivide
       generic map (
          NUM_CLIENTS_G   => 2,
          DIVISOR_WIDTH_G => 80)
       port map (
-         clk          => clk,                 -- [in]
-         rst          => rst,                 -- [in]
-         cancel       => divideCancel,        -- [in]
-         inputValid   => divideValid,         -- [in]
-         inputReady   => divideReady,         -- [out]
-         roundNearest => "11",                -- [in]
-         operandA     => divideOperandA,      -- [in]
-         operandB     => divideOperandB,      -- [in]
-         resultValid  => divideResultValid,   -- [out]
-         resultReady  => divideResultReady,   -- [in]
-         resultValue  => divideResultValue,   -- [out]
-         resultError  => divideResultError);  -- [out]
+         clk         => clk,                 -- [in]
+         rst         => rst,                 -- [in]
+         cancel      => divideCancel,        -- [in]
+         requests    => divideRequests,      -- [in]
+         inputReady  => divideReady,         -- [out]
+         results     => divideResults,       -- [out]
+         resultReady => divideResultReady);  -- [in]
 
    assert AXIL_BASE_ADDR_G(13 downto 0) = toSlv(0, 14)
       report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
@@ -205,7 +203,7 @@ begin
          bankControlNow.apply   := bankApply;
       end if;
 
-      snapshotAbortNow := abortCapture or snapshotInhibit;
+      snapshotAbortNow  := abortCapture or snapshotInhibit;
       bankConfigControl <= bankControlNow;
       snapshotAbort     <= snapshotAbortNow;
    end process comb;
@@ -265,16 +263,16 @@ begin
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => AXIL_CONFIG_C)
       port map (
-         axiClk    => clk,             -- [in]
-         axiClkRst => axiReset,        -- [in]
+         axiClk    => clk,       -- [in]
+         axiClkRst => axiReset,  -- [in]
          sAxiWriteMasters(0) => axiWriteMaster,  -- [in]
          sAxiWriteSlaves(0)  => axiWriteSlave,   -- [out]
          sAxiReadMasters(0)  => axiReadMaster,   -- [in]
          sAxiReadSlaves(0)   => axiReadSlave,    -- [out]
-         mAxiWriteMasters => writeMasters,    -- [out]
-         mAxiWriteSlaves  => writeSlaves,     -- [in]
-         mAxiReadMasters  => readMasters,     -- [out]
-         mAxiReadSlaves   => readSlaves);     -- [in]
+         mAxiWriteMasters => writeMasters,  -- [out]
+         mAxiWriteSlaves  => writeSlaves,   -- [in]
+         mAxiReadMasters  => readMasters,   -- [out]
+         mAxiReadSlaves   => readSlaves);   -- [in]
 
    U_Control : entity surf.PtpEndpointControl
       generic map (
@@ -296,12 +294,12 @@ begin
          manualBusy            => manualBusy,                          -- [in]
          phcConfigValid        => phcConfigValid,                      -- [in]
          portConfigValid       => portConfigValid,                     -- [in]
-         portConfigPrepared    => portConfigPrepared,
-         servoConfigPrepared   => servoConfigPrepared,
-         phcSnapshotPrepared   => phcSnapshotPrepared,
-         portSnapshotPrepared  => portSnapshotPrepared,
-         servoSnapshotPrepared => servoSnapshotPrepared,
          servoConfigValid      => servoConfigValid,                    -- [in]
+         portConfigPrepared    => portConfigPrepared,                  -- [in]
+         servoConfigPrepared   => servoConfigPrepared,                 -- [in]
+         phcSnapshotPrepared   => phcSnapshotPrepared,                 -- [in]
+         portSnapshotPrepared  => portSnapshotPrepared,                -- [in]
+         servoSnapshotPrepared => servoSnapshotPrepared,               -- [in]
          captureAbort          => snapshotAbort,                       -- [in]
          phcFault              => status.fault,                        -- [in]
          phcDiscontinuity      => status.discontinuity,                -- [in]
@@ -315,9 +313,9 @@ begin
          rxFlush               => open,                                -- [out]
          enable                => enable,                              -- [out]
          servoEnable           => servoEnable,                         -- [out]
+         irq                   => irq,                                 -- [out]
          configControl         => configControl,                       -- [out]
-         snapshotControl       => snapshotControl,                     -- [out]
-         irq                   => irq);                                -- [out]
+         snapshotControl       => snapshotControl);                    -- [out]
 
    U_Phc : entity surf.PtpPhc
       generic map (
@@ -326,37 +324,33 @@ begin
          RST_ASYNC_G    => RST_ASYNC_C,
          CLK_FREQ_G     => CLK_FREQ_C)
       port map (
-         secondValid       => secondValid(0),
-         secondReady       => secondReady(0),
-         secondRound       => secondRound(0),
-         secondOperand     => secondOperand(127 downto 0),
-         secondCancel      => secondCancel(0),
-         secondResultValid => secondResultValid(0),
-         secondResultReady => secondResultReady(0),
-         secondQuotient    => secondQuotient(127 downto 0),
-         secondRemainder   => secondRemainder(127 downto 0),
-         clk              => clk,                             -- [in]
-         rst              => rst,                             -- [in]
-         regRst           => regRst,                          -- [in]
-         axiReadMaster    => readMasters(PHC_AXIL_INDEX_C),   -- [in]
-         axiReadSlave     => readSlaves(PHC_AXIL_INDEX_C),    -- [out]
-         axiWriteMaster   => writeMasters(PHC_AXIL_INDEX_C),  -- [in]
-         axiWriteSlave    => writeSlaves(PHC_AXIL_INDEX_C),   -- [out]
-         configControl    => bankConfigControl,               -- [in]
-         snapshotControl  => snapshotControl,                 -- [in]
-         snapshotPrepared => phcSnapshotPrepared,
-         configValid      => phcConfigValid,                  -- [out]
-         servoEnable      => servoEnable,                     -- [in]
-         restart          => restart,                         -- [in]
-         portCommandAbort => portLifecycle.commandAbort,      -- [in]
-         commandMaster    => commandMaster,                   -- [in]
-         commandSlave     => commandSlave,                    -- [out]
-         phcTime          => timeValue,                       -- [out]
-         status           => status,                          -- [out]
-         captureAbort     => abortCapture,                    -- [out]
-         clearValid       => clearValid,                      -- [in]
-         pps              => open,                            -- [out]
-         manualBusy       => manualBusy);                     -- [out]
+         clk               => clk,                             -- [in]
+         rst               => rst,                             -- [in]
+         regRst            => regRst,                          -- [in]
+         axiReadMaster     => readMasters(PHC_AXIL_INDEX_C),   -- [in]
+         axiReadSlave      => readSlaves(PHC_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster    => writeMasters(PHC_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave     => writeSlaves(PHC_AXIL_INDEX_C),   -- [out]
+         configControl     => bankConfigControl,               -- [in]
+         snapshotControl   => snapshotControl,                 -- [in]
+         snapshotPrepared  => phcSnapshotPrepared,             -- [out]
+         configValid       => phcConfigValid,                  -- [out]
+         servoEnable       => servoEnable,                     -- [in]
+         restart           => restart,                         -- [in]
+         portCommandAbort  => portLifecycle.commandAbort,      -- [in]
+         manualBusy        => manualBusy,                      -- [out]
+         clearValid        => clearValid,                      -- [in]
+         phcTime           => timeValue,                       -- [out]
+         status            => status,                          -- [out]
+         pps               => open,                            -- [out]
+         captureAbort      => abortCapture,                    -- [out]
+         commandMaster     => commandMaster,                   -- [in]
+         commandSlave      => commandSlave,                    -- [out]
+         secondRequest     => secondRequests(0),               -- [out]
+         secondReady       => secondReady(0),                  -- [in]
+         secondCancel      => secondCancel(0),                 -- [out]
+         secondResult      => secondResults(0),                -- [in]
+         secondResultReady => secondResultReady(0));           -- [out]
 
    U_ProtocolEngine : entity surf.PtpProtocolEngine
       generic map (
@@ -368,15 +362,6 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_C,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_C)
       port map (
-         divideValid       => divideValid,
-         divideReady       => divideReady,
-         divideOperandA    => divideOperandA,
-         divideOperandB    => divideOperandB,
-         divideCancel      => divideCancel,
-         divideResultValid => divideResultValid,
-         divideResultReady => divideResultReady,
-         divideResultValue => divideResultValue,
-         divideResultError => divideResultError,
          clk               => clk,                              -- [in]
          rst               => rst,                              -- [in]
          regRst            => regRst,                           -- [in]
@@ -386,33 +371,36 @@ begin
          axiWriteSlave     => writeSlaves(PORT_AXIL_INDEX_C),   -- [out]
          configControl     => bankConfigControl,                -- [in]
          snapshotControl   => snapshotControl,                  -- [in]
-         snapshotPrepared  => portSnapshotPrepared,
-         configPrepared    => portConfigPrepared,
+         snapshotPrepared  => portSnapshotPrepared,             -- [out]
          configValid       => portConfigValid,                  -- [out]
+         configPrepared    => portConfigPrepared,               -- [out]
+         enable            => enable,                           -- [in]
+         rxCounters        => PTP_RX_COUNTERS_INIT_C,           -- [in]
+         sharedConfig      => sharedConfig,                     -- [out]
          restart           => restart,                          -- [in]
          linkReady         => '0',                              -- [in]
          macResetDone      => '0',                              -- [in]
          localMac          => localMac,                         -- [in]
          phcStatus         => status,                           -- [in]
-         measurementMaster => measurementMaster,                -- [out]
-         measurementSlave  => measurementSlave,                 -- [in]
          captureAbort      => abortCapture,                     -- [in]
-         rxMessage         => PTP_RX_MESSAGE_INIT_C,            -- [in]
-         rxValid           => '0',                              -- [in]
+         rxMessageMaster   => protocolEngineRxMessageMaster,    -- [in]
          rxReady           => open,                             -- [out]
          rxQueueOverflow   => '0',                              -- [in]
          rxAbort           => '0',                              -- [in]
-         txMessage         => PTP_RX_MESSAGE_INIT_C,            -- [in]
-         txValid           => '0',                              -- [in]
+         txMessageMaster   => protocolEngineTxMessageMaster,    -- [in]
          txMessageReady    => open,                             -- [out]
          txAbort           => '0',                              -- [in]
          txMaster          => open,                             -- [out]
          txSlave           => AXI_STREAM_SLAVE_FORCE_C,         -- [in]
-         enable            => enable,                           -- [in]
-         rxCounters        => PTP_RX_COUNTERS_INIT_C,           -- [in]
-         sharedConfig      => sharedConfig,                     -- [out]
+         measurementMaster => measurementMaster,                -- [out]
+         measurementSlave  => measurementSlave,                 -- [in]
          lifecycle         => portLifecycle,                    -- [out]
-         status            => portStatus);                      -- [out]
+         status            => portStatus,                       -- [out]
+         divideRequests    => divideRequests,                   -- [out]
+         divideReady       => divideReady,                      -- [in]
+         divideCancel      => divideCancel,                     -- [out]
+         divideResults     => divideResults,                    -- [in]
+         divideResultReady => divideResultReady);               -- [out]
 
    U_Servo : entity surf.PtpServo
       generic map (
@@ -421,15 +409,6 @@ begin
          RST_ASYNC_G    => RST_ASYNC_C,
          CLK_FREQ_G     => CLK_FREQ_C)
       port map (
-         secondValid       => secondValid(1),
-         secondReady       => secondReady(1),
-         secondRound       => secondRound(1),
-         secondOperand     => secondOperand(255 downto 128),
-         secondCancel      => secondCancel(1),
-         secondResultValid => secondResultValid(1),
-         secondResultReady => secondResultReady(1),
-         secondQuotient    => secondQuotient(255 downto 128),
-         secondRemainder   => secondRemainder(255 downto 128),
          clk               => clk,                               -- [in]
          rst               => rst,                               -- [in]
          regRst            => regRst,                            -- [in]
@@ -439,18 +418,23 @@ begin
          axiWriteSlave     => writeSlaves(SERVO_AXIL_INDEX_C),   -- [out]
          configControl     => bankConfigControl,                 -- [in]
          snapshotControl   => snapshotControl,                   -- [in]
-         snapshotPrepared  => servoSnapshotPrepared,
-         configPrepared    => servoConfigPrepared,
+         snapshotPrepared  => servoSnapshotPrepared,             -- [out]
          configValid       => servoConfigValid,                  -- [out]
-         restart           => restart,                           -- [in]
-         phcStatus         => status,                            -- [in]
+         configPrepared    => servoConfigPrepared,               -- [out]
+         servoEnable       => servoEnable,                       -- [in]
+         sharedConfig      => sharedConfig,                      -- [in]
          measurementMaster => measurementMaster,                 -- [in]
          measurementSlave  => measurementSlave,                  -- [out]
+         restart           => restart,                           -- [in]
+         phcStatus         => status,                            -- [in]
+         expireTime        => clearValid,                        -- [out]
          commandMaster     => commandMaster,                     -- [out]
          commandSlave      => commandSlave,                      -- [in]
-         expireTime        => clearValid,                        -- [out]
          status            => servoStatus,                       -- [out]
-         servoEnable       => servoEnable,                       -- [in]
-         sharedConfig      => sharedConfig);                     -- [in]
+         secondRequest     => secondRequests(1),                 -- [out]
+         secondReady       => secondReady(1),                    -- [in]
+         secondCancel      => secondCancel(1),                   -- [out]
+         secondResult      => secondResults(1),                  -- [in]
+         secondResultReady => secondResultReady(1));             -- [out]
 
 end architecture rtl;

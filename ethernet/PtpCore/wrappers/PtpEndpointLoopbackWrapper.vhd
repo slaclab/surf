@@ -52,80 +52,80 @@ entity PtpEndpointLoopbackWrapper is
       CLK_FREQ_G        : positive         := 156250000;
       PACKET_LIFETIME_G : positive         := 10000);
    port (
-      clk                : in  sl;
-      rst                : in  sl;
-      portRst            : in  sl                := '0';
-      regRst             : in  sl                := '0';
-      phyReady           : in  sl;
-      localMac           : in  slv(47 downto 0);
-      pauseEnable        : in  sl                := '0';
-      xgmiiRxd           : in  slv(63 downto 0)  := (others => '0');
-      xgmiiRxc           : in  slv(7 downto 0)   := (others => '1');
-      xgmiiTxd           : out slv(63 downto 0);
-      xgmiiTxc           : out slv(7 downto 0);
-      gmiiRxd            : in  slv(7 downto 0)   := (others => '0');
-      gmiiRxDv           : in  sl                := '0';
-      gmiiRxEr           : in  sl                := '0';
-      gmiiTxd            : out slv(7 downto 0);
-      gmiiTxEn           : out sl;
-      gmiiTxEr           : out sl;
-      sAxisTValid        : in  sl                := '0';
-      sAxisTReady        : out sl;
-      sAxisTData         : in  slv(127 downto 0) := (others => '0');
-      sAxisTKeep         : in  slv(15 downto 0)  := (others => '0');
-      sAxisTLast         : in  sl                := '0';
-      sAxisSof           : in  sl                := '0';
-      sAxisEofe          : in  sl                := '0';
-      sAxisTDest         : in  slv(7 downto 0)   := (others => '0');
-      mAxisTValid        : out sl;
-      mAxisTReady        : in  sl                := '1';
-      mAxisTData         : out slv(127 downto 0);
-      mAxisTKeep         : out slv(15 downto 0);
-      mAxisTLast         : out sl;
-      mAxisSof           : out sl;
-      mAxisEofe          : out sl;
-      mAxisTDest         : out slv(7 downto 0);
-      axil_awaddr        : in  slv(31 downto 0);
-      axil_awvalid       : in  sl;
-      axil_awready       : out sl;
-      axil_wdata         : in  slv(31 downto 0);
-      axil_wstrb         : in  slv(3 downto 0);
-      axil_wvalid        : in  sl;
-      axil_wready        : out sl;
-      axil_bresp         : out slv(1 downto 0);
-      axil_bvalid        : out sl;
-      axil_bready        : in  sl;
-      axil_araddr        : in  slv(31 downto 0);
-      axil_arvalid       : in  sl;
-      axil_arready       : out sl;
-      axil_rdata         : out slv(31 downto 0);
-      axil_rresp         : out slv(1 downto 0);
-      axil_rvalid        : out sl;
-      axil_rready        : in  sl;
-      timeSeconds        : out slv(47 downto 0);
-      timeNanoseconds    : out slv(31 downto 0);
-      timeFraction       : out slv(31 downto 0);
-      timeTicks          : out slv(63 downto 0);
-      timeGeneration     : out slv(31 downto 0);
-      timeIncrement      : out slv(63 downto 0);
-      timeValid          : out sl;
-      timeFault          : out sl;
-      timeDiscontinuity  : out sl;
-      pps                : out sl;
-      irq                : out sl;
-      portActive         : out sl;
-      servoState         : out slv(2 downto 0);
-      modelXgmiiTxd      : in  slv(63 downto 0)  := (others => '0');
-      modelXgmiiTxc      : in  slv(7 downto 0)   := (others => '1');
-      modelGmiiTxd       : in  slv(7 downto 0)   := (others => '0');
-      modelGmiiTxEn      : in  sl                := '0';
-      modelTxValid       : out sl;
-      modelTxReady       : in  sl                := '1';
-      modelTxData        : out slv(63 downto 0);
-      modelTxKeep        : out slv(7 downto 0);
-      modelTxLast        : out sl;
-      modelTxSof         : out sl;
-      primaryDropped     : out slv(31 downto 0));
+      clk               : in  sl;
+      rst               : in  sl;
+      portRst           : in  sl                := '0';
+      regRst            : in  sl                := '0';
+      phyReady          : in  sl;
+      localMac          : in  slv(47 downto 0);
+      pauseEnable       : in  sl                := '0';
+      xgmiiRxd          : in  slv(63 downto 0)  := (others => '0');
+      xgmiiRxc          : in  slv(7 downto 0)   := (others => '1');
+      xgmiiTxd          : out slv(63 downto 0);
+      xgmiiTxc          : out slv(7 downto 0);
+      gmiiRxd           : in  slv(7 downto 0)   := (others => '0');
+      gmiiRxDv          : in  sl                := '0';
+      gmiiRxEr          : in  sl                := '0';
+      gmiiTxd           : out slv(7 downto 0);
+      gmiiTxEn          : out sl;
+      gmiiTxEr          : out sl;
+      sAxisTValid       : in  sl                := '0';
+      sAxisTReady       : out sl;
+      sAxisTData        : in  slv(127 downto 0) := (others => '0');
+      sAxisTKeep        : in  slv(15 downto 0)  := (others => '0');
+      sAxisTLast        : in  sl                := '0';
+      sAxisSof          : in  sl                := '0';
+      sAxisEofe         : in  sl                := '0';
+      sAxisTDest        : in  slv(7 downto 0)   := (others => '0');
+      mAxisTValid       : out sl;
+      mAxisTReady       : in  sl                := '1';
+      mAxisTData        : out slv(127 downto 0);
+      mAxisTKeep        : out slv(15 downto 0);
+      mAxisTLast        : out sl;
+      mAxisSof          : out sl;
+      mAxisEofe         : out sl;
+      mAxisTDest        : out slv(7 downto 0);
+      axil_awaddr       : in  slv(31 downto 0);
+      axil_awvalid      : in  sl;
+      axil_awready      : out sl;
+      axil_wdata        : in  slv(31 downto 0);
+      axil_wstrb        : in  slv(3 downto 0);
+      axil_wvalid       : in  sl;
+      axil_wready       : out sl;
+      axil_bresp        : out slv(1 downto 0);
+      axil_bvalid       : out sl;
+      axil_bready       : in  sl;
+      axil_araddr       : in  slv(31 downto 0);
+      axil_arvalid      : in  sl;
+      axil_arready      : out sl;
+      axil_rdata        : out slv(31 downto 0);
+      axil_rresp        : out slv(1 downto 0);
+      axil_rvalid       : out sl;
+      axil_rready       : in  sl;
+      timeSeconds       : out slv(47 downto 0);
+      timeNanoseconds   : out slv(31 downto 0);
+      timeFraction      : out slv(31 downto 0);
+      timeTicks         : out slv(63 downto 0);
+      timeGeneration    : out slv(31 downto 0);
+      timeIncrement     : out slv(63 downto 0);
+      timeValid         : out sl;
+      timeFault         : out sl;
+      timeDiscontinuity : out sl;
+      pps               : out sl;
+      irq               : out sl;
+      portActive        : out sl;
+      servoState        : out slv(2 downto 0);
+      modelXgmiiTxd     : in  slv(63 downto 0)  := (others => '0');
+      modelXgmiiTxc     : in  slv(7 downto 0)   := (others => '1');
+      modelGmiiTxd      : in  slv(7 downto 0)   := (others => '0');
+      modelGmiiTxEn     : in  sl                := '0';
+      modelTxValid      : out sl;
+      modelTxReady      : in  sl                := '1';
+      modelTxData       : out slv(63 downto 0);
+      modelTxKeep       : out slv(7 downto 0);
+      modelTxLast       : out sl;
+      modelTxSof        : out sl;
+      primaryDropped    : out slv(31 downto 0));
 end entity PtpEndpointLoopbackWrapper;
 
 architecture rtl of PtpEndpointLoopbackWrapper is
@@ -139,9 +139,12 @@ architecture rtl of PtpEndpointLoopbackWrapper is
    signal sSlave      : AxiStreamSlaveType;
    signal mMaster     : AxiStreamMasterType;
    signal mSlave      : AxiStreamSlaveType;
-   signal timeValue   : PtpTimeType;
-   signal status      : PtpPhcStatusType;
-   signal resetN      : sl;
+   signal timeValue : PtpTimeType;
+   signal status    : PtpPhcStatusType;
+   signal resetN    : sl;
+
+   signal rxMessageMaster    : PtpRxMessageMasterType;
+   signal txCompletionMaster : PtpRxMessageMasterType;
 
 begin
 
@@ -191,15 +194,15 @@ begin
    comb : process (sAxisTValid, sAxisTData, sAxisTKeep, sAxisTLast, sAxisSof, sAxisEofe, sAxisTDest) is
       variable v : AxiStreamMasterType;
    begin
-      v                     := AXI_STREAM_MASTER_INIT_C;
-      v.tValid              := sAxisTValid;
+      v        := AXI_STREAM_MASTER_INIT_C;
+      v.tValid := sAxisTValid;
       v.tData(127 downto 0) := sAxisTData;
       v.tKeep(15 downto 0)  := sAxisTKeep;
-      v.tLast               := sAxisTLast;
+      v.tLast := sAxisTLast;
       v.tDest(7 downto 0)   := sAxisTDest;
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_SOF_BIT_C, sAxisSof, 0);
       axiStreamSetUserBit(EMAC_AXIS_CONFIG_C, v, EMAC_EOFE_BIT_C, sAxisEofe);
-      sMaster               <= v;
+      sMaster <= v;
    end process comb;
    sAxisTReady   <= sSlave.tReady;
    mSlave.tReady <= mAxisTReady;
@@ -263,9 +266,9 @@ begin
    -- encoder. PHC, RX validation, TX observation, port, arithmetic and servo are
    -- the same production entities. Separate runs select the real MAC above.
    GEN_MODEL : if not MAC_ENABLE_G generate
-      signal normalized      : AxiStreamMasterType;
-      signal capture         : PtpRxCaptureType;
-      signal rxMessage       : PtpRxMessageType;
+      signal normalized : AxiStreamMasterType;
+      signal capture    : PtpRxCaptureType;
+      -- Scalar observation for the fixture ingress-retirement monitor.
       signal rxValid         : sl;
       signal rxReady         : sl;
       signal rxQueueOverflow : sl;
@@ -273,14 +276,14 @@ begin
       signal flush           : sl;
       signal captureAbort    : sl;
       signal rxCounters      : PtpRxCountersType;
-      signal txMessage       : PtpRxMessageType;
-      signal txValid         : sl;
       signal txMessageReady  : sl;
       signal txAbort         : sl;
       signal txMaster        : AxiStreamMasterType;
       signal txSlave         : AxiStreamSlaveType;
 
    begin
+      rxValid <= rxMessageMaster.valid;
+
       mMaster        <= AXI_STREAM_MASTER_INIT_C;
       sSlave         <= AXI_STREAM_SLAVE_FORCE_C;
       primaryDropped <= (others => '0');
@@ -305,8 +308,8 @@ begin
             rst       => rst,         -- [in]
             rxFlush   => flush,       -- [in]
             phyReady  => phyReady,    -- [in]
-            phcStatus => status,      -- [in]
             phcTime   => timeValue,   -- [in]
+            phcStatus => status,      -- [in]
             xgmiiRxd  => xgmiiRxd,    -- [in]
             xgmiiRxc  => xgmiiRxc,    -- [in]
             gmiiRxd   => gmiiRxd,     -- [in]
@@ -325,11 +328,10 @@ begin
             generation    => status.generation,  -- [in]
             rxMaster      => normalized,         -- [in]
             rxCapture     => capture,            -- [in]
-            message       => rxMessage,          -- [out]
-            messageValid  => rxValid,            -- [out]
+            messageMaster => rxMessageMaster,    -- [out]
             messageReady  => rxReady,            -- [in]
-            rxAbort       => rxAbort,            -- [out]
             queueOverflow => rxQueueOverflow,    -- [out]
+            rxAbort       => rxAbort,            -- [out]
             rxEpoch       => open,               -- [out]
             counters      => rxCounters);        -- [out]
 
@@ -338,21 +340,20 @@ begin
             TPD_G      => TPD_PS_G*1 ps,
             PHY_TYPE_G => PHY_TYPE_G)
          port map (
-            clk             => clk,            -- [in]
-            rst             => rst,            -- [in]
-            phyReady        => phyReady,       -- [in]
-            phcTime         => timeValue,      -- [in]
-            phcStatus       => status,         -- [in]
-            captureAbort    => captureAbort,   -- [in]
-            xgmiiTxd        => modelXgmiiTxd,  -- [in]
-            xgmiiTxc        => modelXgmiiTxc,  -- [in]
-            gmiiTxd         => modelGmiiTxd,   -- [in]
-            gmiiTxEn        => modelGmiiTxEn,  -- [in]
-            gmiiTxEr        => '0',            -- [in]
-            completion      => txMessage,      -- [out]
-            completionValid => txValid,        -- [out]
-            completionReady => txMessageReady,  -- [in]
-            completionAbort => txAbort);       -- [out]
+            clk              => clk,                 -- [in]
+            rst              => rst,                 -- [in]
+            phyReady         => phyReady,            -- [in]
+            phcTime          => timeValue,           -- [in]
+            phcStatus        => status,              -- [in]
+            captureAbort     => captureAbort,        -- [in]
+            xgmiiTxd         => modelXgmiiTxd,       -- [in]
+            xgmiiTxc         => modelXgmiiTxc,       -- [in]
+            gmiiTxd          => modelGmiiTxd,        -- [in]
+            gmiiTxEn         => modelGmiiTxEn,       -- [in]
+            gmiiTxEr         => '0',                 -- [in]
+            completionMaster => txCompletionMaster,  -- [out]
+            completionReady  => txMessageReady,      -- [in]
+            completionAbort  => txAbort);            -- [out]
 
       U_DUT : entity surf.PtpEndpoint
          generic map (
@@ -361,37 +362,35 @@ begin
             CLK_FREQ_G        => CLK_FREQ_G,
             PACKET_LIFETIME_G => PACKET_LIFETIME_G)
          port map (
-            clk             => clk,              -- [in]
-            rst             => rst,              -- [in]
-            regRst          => regRst,           -- [in]
-            portRst         => portRst,          -- [in]
-            linkReady       => phyReady,         -- [in]
-            macResetDone    => resetN,           -- [in]
-            localMac        => localMac,         -- [in]
-            axiReadMaster   => readMaster,       -- [in]
-            axiReadSlave    => readSlave,        -- [out]
-            axiWriteMaster  => writeMaster,      -- [in]
-            axiWriteSlave   => writeSlave,       -- [out]
-            rxMessage       => rxMessage,        -- [in]
-            rxValid         => rxValid,          -- [in]
-            rxReady         => rxReady,          -- [out]
-            rxAbort         => rxAbort,          -- [in]
-            rxQueueOverflow => rxQueueOverflow,  -- [in]
-            rxCounters      => rxCounters,       -- [in]
-            txMessage       => txMessage,        -- [in]
-            txValid         => txValid,          -- [in]
-            txMessageReady  => txMessageReady,   -- [out]
-            txAbort         => txAbort,          -- [in]
-            txMaster        => txMaster,         -- [out]
-            txSlave         => txSlave,          -- [in]
-            phcTime         => timeValue,        -- [out]
-            phcStatus       => status,           -- [out]
-            captureAbort    => captureAbort,     -- [out]
-            rxFlush         => flush,            -- [out]
-            pps             => pps,              -- [out]
-            irq             => irq,              -- [out]
-            portActive      => portActive,       -- [out]
-            servoState      => servoState);      -- [out]
+            clk             => clk,                 -- [in]
+            rst             => rst,                 -- [in]
+            regRst          => regRst,              -- [in]
+            portRst         => portRst,             -- [in]
+            linkReady       => phyReady,            -- [in]
+            macResetDone    => resetN,              -- [in]
+            localMac        => localMac,            -- [in]
+            axiReadMaster   => readMaster,          -- [in]
+            axiReadSlave    => readSlave,           -- [out]
+            axiWriteMaster  => writeMaster,         -- [in]
+            axiWriteSlave   => writeSlave,          -- [out]
+            rxMessageMaster => rxMessageMaster,     -- [in]
+            rxReady         => rxReady,             -- [out]
+            rxQueueOverflow => rxQueueOverflow,     -- [in]
+            rxAbort         => rxAbort,             -- [in]
+            rxCounters      => rxCounters,          -- [in]
+            txMessageMaster => txCompletionMaster,  -- [in]
+            txMessageReady  => txMessageReady,      -- [out]
+            txAbort         => txAbort,             -- [in]
+            txMaster        => txMaster,            -- [out]
+            txSlave         => txSlave,             -- [in]
+            phcTime         => timeValue,           -- [out]
+            phcStatus       => status,              -- [out]
+            captureAbort    => captureAbort,        -- [out]
+            rxFlush         => flush,               -- [out]
+            pps             => pps,                 -- [out]
+            irq             => irq,                 -- [out]
+            portActive      => portActive,          -- [out]
+            servoState      => servoState);         -- [out]
 
    end generate GEN_MODEL;
    timeSeconds       <= timeValue.seconds;
