@@ -14,6 +14,8 @@
 #   Exercise default limits and +/-200000 ppb with sums beyond 35 signed bits.
 #   Include signed64 offset extrema, unsigned32 gain extrema and fractional
 #   half ties; compare Q16 rate state before the PHC-addend quantization.
+#   Apply positive and negative fractional-nanosecond delay asymmetry through
+#   the production register path and check the independently corrected offset.
 #   Check registered valid/cancel/expiry before and after input-changing edges.
 #   Median cases cover every ordering, startup count, duplicates, signed64
 #   maximum, circular replacement and abort/restart of partially filled history.
@@ -75,13 +77,14 @@ async def numerical_control(d):
     d.maxPathDelay.value = 1000000*Q16
     axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
 
-    async def configure(limits, kp=1 << 28, ki=1 << 26):
+    async def configure(limits, kp=1 << 28, ki=1 << 26, asymmetry=0):
         # Use the production shadow/candidate/active path. Shared limits are
         # supplied by the fixture's port record; local limits belong to AXI.
         settings = [(0x020, kp, 4), (0x024, ki, 4),
                     (0x028, limits[0], 4), (0x02C, limits[1], 4), (0x030, limits[2], 4),
                     (0x060, (1 << 62)-1, 8), (0x068, 250000000, 8),
-                    (0x070, 1, 8), (0x078, (1 << 62)-1, 8)]
+                    (0x070, 1, 8), (0x078, (1 << 62)-1, 8),
+                    (0x080, asymmetry & ((1 << 64)-1), 8)]
         for address, value, size in settings:
             transaction = cocotb.start_soon(axil.write(address, value.to_bytes(size, "little")))
             # A shadow access may wait for the 34-word four-cycle clone,
@@ -138,7 +141,8 @@ async def numerical_control(d):
         await edge(rst=1)
         await edge(rst=0)
         kp, ki = ((1 << 32)-1, (1 << 32)-1) if ppm == 0 else (1 << 28, 1 << 26)
-        await configure(limits, kp, ki)
+        asymmetry = (1 if ppm > 0 else -1)*(17*Q16+19) if ppm in (-100, 100, 1) else 0
+        await configure(limits, kp, ki, asymmetry)
         model = PiController(kp=Fraction(kp, 1 << 30), ki=Fraction(ki, 1 << 30),
                              max_frequency=limits[0], max_slew=limits[1], max_rate=limits[2])
         ratio = nearest(Fraction(NS, frequency)*(1+Fraction(ppm, 1000000))*Q48)
@@ -177,7 +181,7 @@ async def numerical_control(d):
                 offset = offsets[index % len(offsets)]
             expected_ppb = model.sample(offset, interval, bootstrap)
             assert int(d.inputReady.value)
-            await edge(ticks=now+100, sampleTicks=now, isDelay=0, forwardValue=(100*Q16+offset) & ((1 << 128)-1),
+            await edge(ticks=now+100, sampleTicks=now, isDelay=0, forwardValue=(100*Q16+offset+asymmetry) & ((1 << 128)-1),
                        ratio=ratio, inputValid=1)
             await edge(inputValid=0)
             await collect(expected_ppb)

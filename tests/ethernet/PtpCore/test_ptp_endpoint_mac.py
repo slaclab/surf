@@ -19,8 +19,11 @@
 #   Zero propagation delay reduces GHDL event scheduling in this long fixture;
 #   registered cycle boundaries and the independent wire/FCS observer remain.
 #   Leaf and model-MAC endpoint fixtures retain their 1 ns delay checks.
+#   Sync spacing exceeds the configured rate-span minimum; FIFO last-write and
+#   protocol counters establish completion instead of fixed settling delays.
 
 import cocotb
+from cocotb.triggers import RisingEdge
 import pytest
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
@@ -34,6 +37,40 @@ async def real_mac_lifecycle(d):
     b = Bench(d)
     await b.start()
     await b.configure()
+    queued = 0
+    responses_retired = wire_retired = 0
+    allow_delay = False
+
+    async def monitor_queued():
+        """Lifetime agent: owned by b.tasks and stopped with the fixture."""
+        nonlocal queued, responses_retired, wire_retired
+        # Observe the real bypass FIFO accepting the final frame beat. A
+        # ledger reservation alone does not prove the complete frame reached
+        # the MAC before port reset. Payload/fate assertions use the wire.
+        fifo = d.gen_mac.u_dut.u_mac.u_txfifo.byp_enabled.byp_fifo.u_fifo
+        endpoint = d.gen_mac.u_dut
+        engine = endpoint.u_endpoint.u_protocolengine
+        while True:
+            await RisingEdge(d.clk)
+            if int(fifo.fifowritelast.value):
+                queued += 1
+            if int(engine.responsevalid.value) and int(engine.responseready.value):
+                responses_retired += 1
+            if int(endpoint.txmessageready.value):
+                wire_retired += 1
+            if not allow_delay:
+                assert not int(engine.delayvalid.value), 'retired wire key offered a delay sample'
+
+    async def counter_after(address, before):
+        start = int(d.timeTicks.value)
+        while int(d.timeTicks.value)-start < 9000:
+            await b.snapshot()
+            value = await b.read(address)
+            if value > before:
+                return value
+        assert False, ('protocol completion timeout', hex(address), before)
+
+    b.tasks.append(cocotb.start_soon(monitor_queued()))
     b.tasks.append(cocotb.start_soon(b.monitor_wire()))
     b.tasks.append(cocotb.start_soon(b.respond()))
     source = FlatEmacEndpoint(d, prefix="sAxis")
@@ -51,14 +88,19 @@ async def real_mac_lifecycle(d):
     assert int(d.primaryDropped.value) == 1
     assert b.tx_count == 0
 
-    await b.source(2)
+    await b.source(2, spacing_cycles=1000)
     d.pauseEnable.value = 1
     async with b.rx_lock:
-        # At eight clocks per pause quantum, 8192 quanta cover the next
-        # 30000-clock Sync service interval and packet/AXI overhead. The
+        # Even at eight clocks per pause quantum, 8192 quanta cover the
+        # bounded FIFO-admission check and packet/AXI overhead. The
         # explicit zero-pause frame below still controls physical release.
         await b.wire(build_pause_frame(8192))
-    await b.source(1, sequence=2)
+    await b.source(1, sequence=2, spacing_cycles=0)
+    for _ in range(9000):
+        if queued:
+            break
+        await b.wait(1)
+    assert queued == 1, 'complete request did not enter the paused MAC'
     assert b.tx_count == 0, "request escaped pause"
     ledger = await b.read(0x2048)
     assert (ledger >> 16) & 255, "no unresolved MAC-accepted wire key"
@@ -74,15 +116,24 @@ async def real_mac_lifecycle(d):
             break
         await b.wait(1)
     assert b.tx_count
-    await b.wait(200)
+    # Ledger retirement, rather than PortRejected, owns this stale response.
+    # Both input handshakes follow their complete row scans. The monitor also
+    # forbids a stale sample throughout those scans, before E2E can consume it.
+    for _ in range(9000):
+        if responses_retired and wire_retired:
+            break
+        await b.wait(1)
+    assert responses_retired == 1 and wire_retired
+    await b.wait(4)
     await b.snapshot()
     assert await b.read(0x2214) == 0, "retired request produced an E2E measurement"
     assert int(d.timeGeneration.value) == generation
     assert int(d.timeTicks.value) > ticks
-    await b.source(4, sequence=100)
-    await b.snapshot()
-    assert await b.read(0x2214) > 0, "fresh exchanges did not recover"
+    allow_delay = True
+    await b.source(4, sequence=100, spacing_cycles=1000)
+    assert await counter_after(0x2214, 0) > 0, "fresh exchanges did not recover"
     assert not int(d.timeFault.value)
+    d._log.info('Completed MAC lifecycle at raw tick %d', int(d.timeTicks.value))
     b.stop()
 
 @pytest.mark.parametrize("mode", ["XGMII", "GMII"])

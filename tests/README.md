@@ -86,12 +86,14 @@ The Ethernet source routing follows the owned-suite relationships below:
 
 | Changed source area | Selected Ethernet suites |
 | --- | --- |
-| `ethernet/EthMacCore/` | `EthMacCore`, `IpV4Engine`, `RoCEv2`, and `UdpEngine` |
+| `ethernet/EthMacCore/` | `EthMacCore`, `IpV4Engine`, `PtpCore`, `RoCEv2`, and `UdpEngine` |
 | `ethernet/IpV4Engine/` | `IpV4Engine` and `UdpEngine` |
 | Any other area with `tests/ethernet/<area>/` | Its matching owned suite |
 | An area without an owned suite | Full regression |
 
 A change within `tests/ethernet/<area>/` selects only that test directory.
+The shared `tests/ethernet/EthMacCore/ethmac_test_utils.py` helper is an
+exception: it selects the same consumers as EthMacCore source changes.
 Protocol source and test changes similarly select the matching
 `tests/protocols/<area>/` directory when it exists, while DSP changes select
 all of `tests/dsp/`. Selector errors, unknown paths, build-control changes,

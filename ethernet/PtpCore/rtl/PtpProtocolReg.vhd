@@ -371,7 +371,10 @@ begin
             when 2 =>
                v.candidate.domainNumber := configScan.data(7 downto 0);
                v.candidate.minorVersion := configScan.data(11 downto 8);
-               if unsigned(configScan.data(11 downto 8)) > unsigned(PTP_MINOR_VERSION_MAX_C) then
+               -- IEEE 1588-2019 7.1.4/Table 2 reserves domains 128..255
+               -- for the non-isolated sdoId=000 implemented by this endpoint.
+               if configScan.data(7) = '1' or
+                  unsigned(configScan.data(11 downto 8)) > unsigned(PTP_MINOR_VERSION_MAX_C) then
                   v.configValid := '0';
                end if;
             when 4 to 5 =>

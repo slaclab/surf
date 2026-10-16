@@ -34,7 +34,7 @@ _PROTOCOL_AREA_CASES = (
 )
 
 _ETHERNET_SOURCE_CASES = (
-    ("EthMacCore", ("EthMacCore", "IpV4Engine", "RoCEv2", "UdpEngine")),
+    ("EthMacCore", ("EthMacCore", "IpV4Engine", "PtpCore", "RoCEv2", "UdpEngine")),
     ("IpV4Engine", ("IpV4Engine", "UdpEngine")),
     ("RawEthFramer", ("RawEthFramer",)),
     ("RoCEv2", ("RoCEv2",)),
@@ -130,6 +130,17 @@ def test_ethernet_test_change_selects_only_its_area(tmp_path, area):
     )
 
     assert selection == path_selector.Selection((f"tests/ethernet/{area}",))
+
+
+@pytest.mark.parametrize("path", (
+    "ethernet/EthMacCore/rtl/EthMacTop.vhd",
+    "tests/ethernet/EthMacCore/ethmac_test_utils.py",
+))
+def test_mac_dependency_selects_ptp_in_this_repo(path):
+    selection = path_selector.select_targets([_change(path)])
+    assert not selection.force_full
+    assert selection.targets == _ethernet_test_targets(
+        ("EthMacCore", "IpV4Engine", "PtpCore", "RoCEv2", "UdpEngine"))
 
 
 def test_ethernet_rocev2_source_change_selects_rocev2_tests_in_this_repo():

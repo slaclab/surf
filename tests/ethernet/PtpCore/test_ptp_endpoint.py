@@ -16,6 +16,9 @@
 #   valid command sequencing and reacquisition with oscillator error.
 # - Timing: The master's clock is simulation time, independent of the DUT PHC.
 #   Wire timestamps include XGMII lane phase; every wait has a cycle bound.
+#   Accelerated request/holdover settings retain continuous clocks, the 800-tick
+#   rate observation minimum and 500-tick servo sample minimum. These are
+#   functional integration cases, not default-interval settling qualification.
 
 from fractions import Fraction
 import cocotb
@@ -43,6 +46,12 @@ async def autonomous_endpoint(d):
     assert await b.read(0x101C) == 1
     assert await b.read(0x1008, 8) in (5, 6)
     await b.configure()
+    # The former 30000-clock Sync spacing and 240000-clock holdover setting
+    # were inherited service allowances. Exercise the same physical/control
+    # interactions with explicit short test parameters; keep numerical gains,
+    # oscillator error, phase bounds and nominal PHC increment unchanged.
+    await b.write(0x2080, 2000, 8)
+    await b.write(0x3068, 8000, 8)
     if not b.real_mac:
         b.tasks.append(cocotb.start_soon(b.model_mac()))
         b.tasks.append(cocotb.start_soon(b.model_wire()))
@@ -59,7 +68,7 @@ async def autonomous_endpoint(d):
         await RisingEdge(d.clk)
         local = Fraction(((int(d.timeSeconds.value)*NS+int(d.timeNanoseconds.value)) << 32)+int(d.timeFraction.value), Q32)
         b.epoch = local-Fraction(int(get_sim_time(unit="fs")), 1000000)-50
-    await b.source(14)
+    await b.source(14, spacing_cycles=1000)
     await b.snapshot()
     counters = [await b.read(0x2200+4*i if i < 7 else 0x3200) for i in range(8)]
     d._log.info("Counters %s", counters)
@@ -94,15 +103,24 @@ async def autonomous_endpoint(d):
     generation = int(d.timeGeneration.value)
     before = int(d.timeTicks.value)
     d.phyReady.value = 0
-    await b.wait(250000)
+    await b.wait(100)
+    assert int(d.timeValid.value), 'holdover invalidated time immediately'
+    assert int(d.servoState.value) == 4, 'link loss did not enter holdover'
+    for _ in range(8000+100):
+        if not int(d.timeValid.value):
+            break
+        await b.wait(1)
     assert int(d.timeTicks.value) > before
     assert int(d.timeGeneration.value) == generation
     assert not int(d.timeValid.value)
+    await b.wait(4)
+    assert not int(d.timeValid.value), 'stale command restored validity'
     d.phyReady.value = 1
-    await b.source(12, sequence=100)
+    await b.source(12, sequence=100, spacing_cycles=1000)
     assert int(d.timeValid.value)
     assert int(d.servoState.value) == 3
     await check_absolute_phase()
+    d._log.info('Completed endpoint lifecycle at raw tick %d', int(d.timeTicks.value))
     b.stop()
 
 @pytest.mark.parametrize("mode,real_mac", [("XGMII", False), ("GMII", False)])

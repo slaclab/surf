@@ -14,6 +14,22 @@ Pdelay, VLAN/UDP, security and one-step transmission are outside the current
 [endpoint contract](../../../ethernet/PtpCore/architecture.md#port-policy-and-numerical-envelope).
 A named deployment profile has not been selected. A fixed source alone does
 not establish conformance to the external port configuration option in 17.6.
+On October 15 the maintainer requested retaining the scheduler while adding
+acceptance tests, and subsequently indicated that creating a custom profile is
+unlikely. An existing profile is the working direction; this test work does not
+select one or add BMCA implementation to its scope. Do not assume a future custom
+profile will waive the scheduler departure.
+The subsequent working plan is long-term scheduler retention in controlled
+deployments with the departure documented and qualified. That decision does not
+establish conformance to a profile requiring the default distribution.
+The October 15 review also checked 20.2: a compliance claim requires a named
+profile, the applicable base requirements, and the selected transport mapping.
+Annex I.3's default E2E profile specifies the default BMCA; omitting BMCA from
+the implementation does not by itself make that obligation inapplicable.
+Select and verify the external-configuration/profile contract before treating
+the current subset as a conformant PTP Instance. General test-suite findings
+and the source-specific inventory are in the
+[acceptance review](../../../docs/plans/ethernet-ptp/acceptance.md#october-15-test-suite-review).
 
 The authoritative 2019 text supplied by the maintainer was reviewed October 9,
 2026. The original is preserved in the ptp-dev workspace at
@@ -24,6 +40,10 @@ Clause/table numbers below refer to that edition, not carried-over 2008 numbers.
 The October 12 area/profile review corrected the Ethernet transport references
 below to Annex E (2019); Annex F is the Ethernet mapping in the 2008 edition.
 This audit does not yet include separate amendments or corrigenda.
+For example, the publisher identifies
+[IEEE 1588c-2024](https://standards.ieee.org/ieee/1588/10397/) as an amendment
+with corrections and clarifications. Its contents were not audited here;
+the base-edition findings must not be presented as an amendment-inclusive review.
 
 Supporting references:
 
@@ -53,14 +73,15 @@ relative to this directory.
 
 | ID / subject | Verified 2019 reference and existing evidence | Remaining coverage or implementation gap |
 | --- | --- | --- |
+| PTP-S00: conformance and profile applicability | 20.2.1–20.2.3, Annex I.3, 17.6. October 15 source review confirms the implementation explicitly limits itself to configured-source L2 E2E reception. | Missing selected profile and exhaustive applicable-requirement inventory. Establish mandatory data sets, port-state/initialization behavior, transport/options and defaults before marking omitted features not applicable. Current local port-active/timeout tests do not demonstrate the 17.6 contract. |
 | PTP-S01: headers and Layer-2 transport | 13.2, 13.3/Table 35, 13.5–13.8, Annex E. Literal Sync/Follow_Up/Delay_Resp/Announce RX records and complete emitted Delay_Req bytes in `test_ptp_specification.py`; shared builder anchors in `test_ptp_wire_vectors.py`; existing FCS/framing tests. | Full message-body semantics and optional-field applicability. TX golden comparison ends before MAC padding/FCS; separate physical observer checks those. |
-| PTP-S02: versions and domain | 19.2/19.3; 7.1.2.1; 13.3.2.10. All 16 minor values accepted with major 2; major 1/3 rejection in selected fixtures; ignored messageTypeSpecific and minorSdoId in non-isolated operation; both TX versions checked. Existing port fixtures check foreign source/domain rejection. | 7.1.4/Table 2 reserves domains 128–255 for the selected sdoId=000, but configuration currently permits them. No domain-range validation test/fix yet. No profile-isolation option 16.5. |
+| PTP-S02: versions and domain | 19.2/19.3; 7.1.2.1; 13.3.2.10. All 16 minor values accepted with major 2; major 1/3 rejection in selected fixtures; ignored messageTypeSpecific and minorSdoId in non-isolated operation; both TX versions checked. Existing port fixtures check foreign source/domain rejection. `test_ptp_domain.py` checks 7.1.4/Table 2 at domains 0/127/128/255 through candidate validation and active traffic. | Reserved domains 128–255 now fail candidate validation for non-isolated sdoId=000; the test failed on domain 128 before the guard. No profile-isolation option 16.5. |
 | PTP-S03: timestamp point | 7.3.4.1/7.3.4.2: first symbol after SFD at the reference plane, with capture-point and ingress/egress latency corrections. Existing `test_ptp_rx_rtl.py` and wire observers check GMII/XGMII phase, signed calibration and provenance. | Independently map every configured latency sign/plane to these equations. Connector calibration and reset-dependent PHY latency require hardware; MAC-side simulation is insufficient. |
 | PTP-S04: one-/two-step Sync | 11.2; 13.3.2.8/Table 37; 13.6/13.7. `test_ptp_port_samples.py` checks exact mode equivalence; the specification fixture checks reordered Follow_Up, cleared Follow_Up twoStepFlag and reserved-bit tolerance. | Complete per-message applicability of assigned flags under the selected profile; collision/replay policies remain local contracts. |
 | PTP-S05: corrections | 13.3.2.9/Table 38; 11.2/11.3.2. Signed fractional correction and widened sums have independent numerical expectations. The direct protocol fixture uses finite signed bounds. `test_ptp_exchange.py` retires overflowed Sync/Follow_Up keys in both orders and matched Delay_Resp requests, blocks replay and interval updates, and checks fresh recovery. | The overflow indication is `0x7fffffffffffffff`, not `-1`. Retirement is the chosen local policy; the standard's encoding does not prescribe a universal discard action. Wider profile/option applicability remains partial. |
-| PTP-S06: E2E equations | 11.2/11.3.2. Existing E2E RTL vectors and rational/fixed-point oracle anchors cover symmetric-path delay/offset, split corrections and rate mismatch. | The ordinary-master fixture adds exact 100.25 ns symmetric delay with a fractional Delay_Resp contribution at the protocol boundary. Complete asymmetric-path/calibration-sign coverage remains open. |
+| PTP-S06: E2E equations | 11.2/11.3.2. Existing E2E RTL vectors and rational/fixed-point oracle anchors cover symmetric-path delay/offset, split corrections and rate mismatch. Servo tests additionally configure both signs of fractional delay asymmetry through AXI and check corrected offsets/PI commands at three clock settings. | The ordinary-master fixture adds exact 100.25 ns symmetric delay with a fractional Delay_Resp contribution at the protocol boundary. Complete physical asymmetric-path/calibration-sign coverage remains open; the new protocol/rate disturbances do not establish a continuous closed-loop error budget. |
 | PTP-S07: response association | 9.5.7; 11.3.2; 13.8. Ledger/port fixtures check requesting identity, sequence, source, reordering, wrap and late completion. | The exchange fixture mutates each requester member, sequence, each source member, domain and capture generation separately; both TX-observation orders reject then recover on the same request, and completed responses cannot publish twice. Full profile/state applicability and finite-lifetime bounds remain separate acceptance. |
-| PTP-S08: Delay_Req and intervals | 11.3.2; 13.3.2.13/13.3.2.14/Table 42; 13.6. New independent emitted-byte check covers destination/source, length, identity, initial sequence, version-specific control, log interval 0x7f, zero correction/origin/reserved fields and stable backpressure. | **Known departure:** the three-point schedule fails the default multicast distribution in 9.5.11.2(c)(1). Mean/granularity, matched-response interval updates and foreign/stale-response immunity need directed scheduler acceptance. |
+| PTP-S08: Delay_Req and intervals | 11.3.2; 13.3.2.13/13.3.2.14/Table 42; 13.6. Independent emitted-byte checks cover destination/source, length, identity, initial sequence, version-specific control, log interval 0x7f, zero correction/origin/reserved fields and stable backpressure. `test_ptp_scheduler.py` checks accepted-interval scaling, local floors and seed restart; two 512-interval samples check range, mean and bin occupancy. | **Known departure:** the three-point schedule fails the default multicast distribution in 9.5.11.2(c)(1); its strict expected failure is executable evidence, not a conformance pass. The fixture measures stream offers; physical transmission spacing under queueing remains open. Exchange tests separately cover response association and interval poisoning. |
 | PTP-S09: ignored fields and TLVs | 13.2; 13.3.2.8/.10/.13; 5.3.8; 14.1/14.1.2; 14.4.2. Directed checks cover reserved flag bits, ignored control values, even/odd TLV lengths, unknown TLV followed by PAD, truncation and recovery. | Assigned options and recognized optional TLVs need per-message/profile analysis. Skip semantics do not imply support for the option. Rejecting malformed TLVs is the endpoint's policy, distinct from the sender encoding rules. |
 | PTP-S10: Announce/time properties and configured ports | 13.5/Table 37; 17.6. Existing physical-port checks cover metadata and acquisition restart on GM/timescale changes. | UTC-offset validity, leap/traceability/timescale behavior and receipt timeouts need explicit requirement mapping. External configuration requires its specified data sets, state behavior and initialization; current fixed-source operation has not demonstrated that contract. |
 | PTP-S11: external interoperability | Clause 19's compatibility scope. Ordinary master headers/intervals now have focused RX and protocol/ledger/E2E checks, alongside the older accelerated synthetic-master and real-MAC fixtures. | Pin a LinuxPTP/instrument configuration, both versions/modes and independent packet captures. No external-master or hardware result yet. |
@@ -153,15 +174,26 @@ Execution and known-bad evidence belong in the
    option is possible, but requires its data sets and state semantics.
    `externalPortConfigurationEnabled` has specification initialization FALSE;
    `desiredState` defaults to PASSIVE unless otherwise specified. Check permitted
-   profile variations and observable behavior before claiming compliance.
+   profile variations and observable behavior before claiming compliance under
+   20.2. Include the disabled Announce receipt-timeout mechanism required by
+   17.6.5.3 when that option is enabled; distinguish it from local metadata age.
 2. **Scheduler:** 9.5.11.2 requires mean interval at least 0.9 times the advertised
    interval. Default multicast timing draws a new uniform value over zero to
    twice that interval, with granularity no greater than 2^(logSyncInterval−4)
    seconds. Current 0.5/1/1.5 timing is a known departure. A profile can specify
-   another distribution; no such profile is currently selected. Fix/design and
-   short deterministic distribution/interval-update regressions remain open.
-3. **Domain configuration:** restrict or explicitly resolve domains 128–255
-   under sdoId=000; add prepare/apply boundary checks for 127/128/255.
+   another distribution; no such profile is currently selected. The maintainer
+   plans to retain the implementation for controlled deployments. Directed
+   interval-policy checks pass and the distribution check is a strict expected
+   failure. Qualify master compatibility, aggregate load/seed correlation and
+   timing performance; replacement is conditional on deployment requirements,
+   not an automatic follow-up. The normative departure remains explicit.
+   Measure the specified transmission intervals at the wire as well as checking
+   scheduler arithmetic: `PtpDelayReqTx` starts its timer at reservation, before
+   downstream MAC queueing or pause. `test_ptp_intervals.py` checks receipt
+   deadlines, not this distribution or wire-time requirement.
+3. **Domain configuration:** the non-isolated sdoId=000 boundary is now enforced
+   and checked at 0/127/128/255. Revisit applicability when the profile is selected;
+   isolated-profile operation remains unsupported.
 4. **Protocol semantics:** finish E2E/asymmetry, response interval updates,
    assigned flags/optional TLVs and time-property/timeout cases identified above.
 5. **Qualification:** external-master compatibility, calibrated reference-plane
@@ -171,8 +203,9 @@ Execution and known-bad evidence belong in the
    and requires the declared length to equal the fixed body for the message
    type, so every TLV-bearing frame is rejected at admission. This departs from
    14.1, which has a receiver skip well-formed unsupported TLVs and continue
-   parsing; a deployment disabling TLVs owns that restriction and restores
-   conformance by setting the generic true. `tlv_suffix` covers the enabled
+   parsing; a deployment disabling TLVs owns that restriction. Setting the
+   generic true removes this particular departure, without establishing overall
+   conformance. `tlv_suffix` covers the enabled
    default and `tlv_disabled` covers the omitted parser.
 7. **Configured frame capacity:** `MAX_FRAME_G` bounds the total Ethernet bytes
    each validator accepts, defaulting to `PTP_ETH_MAX_FRAME_C` (1518). A board

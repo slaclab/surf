@@ -9,6 +9,7 @@ hardware qualification remain open.
 
 | Need | Start here |
 | --- | --- |
+| Endpoint-to-leaf orientation | [Architecture walkthrough](overview.md) |
 | Data flow, numerical behavior, storage and design rationale | [Architecture](architecture.md) |
 | Exact handshake, lifecycle, RAM and service bounds | [Interface contracts](interfaces.md) |
 | AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |

@@ -14,6 +14,8 @@
 # - Checks: Exact field-start offsets/bits and access modes match literal RTL
 #   decodes or the preserved word-bank ABI; software fields never overlap or
 #   escape a 4 KiB bank; parent child offsets agree. AXI tests cover RAM decodes.
+#   The documented ABI independently anchors widths, exact access and signedness;
+#   in-memory mutations must fail for truncated fields and altered commands.
 # - Timing: Static schema checks complement the real AXI/cocotb regressions.
 
 import ast
@@ -25,6 +27,33 @@ import pytest
 ROOT = Path(__file__).resolve().parents[3]
 BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
          ('PtpProtocolEngine', 'PtpProtocolReg'), ('PtpServo', 'PtpServo')]
+
+# Numerical interpretation is an ABI property even when RTL stores an slv.
+# Compare against the owning register guide and signed arithmetic consumers,
+# not against another extraction of the Python device under test.
+SIGNED_FIELDS = {
+    'PtpEndpoint': set(),
+    'PtpPhc': {'Phase', 'RateAddend', 'AppliedRateAddend'},
+    'PtpProtocolEngine': {'MaxPathDelay', 'IngressLatency', 'EgressLatency',
+                          'CurrentUtcOffset', 'ExchangeSyncCorrection', 'ExchangeDelayCorrection'},
+    'PtpServo': {'StepThreshold', 'LockThreshold', 'UnlockThreshold', 'DelayAsymmetry',
+                 'Offset', 'FilteredDelay', 'RateCommand'},
+}
+
+
+def documented_schema(device):
+    source = (ROOT/'ethernet/PtpCore/register-map.md').read_text()
+    section = source.split(f'## {device} fields\n', 1)[1].split('\n## ', 1)[0]
+    bank = dict(PtpEndpoint=0, PtpPhc=0x1000, PtpProtocolEngine=0x2000, PtpServo=0x3000)[device]
+    fields = {}
+    for offset, name, bits, access in re.findall(
+            r'^\| `(0x[0-9A-Fa-f]+)` \| `([^`]+)` \| ([0-9:]+) \| (RO|RW|WO) \|', section, re.M):
+        high, _, low = bits.partition(':')
+        bit = int(low or high)
+        fields[name] = (int(offset, 16)-bank, bit, int(high)-bit+1,
+                        access, name in SIGNED_FIELDS[device])
+    assert fields and SIGNED_FIELDS[device] <= fields.keys()
+    return fields
 
 
 # Preserved word-bank ABI from the documented register map. Dynamic RAM
@@ -107,10 +136,11 @@ WORD_BANK_FIELDS = {
 }
 
 
-@pytest.mark.parametrize('device,rtl', BANKS)
-def test_local_register_schema(device, rtl):
-    tree = ast.parse((ROOT/'python/surf/ethernet/ptp'/f'_{device}.py').read_text())
+def check_local_register_schema(device, rtl, python_source):
+    tree = ast.parse(python_source)
     source = (ROOT/'ethernet/PtpCore/rtl'/f'{rtl}.vhd').read_text()
+    expected = documented_schema(device)
+    described = {}
     hardware = {}
     for ro, offset, bit in re.findall(
             r'axiSlaveRegister(R?)\(ep, x"([0-9A-F]{3})", (\d+),', source):
@@ -134,6 +164,14 @@ def test_local_register_schema(device, rtl):
         width = ast.literal_eval(keywords['bitSize'])
         mode = ast.literal_eval(keywords.get('mode', ast.Constant('RW')))
         name = ast.literal_eval(keywords['name'])
+        base = ast.unparse(keywords.get('base', ast.Attribute(value=ast.Name(id='pr'), attr='UInt')))
+        assert base in ('pr.Int', 'pr.UInt'), (name, base)
+        access = 'WO' if node.func.attr == 'RemoteCommand' else mode
+        described[name] = (offset, bit, width, access, base == 'pr.Int')
+        assert described[name] == expected.get(name), f'schema {name}: {described[name]} != {expected.get(name)}'
+        if device == 'PtpEndpoint' and name in ('CommitConfig', 'Snapshot'):
+            assert node.func.attr == 'RemoteCommand', f'command {name}: expected RemoteCommand'
+            assert ast.unparse(keywords['function']) == 'pr.BaseCommand.createTouch(1)', f'command {name}: strobe'
         if mode == 'WO':
             mode = 'RW'  # command strobes have deterministic hardware readback
         # Config bits are described individually in software but use a two-bit
@@ -148,5 +186,34 @@ def test_local_register_schema(device, rtl):
         assert not occupied.intersection(bits), name
         occupied.update(bits)
     assert software == hardware
+    assert described == expected
     if device == 'PtpEndpoint':
         assert children == {'Phc': 0x1000, 'ProtocolEngine': 0x2000, 'Servo': 0x3000}
+
+
+@pytest.mark.parametrize('device,rtl', BANKS)
+def test_local_register_schema(device, rtl):
+    check_local_register_schema(device, rtl, (ROOT/'python/surf/ethernet/ptp'/f'_{device}.py').read_text())
+
+
+@pytest.mark.parametrize('device,rtl,name,keyword,replacement', [
+    ('PtpPhc', 'PtpPhc', 'Seconds', 'bitSize', '32'),
+    ('PtpPhc', 'PtpPhc', 'Phase', 'base', 'pr.UInt'),
+    ('PtpProtocolEngine', 'PtpProtocolReg', 'CurrentUtcOffset', 'base', 'pr.UInt'),
+    ('PtpEndpoint', 'PtpEndpointControl', 'IrqClear', 'mode', "'RW'"),
+    ('PtpEndpoint', 'PtpEndpointControl', 'CommitConfig', 'function', 'pr.BaseCommand.createTouch(0)'),
+    ('PtpServo', 'PtpServo', 'DelayAsymmetry', 'bitSize', '32'),
+])
+def test_schema_rejects_mutation(device, rtl, name, keyword, replacement):
+    tree = ast.parse((ROOT/'python/surf/ethernet/ptp'/f'_{device}.py').read_text())
+    changed = 0
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        keywords = {kw.arg: kw for kw in node.keywords}
+        if 'name' in keywords and ast.literal_eval(keywords['name'].value) == name:
+            keywords[keyword].value = ast.parse(replacement, mode='eval').body
+            changed += 1
+    assert changed == 1
+    with pytest.raises(AssertionError, match=f'(schema|command) {name}'):
+        check_local_register_schema(device, rtl, ast.unparse(tree))

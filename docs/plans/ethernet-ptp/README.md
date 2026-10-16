@@ -38,6 +38,16 @@ accumulate into qualification of the latest source automatically.
 
 | October 15 PtpCore-wide port records over `649bea094` | 59 distinct configurations pass with Python 3.12.7/GHDL 6.0.0: 14 math/service/servo/PHC/E2E/register cases; four ledger cases; 41 arithmetic-leaf, exchange/rejection, interval, TX, pair/history/negative-guard, direct-sample, RX and GMII/XGMII port cases. All 48 changed/new VHDL files pass VSG. [Record interfaces](../../../ethernet/PtpCore/interfaces.md#record-interfaces-and-source-compatibility) | VHDL source API changes; register/wire formats and operand widths retained. Initial integration failures exposed a duplicated RX-wrapper declaration and a missing scalar monitor alias; both are fixed and affected cases pass. Final formatting preserves tested VHDL tokens. No full-suite, closed-loop endpoint/real-MAC, synthesis, routed timing or hardware result. |
 
+The [October 15 test-suite follow-up](history/verification.md#october-15-test-suite-follow-up)
+over `ed7d30cbe` passes **91 distinct selected cases**, including all eight
+endpoint/real-MAC mode/PHY configurations; one strict expected failure exposes
+the retained scheduler distribution departure. Selective CI and register schema
+gaps are fixed; domain boundaries, disturbance/freshness and signed asymmetry
+have directed checks. Shorter integration fixtures reduce simulated cycle cost
+about 95–97% relative to the former fixed waits alone. This closes the functional
+integration gap in the historical rows above, not service-envelope, normative,
+timing/CDC or hardware qualification.
+
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
 the acceptance backlog does not require a full-suite replay after routine edits.
@@ -59,6 +69,16 @@ scaffold. Pin/clock assumptions, oscillator programming and measurement outputs
 belong in project target guides.
 
 ## Open decisions and next work
+
+The [October 15 test-suite review](acceptance.md#october-15-test-suite-review)
+records the 211-case inventory, standards/coverage assessment and confirmed
+selective-CI and register-schema gaps at the reviewed source. The
+[follow-up](acceptance.md#review-follow-up) fixes those two gaps and adds domain,
+scheduler and disturbance acceptance. An existing profile is the working
+direction; selection and configured-source applicability remain open. The
+three-point scheduler is planned for retention in controlled deployments, with
+its departure documented and a strict expected-failure check. Qualification,
+rather than mandatory scheduler replacement, is the outstanding work.
 
 The [acceptance backlog](acceptance.md#next-acceptance-work) owns remaining
 integration, normative, timing/CDC, external-master and hardware checks.

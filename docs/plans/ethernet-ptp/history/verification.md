@@ -185,3 +185,82 @@ Focused commands from the SURF root used
 python -m pytest -n 3 -q tests/ethernet/PtpCore/test_ptp_servo.py
 COCOTB_TEST_FILTER=registered_command_lifecycle python -m pytest -n 0 -q 'tests/ethernet/PtpCore/test_ptp_phc.py::test_ptp_phc[125000000-1-False]'
 ```
+
+## October 15 test-suite follow-up
+
+Source: working-tree changes over `ed7d30cbe1e203618835ae94763dffcc0e7bc43d`.
+Environment: Python 3.12.7, cocotb 2.1.0 and GHDL 6.0.0 on `PC100431`, using
+the consuming workspace's `.planning/timing-venv/bin/python`.
+
+- **72 passed**: `tests/common/test_path_selector.py` and
+  `test_ptp_register_map.py` (0.18 s). This includes six deliberately corrupted
+  in-memory schemas. CLI probes also select PtpCore for both EthMacTop source
+  and the shared `ethmac_test_utils.py` helper.
+- **3 passed**: `test_ptp_domain.py` and both `test_ptp_reg.py` register bases
+  (237.86 s, two workers). Before the guard, the new domain test failed at 128
+  (35.11 s); after it, 0/127 apply, 128/255 fail candidate validation, and active
+  traffic remains accepted after invalid candidates.
+- **3 servo configurations passed**, including both cocotb scenarios at each
+  clock, with positive/negative fractional delay asymmetry added through AXI.
+  These ran with three disturbance configurations in a six-case batch that
+  passed in 399.75 s; the fourth disturbance configuration had passed separately.
+  Disturbance freshness assertions were subsequently strengthened and rerun.
+- **5 passed, 1 expected failure** in the final disturbance/scheduler batch
+  (304.87 s, two workers): four oscillator-sign/Sync-mode combinations and the
+  scheduler interval policy pass. The strengthened terminal-outlier/expiry
+  check passes in all four combinations. The default multicast distribution
+  reports the intended strict expected failure.
+- The original eight-case endpoint/real-MAC batch was interrupted after
+  1851.98 s with no completed cases. It is **incomplete**, not passing evidence.
+  The maintainer challenged the inherited runtime; shortened fixtures replaced
+  its fixed waits before completing the eight configurations below.
+- **All eight integration configurations passed** on the final domain-guard
+  source: four endpoint cases in 560.83 s with four workers; two-step XGMII MAC
+  in 181.38 s with a cached build, and the remaining three MAC cases in 378.61 s
+  with three workers. The two final batches overlapped on this eight-logical-CPU
+  host. These are batch observations, not per-case runtime guarantees.
+
+| Fixture | Two-step XGMII | One-step XGMII | Two-step GMII | One-step GMII |
+| --- | ---: | ---: | ---: | ---: |
+| Endpoint simulated clocks | 34,853 | 34,528 | 38,504 | 36,336 |
+| Real-MAC simulated clocks | 9,687 | 9,635 | 10,441 | 10,105 |
+
+Counts use cocotb simulation duration divided by the driven clock period,
+including reset clocks. The endpoint previously had 1,030,000 fixed wait clocks
+alone; MAC had 210,000. The new totals are about 95–97% below those former waits,
+not matched wall-time speedup measurements. The endpoint keeps all 26 Syncs,
+independent phase/delay bounds, acquisition, lock, expiry and recovery, adding
+early-holdover validity and stale-command checks. Its explicit cadence exceeds
+the configured rate/sample minima; numerical gains and oscillator errors stay
+unchanged. MAC checks real FIFO admission and both ledger scans instead of
+sleeping. An initial MAC probe incorrectly expected ledger retirement to change
+`PortRejected`; it failed and was corrected to observe the actual owner before
+the passing runs. No production fix was needed for that fixture error.
+
+Total distinct final selections: **91 passed and one strict expected failure**
+(72 selector/schema cases and 20 simulation configurations, one intentionally
+exposing the distribution departure). No failed or interrupted probe is counted
+as passing evidence. See the [runtime selection guide](../../../../tests/ethernet/PtpCore/README.md#endpointmac-runtime-follow-up).
+
+Both `PtpProtocolReg.vhd` and the new thin scheduler wrapper pass VSG (689 rules,
+zero violations each). The seven added/edited PTP test modules pass the enforced
+test-compliance comparison. A broader PTP audit reports pre-existing findings in
+six files; those are not resolved by this follow-up. The shared endpoint helper
+retains the same five findings as HEAD after making cadence explicit.
+Collection finds **224 cases in 33 files: 121 simulation configurations and
+103 pure-model/static cases**. This is an inventory, not RTL coverage.
+
+The scheduler implementation is retained. Its strict expected failure covers
+the known default multicast distribution departure only; mean-rate, build,
+serialization and progress errors remain ordinary failures. Test observation
+is stream-offer timing with controlled raw ticks, not physical MAC departure.
+The current direction is an existing profile, with selection and configured-port
+applicability still open; a hypothetical custom profile is not a waiver. The
+subsequent working plan retains the scheduler long term for qualified controlled
+deployments, with its normative departure explicit.
+
+The disturbance fixture runs production protocol/rate pipelines against an
+independent rational oracle, skipping idle raw time. It does not demonstrate a
+continuous PHC/servo disturbance trajectory, PPS uncertainty, RMS repeatability,
+physical-clock control, external-master interoperability or hardware acceptance.
+No full-directory regression, synthesis or hardware run was performed.

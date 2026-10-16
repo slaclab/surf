@@ -13,20 +13,106 @@ October 9, 2026; use the [focused selection policy](../../../tests/ethernet/PtpC
 Development order is tracked in the [review response plan](#review-response-and-simplification-plan).
 The following qualification obligations remain open across that work.
 
-1. Validate final endpoint and real-MAC lifecycle integration after the fixed-function
-   arithmetic repairs (`44c85ff35`); the 171-case connected-design run
-   predates those changes. Preserve both receive modes and both PHY fixtures.
-2. Review the constraint, DRC and CDC findings from the matched October 15
+The October 15 follow-up completed all eight endpoint/real-MAC mode/PHY
+configurations on the repaired source with shortened functional test settings.
+Remaining work:
+
+1. Review the constraint, DRC and CDC findings from the matched October 15
    SFP-only builds. The repaired source routes at +0.133 ns setup WNS; this
    does not qualify copper, physical CDC or hardware accuracy. See the
    [source-specific evidence](history/arithmetic.md#october-15-matched-production-comparison).
-3. Complete the [normative audit](../../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work):
-   default multicast request distribution, sdoId/domain restrictions, configured
+2. Complete the [normative audit](../../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work):
+   default multicast request distribution, configured
    port/profile behavior, TLV semantics and 2008/2019 compatibility boundaries.
-4. Qualify the shared-service envelope and actuator cap, then establish external
+3. Qualify the shared-service envelope and actuator cap, then establish external
    master, calibration, settling/error and holdover acceptance at a named plane.
-5. Keep MAC checksum/EOFE correctness separate from PTP area work. Physical-clock
+4. Keep MAC checksum/EOFE correctness separate from PTP area work. Physical-clock
    integration and additional protocol modes remain future scope.
+
+## October 15 test-suite review
+
+Reviewed production/test sources at `ed7d30cbe1e203618835ae94763dffcc0e7bc43d`
+against the supplied IEEE 1588-2019 text and the
+[specification matrix](../../../tests/ethernet/PtpCore/specification-coverage.md).
+The suite is strongest in independent arithmetic, frame/capture ownership,
+pair/history/ledger lifecycle, malformed-input recovery and registered stalls.
+`PtpSyncPair`, `PtpSyncHistory`, `PtpTableScan` and the filter/PI children are
+exercised through production parents; lack of a separately named leaf fixture
+does not mean those modules are untested.
+
+Inventory: **211 pytest cases in 30 test files**, comprising **114 simulation
+configurations and 97 pure-model/static cases**. One simulation configuration
+can run several cocotb scenarios. These counts are not RTL coverage or a
+conformance percentage. CI's `pytest --cov` measures Python coverage; this review
+did not produce RTL branch/FSM coverage or an exhaustive normative denominator.
+
+The following findings extend the existing acceptance items, without closing
+them or authorizing implementation of additional protocol modes:
+
+| Priority / gap | Evidence and next acceptance |
+| --- | --- |
+| High: current-source integration | The latest recorded port-record migration has 59 focused passing configurations but excludes closed-loop endpoint/real-MAC tests. Revalidate the four endpoint and four real-MAC configurations on the selected final source, preserving both receive modes and PHYs. Earlier connected-design results do not establish this. |
+| High: MAC dependency missing from selective CI | `python -m tests.common --changed-files-override ethernet/EthMacCore/rtl/EthMacTop.vhd` selected EthMacCore, IpV4Engine, RoCEv2 and UdpEngine, omitting PtpCore. Add the PTP consumer to `_ETHERNET_SOURCE_DEPENDENTS` in `tests/common/path_selector.py` and protect that selection with a selector test. Also review shared test-helper dependencies. Full integration runs remain separate protection. |
+| High: normative contract and scheduler | Apply the profile/conformance gate in 20.2 and resolve the existing scheduler/domain departures. `test_ptp_intervals.py` exhausts Announce receipt encodings at 125 MHz; it does not test Delay_Req distribution. Add deterministic distribution/granularity and accepted-response interval-update checks, with separate physical-transmission timing under queueing. Existing rejection tests cover some interval-poisoning cases. |
+| Medium: closed-loop disturbance and asymmetry | `test_ptp_endpoint.py` fixes a symmetric 100 ns path and ties oscillator sign and phase-step policy to PHY choice. PDV/operating-envelope sweeps in `test_ptp_endpoint_reference.py` exercise Python models. Add production rate/servo and selected endpoint cases for nonzero signed `DelayAsymmetry`, path variation/steps, oscillator drift, loss bursts and independent phase/holdover-error bounds. The real-MAC lifecycle fixture checks recovery, not a long accuracy/lock trajectory. |
+| Medium: connected service and deployment envelope | Leaf contention and minimum-gap RX checks do not close the full endpoint queue/service bound. Exercise nominal 8/10 Hz and bounded bursts with continuing traffic, stalls and expiry; observe latency, occupancy and recovery. Add `GigEthPtp`/family composition management/reset cases, including stopped-clock recovery. The existing endpoint wrapper stops at GMII/XGMII and uses one management/endpoint clock; it does not instantiate the family compositions. See the existing service and PHY acceptance below. |
+| Medium: register schema blind spot | An in-memory mutation of `_PtpPhc.py` changing `Seconds.bitSize` from 48 to 32 still passed `test_local_register_schema('PtpPhc', 'PtpPhc')`. The check compares field starts/access modes and uses widths only for overlap/aperture checks; it does not compare hardware width or signedness. Extend the independent schema to those properties and command semantics; keep live PyRogue transport acceptance separate. No source was mutated on disk. |
+
+Additional parameter holes include the receipt-interval fixture's single clock,
+the untested ledger upper-depth assertion boundaries, and composition-level
+reset/frame-capacity/TLV choices. Add cases by supported deployment and risk;
+an exhaustive Cartesian product is not required. Map Announce time properties,
+assigned flags and recognized optional TLVs to the selected profile; do not
+mistake metadata retention or a local rejection policy for normative semantics.
+External-master interoperability and connector-plane calibration remain open.
+
+Checks actually run for this review: Python 3.12.7/cocotb 2.1.0 preflight,
+211-case collection, and **11 passing** tests from `test_ptp_wire_vectors.py`
+and `test_ptp_register_map.py` (0.03 s), plus the selector and in-memory mutation
+probes above. No RTL simulation, vendor build, external-master or hardware run
+was performed. Standards comparison remains scoped to the supplied base 2019
+edition with partial 2008 compatibility evidence; amendments/corrigenda and a
+complete independent 2008 audit remain unreviewed.
+
+### Review follow-up
+
+The maintainer authorized the test-suite follow-up and requested retaining the
+scheduler with acceptance tests. The subsequent working direction is to retain
+it long term for controlled deployments and document the departure, rather than
+create a custom profile or require replacement solely to close this clause.
+Qualify intended masters, aggregate load with correlated/identical seeds, and
+timing performance under disturbances. Reconsider the choice if deployment or
+conformance requirements demand it. Profile selection and configured-source
+applicability remain unresolved; do not claim 17.6/20.2 conformance through this
+work or treat documentation as a waiver of a normative requirement.
+
+- Selective CI now includes PtpCore for EthMacCore RTL and the shared MAC test
+  helper. Selector regressions protect both dependencies.
+- All four endpoint and four real-MAC mode/PHY configurations pass. The
+  fixtures retain continuous physical clocks and independent phase/delay oracles
+  while replacing inherited long waits with explicit cadence, short holdover
+  settings and observed MAC/ledger completion. Their cycle costs fall about
+  95–97% below the old fixed waits alone; these remain functional integration
+  tests, not default-interval settling or hardware qualification.
+- Register checks now compare exact field widths, signedness, access and
+  touch-one commands against an independent documented ABI. Six mutation tests
+  protect the checks themselves; live PyRogue transport remains separate.
+- Domain candidate validation now rejects 128–255 for non-isolated sdoId=000.
+  The 0/127/128/255 test failed before the guard and passes afterward, along
+  with both register-base configurations. Valid active traffic survives an
+  invalid candidate.
+- Scheduler interval policy passes; the default multicast distribution check
+  is a strict expected failure. The three-point implementation remains unchanged.
+  Physical transmission spacing under MAC queueing/pause remains unqualified.
+- Production disturbance tests exercise both Sync modes and oscillator signs,
+  path variation/steps, drift, loss and ratio freshness. Servo tests exercise
+  signed fractional delay asymmetry. These tests do not establish continuous
+  closed-loop disturbance/holdover error bounds, a deployment envelope or
+  hardware accuracy; retain those obligations below.
+
+Source-specific execution results are recorded in the
+[verification history](history/verification.md). Historical review findings
+above describe the starting source, not the follow-up's final status.
 
 ## Review response and simplification plan
 
@@ -50,10 +136,11 @@ open; completing the arithmetic migration does not close them.
    selected product pipelines replace the general compute engine. Prototype
    and matched production evidence are retained in [arithmetic history](history/arithmetic.md).
 
-2. **Auditable servo math: implemented, integration acceptance open.** Filter and
+2. **Auditable servo math: implemented, functional integration checked.** Filter and
    PI are separate children; candidate state commits only on PHC ACK. Production
    tests retain rational PI, median, overflow, held-result and cancellation checks.
-   Final endpoint/real-MAC coverage remains required below.
+   All eight endpoint/real-MAC configurations pass in the October 15 follow-up;
+   service-envelope and hardware qualification remain separate.
 
 3. **Qualify service demand and association limits.** Use the implemented fixed-function
    architecture and identify the tested source. Measure accepted-frame-to-result latency, queue
@@ -127,17 +214,20 @@ No further broad prototype campaign is required.
 
 Remaining arithmetic integration acceptance:
 
-1. Complete repaired endpoint and real-MAC lifecycle checks across both receive
-   modes and PHY fixtures. The failed earlier endpoint runs and incomplete
-   repaired reruns are recorded in [verification evidence](history/arithmetic.md#production-verification-and-limits).
-2. Reconcile queue, history, filter, configuration, publication and command costs
+The repaired endpoint and real-MAC lifecycle checks now pass in both receive
+modes and PHY fixtures. The [follow-up evidence](history/verification.md#october-15-test-suite-follow-up)
+supersedes earlier incomplete integration runs without turning those runs into
+passes. The shorter settings preserve functional assertions, not default-interval
+settling claims.
+
+1. Reconcile queue, history, filter, configuration, publication and command costs
    with a complete service proof and contention/expiry tests at both clocks.
    Keep **70,347,776 ticks** until that proof justifies a separate change;
    primitive or connected-chain timings alone do not justify lowering it.
-3. Review matched production routing's constraint, DRC and CDC findings. Preserve
+2. Review matched production routing's constraint, DRC and CDC findings. Preserve
    the measured area increase and source/configuration limits when assessing the
    implementation; timing closure alone does not establish hardware acceptance.
-4. Keep software/register behavior consistent with the implemented four-word
+3. Keep software/register behavior consistent with the implemented four-word
    manual PHASE guard and late epoch fault. Focused schema checks passed;
    retain command-lifecycle coverage through endpoint integration.
 

@@ -50,7 +50,25 @@ separates simulated behavior from remaining device and interoperability work.
   both transmitted versions. The
   [source/applicability table](specification-coverage.md#source-backed-directed-checks)
   records verified 2019 clauses, 2008 compatibility and implementation policy;
-  the remaining audit includes known scheduler, domain and profile gaps.
+  the remaining audit includes the known scheduler departure and profile gaps.
+
+- `test_ptp_domain.py` checks prepare/apply boundaries at domains 0, 127, 128
+  and 255 for non-isolated sdoId=000, including continued traffic on the active
+  configuration after an invalid candidate.
+- `test_ptp_scheduler.py` checks interval scaling, local floors and restart
+  determinism through production `PtpDelayReqTx`. A separate strict expected
+  failure exposes the default multicast distribution departure using two seeds
+  and 512 intervals each. Only the distribution assertion is expected to fail;
+  mean-rate, compilation, serialization or progress failures remain real failures.
+  This observes stream offers with raw time controlled, not physical wire timing.
+- `test_ptp_disturbance.py` checks both oscillator signs and both Sync modes
+  through the production protocol/rate engine: 8 Hz timestamps, 100–120 ppm
+  drift, signed packet-delay variation, an 800 ns path step, a 100 us outlier,
+  four missing Syncs and exact ratio expiry while the port remains active.
+  An independent rational oracle checks samples and freshness. Idle raw time is
+  skipped; continuous PHC/servo phase-error and holdover bounds remain open.
+  A final rejected estimate followed by expiry checks that rejection cannot
+  renew ratio freshness, even when the ratio value itself remains unchanged.
 
 - `test_ptp_exchange.py` supplies eight focused configurations: ordinary multicast
   master byte anchors through RX; both editions and Sync modes through the actual
@@ -105,7 +123,8 @@ change warrants it. Keep unrun acceptance work explicit.
 | Shared arithmetic services | `test_ptp_arithmetic_services.py` SECOND/variable cases; add affected PHC, servo, E2E or rate/protocol cases. | Direct service tests check contention/cancellation; endpoint integration is still needed for client interactions. |
 | Register descriptions or bank RTL | `test_ptp_register_map.py`; add `test_ptp_reg.py` for hardware behavior changes. | Select lifecycle integration when configuration/restart propagation changes. |
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
-| Delay_Req scheduler or transmitter | `test_ptp_delay_req_tx.py`; ordinary exchange edition/mode cases for wire fields, and `test_ptp_intervals.py` for receipt-policy interaction. | Select `test_ptp_port.py -k tx_restart` for both PHYs' stream integration; real-MAC cases when downstream queue/reset behavior changes. |
+| Delay_Req scheduler or transmitter | `test_ptp_scheduler.py` for interval policy/distribution; `test_ptp_delay_req_tx.py` for stream lifecycle; ordinary exchange cases for wire fields. | Select `test_ptp_port.py -k tx_restart` for both PHYs' stream integration; real-MAC cases when downstream queue/reset behavior changes. |
+| Domain admission or rate dynamics | `test_ptp_domain.py` for candidate boundaries; `test_ptp_disturbance.py` for drift, path variation, loss and freshness. | Add continuous endpoint cases for PHC/servo phase-error bounds; raw-tick tests alone do not establish them. |
 | PHC carry/normalization or unsigned age arithmetic | `test_ptp_timing_math.py` for integer boundary/random oracles; `test_ptp_phc.py` for cycle semantics and epoch faults. | Add protocol expiry and servo cancellation cases when the shared age predicate changes. |
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
@@ -161,7 +180,8 @@ The old 9,000-clock allowance
 is retained as a failure timeout. Receipt expiry uses a separately configured
 2,048-clock interval, and TX qualification uses 1,000-clock spacing above its
 800-clock minimum rate span. Closed-loop endpoint/MAC fixtures retain their
-30,000-clock spacing. Association/expiry, mixed-mode policy and TX restart are
+30,000-clock spacing at that stage; the endpoint follow-up below replaces it.
+Association/expiry, mixed-mode policy and TX restart are
 separate pytest scenarios so a TX change can select just `tx_restart` on each PHY.
 
 All six scenarios passed in 278.24 s including their new builds; after adding
@@ -231,6 +251,45 @@ count and available CPU/memory. Use `-n 0` for tiny pure-model checks or serial
 debug logs. Record selected cases/results; retain the rest as unrun rather than
 reporting the previous full-suite result as validation of a later edit.
 
+### Endpoint/MAC runtime follow-up
+
+The October 15 review follow-up removes inherited long waits from the two
+integration fixtures. The model-MAC endpoint formerly had 26 × 30,000 Sync wait
+clocks plus a 250,000-clock holdover wait: **1,030,000 fixed wait clocks** before
+packet/configuration overhead. The real-MAC lifecycle fixture inherited seven
+30,000-clock waits despite not testing servo settling.
+
+Each source caller now supplies its cadence explicitly; `Bench.source()` has no
+default wait. The endpoint uses 1,000-clock Sync spacing, above its configured
+800-clock rate observation and 500-clock servo sample minima, a 2,000-clock
+request interval and an 8,000-clock holdover timeout. Physical clocks, nominal
+PHC increment, oscillator errors, PI gains, both Sync modes and all phase/delay
+assertions remain. Link loss must enter holdover while time remains valid, then
+expire without changing generation or letting a stale command restore validity.
+The test waits for expiry with a bound instead of sleeping beyond it.
+
+The real-MAC test uses the same explicit Sync spacing and checks the actual
+bypass FIFO final write before resetting the port. It observes completion of
+both ledger input scans, forbids a stale delay offer on every edge, then checks
+the public delay counter and fresh recovery. Internal signals establish test
+progress; packet contents, timestamps and counters remain independent result
+checks. The 9,000-clock limits are failure bounds, not mandatory delays.
+
+Initial two-step XGMII probes passed: endpoint **320.88 s including build**
+(about 34,850 simulated clocks), MAC **181.38 s with a cached build** (raw tick
+9,675 at completion). These cycle costs are about 96.6% and 95.4% below the old
+fixed waits alone. They are not matched wall-time speedup measurements: the
+original eight-case batch was interrupted after 1,851.98 s without a completed
+case. Final mode/PHY outcomes belong in the
+[verification record](../../../docs/plans/ethernet-ptp/history/verification.md#october-15-test-suite-follow-up).
+
+These were already accelerated functional tests. Neither the old long waits
+nor the shorter settings qualify default-interval settling, a continuous
+disturbance envelope or hardware accuracy. Use focused clock/PHY/mode nodes
+during development; reserve all eight configurations for affected integration
+validation. Do not restore blanket settling delays without a requirement and
+an observable completion condition.
+
 ## Autonomous endpoint tests
 
 - `test_ptp_const_divide.py`, `test_ptp_epoch_normalize.py`,
@@ -283,6 +342,8 @@ reporting the previous full-suite result as validation of a later edit.
   results are in the [feedback study](../../../docs/plans/ethernet-ptp/history/design-studies.md#arithmetic-alternatives).
 - `test_ptp_servo.py`: every emitted rate command against the independent PI
   model at varied sample intervals, median startup, backpressure and holdover.
+  Positive and negative fractional delay asymmetry is configured through AXI;
+  corrected offsets and resulting PI commands retain independent expectations.
   Clock parameters cover 125 MHz, 156.25 MHz and a standalone 31.25 kHz
   arithmetic corner that needs a 47-bit nominal divisor; the MAC clocks need
   46-bit seconds/ppb divisors. Injected raw ticks keep numerical intervals
@@ -311,9 +372,12 @@ reporting the previous full-suite result as validation of a later edit.
   the production endpoint. Manual phase tests retain all signed128 submission
   words and check the signed96 admission boundary separately from later epoch faults.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
-  local RTL decoder (including the protocol bank in `PtpProtocolReg`), child
-  offsets, overlap and 4 KiB bank bounds; no PyRogue
-  installation is required for these static checks.
+  local RTL decoder (including the protocol bank in `PtpProtocolReg`), plus
+  exact widths/access and signedness against the documented ABI and an explicit
+  signed-field inventory. It also checks touch-one command semantics, child
+  offsets, overlap and 4 KiB bank bounds. Six in-memory mutations prove rejection
+  of width, signedness, access and command regressions. No PyRogue installation
+  is required; these static checks do not replace hardware bus or live transport tests.
 - `test_ptp_port_samples.py` / `PtpProtocolEngineWrapper`: direct production `PtpProtocolEngine` with
   exact independent Q16 forward expectations, one-/two-step correction equivalence,
   signed64 boundaries/widened sums, upper seconds bits, timestamp/flag rejection,

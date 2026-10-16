@@ -255,9 +255,9 @@ class Bench:
             async with self.rx_lock:
                 await self.wire(self.frame(9, seq, integer, correction))
 
-    async def source(self, count, sequence=0, *, two_step=None, spacing_cycles=30000):
-        # The default retains the closed-loop servo schedule. A protocol-only
-        # caller may select shorter spacing consistent with its rate-span limit.
+    async def source(self, count, sequence=0, *, spacing_cycles, two_step=None):
+        # Each caller owns its cadence and must respect its rate-span/sample
+        # limits. Do not reintroduce an inherited fixed service delay here.
         two_step = self.two_step if two_step is None else two_step
         for index in range(count):
             async with self.rx_lock:

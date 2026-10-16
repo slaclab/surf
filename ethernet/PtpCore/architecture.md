@@ -653,10 +653,26 @@ receipt timeouts, capped by configured `SyncTimeout` (twice that for Announce).
 A configured-source grandmaster or PTP-timescale change cancels old acquisition. Announce metadata
 is exposed, including all 30 body octets; UTC/leap flags never step the PHC.
 
+The schedule selects half/one/one-and-a-half intervals for low LFSR bits
+`00`/(`01` or `10`)/`11`. Enumerating the implemented recurrence from seed 1
+returns after 65,535 nonzero states: `00` occurs 16,383 times and the other
+patterns 16,384 times each. For an even tick interval the cycle mean is
+1.00000763 times that interval. Draws are correlated, not independent; equal
+seeds and aligned starts can produce correlated traffic across endpoints.
+Deployment qualification must include aggregate master load and actual wire
+spacing. The shift/add arithmetic avoids a general runtime multiply, but no
+matched area comparison with a uniform implementation has established savings.
+
 The three-point schedule is a known departure from IEEE 1588-2019
-9.5.11.2(c)(1)'s default multicast uniform distribution. The selected sdoId=000
-also reserves domains 128–255, which configuration does not yet prohibit.
-Those departures and configured-port/profile requirements remain in the [specification audit](../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work).
+9.5.11.2(c)(1)'s default multicast uniform distribution. A strict expected-failure
+acceptance test exposes that departure. The working plan is to retain this
+schedule for controlled deployments, subject to master/load and timing-error
+qualification; it is not a claim of conformance to the default distribution.
+Reconsider it if deployment scale, interoperability, measured accuracy or a
+required profile makes the departure unacceptable. For the selected non-isolated sdoId=000, candidate
+configuration rejects reserved domains 128–255 and accepts 0–127. Boundary
+tests preserve the active configuration after rejected candidates.
+The scheduler and configured-port/profile requirements remain in the [specification audit](../../tests/ethernet/PtpCore/specification-coverage.md#remaining-normative-work).
 
 The servo uses the median of only populated delay samples (up to five), then
 local-minus-master offset = forward − filteredDelay − asymmetry. While invalid,
@@ -720,6 +736,13 @@ qualified master-time/raw-tick ratio and each capture's calibration conversion,
 not an equal-rate assumption. The uncorrected error is approximately half the
 oscillator error times RX-to-TX separation: 100 ppm over 10 ms gives 500 ns.
 Bootstrap therefore estimates rate independently of already-valid path delay.
+After normalization, the corresponding error term is approximately half the
+residual fractional rate-ratio error times that separation. A 1 s separation
+requires 2 ppb residual error to limit this term to 1 ns, or 0.2 ppb for 100 ps;
+these are component budgets, not measured PPS performance or RMS guarantees.
+Use the selected Sync capture and actual Delay_Req transmit capture, rather
+than substituting the interval between successive requests. A small locked PHC
+offset does not itself establish the accuracy of the raw-clock rate estimate.
 Do not constrain the individual cross-clock differences to a network-delay
 range before their potentially large epoch offsets cancel.
 

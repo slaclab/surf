@@ -32,7 +32,7 @@ _FOUNDATIONAL_TREES = (
 )
 
 _ETHERNET_SOURCE_DEPENDENTS = {
-    "EthMacCore": ("IpV4Engine", "RoCEv2", "UdpEngine"),
+    "EthMacCore": ("IpV4Engine", "PtpCore", "RoCEv2", "UdpEngine"),
     "IpV4Engine": ("UdpEngine",),
 }
 
@@ -149,7 +149,9 @@ def _ethernet_targets(path: PurePosixPath, repo_root: Path) -> tuple[str, ...] |
         return None
 
     selected_areas = (area,)
-    if not is_test_path:
+    # The MAC helper supplies wire drivers and source lists to its consumers.
+    # Ordinary test edits remain local; shared fixture edits must reach them.
+    if not is_test_path or path.as_posix() == "tests/ethernet/EthMacCore/ethmac_test_utils.py":
         selected_areas += _ETHERNET_SOURCE_DEPENDENTS.get(area, ())
 
     targets: list[str] = []
