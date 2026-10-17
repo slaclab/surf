@@ -178,8 +178,10 @@ package EthMacPkg is
 
    -- Fixed positions of the retire owners in the arrays EthMacTop publishes
    -- in timing mode, so the port collects each owner exactly once. Every
-   -- owner publishes its retire at the last beat of the frame it consumed,
-   -- so a retire always follows the import leaf's done for that token.
+   -- pipeline owner publishes its retire at the last beat of the frame it
+   -- consumed, so its retire always follows the import leaf's done for that
+   -- token. The import leaf's own retire replaces done for a start abandoned
+   -- before any frame byte was delivered; that token has no beats anywhere.
    constant EMAC_TX_RETIRE_CSUM_C    : natural  := 0;  -- EthMacTxCsum EOFE drop after Fifo_Cache
    constant EMAC_TX_RETIRE_EXPORT_C  : natural  := 1;  -- Exporter dump with the PHY not ready at SOF
    constant EMAC_TX_RETIRE_SOURCES_C : positive := 2;
@@ -188,7 +190,8 @@ package EthMacPkg is
    constant EMAC_RX_RETIRE_FILTER_C  : natural  := 1;  -- EthMacRxFilter dropped the frame
    constant EMAC_RX_RETIRE_FIFO_IB_C : natural  := 2;  -- RX FIFO swallowed the frame at its SOF beat
    constant EMAC_RX_RETIRE_FIFO_OB_C : natural  := 3;  -- RX FIFO dropped a stored frame marked EOFE
-   constant EMAC_RX_RETIRE_SOURCES_C : positive := 4;
+   constant EMAC_RX_RETIRE_IMPORT_C  : natural  := 4;  -- Import leaf abandoned a start before any frame byte
+   constant EMAC_RX_RETIRE_SOURCES_C : positive := 5;
 
    -- Ethernet byte limits enforced by the timing port, FCS excluded: 60 to
    -- 1518 (1500-byte MTU plus one VLAN tag). With JUMBO_G = false the

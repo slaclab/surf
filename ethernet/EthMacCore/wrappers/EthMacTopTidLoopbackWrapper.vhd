@@ -1,13 +1,15 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: Cocotb-facing XGMII loopback wrapper for EthMacTop that exposes
--- the TID sideband on both primary streams.
+-- Description: Cocotb-facing loopback wrapper for EthMacTop that exposes the
+-- TID sideband on both primary streams and the timing-port leaf events.
 --
--- Selects the MAC-internal stream configuration through INT_CONFIG_G so one
--- bench can run the default (zero TID bits) and the timing configuration
--- (eight TID bits) and observe whether a frame's tId survives the TX FIFO,
--- checksum cache, exporter, importer and RX FIFO. Everything else matches
+-- With TIMING_EN_G = false the MAC uses its default configuration (zero TID
+-- bits) in an XGMII or GMII loopback. With TIMING_EN_G = true it uses
+-- EMAC_TIMING_AXIS_CONFIG_C and the timing GMII leaves: the TX token is
+-- visible in txFrameEvent after the TX FIFO, checksum cache and exporter, and
+-- the RX token offered on rxNextToken is stamped by the importer and must
+-- survive the RX FIFO to the primary output. Everything else matches
 -- EthMacTopLoopbackWrapper.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -31,6 +33,7 @@ entity EthMacTopTidLoopbackWrapper is
    generic (
       TPD_G             : time     := 1 ns;
       RST_POLARITY_G    : sl       := '1';
+      PHY_TYPE_G        : string   := "XGMII";
       TIMING_EN_G       : boolean  := false;
       FIFO_ADDR_WIDTH_G : positive := 11);
    port (
@@ -55,13 +58,20 @@ entity EthMacTopTidLoopbackWrapper is
       mAxisEofe     : out sl;
       localMac      : in  slv(47 downto 0);
       rxCrcErrorCnt : out sl;
-      rxFifoDropCnt : out sl);
+      rxFifoDropCnt : out sl;
+      -- Timing port (TIMING_EN_G only)
+      rxNextToken   : in  slv(7 downto 0) := (others => '0');
+      rxStart       : out sl;
+      rxStartToken  : out slv(7 downto 0);
+      txStart       : out sl;
+      txStartToken  : out slv(7 downto 0);
+      txDone        : out sl;
+      txDoneError   : out sl;
+      txDoneToken   : out slv(7 downto 0));
 end entity EthMacTopTidLoopbackWrapper;
 
 architecture rtl of EthMacTopTidLoopbackWrapper is
 
-   -- The controller-facing streams carry TID only when timing mode is on, so
-   -- the bench can prove the default configuration still truncates it.
    constant PRIM_CONFIG_C : AxiStreamConfigType := ite(TIMING_EN_G, EMAC_TIMING_AXIS_CONFIG_C, EMAC_AXIS_CONFIG_C);
    constant INT_CONFIG_C  : AxiStreamConfigType := ite(TIMING_EN_G, EMAC_TIMING_AXIS_CONFIG_C, INT_EMAC_AXIS_CONFIG_C);
 
@@ -73,6 +83,12 @@ architecture rtl of EthMacTopTidLoopbackWrapper is
    signal ethStatus   : EthMacStatusType    := ETH_MAC_STATUS_INIT_C;
    signal xgmiiTxd    : slv(63 downto 0)    := (others => '0');
    signal xgmiiTxc    : slv(7 downto 0)     := (others => '1');
+   signal gmiiTxEn    : sl                  := '0';
+   signal gmiiTxEr    : sl                  := '0';
+   signal gmiiTxd     : slv(7 downto 0)     := (others => '0');
+
+   signal rxFrameEvent : EthMacFrameEventType := ETH_MAC_FRAME_EVENT_INIT_C;
+   signal txFrameEvent : EthMacFrameEventType := ETH_MAC_FRAME_EVENT_INIT_C;
 
 begin
 
@@ -105,9 +121,6 @@ begin
       mAxisEofe   <= axiStreamGetUserBit(PRIM_CONFIG_C, mAxisMaster, EMAC_EOFE_BIT_C);
    end process mAxisView;
 
-   -- Filtering and checksum offload are disabled so the bench isolates the
-   -- sideband path; pause stays enabled because its generated frames carry
-   -- tId zero and must not disturb neighbouring tokens.
    ethConfig.macAddress  <= localMac;
    ethConfig.filtEnable  <= '0';
    ethConfig.pauseEnable <= '1';
@@ -121,13 +134,21 @@ begin
    rxCrcErrorCnt <= ethStatus.rxCrcErrorCnt;
    rxFifoDropCnt <= ethStatus.rxFifoDropCnt;
 
+   rxStart      <= rxFrameEvent.start;
+   rxStartToken <= rxFrameEvent.startToken;
+   txStart      <= txFrameEvent.start;
+   txStartToken <= txFrameEvent.startToken;
+   txDone       <= txFrameEvent.done;
+   txDoneError  <= txFrameEvent.doneError;
+   txDoneToken  <= txFrameEvent.doneToken;
+
    U_DUT : entity surf.EthMacTop
       generic map (
          TPD_G             => TPD_G,
          RST_POLARITY_G    => RST_POLARITY_G,
          PAUSE_EN_G        => true,
          PAUSE_512BITS_G   => 8,
-         PHY_TYPE_G        => "XGMII",
+         PHY_TYPE_G        => PHY_TYPE_G,
          DROP_ERR_PKT_G    => true,
          JUMBO_G           => false,
          INT_PIPE_STAGES_G => 1,
@@ -140,6 +161,7 @@ begin
          PRIM_COMMON_CLK_G => true,
          PRIM_CONFIG_G     => PRIM_CONFIG_C,
          INT_CONFIG_G      => INT_CONFIG_C,
+         TIMING_EN_G       => TIMING_EN_G,
          BYP_EN_G          => false,
          BYP_COMMON_CLK_G  => false,
          BYP_CONFIG_G      => PRIM_CONFIG_C)
@@ -165,14 +187,19 @@ begin
          xgmiiRxc        => xgmiiTxc,
          xgmiiTxd        => xgmiiTxd,
          xgmiiTxc        => xgmiiTxc,
-         gmiiRxDv        => '0',
-         gmiiRxEr        => '0',
-         gmiiRxd         => (others => '0'),
-         gmiiTxEn        => open,
-         gmiiTxEr        => open,
-         gmiiTxd         => open,
+         gmiiRxDv        => gmiiTxEn,
+         gmiiRxEr        => gmiiTxEr,
+         gmiiRxd         => gmiiTxd,
+         gmiiTxEn        => gmiiTxEn,
+         gmiiTxEr        => gmiiTxEr,
+         gmiiTxd         => gmiiTxd,
          phyReady        => phyReady,
          ethConfig       => ethConfig,
-         ethStatus       => ethStatus);
+         ethStatus       => ethStatus,
+         rxNextToken     => rxNextToken,
+         rxFrameEvent    => rxFrameEvent,
+         rxRetire        => open,
+         txFrameEvent    => txFrameEvent,
+         txRetire        => open);
 
 end architecture rtl;

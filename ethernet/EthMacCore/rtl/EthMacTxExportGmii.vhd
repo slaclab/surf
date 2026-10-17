@@ -3,6 +3,16 @@
 -------------------------------------------------------------------------------
 -- Description: 1GbE Export MAC core with GMII interface
 -------------------------------------------------------------------------------
+-- TIMING_EN_G adds the timing-port leaf behaviour of
+-- ethernet/PtpCore/timing-port.md section 4.0, leaving the default path
+-- unchanged: the frame token is latched from tId at SOF; start is registered
+-- one edge after the first destination-MAC octet is launched onto the pins;
+-- done reports the last FCS octet (doneError for underrun or link loss); a
+-- frame dumped because the PHY was not ready at SOF publishes a retire
+-- instead. Link loss after SOF stops driving the pins: an outstanding input
+-- remainder is drained through tLast before done, otherwise done is
+-- immediate. Token zero (generated pause frames) publishes no done or retire.
+-------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
 -- top-level directory of this distribution and at:
@@ -27,7 +37,9 @@ entity EthMacTxExportGmii is
       TPD_G          : time := 1 ns;
       RST_POLARITY_G : sl   := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
-      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C);
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing-port leaf events and link-loss drain; requires the TID token.
+      TIMING_EN_G    : boolean             := false);
    port (
       -- Clock and Reset
       ethClkEn       : in  sl;
@@ -44,7 +56,10 @@ entity EthMacTxExportGmii is
       -- Status
       txCountEn      : out sl;
       txUnderRun     : out sl;
-      txLinkNotReady : out sl);
+      txLinkNotReady : out sl;
+      -- Timing port wire events (TIMING_EN_G only)
+      frameEvent     : out EthMacFrameEventType;
+      retire         : out EthMacTokenRetireType);
 end EthMacTxExportGmii;
 
 architecture rtl of EthMacTxExportGmii is
@@ -85,6 +100,15 @@ architecture rtl of EthMacTxExportGmii is
       crcIn          : slv(7 downto 0);
       state          : StateType;
       macSlave       : AxiStreamSlaveType;
+      -- Timing-port state (TIMING_EN_G only)
+      token          : EthMacTokenType;
+      inputEofSeen   : sl;
+      dumpDone       : sl;
+      sfdLoaded      : sl;
+      dmacLoaded     : sl;
+      length         : slv(15 downto 0);
+      frameEvent     : EthMacFrameEventType;
+      retire         : EthMacTokenRetireType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -100,7 +124,15 @@ architecture rtl of EthMacTxExportGmii is
       crcDataValid   => '0',
       crcIn          => (others => '0'),
       state          => IDLE_S,
-      macSlave       => AXI_STREAM_SLAVE_INIT_C);
+      macSlave       => AXI_STREAM_SLAVE_INIT_C,
+      token          => EMAC_TOKEN_NONE_C,
+      inputEofSeen   => '0',
+      dumpDone       => '0',
+      sfdLoaded      => '0',
+      dmacLoaded     => '0',
+      length         => (others => '0'),
+      frameEvent     => ETH_MAC_FRAME_EVENT_INIT_C,
+      retire         => ETH_MAC_TOKEN_RETIRE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -120,6 +152,10 @@ architecture rtl of EthMacTxExportGmii is
    -- attribute dont_touch of crcIn        : signal is "TRUE";
 
 begin
+
+   assert (TIMING_EN_G = false) or (INT_CONFIG_G.TID_BITS_C = EMAC_TOKEN_BITS_C)
+      report "EthMacTxExportGmii: TIMING_EN_G requires the eight-bit token in INT_CONFIG_G TID"
+      severity failure;
 
    U_Resize : entity surf.AxiStreamResize
       generic map (
@@ -142,7 +178,8 @@ begin
          mAxisSlave  => macSlave);
 
    comb : process (crcOut, ethClkEn, ethRst, macMaster, phyReady, r) is
-      variable v : RegType;
+      variable v       : RegType;
+      variable linkCut : boolean;
    begin
       -- Latch the current value
       v := r;
@@ -153,6 +190,13 @@ begin
       v.txCountEn      := '0';
       v.txUnderRun     := '0';
       v.txLinkNotReady := '0';
+      v.sfdLoaded      := '0';
+      v.dmacLoaded     := '0';
+      v.frameEvent     := ETH_MAC_FRAME_EVENT_INIT_C;
+      v.retire         := ETH_MAC_TOKEN_RETIRE_INIT_C;
+
+      -- Timing mode: link loss once a frame has left IDLE_S ends it on the wire
+      linkCut := TIMING_EN_G and (phyReady = '0');
 
       -- Check for clock enable
       if (ethClkEn = '1') then
@@ -170,6 +214,13 @@ begin
                v.gmiiTxEr := '0';
                -- Wait for start flag
                if ((macMaster.tValid = '1') and (ethRst = '0')) then
+                  -- Frame token travels on every beat; latch it at SOF
+                  if TIMING_EN_G then
+                     v.token        := macMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+                     v.inputEofSeen := '0';
+                     v.dumpDone     := '0';
+                     v.length       := (others => '0');
+                  end if;
                   -- Phy is ready
                   if phyReady = '1' then
                      v.state := TX_PREAMBLE_S;
@@ -184,7 +235,14 @@ begin
                v.crcReset := '0';
                v.gmiiTxEn := '1';
                v.gmiiTxd  := r.txData;
-               if (r.txCount = x"06") then
+               if linkCut then
+                  -- No input consumed yet: drain the whole frame, then done
+                  v.gmiiTxEn := '0';
+                  v.gmiiTxd  := x"00";
+                  v.txCount  := x"00";
+                  v.dumpDone := '1';
+                  v.state    := DUMP_S;
+               elsif (r.txCount = x"06") then
                   v.txCount := x"00";
                   v.txData  := x"D5";   -- Set to SFD char
                   v.state   := TX_DATA_S;
@@ -194,26 +252,42 @@ begin
                end if;
             ----------------------------------------------------------------------
             when TX_DATA_S =>
-               v.macSlave.tReady := '1';
-               v.crcDataValid    := '1';
-               v.crcIn           := macMaster.tdata(7 downto 0);
-               v.txData          := macMaster.tdata(7 downto 0);
-               v.gmiiTxd         := r.txData;
-               if (r.txCount < x"3C") then  -- Minimum frame of 60B (= 84B - 8B Preamble - 4B CRC - 12B intergap)
-                  v.txCount := r.txCount + 1;
-               end if;
-               if (macMaster.tValid = '1') then
-                  if (macMaster.tlast = '1') then
-                     if (v.txCount = x"3C") then
-                        v.state := TX_CRC_S;
-                     else
-                        v.state := PAD_S;
-                     end if;
-                  end if;
+               if linkCut then
+                  -- The input remainder is outstanding: drain it, then done
+                  v.gmiiTxEn := '0';
+                  v.gmiiTxd  := x"00";
+                  v.txCount  := x"00";
+                  v.dumpDone := '1';
+                  v.state    := DUMP_S;
                else
-                  v.gmiiTxEr   := '1';
-                  v.txUnderRun := '1';
-                  v.state      := DUMP_S;
+                  v.macSlave.tReady := '1';
+                  v.crcDataValid    := '1';
+                  v.crcIn           := macMaster.tdata(7 downto 0);
+                  v.txData          := macMaster.tdata(7 downto 0);
+                  v.gmiiTxd         := r.txData;
+                  -- First cycle launches the SFD loaded at the end of the preamble
+                  if TIMING_EN_G and (r.txCount = x"00") then
+                     v.sfdLoaded := '1';
+                  end if;
+                  if (r.txCount < x"3C") then  -- Minimum frame of 60B (= 84B - 8B Preamble - 4B CRC - 12B intergap)
+                     v.txCount := r.txCount + 1;
+                  end if;
+                  if (macMaster.tValid = '1') then
+                     v.length := r.length + 1;
+                     if (macMaster.tlast = '1') then
+                        v.inputEofSeen := '1';
+                        if (v.txCount = x"3C") then
+                           v.state := TX_CRC_S;
+                        else
+                           v.state := PAD_S;
+                        end if;
+                     end if;
+                  else
+                     v.gmiiTxEr   := '1';
+                     v.txUnderRun := '1';
+                     v.dumpDone   := '1';
+                     v.state      := DUMP_S;
+                  end if;
                end if;
             ----------------------------------------------------------------------
             when PAD_S =>
@@ -221,6 +295,7 @@ begin
                v.crcIn        := x"00";
                v.txData       := x"00";
                v.gmiiTxd      := r.txData;
+               v.length       := r.length + 1;
                if (r.txCount < x"3C") then
                   v.txCount := v.txCount + 1;
                else
@@ -248,14 +323,37 @@ begin
                v.gmiitxd   := crcOut(7 downto 0);
                v.txCount   := x"00";
                v.state     := INTERGAP_S;
+               -- Last FCS octet launched: the frame was transmitted
+               if TIMING_EN_G and (r.token /= EMAC_TOKEN_NONE_C) then
+                  v.frameEvent.done       := '1';
+                  v.frameEvent.doneError  := '0';
+                  v.frameEvent.doneLength := r.length;
+                  v.frameEvent.doneToken  := r.token;
+               end if;
             ----------------------------------------------------------------------
             when DUMP_S =>
                v.gmiiTxEn        := '0';
                v.gmiiTxd         := x"00";
                v.macSlave.tReady := '1';
                v.txCount         := x"00";
+               if TIMING_EN_G and (macMaster.tValid = '1') then
+                  v.length := r.length + 1;
+               end if;
                if ((macMaster.tValid = '1') and (macMaster.tlast = '1')) then
                   v.state := INTERGAP_S;
+                  -- One terminal event: done once the frame touched the pins,
+                  -- otherwise a retire for a frame dumped at SOF
+                  if TIMING_EN_G and (r.token /= EMAC_TOKEN_NONE_C) then
+                     if (r.dumpDone = '1') then
+                        v.frameEvent.done       := '1';
+                        v.frameEvent.doneError  := '1';
+                        v.frameEvent.doneLength := v.length;
+                        v.frameEvent.doneToken  := r.token;
+                     else
+                        v.retire.valid := '1';
+                        v.retire.token := r.token;
+                     end if;
+                  end if;
                end if;
             ----------------------------------------------------------------------
             when INTERGAP_S =>
@@ -268,6 +366,37 @@ begin
                end if;
          ----------------------------------------------------------------------
          end case;
+
+         -- Link loss after the input tLast was accepted (padding or FCS on the
+         -- pins): nothing remains to drain, so done is immediate.
+         if linkCut and (r.inputEofSeen = '1') and
+            ((r.state = PAD_S) or (r.state = TX_CRC_S) or (r.state = TX_CRC0_S) or
+             (r.state = TX_CRC1_S) or (r.state = TX_CRC2_S) or (r.state = TX_CRC3_S)) then
+            v.gmiiTxEn         := '0';
+            v.gmiiTxd          := x"00";
+            v.txCount          := x"00";
+            v.txCountEn        := '0';
+            v.state            := INTERGAP_S;
+            v.frameEvent.done  := '0';
+            if (r.token /= EMAC_TOKEN_NONE_C) then
+               v.frameEvent.done       := '1';
+               v.frameEvent.doneError  := '1';
+               v.frameEvent.doneLength := r.length;
+               v.frameEvent.doneToken  := r.token;
+            end if;
+         end if;
+
+         -- Start: the first destination-MAC octet was launched on the
+         -- previous edge and is on the pins now, so register start on this
+         -- edge, the edge the passive TX tap captures.
+         if TIMING_EN_G then
+            if (r.sfdLoaded = '1') and (v.gmiiTxEn = '1') and (v.gmiiTxEr = '0') then
+               v.dmacLoaded := '1';
+            end if;
+            v.frameEvent.start      := r.dmacLoaded;
+            v.frameEvent.startLane  := (others => '0');
+            v.frameEvent.startToken := r.token;
+         end if;
 
       end if;
 
@@ -291,6 +420,8 @@ begin
       gmiiTxEn       <= r.gmiiTxEn;
       gmiiTxEr       <= r.gmiiTxEr;
       gmiiTxd        <= r.gmiiTxd;
+      frameEvent     <= r.frameEvent;
+      retire         <= r.retire;
 
    end process comb;
 

@@ -29,6 +29,8 @@ entity EthMacRxImport is
       PHY_TYPE_G     : string              := "XGMII";
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing-port import leaf (GMII only in this revision)
+      TIMING_EN_G    : boolean             := false;
       SYNTH_MODE_G   : string              := "inferred");
    port (
       -- Clock and Reset
@@ -50,7 +52,11 @@ entity EthMacRxImport is
       -- Configuration and status
       phyReady    : in  sl;
       rxCountEn   : out sl;
-      rxCrcError  : out sl);
+      rxCrcError  : out sl;
+      -- Timing port (TIMING_EN_G only)
+      nextToken   : in  EthMacTokenType := EMAC_TOKEN_NONE_C;
+      frameEvent  : out EthMacFrameEventType;
+      retire      : out EthMacTokenRetireType);
 end EthMacRxImport;
 
 architecture mapping of EthMacRxImport is
@@ -58,6 +64,16 @@ architecture mapping of EthMacRxImport is
 begin
 
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacRxImport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
+
+   assert (TIMING_EN_G = false) or (PHY_TYPE_G = "GMII")
+      report "EthMacRxImport: TIMING_EN_G has a GMII import leaf only; XGMII and XLGMII are not implemented"
+      severity failure;
+
+   -- Only the timing GMII leaf publishes events; every other leaf is idle
+   NO_TIMING_EVENTS : if (TIMING_EN_G = false) or (PHY_TYPE_G /= "GMII") generate
+      frameEvent <= ETH_MAC_FRAME_EVENT_INIT_C;
+      retire     <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   end generate;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
       U_XLGMII : entity surf.EthMacRxImportXlgmii
@@ -79,7 +95,7 @@ begin
             rxCrcError  => rxCrcError);
    end generate;
 
-   -- XLGMII has no timing-mode variant; the top-level assertion rejects it.
+   -- Timing mode is rejected above for XGMII and XLGMII.
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacRxImportXgmii
          generic map (
@@ -101,7 +117,7 @@ begin
             rxCrcError  => rxCrcError);
    end generate;
 
-   U_1G : if (PHY_TYPE_G = "GMII") generate
+   U_1G : if (PHY_TYPE_G = "GMII") and (TIMING_EN_G = false) generate
       U_GMII : entity surf.EthMacRxImportGmii
          generic map (
             TPD_G          => TPD_G,
@@ -123,6 +139,34 @@ begin
             phyReady    => phyReady,
             rxCountEn   => rxCountEn,
             rxCrcError  => rxCrcError);
+   end generate;
+
+   U_1G_TIMING : if (PHY_TYPE_G = "GMII") and (TIMING_EN_G = true) generate
+      U_GMII : entity surf.EthMacRxImportTimingGmii
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            INT_CONFIG_G   => INT_CONFIG_G,
+            SYNTH_MODE_G   => SYNTH_MODE_G)
+         port map (
+            -- Clock and Reset
+            ethClkEn    => ethClkEn,
+            ethClk      => ethClk,
+            ethRst      => ethRst,
+            -- AXIS Interface
+            macIbMaster => macIbMaster,
+            -- GMII PHY Interface
+            gmiiRxDv    => gmiiRxDv,
+            gmiiRxEr    => gmiiRxEr,
+            gmiiRxd     => gmiiRxd,
+            -- Configuration and status
+            phyReady    => phyReady,
+            rxCountEn   => rxCountEn,
+            rxCrcError  => rxCrcError,
+            -- Timing port
+            nextToken   => nextToken,
+            frameEvent  => frameEvent,
+            retire      => retire);
    end generate;
 
 end mapping;

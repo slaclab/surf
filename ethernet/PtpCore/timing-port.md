@@ -35,7 +35,14 @@ importer so storage is bounded by the table, separates input-EOF from wire-EOF
 in the exporter, keeps rejected RX frames owned until the output stage
 consumes them, lets graceful drain finish an admitted TX frame, and raises the
 TX minimum to a full 16-byte first beat. It awaits a third review before
-Phase 0 closes. Implementation slices and acceptance are owned by the
+Phase 0 closes.
+
+**Phase 1 leaf slice (October 17, 2026):** the GMII import and export leaves
+of §2.4 and §4.0 exist behind `EthMacTop` `TIMING_EN_G` (GMII only; XGMII
+and XLGMII are rejected at elaboration). They publish `start`/`done`/`lost`
+and the import/export retires, and match the passive adapter's capture edge
+in simulation (§8). The other pipeline retires, the abort handshake, the RX
+FIFO changes of §6 and the port entity do not exist yet. Implementation slices and acceptance are owned by the
 [composable PTP plan](../../../../../docs/plans/composable-ptp/README.md); the
 existing endpoint's contracts remain in [interfaces.md](interfaces.md).
 
@@ -179,10 +186,16 @@ The port must produce an identical result, so:
 - Subtracting cycles from `ticks` is **not** an alignment mechanism and is
   prohibited; it leaves `timestamp`, `increment`, `generation`, `timeValid`
   and inhibition from the wrong edge.
-- If a leaf cannot be pin-coincident (the GMII importer's SFD detection sits
-  behind a delay line), the leaf consumes the PHC state itself and publishes
-  the complete `PtpRxCaptureType` beside `start`. That is a different leaf
-  interface and must be declared as such; it is not the baseline.
+- If a leaf cannot be pin-coincident, the leaf consumes the PHC state itself
+  and publishes the complete `PtpRxCaptureType` beside `start`. That is a
+  different leaf interface and must be declared as such; it is not the
+  baseline. The GMII leaves need no such interface: `EthMacRxImportTimingGmii`
+  registers `start` on the edge that samples the first destination-MAC octet,
+  and the timing `EthMacTxExportGmii` one edge after launching it, both the
+  edge on which the passive adapter registers its capture (§8). The legacy
+  `EthMacRxImportGmii`, whose SFD detection is not pin-qualified and which is
+  blind to the pins for three cycles after each frame, is not used in timing
+  mode.
 - `captureAbort` from the pin-sample edge is ORed into `capture.error`
   exactly as the legacy adapter does. A SET/PHASE admitted on that edge
   inhibits the capture; one admitted a cycle later does not.
@@ -215,9 +228,10 @@ must carry the token to the pulse):
 | Exporter | `phyReady = '0'` at SOF: dump through `tLast` | **Required change** (§4.0); the XGMII dump is unreachable today. |
 | `EthMacRxPause` | Any frame whose first beat matches the pause header, regardless of FCS or length | Not `rxPauseReq`, which fires only for good-FCS pause frames. |
 | `EthMacRxFilter` | Address mismatch or `dropOnPause` | — |
-| `EthMacRxFifo` | **One owner, one pulse per frame:** inbound filter retires only when it swallows the SOF beat (nothing stored); otherwise the synthetic `tLast`+EOFE terminator reaches the outbound filter, which retires on the read-side drop. | **Required change:** connect `mAxisDropFrame` with the token; suppress the inbound pulse for mid-frame overflow. |
+| `EthMacRxFifo` | **One pulse per frame across two indices** (`EMAC_RX_RETIRE_FIFO_IB_C`, `_OB_C`): the inbound filter retires only when it swallows the SOF beat (nothing stored); otherwise the synthetic `tLast`+EOFE terminator reaches the outbound filter, which retires on the read-side drop. | **Required change:** connect `mAxisDropFrame` with the token (`SsiFifo`/`SsiObFrameFilter` now publish `mAxisDropTId`); suppress the inbound pulse for mid-frame overflow. |
 | Port RX output stage | A frame marked *rejected* at `done` (length outside 60..1518, §3) reaches the FIFO output; the stage consumes it through `tLast` and retires at that beat | No MAC stage checks runts and `EthMacRxCsum` admits up to 1520. The token stays owned while the rejected bytes are buffered. |
-| Timing-capable importer | Frame whose sampled `nextToken` was `EMAC_TOKEN_NONE_C` | Emits **no beats** for it, drains to its terminator and publishes `start`/`done` with token zero; the port counts `rxDropped`. Nothing untokened enters packet storage (§3). |
+| Timing-capable importer | Frame whose sampled `nextToken` was `EMAC_TOKEN_NONE_C` | Emits **no beats** for it, drains to its terminator and publishes `start`/`done` with token zero; the port counts `rxDropped`. Nothing untokened enters packet storage (§3). Not a retire. |
+| Timing-capable importer (`EMAC_RX_RETIRE_IMPORT_C`) | Owned start that ended before any frame byte followed the four FCS octets | Replaces `done` for that start; no beat exists anywhere; the port counts `rxLost`. Token zero is never retired. |
 
 Every source is a separate owner and at most one pulse per source per cycle.
 Under forced abort (§6) owners publish **no** retire; they discard and
@@ -235,13 +249,17 @@ and no beats and is counted in `rxLost`. With this rule, `EthMacRxCsum`'s
 `BLOWOFF_S` can never swallow a following frame, because every frame on its
 input has a `tLast`.
 
-**Abandoned RX starts.** With the start-qualification rule above the GMII
-importer's early abort (RX_DV falling within four octets of SFD) is the only
-way a leaf publishes `start` without `done`. The leaf then emits no beat and
-publishes a `retire` with the token on the same edge it abandons the frame;
-the port counts it in `rxLost`. No capture or beat exists downstream, so
-release is immediate. There is no next-start or byte-time rule; every start
-has exactly one terminal event from the leaf itself.
+**Abandoned RX starts.** With the start-qualification rule above, a GMII
+start whose frame ends (RX_DV low, RX_ER or `phyReady` loss) after one to
+four octets is the only way a leaf publishes `start` without `done`: those
+octets can only be FCS, so no frame byte exists. The leaf then emits no beat
+and publishes a `retire` with the token on the edge it ends the frame; the
+port counts it in `rxLost`. No capture or beat exists downstream, so release
+is immediate. A frame with at least one byte beyond the FCS octets ends in
+`done` (with `doneError` when its CRC fails). Every start has exactly one
+terminal event from the leaf itself. A burst whose first destination-MAC
+cycle is not a clean octet has no start; it is reported as `lost`, matching
+the passive adapter, which takes no capture for it.
 
 The passive `PtpRxTimestampAdapter`/`PtpTxTimestampTap` path remains the
 legacy composition's producer and the independent oracle in regressions: a
@@ -282,7 +300,7 @@ completion per accepted request through a valid/ready channel.
 
 | Rule | Contract |
 | --- | --- |
-| Admission | The port accepts the SOF beat only after reserving a token, a table entry and a completion slot. Otherwise it withholds ready; the controller sees ordinary stream backpressure. The SOF beat must be a **full 16-byte beat** carrying SSI SOF, the complete 14-byte Ethernet header and `request` with `transportGeneration` equal to the live generation; a stale generation is consumed through EOF and completed `FLUSHED` without reaching the MAC. `request.frameLength` must be **16..1518**: 14- and 15-byte frames are not supported (they cannot fill the first beat) and are completed `DISCARDED` with anything outside the range; the MAC pads 16..59 to 60. |
+| Admission | The port accepts the SOF beat only after reserving a token, a table entry and a completion slot. Otherwise it withholds ready; the controller sees ordinary stream backpressure. The SOF beat must be a **full 16-byte beat** carrying SSI SOF, the complete 14-byte Ethernet header and `request` with `transportGeneration` equal to the live generation; a stale generation is consumed through EOF and completed `FLUSHED` without reaching the MAC. `request.frameLength` must be **16..1518**: 14- and 15-byte frames are not supported (they cannot fill the first beat) and are completed `DISCARDED` with anything outside the range. The MAC pads short frames to at least 60: the GMII exporter emits **61** octets for 16..59-byte frames (60 for a 60-byte frame), and `doneLength` reports the padded wire length. |
 | Stream shape | The port counts bytes from `tKeep` on each accepted beat. On `tLast`, if the count differs from `request.frameLength`, or if any beat before `tLast` has non-full `tKeep`, the frame is **completed `DISCARDED`** and the MAC never sees it: the port holds the frame in its own store until `tLast` is validated, so no partial frame can enter `EthMacTxFifo`. A second SOF before `tLast` discards the current frame `DISCARDED` and the new SOF is evaluated as a fresh request. A beat without SOF when no frame is open is consumed through `tLast`, counted in `txRejected`, and receives no completion because it carried no request context. EOFE set on `tLast` is treated as a controller-declared abort: `DISCARDED`. |
 | Missing EOF | A frame whose `tLast` has not arrived after `frameLength + 64` accepted bytes is `DISCARDED` and the stream is drained to the next SOF. This bound is the controller's own declaration plus slack, not a wall-clock timeout. |
 | Cookie | 32-bit opaque (`PtpMacPortCookieType`), returned unchanged. It identifies a local request lifetime; it is not a PTP sequence number and the RTL backend keeps its protocol ledger. |
@@ -325,6 +343,11 @@ dead link to completion. The timing-capable exporters must:
   reset with the state machine as today.
 - On `phyReady = '0'` at SOF: dump through `tLast` as today and publish one
   `retire` with the token (`DISCARDED`), never a `done`.
+- GMII applies the link-loss rule from the first preamble octet, not only
+  after `start`: a frame cut during its preamble has had octets on the pins
+  but no `start`, drains its input and completes `WIRE_ERR` with
+  `captureValid = '0'`. `doneLength` counts every input octet consumed,
+  including the drained remainder, plus padding already launched.
 - On underrun (`tValid` low mid-frame): XGMII continues as today (inverted
   FCS) and publishes `done` with `doneError = '1'` at the frame's end; GMII
   asserts `TX_ER`, dumps, and publishes `done` with `doneError = '1'` at
@@ -452,10 +475,9 @@ acknowledges when the FIFO reads empty.
 `SsiFifo`'s `PREVENT_LOCKUP` self-reset (`lockupRstEvent`, active today
 because `VALID_THOLD_G = 0`) would discard stored frames with no
 acknowledgement and no token list. In timing mode the RX FIFO wrapper
-**disables** `PREVENT_LOCKUP` (`VALID_THOLD_G = 0` is retained for
-store-and-forward, so the wrapper must instantiate `AxiStreamFifoV2` and the
-two SSI filters directly rather than through `SsiFifo`, or `SsiFifo` must gain
-a generic to suppress the lockup monitor). The lockup condition it guards
+**disables** `PREVENT_LOCKUP` while retaining `VALID_THOLD_G = 0` for
+store-and-forward, through the new `SsiFifo` generic `PREVENT_LOCKUP_G`
+(default `true`, today's behaviour). The lockup condition it guards
 against (FIFO full with no readable frame) cannot occur: only tokened frames
 enter storage (§3), the table bounds their number, and §5 sizes the FIFO for
 a full table of maximum frames. If a defect produced it anyway, forced abort
@@ -546,8 +568,36 @@ Current evidence at SURF `ecbf833a2` with these declarations added:
   checked are unchanged. The bench is not retained; a declaration/packing
   regression under `tests/ethernet/PtpCore/` replaces it in Phase 1.
 
-No simulation, synthesis, timing or hardware result applies to the port; none
-exists. The [existing endpoint validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
+Phase 1 leaf evidence, October 17, 2026 (GHDL 6.0.0, cocotb 2.1.0, Python
+3.12.7), on SURF `ethernet-ptp` after `c1b7b95e4`:
+
+- `test_EthMacTimingGmiiLeaf.py` (six cocotb tests) places the timing GMII
+  importer and exporter each beside a `PtpRxTimestampAdapter` on the same
+  pins. Every leaf `start` falls on the adapter's capture-SOF edge and the two
+  start sets are equal, across 60..1518-byte RX frames, a one-octet IFG,
+  shortened/lengthened/corrupted preambles, RX_ER in preamble, bad SFD,
+  RX_ER and link loss mid-frame, early aborts after 0..6 octets, 16..1514-byte
+  TX frames, link loss at SOF, in the preamble, mid-frame and in the FCS, and
+  TX underrun. RX frames arrive FCS-stripped with the start token on every
+  beat; each start has one terminal event; token zero produces no beat or TX
+  `done`; TX wire FCS and padding are checked against zlib. Two mutations (TX
+  `start` on the launch edge; six preamble octets accepted) fail all six
+  tests, the TX one at exactly one cycle.
+- `test_EthMacTimingTid.py` was rebuilt: its earlier timing case read the
+  boolean generic back as `'1'`, expected tId zero in both cases and passed
+  vacuously; RX tId can never equal the TX tId because the importer allocates
+  RX tokens. It now runs a GMII timing `EthMacTop` loopback: TX tokens appear
+  at the exporter's `start`/`done` after the TX FIFO and checksum cache, and
+  importer-allocated RX tokens survive the RX FIFO across a stalled sink. A
+  mutation stamping token zero on non-final RX beats fails it. In that run
+  two RX tokens went to generated pause frames consumed by `EthMacRxPause`,
+  which has no retire yet: the leak the pause retire must close.
+- Default paths: all `tests/ethernet/EthMacCore` regressions,
+  `test_SsiFifo.py`, `test_SsiObFrameFilter.py` and the two-step GMII and
+  XGMII `test_ptp_endpoint_mac.py` cases pass.
+
+No simulation, synthesis, timing or hardware result applies to the port
+entity; none exists. The [existing endpoint validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
 is unaffected because no production entity changed.
 
 Phase 1 acceptance, per slice in the composable plan:
@@ -598,7 +648,7 @@ Phase 1 acceptance, per slice in the composable plan:
 | Carrier | TID tag-through via `EMAC_TIMING_AXIS_CONFIG_C` inside the MAC; token zero unowned; 255 outstanding per direction maximum; `tId` cleared at the controller boundary. |
 | Capture source | Leaf `start`/`done` events with the passive adapter's start qualification; the §2.4 edge table defines the PHC tuple as the values standing during the cycle the word is on the pins, for RX (before sampling) and TX (after launch) alike, with `start` registered on the edge ending that cycle. No offset correction; a non-coincident leaf must carry the capture itself. Passive adapters retained as oracle and legacy producer; the oracle comparison is total. |
 | Ownership | Wire resolution (`done`/wire-plane retire) and release (consumer acceptance, MAC-stage retire, output-stage consumption of a rejected frame, or acknowledged forced abort) are separate states; a token is never reused while any downstream reference exists. |
-| Drop ownership | Eight retire owners including the RX FIFO as **one** owner, the importer's token-zero suppression before storage, and the port's rejected-frame output stage; every leaf start has exactly one terminal event from the leaf; forced abort releases once, globally, after every owner and the controller acknowledge; no timeout release. |
+| Drop ownership | Retire owners at fixed `EthMacPkg` indices (TX: checksum, exporter; RX: pause, filter, FIFO inbound/outbound with one pulse per frame across the two, importer abandoned start) plus the port's admission and rejected-frame output stages; the importer's token-zero suppression before storage is not a retire; every leaf start has exactly one terminal event from the leaf; forced abort releases once, globally, after every owner and the controller acknowledge; no timeout release. |
 | Link loss, nested start and abort | §2.4 and §4.0 specify importer termination and exporter drain as **required leaf changes**; the exporter tracks input-EOF separately from wire-EOF so it drains only an outstanding remainder; a frame on the pins at abort completes through `done`, never `FLUSHED`. Pause counters clear on link loss. |
 | Abort boundary | §6 four-step procedure: close, controller cancellation (`cancelRequest`/`cancelAck`, adapter terminates its open TX frame and consumes the port's partial-RX terminator), owner abort, single release. `FLUSHED` is provably "no wire start"; the ledger still quarantines it. |
 | TX stream shape | Declared-vs-actual length, partial-keep, nested SOF, missing EOF, EOFE-on-last, no-SOF beats and a full 16-byte first beat (minimum frame 16 bytes) all specified; the port holds a frame until `tLast` validates; completions unordered except in wire order. |
@@ -609,9 +659,8 @@ Phase 1 acceptance, per slice in the composable plan:
 | Linux projection | §7; raw-cycle fields dropped at the adapter; malformed records complete `FLUSHED`; RX frame at offset 40 accepted with an 8-byte shift stage. |
 | RTL backend reuse | §4.1 names the frontend and ledger mismatches; planning default keeps the passive RX path for the RTL backend and moves TX completion onto the port. |
 
-Still open for Phase 1: whether the GMII importer can be made pin-coincident
-or must carry its own capture (§2.4), the port's AXI-Lite bank offset and
+Resolved in Phase 1: the GMII leaves are pin-coincident (§2.4, §8). Still
+open for Phase 1: the XGMII timing leaves, the port's AXI-Lite bank offset and
 capability/fault register layout, the measured area of the wider FIFO word
-and the port's TX hold store, and whether `SsiFifo` gains a generic to
-suppress `PREVENT_LOCKUP` or the timing-mode wrapper instantiates its parts
-directly (§6).
+and the port's TX hold store. `SsiFifo` gained `PREVENT_LOCKUP_G` for §6;
+the RX FIFO does not use it yet.

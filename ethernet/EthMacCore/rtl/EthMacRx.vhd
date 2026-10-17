@@ -38,6 +38,8 @@ entity EthMacRx is
       BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000";
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing-port import leaf (GMII only in this revision)
+      TIMING_EN_G    : boolean          := false;
       -- Internal RAM synthesis mode
       SYNTH_MODE_G   : string           := "inferred");
    port (
@@ -68,7 +70,11 @@ entity EthMacRx is
       phyReady     : in  sl;
       ethConfig    : in  EthMacConfigType;
       rxCountEn    : out sl;
-      rxCrcError   : out sl);
+      rxCrcError   : out sl;
+      -- Timing port (TIMING_EN_G only)
+      rxNextToken  : in  EthMacTokenType := EMAC_TOKEN_NONE_C;
+      rxFrameEvent : out EthMacFrameEventType;
+      rxRetire     : out EthMacTokenRetireArray(EMAC_RX_RETIRE_SOURCES_C-1 downto 0));
 end EthMacRx;
 
 architecture mapping of EthMacRx is
@@ -90,6 +96,7 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          PHY_TYPE_G     => PHY_TYPE_G,
          INT_CONFIG_G   => INT_CONFIG_G,
+         TIMING_EN_G    => TIMING_EN_G,
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset
@@ -111,7 +118,18 @@ begin
          -- Configuration and status
          phyReady    => phyReady,
          rxCountEn   => rxCountEn,
-         rxCrcError  => rxCrcError);
+         rxCrcError  => rxCrcError,
+         -- Timing port
+         nextToken   => rxNextToken,
+         frameEvent  => rxFrameEvent,
+         retire      => rxRetire(EMAC_RX_RETIRE_IMPORT_C));
+
+   -- Pause and filter retires are not yet implemented. The RX FIFO follows
+   -- this module in EthMacTop, which replaces those two entries.
+   rxRetire(EMAC_RX_RETIRE_PAUSE_C)   <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   rxRetire(EMAC_RX_RETIRE_FILTER_C)  <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   rxRetire(EMAC_RX_RETIRE_FIFO_IB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   rxRetire(EMAC_RX_RETIRE_FIFO_OB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
 
    ------------------
    -- RX Pause Module

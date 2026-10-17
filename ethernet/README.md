@@ -4,7 +4,7 @@ This tree contains Ethernet MAC, framing, IP/UDP, RoCEv2, and high-speed Etherne
 
 ## Layout
 
-- `EthMacCore/`: common Ethernet MAC logic.
+- [EthMacCore/](EthMacCore/README.md): common Ethernet MAC logic and the opt-in timing-port leaves.
 - [PtpCore/](PtpCore/README.md): autonomous fixed-source Layer-2 PTP endpoint, PHC, timestamp capture, servo and PHY/PTP compositions.
 - [GigEthCore/](GigEthCore/README.md): 1 GbE PHY adapters and legacy MAC integrations.
 - `TenGigEthCore/`, `XauiCore/`, `XlauiCore/`, and `Caui4Core/`: speed and PHY-family specific Ethernet cores.

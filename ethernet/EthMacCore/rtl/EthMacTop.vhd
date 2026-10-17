@@ -51,7 +51,10 @@ entity EthMacTop is
       -- MAC-internal stream format. The default carries no TID; a timing-capable
       -- composition selects EMAC_TIMING_AXIS_CONFIG_C so the eight-bit frame
       -- token survives every FIFO. See ethernet/PtpCore/timing-port.md.
-      INT_CONFIG_G      : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C);
+      INT_CONFIG_G      : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing-port leaves: tokened wire events and retires for a timing port
+      -- composition. GMII only in this revision; see the assertions below.
+      TIMING_EN_G       : boolean                  := false);
    port (
       -- Core Clock and Reset
       ethClkEn        : in  sl                  := '1';
@@ -91,7 +94,13 @@ entity EthMacTop is
       -- Configuration and status
       phyReady        : in  sl;
       ethConfig       : in  EthMacConfigType;
-      ethStatus       : out EthMacStatusType);
+      ethStatus       : out EthMacStatusType;
+      -- Timing port, in ethClk (TIMING_EN_G only)
+      rxNextToken     : in  EthMacTokenType     := EMAC_TOKEN_NONE_C;
+      rxFrameEvent    : out EthMacFrameEventType;
+      rxRetire        : out EthMacTokenRetireArray(EMAC_RX_RETIRE_SOURCES_C-1 downto 0);
+      txFrameEvent    : out EthMacFrameEventType;
+      txRetire        : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0));
 end EthMacTop;
 
 architecture mapping of EthMacTop is
@@ -109,6 +118,8 @@ architecture mapping of EthMacTop is
    signal rxPauseReq   : sl;
    signal rxPauseValue : slv(15 downto 0);
    signal flowCtrl     : AxiStreamCtrlType;
+
+   signal rxRetireRx : EthMacTokenRetireArray(EMAC_RX_RETIRE_SOURCES_C-1 downto 0);
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of rxPauseReq   : signal is "true";
@@ -128,6 +139,21 @@ begin
       INT_CONFIG_G.TUSER_MODE_C = INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C and
       PHY_TYPE_G /= "XLGMII" and ROCEV2_EN_G = false)
       report "EthMacTop: INT_CONFIG_G may add TID bits only; XLGMII and RoCEv2 are unaudited for the token"
+      severity failure;
+
+   -- Timing mode pins the configuration the token contract assumes: one
+   -- clock/reset for every tokened owner, error frames dropped inside the MAC,
+   -- no second token writer and no unaudited stage.
+   assert (TIMING_EN_G = false) or (
+      INT_CONFIG_G.TID_BITS_C = EMAC_TOKEN_BITS_C and
+      PRIM_CONFIG_G.TID_BITS_C = EMAC_TOKEN_BITS_C and
+      PHY_TYPE_G = "GMII" and
+      PRIM_COMMON_CLK_G = true and
+      DROP_ERR_PKT_G = true and
+      BYP_EN_G = false and
+      JUMBO_G = false and
+      ROCEV2_EN_G = false)
+      report "EthMacTop: TIMING_EN_G requires the TID token internally and on the primary stream, GMII, PRIM_COMMON_CLK_G, DROP_ERR_PKT_G and no bypass, jumbo or RoCEv2"
       severity failure;
 
    ethStatus.rxPauseCnt <= rxPauseReq;
@@ -184,6 +210,7 @@ begin
          ROCEV2_EN_G     => ROCEV2_EN_G,
          BYP_EN_G        => BYP_EN_G,
          INT_CONFIG_G    => INT_CONFIG_G,
+         TIMING_EN_G     => TIMING_EN_G,
          -- RAM synthesis Mode
          SYNTH_MODE_G    => SYNTH_MODE_G)
       port map (
@@ -217,7 +244,10 @@ begin
          ethConfig      => ethConfig,
          txCountEn      => ethStatus.txCountEn,
          txUnderRun     => ethStatus.txUnderRunCnt,
-         txLinkNotReady => ethStatus.txNotReadyCnt);
+         txLinkNotReady => ethStatus.txNotReadyCnt,
+         -- Timing port
+         txFrameEvent   => txFrameEvent,
+         txRetire       => txRetire);
 
    ---------------------
    -- Flow Control Logic
@@ -255,6 +285,7 @@ begin
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G,
          INT_CONFIG_G   => INT_CONFIG_G,
+         TIMING_EN_G    => TIMING_EN_G,
          -- RAM Synthesis mode
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
@@ -285,7 +316,19 @@ begin
          phyReady     => phyReady,
          ethConfig    => ethConfig,
          rxCountEn    => ethStatus.rxCountEn,
-         rxCrcError   => ethStatus.rxCrcErrorCnt);
+         rxCrcError   => ethStatus.rxCrcErrorCnt,
+         -- Timing port
+         rxNextToken  => rxNextToken,
+         rxFrameEvent => rxFrameEvent,
+         rxRetire     => rxRetireRx);
+
+   -- EthMacRx owns the import, pause and filter retires. The RX FIFO entries
+   -- belong to U_RxFifo below and are not yet implemented.
+   rxRetire(EMAC_RX_RETIRE_PAUSE_C)   <= rxRetireRx(EMAC_RX_RETIRE_PAUSE_C);
+   rxRetire(EMAC_RX_RETIRE_FILTER_C)  <= rxRetireRx(EMAC_RX_RETIRE_FILTER_C);
+   rxRetire(EMAC_RX_RETIRE_IMPORT_C)  <= rxRetireRx(EMAC_RX_RETIRE_IMPORT_C);
+   rxRetire(EMAC_RX_RETIRE_FIFO_IB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   rxRetire(EMAC_RX_RETIRE_FIFO_OB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
 
    ----------
    -- RX FIFO

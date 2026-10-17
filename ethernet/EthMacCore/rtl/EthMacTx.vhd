@@ -38,6 +38,8 @@ entity EthMacTx is
       BYP_EN_G        : boolean                  := false;
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G    : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing-port leaf events (GMII only in this revision)
+      TIMING_EN_G     : boolean                  := false;
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
    port (
@@ -71,7 +73,10 @@ entity EthMacTx is
       ethConfig      : in  EthMacConfigType;
       txCountEn      : out sl;
       txUnderRun     : out sl;
-      txLinkNotReady : out sl);
+      txLinkNotReady : out sl;
+      -- Timing port (TIMING_EN_G only)
+      txFrameEvent   : out EthMacFrameEventType;
+      txRetire       : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0));
 end EthMacTx;
 
 architecture mapping of EthMacTx is
@@ -203,6 +208,7 @@ begin
          RST_POLARITY_G => RST_POLARITY_G,
          PHY_TYPE_G     => PHY_TYPE_G,
          INT_CONFIG_G   => INT_CONFIG_G,
+         TIMING_EN_G    => TIMING_EN_G,
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset
@@ -226,6 +232,12 @@ begin
          phyReady       => phyReady,
          txCountEn      => txCountEn,
          txUnderRun     => txUnderRun,
-         txLinkNotReady => txLinkNotReady);
+         txLinkNotReady => txLinkNotReady,
+         -- Timing port
+         frameEvent     => txFrameEvent,
+         retire         => txRetire(EMAC_TX_RETIRE_EXPORT_C));
+
+   -- The checksum error-drop retire is not yet implemented
+   txRetire(EMAC_TX_RETIRE_CSUM_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
 
 end mapping;
