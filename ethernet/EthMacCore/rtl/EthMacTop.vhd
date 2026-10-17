@@ -47,7 +47,11 @@ entity EthMacTop is
       BYP_EN_G          : boolean                  := false;
       BYP_ETH_TYPE_G    : slv(15 downto 0)         := x"0000";
       BYP_COMMON_CLK_G  : boolean                  := false;
-      BYP_CONFIG_G      : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C);
+      BYP_CONFIG_G      : AxiStreamConfigType      := EMAC_AXIS_CONFIG_C;
+      -- MAC-internal stream format. The default carries no TID; a timing-capable
+      -- composition selects EMAC_TIMING_AXIS_CONFIG_C so the eight-bit frame
+      -- token survives every FIFO. See ethernet/PtpCore/timing-port.md.
+      INT_CONFIG_G      : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Core Clock and Reset
       ethClkEn        : in  sl                  := '1';
@@ -113,6 +117,19 @@ architecture mapping of EthMacTop is
 
 begin
 
+   -- Timing mode only changes the TID width; every other field must match the
+   -- audited internal layout, and the audited stages exclude XLGMII and RoCEv2.
+   assert (INT_CONFIG_G.TID_BITS_C = 0) or (
+      INT_CONFIG_G.TSTRB_EN_C = INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C and
+      INT_CONFIG_G.TDATA_BYTES_C = INT_EMAC_AXIS_CONFIG_C.TDATA_BYTES_C and
+      INT_CONFIG_G.TDEST_BITS_C = INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C and
+      INT_CONFIG_G.TKEEP_MODE_C = INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C and
+      INT_CONFIG_G.TUSER_BITS_C = INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C and
+      INT_CONFIG_G.TUSER_MODE_C = INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C and
+      PHY_TYPE_G /= "XLGMII" and ROCEV2_EN_G = false)
+      report "EthMacTop: INT_CONFIG_G may add TID bits only; XLGMII and RoCEv2 are unaudited for the token"
+      severity failure;
+
    ethStatus.rxPauseCnt <= rxPauseReq;
    ethStatus.rxOverFlow <= flowCtrl.overflow;
 
@@ -128,6 +145,7 @@ begin
          BYP_EN_G          => BYP_EN_G,
          BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
          BYP_CONFIG_G      => BYP_CONFIG_G,
+         INT_CONFIG_G      => INT_CONFIG_G,
          SYNTH_MODE_G      => SYNTH_MODE_G)
       port map (
          -- Master Clock and Reset
@@ -165,6 +183,7 @@ begin
          -- Misc. Configurations
          ROCEV2_EN_G     => ROCEV2_EN_G,
          BYP_EN_G        => BYP_EN_G,
+         INT_CONFIG_G    => INT_CONFIG_G,
          -- RAM synthesis Mode
          SYNTH_MODE_G    => SYNTH_MODE_G)
       port map (
@@ -235,6 +254,7 @@ begin
          FILT_EN_G      => FILT_EN_G,
          BYP_EN_G       => BYP_EN_G,
          BYP_ETH_TYPE_G => BYP_ETH_TYPE_G,
+         INT_CONFIG_G   => INT_CONFIG_G,
          -- RAM Synthesis mode
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
@@ -284,7 +304,8 @@ begin
          PRIM_CONFIG_G     => PRIM_CONFIG_G,
          BYP_EN_G          => BYP_EN_G,
          BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
-         BYP_CONFIG_G      => BYP_CONFIG_G)
+         BYP_CONFIG_G      => BYP_CONFIG_G,
+         INT_CONFIG_G      => INT_CONFIG_G)
       port map (
          -- Slave Clock and Reset
          sClk        => ethClk,

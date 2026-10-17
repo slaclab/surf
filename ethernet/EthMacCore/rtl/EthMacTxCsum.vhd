@@ -25,12 +25,14 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxCsum is
    generic (
-      TPD_G          : time    := 1 ns;
-      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      DROP_ERR_PKT_G : boolean := true;
-      JUMBO_G        : boolean := true;
-      ROCEV2_EN_G    : boolean := false;
-      SYNTH_MODE_G   : string  := "inferred");  -- Synthesis mode for internal RAMs
+      TPD_G          : time                := 1 ns;
+      RST_POLARITY_G : sl                  := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      DROP_ERR_PKT_G : boolean             := true;
+      JUMBO_G        : boolean             := true;
+      ROCEV2_EN_G    : boolean             := false;
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      SYNTH_MODE_G   : string              := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -247,11 +249,11 @@ begin
                -- Move data
                v.sMaster        := rxMaster;
                -- Set the flag
-               v.fragDet(0)     := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_FRAG_BIT_C, 0);
+               v.fragDet(0)     := axiStreamGetUserBit(INT_CONFIG_G, rxMaster, EMAC_FRAG_BIT_C, 0);
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_CONFIG_G, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                else
@@ -283,7 +285,7 @@ begin
                      v.eofeDet(0) := '1';
                   else
                      -- Save the EOFE value
-                     v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                     v.eofeDet(0) := axiStreamGetUserBit(INT_CONFIG_G, rxMaster, EMAC_EOFE_BIT_C);
                   end if;
                   -- Write the transaction data
                   v.tranWr := '1';
@@ -340,17 +342,17 @@ begin
                -- Track the number of bytes and check if its a RoCE transmission (UDP dst port = 4791)
                if ROCEV2_EN_G and (rxMaster.tData(47 downto 32) = x"B712") then
                   v.roce(0)    := '1';
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G) - 2 + ROCEV2_CRC32_BYTE_WIDTH_C;
                else
                   v.roce(0)    := '0';
-                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
-                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C) - 2;
+                  v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G) - 2;
+                  v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G) - 2;
                end if;
                -- Check for EOF
                if (rxMaster.tLast = '1') then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_CONFIG_G, rxMaster, EMAC_EOFE_BIT_C);
                   -- Write the transaction data
                   v.tranWr     := '1';
                   -- Next state
@@ -379,12 +381,12 @@ begin
                   v.tData   := rxMaster.tData(127 downto 32) & x"0000" & rxMaster.tData(15 downto 0);
                end if;
                -- Track the number of bytes
-               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C);
-               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_EMAC_AXIS_CONFIG_C);
+               v.ipv4Len(0) := r.ipv4Len(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G);
+               v.protLen(0) := r.protLen(0) + getTKeep(rxMaster.tKeep, INT_CONFIG_G);
                -- Check for EOF
                if (rxMaster.tLast = '1') or (v.ipv4Len(0) > MAX_FRAME_SIZE_C) then
                   -- Save the EOFE value
-                  v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
+                  v.eofeDet(0) := axiStreamGetUserBit(INT_CONFIG_G, rxMaster, EMAC_EOFE_BIT_C);
                   -- Check for overflow
                   if (rxMaster.tLast = '0') then
                      -- Error detect
@@ -509,7 +511,7 @@ begin
                -- Reset the counter
                v.mvCnt  := 0;
                -- Forward the EOFE
-               axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
+               axiStreamSetUserBit(INT_CONFIG_G, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
                v.dbg(5) := eofeDet;
                -- Accept the data
                v.tranRd := '1';
@@ -556,8 +558,8 @@ begin
          CASCADE_SIZE_G      => ite(JUMBO_G, 2, 1),
          FIFO_ADDR_WIDTH_G   => 9,      -- 8kB per FIFO
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
-         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
+         SLAVE_AXI_CONFIG_G  => INT_CONFIG_G,
+         MASTER_AXI_CONFIG_G => INT_CONFIG_G)
       port map (
          -- Slave Port
          sAxisClk    => ethClk,

@@ -36,6 +36,8 @@ entity EthMacTx is
       -- Misc. Configurations
       ROCEV2_EN_G     : boolean                  := false;
       BYP_EN_G        : boolean                  := false;
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G    : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C;
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
    port (
@@ -120,6 +122,7 @@ begin
          DROP_ERR_PKT_G => DROP_ERR_PKT_G,
          JUMBO_G        => JUMBO_G,
          ROCEV2_EN_G    => ROCEV2_EN_G,
+         INT_CONFIG_G   => INT_CONFIG_G,
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and Reset
@@ -199,6 +202,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          PHY_TYPE_G     => PHY_TYPE_G,
+         INT_CONFIG_G   => INT_CONFIG_G,
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset

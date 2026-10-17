@@ -36,6 +36,8 @@ entity EthMacRx is
       FILT_EN_G      : boolean          := false;
       BYP_EN_G       : boolean          := false;
       BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000";
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       -- Internal RAM synthesis mode
       SYNTH_MODE_G   : string           := "inferred");
    port (
@@ -87,6 +89,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          PHY_TYPE_G     => PHY_TYPE_G,
+         INT_CONFIG_G   => INT_CONFIG_G,
          SYNTH_MODE_G   => SYNTH_MODE_G)
       port map (
          -- Clock and reset

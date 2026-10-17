@@ -24,9 +24,11 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImportGmii is
    generic (
-      TPD_G          : time   := 1 ns;
-      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      SYNTH_MODE_G   : string := "inferred");  -- Synthesis mode for internal RAMs
+      TPD_G          : time                := 1 ns;
+      RST_POLARITY_G : sl                  := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      SYNTH_MODE_G   : string              := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClkEn    : in  sl;
@@ -48,13 +50,13 @@ architecture rtl of EthMacRxImportGmii is
 
    constant SFD_C : slv(7 downto 0) := x"D5";
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_CONFIG_G.TSTRB_EN_C,
       TDATA_BYTES_C => 1,               -- 8-bit AXI stream interface
-      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+      TDEST_BITS_C  => INT_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => INT_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => INT_CONFIG_G.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_CONFIG_G.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_CONFIG_G.TUSER_MODE_C);
 
    type StateType is (
       WAIT_SFD_S,
@@ -120,7 +122,7 @@ begin
          FIFO_ADDR_WIDTH_G   => 4,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  8-bit AXI stream interface
-         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => INT_CONFIG_G)  -- 128-bit AXI stream interface
       port map (
          -- Slave Port
          sAxisClk    => ethClk,

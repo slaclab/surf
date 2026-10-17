@@ -47,6 +47,7 @@ class EmacBeat:
     keep: int
     last: int
     dest: int = 0
+    tid: int = 0
     sof: int = 0
     frag: int = 0
     eofe: int = 0
@@ -75,6 +76,7 @@ class FlatEmacEndpoint:
             ("TKeep", 0),
             ("TLast", 0),
             ("TDest", 0),
+            ("TId", 0),
             ("Sof", 0),
             ("Frag", 0),
             ("Eofe", 0),
@@ -94,6 +96,8 @@ class FlatEmacEndpoint:
         self._sig("TLast").value = beat.last
         if self._has("TDest"):
             self._sig("TDest").value = beat.dest
+        if self._has("TId"):
+            self._sig("TId").value = beat.tid
         if self._has("Sof"):
             self._sig("Sof").value = beat.sof
         if self._has("Frag"):
@@ -128,6 +132,7 @@ class FlatEmacEndpoint:
             keep=int(self._sig("TKeep").value),
             last=int(self._sig("TLast").value),
             dest=0 if not self._has("TDest") else int(self._sig("TDest").value),
+            tid=0 if not self._has("TId") else int(self._sig("TId").value),
             sof=0 if not self._has("Sof") else int(self._sig("Sof").value),
             frag=0 if not self._has("Frag") else int(self._sig("Frag").value),
             eofe=0 if not self._has("Eofe") else int(self._sig("Eofe").value),

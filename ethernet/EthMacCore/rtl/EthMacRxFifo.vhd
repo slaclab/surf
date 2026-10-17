@@ -37,7 +37,9 @@ entity EthMacRxFifo is
       PRIM_CONFIG_G     : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       BYP_EN_G          : boolean                := false;
       BYP_COMMON_CLK_G  : boolean                := false;
-      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
+      BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
       sClk        : in  sl;
@@ -104,7 +106,7 @@ begin
          FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
          FIFO_FIXED_THRESH_G => false,
          -- AXI Stream Port Configurations
-         SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
+         SLAVE_AXI_CONFIG_G  => INT_CONFIG_G,
          MASTER_AXI_CONFIG_G => PRIM_CONFIG_G)
       port map (
          sAxisClk        => sClk,
@@ -141,7 +143,7 @@ begin
             FIFO_ADDR_WIDTH_G   => FIFO_ADDR_WIDTH_G,
             FIFO_FIXED_THRESH_G => false,
             -- AXI Stream Port Configurations
-            SLAVE_AXI_CONFIG_G  => INT_EMAC_AXIS_CONFIG_C,
+            SLAVE_AXI_CONFIG_G  => INT_CONFIG_G,
             MASTER_AXI_CONFIG_G => BYP_CONFIG_G)
          port map (
             sAxisClk        => sClk,

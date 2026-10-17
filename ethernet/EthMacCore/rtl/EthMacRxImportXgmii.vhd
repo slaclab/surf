@@ -25,7 +25,9 @@ use surf.EthMacPkg.all;
 entity EthMacRxImportXgmii is
    generic (
       TPD_G          : time := 1 ns;
-      RST_POLARITY_G : sl   := '1');  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_POLARITY_G : sl   := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C);
    port (
       -- Clock and Reset
       ethClk      : in  sl;
@@ -44,13 +46,13 @@ end EthMacRxImportXgmii;
 architecture rtl of EthMacRxImportXgmii is
 
    constant AXI_CONFIG_C : AxiStreamConfigType := (
-      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TSTRB_EN_C    => INT_CONFIG_G.TSTRB_EN_C,
       TDATA_BYTES_C => 8,               -- 64-bit AXI stream interface
-      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
-      TID_BITS_C    => INT_EMAC_AXIS_CONFIG_C.TID_BITS_C,
-      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
-      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
-      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+      TDEST_BITS_C  => INT_CONFIG_G.TDEST_BITS_C,
+      TID_BITS_C    => INT_CONFIG_G.TID_BITS_C,
+      TKEEP_MODE_C  => INT_CONFIG_G.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_CONFIG_G.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_CONFIG_G.TUSER_MODE_C);
 
    type RegType is record
       phyRxd      : slv(63 downto 0);
@@ -226,7 +228,7 @@ begin
          READY_EN_G          => false,
          -- AXI Stream Port Configurations
          SLAVE_AXI_CONFIG_G  => AXI_CONFIG_C,  --  64-bit AXI stream interface
-         MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)  -- 128-bit AXI stream interface
+         MASTER_AXI_CONFIG_G => INT_CONFIG_G)  -- 128-bit AXI stream interface
       port map (
          -- Clock and reset
          axisClk     => ethClk,

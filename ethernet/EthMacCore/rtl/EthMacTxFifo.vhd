@@ -29,6 +29,8 @@ entity EthMacTxFifo is
       BYP_EN_G          : boolean             := false;
       BYP_COMMON_CLK_G  : boolean             := false;
       BYP_CONFIG_G      : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G      : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
       SYNTH_MODE_G      : string              := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Master Clock and Reset
@@ -54,12 +56,12 @@ architecture mapping of EthMacTxFifo is
 
 begin
 
-   PRIM_FIFO_BYPASS : if ((PRIM_COMMON_CLK_G = true) and (PRIM_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
+   PRIM_FIFO_BYPASS : if ((PRIM_COMMON_CLK_G = true) and (PRIM_CONFIG_G = INT_CONFIG_G)) generate
       mPrimMaster <= sPrimMaster;
       sPrimSlave  <= mPrimSlave;
    end generate;
 
-   PRIM_FIFO : if ((PRIM_COMMON_CLK_G = false) or (PRIM_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
+   PRIM_FIFO : if ((PRIM_COMMON_CLK_G = false) or (PRIM_CONFIG_G /= INT_CONFIG_G)) generate
       U_Fifo : entity surf.AxiStreamFifoV2
          generic map (
             -- General Configurations
@@ -77,7 +79,7 @@ begin
             FIFO_ADDR_WIDTH_G   => 4,
             -- AXI Stream Port Configurations
             SLAVE_AXI_CONFIG_G  => PRIM_CONFIG_G,
-            MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
+            MASTER_AXI_CONFIG_G => INT_CONFIG_G)
          port map (
             sAxisClk    => sPrimClk,
             sAxisRst    => sPrimRst,
@@ -96,12 +98,12 @@ begin
 
    BYP_ENABLED : if (BYP_EN_G = true) generate
 
-      BYP_FIFO_BYPASS : if ((BYP_COMMON_CLK_G = true) and (BYP_CONFIG_G = INT_EMAC_AXIS_CONFIG_C)) generate
+      BYP_FIFO_BYPASS : if ((BYP_COMMON_CLK_G = true) and (BYP_CONFIG_G = INT_CONFIG_G)) generate
          mBypMaster <= sBypMaster;
          sBypSlave  <= mBypSlave;
       end generate;
 
-      BYP_FIFO : if ((BYP_COMMON_CLK_G = false) or (BYP_CONFIG_G /= INT_EMAC_AXIS_CONFIG_C)) generate
+      BYP_FIFO : if ((BYP_COMMON_CLK_G = false) or (BYP_CONFIG_G /= INT_CONFIG_G)) generate
          U_Fifo : entity surf.AxiStreamFifoV2
             generic map (
                -- General Configurations
@@ -119,7 +121,7 @@ begin
                FIFO_ADDR_WIDTH_G   => 4,
                -- AXI Stream Port Configurations
                SLAVE_AXI_CONFIG_G  => BYP_CONFIG_G,
-               MASTER_AXI_CONFIG_G => INT_EMAC_AXIS_CONFIG_C)
+               MASTER_AXI_CONFIG_G => INT_CONFIG_G)
             port map (
                sAxisClk    => sBypClk,
                sAxisRst    => sBypRst,

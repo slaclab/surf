@@ -24,10 +24,12 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImport is
    generic (
-      TPD_G          : time   := 1 ns;
-      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
-      PHY_TYPE_G     : string := "XGMII";
-      SYNTH_MODE_G   : string := "inferred");
+      TPD_G          : time                := 1 ns;
+      RST_POLARITY_G : sl                  := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      PHY_TYPE_G     : string              := "XGMII";
+      -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
+      INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
+      SYNTH_MODE_G   : string              := "inferred");
    port (
       -- Clock and Reset
       ethClkEn    : in  sl;
@@ -77,11 +79,13 @@ begin
             rxCrcError  => rxCrcError);
    end generate;
 
+   -- XLGMII has no timing-mode variant; the top-level assertion rejects it.
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacRxImportXgmii
          generic map (
             TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G)
+            RST_POLARITY_G => RST_POLARITY_G,
+            INT_CONFIG_G   => INT_CONFIG_G)
          port map (
             -- Clock and Reset
             ethClk      => ethClk,
@@ -102,6 +106,7 @@ begin
          generic map (
             TPD_G          => TPD_G,
             RST_POLARITY_G => RST_POLARITY_G,
+            INT_CONFIG_G   => INT_CONFIG_G,
             SYNTH_MODE_G   => SYNTH_MODE_G)
          port map (
             -- Clock and Reset

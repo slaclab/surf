@@ -776,6 +776,254 @@ package PtpPkg is
       timeValid  => '0',
       sequenceId => (others => '0'));
 
+   -- Timing-port contract: ethernet/PtpCore/timing-port.md. These records are
+   -- the controller-facing boundary of a timing-capable MAC port. No production
+   -- entity produces or consumes them yet; the layouts are declared here so
+   -- the RTL, DMA envelope, PyRogue and Linux adapter share one definition.
+   -- The MAC-port prefix is distinct from the IEEE 1588 protocol-port records
+   -- (PtpPortConfigType, PtpPortLifecycleType, PtpPortStatusType) above.
+
+   -- ABI identity published in the capability register and in every DMA
+   -- envelope header. A receiver validates version and type before status.
+   constant PTP_MAC_PORT_ABI_VERSION_C      : slv(7 downto 0) := x"01";
+   constant PTP_MAC_PORT_ENVELOPE_VERSION_C : slv(7 downto 0) := x"01";
+   constant PTP_MAC_PORT_RECORD_RX_C        : slv(7 downto 0) := x"01";
+   constant PTP_MAC_PORT_RECORD_TX_REQ_C    : slv(7 downto 0) := x"02";
+   constant PTP_MAC_PORT_RECORD_TX_CMPL_C   : slv(7 downto 0) := x"03";
+   -- Envelope status byte bit positions (offset 12 of the common header).
+   constant PTP_MAC_PORT_STATUS_OUTCOME_LOW_C   : natural := 0;  -- bits 1:0
+   constant PTP_MAC_PORT_STATUS_CAPTURE_VALID_C : natural := 2;
+   constant PTP_MAC_PORT_STATUS_CAPTURE_ERROR_C : natural := 3;
+   constant PTP_MAC_PORT_STATUS_TIME_VALID_C    : natural := 4;
+   constant PTP_MAC_PORT_STATUS_TIMESTAMP_REQ_C : natural := 5;
+   -- Capture plane identifier: first destination-MAC octet at the MAC-side pins.
+   constant PTP_MAC_PORT_PLANE_MAC_DMAC_C : slv(3 downto 0) := x"1";
+   -- PHY type as published; matches the PHY_TYPE_G string selection.
+   constant PTP_MAC_PORT_PHY_GMII_C  : slv(3 downto 0) := x"1";
+   constant PTP_MAC_PORT_PHY_XGMII_C : slv(3 downto 0) := x"2";
+
+   -- Software cookie carried with a TX request and returned unchanged in its
+   -- completion. The port's internal MAC token is narrower and never exposed.
+   constant PTP_MAC_PORT_COOKIE_BITS_C : positive := 32;
+   subtype PtpMacPortCookieType is slv(PTP_MAC_PORT_COOKIE_BITS_C-1 downto 0);
+
+   -- Final disposition of a frame at the wire plane.
+   constant PTP_MAC_PORT_OUTCOME_SENT_C      : slv(1 downto 0) := "00";  -- Complete frame left/entered the wire, FCS good.
+   constant PTP_MAC_PORT_OUTCOME_WIRE_ERR_C  : slv(1 downto 0) := "01";  -- Reached the wire, corrupted: underrun, link loss or aborted.
+   constant PTP_MAC_PORT_OUTCOME_DISCARDED_C : slv(1 downto 0) := "10";  -- Consumed inside the port or MAC before the wire plane.
+   constant PTP_MAC_PORT_OUTCOME_FLUSHED_C   : slv(1 downto 0) := "11";  -- Never reached the wire plane: forced abort before start, or a stale-generation request.
+
+   -- Port lifetime identifier carried in every RX record and TX completion.
+   -- System reset clears it to PTP_MAC_PORT_GENERATION_RESET_C; the port advances
+   -- it to the first live value when admission opens and on each acknowledged
+   -- forced abort. The reset value never admits traffic. The last value is an
+   -- exhaustion fault that closes admission until system reset; it never wraps.
+   constant PTP_MAC_PORT_GENERATION_BITS_C    : positive         := 16;
+   constant PTP_MAC_PORT_GENERATION_RESET_C   : slv(15 downto 0) := x"0000";
+   constant PTP_MAC_PORT_GENERATION_EXHAUST_C : slv(15 downto 0) := x"FFFF";
+
+   -- Per-frame metadata delivered beside a received frame in clk. Published
+   -- with the frame's SOF beat and held stable until the frame's last beat is
+   -- accepted; final status is known at SOF because delivery is
+   -- store-and-forward. frameLength counts Ethernet bytes from the destination
+   -- MAC through the last payload octet, FCS excluded. capture is the complete
+   -- RX capture at the first destination-MAC octet; capture.error marks an
+   -- unusable timestamp without invalidating the frame. transportGeneration
+   -- is the live generation at the frame's wire start; a consumer discards
+   -- frames whose generation it has not observed. The RX table entry stays
+   -- owned until the controller accepts the frame's last beat.
+   type PtpMacPortRxMetaType is record
+      capture             : PtpRxCaptureType;
+      frameLength         : slv(15 downto 0);
+      transportGeneration : slv(15 downto 0);
+   end record;
+
+   constant PTP_MAC_PORT_RX_META_INIT_C : PtpMacPortRxMetaType := (
+      capture             => PTP_RX_CAPTURE_INIT_C,
+      frameLength         => (others => '0'),
+      transportGeneration => (others => '0'));
+
+   -- Port RX output in clk: frame is an SSI AXI Stream master in the port's
+   -- primary configuration (SOF on the first beat, EOFE never set on a
+   -- delivered frame); meta is valid on every beat of that frame. The reverse
+   -- ready is a separate signal. Dropped frames are counted and never appear.
+   type PtpMacPortRxMasterType is record
+      frame : AxiStreamMasterType;
+      meta  : PtpMacPortRxMetaType;
+   end record;
+
+   constant PTP_MAC_PORT_RX_MASTER_INIT_C : PtpMacPortRxMasterType := (
+      frame => AXI_STREAM_MASTER_INIT_C,
+      meta  => PTP_MAC_PORT_RX_META_INIT_C);
+
+   -- TX request descriptor in clk, presented with the frame's SOF beat and
+   -- held stable until that beat is accepted. The port accepts the SOF beat
+   -- only after reserving a table entry and a completion slot; the controller
+   -- sees ordinary stream backpressure otherwise. timestamp asks for a wire
+   -- capture; every accepted request receives exactly one completion whether
+   -- or not it asked. frameLength is the Ethernet byte count the controller
+   -- will present, FCS excluded; the port verifies it against the bytes
+   -- actually received. transportGeneration is the generation the controller
+   -- observed when it built the request; a request from another generation is
+   -- consumed and completed FLUSHED without reaching the MAC.
+   type PtpMacPortTxRequestType is record
+      cookie              : PtpMacPortCookieType;
+      timestamp           : sl;
+      frameLength         : slv(15 downto 0);
+      transportGeneration : slv(15 downto 0);
+   end record;
+
+   constant PTP_MAC_PORT_TX_REQUEST_INIT_C : PtpMacPortTxRequestType := (
+      cookie              => (others => '0'),
+      timestamp           => '0',
+      frameLength         => (others => '0'),
+      transportGeneration => (others => '0'));
+
+   -- Port TX input in clk: frame is an SSI AXI Stream master in the port's
+   -- primary configuration; request is meaningful on the SOF beat. The reverse
+   -- ready is a separate signal.
+   type PtpMacPortTxMasterType is record
+      frame   : AxiStreamMasterType;
+      request : PtpMacPortTxRequestType;
+   end record;
+
+   constant PTP_MAC_PORT_TX_MASTER_INIT_C : PtpMacPortTxMasterType := (
+      frame   => AXI_STREAM_MASTER_INIT_C,
+      request => PTP_MAC_PORT_TX_REQUEST_INIT_C);
+
+   -- Terminal completion for one accepted TX request, in clk. Published once
+   -- per request after its wire done event, confirmed discard or acknowledged
+   -- forced abort; held through ready, and the table entry is released only
+   -- when the controller accepts it. captureValid means the SOF capture was
+   -- taken with error clear and no PHC generation change or capture abort
+   -- intervened before done. FLUSHED is issued only for a request whose frame
+   -- never produced a wire start: forced abort before the exporter launched
+   -- it, or a stale generation. A frame on the pins at abort is terminated by
+   -- the exporter and completes WIRE_ERR with its capture. A FLUSHED
+   -- completion carries the generation of the aborted lifetime, or the stale
+   -- request's own generation.
+   type PtpMacPortTxCompletionType is record
+      cookie              : PtpMacPortCookieType;
+      outcome             : slv(1 downto 0);
+      captureValid        : sl;
+      capture             : PtpRxCaptureType;
+      transportGeneration : slv(15 downto 0);
+   end record;
+
+   constant PTP_MAC_PORT_TX_COMPLETION_INIT_C : PtpMacPortTxCompletionType := (
+      cookie              => (others => '0'),
+      outcome             => PTP_MAC_PORT_OUTCOME_DISCARDED_C,
+      captureValid        => '0',
+      capture             => PTP_RX_CAPTURE_INIT_C,
+      transportGeneration => (others => '0'));
+
+   -- Port-produced in clk. Hold valid/data until completionReady. A system
+   -- reset of the MAC pipeline invalidates a same-edge transfer; forced abort
+   -- does not, because FLUSHED completions are themselves delivered through
+   -- this channel and their entries stay owned until accepted.
+   type PtpMacPortTxCompletionMasterType is record
+      valid : sl;
+      data  : PtpMacPortTxCompletionType;
+   end record;
+
+   constant PTP_MAC_PORT_TX_COMPLETION_MASTER_INIT_C : PtpMacPortTxCompletionMasterType := (
+      valid => '0',
+      data  => PTP_MAC_PORT_TX_COMPLETION_INIT_C);
+
+   -- Controller-to-port lifecycle controls in clk; registered levels, no
+   -- handshake of their own. openAdmission moves the generation off its reset
+   -- value and admits traffic. drainRequest closes admission to new frames
+   -- while the currently open TX frame completes. abortRequest starts the
+   -- forced abort of §6; cancelAck is the controller's acknowledgement that
+   -- it has terminated its open TX frame and consumed the port's partial RX
+   -- terminator, held high until the port clears cancelRequest.
+   type PtpMacPortControlType is record
+      openAdmission : sl;
+      drainRequest  : sl;
+      abortRequest  : sl;
+      cancelAck     : sl;
+   end record;
+
+   constant PTP_MAC_PORT_CONTROL_INIT_C : PtpMacPortControlType := (
+      openAdmission => '0',
+      drainRequest  => '0',
+      abortRequest  => '0',
+      cancelAck     => '0');
+
+   -- Port-to-controller lifecycle status in clk; registered levels.
+   -- cancelRequest asks the controller to take part in a forced abort (§6);
+   -- abortDone reports that every owner and the controller acknowledged and
+   -- the remaining entries were released; transportGeneration is the live
+   -- value. Fault bits are sticky until system reset.
+   type PtpMacPortStatusType is record
+      admissionOpen       : sl;
+      drainIdle           : sl;
+      cancelRequest       : sl;
+      abortDone           : sl;
+      transportGeneration : slv(15 downto 0);
+      faultGeneration     : sl;
+      faultClockEnable    : sl;
+      faultTokenProtocol  : sl;
+   end record;
+
+   constant PTP_MAC_PORT_STATUS_INIT_C : PtpMacPortStatusType := (
+      admissionOpen       => '0',
+      drainIdle           => '1',
+      cancelRequest       => '0',
+      abortDone           => '0',
+      transportGeneration => PTP_MAC_PORT_GENERATION_RESET_C,
+      faultGeneration     => '0',
+      faultClockEnable    => '0',
+      faultTokenProtocol  => '0');
+
+   -- Registered port diagnostics in clk; no handshake. Saturating counters.
+   -- rxDropped counts tokened RX frames consumed by a MAC stage or released
+   -- by forced abort without delivery; rxLost counts wire starts the import
+   -- leaf abandoned before emitting any beat. txSent/txWireError/txDiscarded/
+   -- txFlushed count completions by outcome; txRejected counts TX stream
+   -- frames consumed without admission (no SOF, no request context), which
+   -- receive no completion.
+   type PtpMacPortCountersType is record
+      rxDelivered : slv(31 downto 0);
+      rxDropped   : slv(31 downto 0);
+      rxLost      : slv(31 downto 0);
+      txSent      : slv(31 downto 0);
+      txWireError : slv(31 downto 0);
+      txDiscarded : slv(31 downto 0);
+      txFlushed   : slv(31 downto 0);
+      txRejected  : slv(31 downto 0);
+   end record;
+
+   constant PTP_MAC_PORT_COUNTERS_INIT_C : PtpMacPortCountersType := (
+      rxDelivered => (others => '0'),
+      rxDropped   => (others => '0'),
+      rxLost      => (others => '0'),
+      txSent      => (others => '0'),
+      txWireError => (others => '0'),
+      txDiscarded => (others => '0'),
+      txFlushed   => (others => '0'),
+      txRejected  => (others => '0'));
+
+   -- Packed widths for a vector-only boundary such as a completion FIFO.
+   -- Field order, MSB to LSB, matches the record declaration order; see the
+   -- pack/unpack bodies. tValid and ready are transported separately.
+   constant PTP_RX_CAPTURE_BITS_C : positive :=
+      PTP_RX_CAPTURE_INIT_C.timestamp'length + PTP_RX_CAPTURE_INIT_C.ticks'length +
+      PTP_RX_CAPTURE_INIT_C.tickPhase'length + PTP_RX_CAPTURE_INIT_C.generation'length +
+      PTP_RX_CAPTURE_INIT_C.increment'length + 2;
+
+   constant PTP_MAC_PORT_RX_META_BITS_C : positive := PTP_RX_CAPTURE_BITS_C + 16 + 16;
+
+   constant PTP_MAC_PORT_TX_COMPLETION_BITS_C : positive :=
+      PTP_MAC_PORT_COOKIE_BITS_C + 2 + 1 + PTP_RX_CAPTURE_BITS_C + 16;
+
+   function toSlv (capture : PtpRxCaptureType) return slv;
+   function toPtpRxCapture (value : slv) return PtpRxCaptureType;
+   function toSlv (meta : PtpMacPortRxMetaType) return slv;
+   function toPtpMacPortRxMeta (value : slv) return PtpMacPortRxMetaType;
+   function toSlv (completion : PtpMacPortTxCompletionType) return slv;
+   function toPtpMacPortTxCompletion (value : slv) return PtpMacPortTxCompletionType;
+
 end package PtpPkg;
 
 package body PtpPkg is
@@ -1132,6 +1380,66 @@ package body PtpPkg is
       retVar.generation := generation;
       retVar.increment  := increment;
       retVar.timeValid  := timeValid;
+      return retVar;
+   end function;
+
+   -- Timing-port packing. Each toSlv lists fields MSB to LSB in declaration
+   -- order; the paired decoder consumes them LSB-first with assignRecord.
+
+   function toSlv (capture : PtpRxCaptureType) return slv is
+   begin
+      return capture.timestamp & capture.ticks & capture.tickPhase & capture.generation &
+         capture.increment & capture.timeValid & capture.error;
+   end function;
+
+   function toPtpRxCapture (value : slv) return PtpRxCaptureType is
+      variable retVar : PtpRxCaptureType := PTP_RX_CAPTURE_INIT_C;
+      variable index  : integer          := 0;
+   begin
+      assignRecord(index, value, retVar.error);
+      assignRecord(index, value, retVar.timeValid);
+      assignRecord(index, value, retVar.increment);
+      assignRecord(index, value, retVar.generation);
+      assignRecord(index, value, retVar.tickPhase);
+      assignRecord(index, value, retVar.ticks);
+      assignRecord(index, value, retVar.timestamp);
+      return retVar;
+   end function;
+
+   function toSlv (meta : PtpMacPortRxMetaType) return slv is
+   begin
+      return toSlv(meta.capture) & meta.frameLength & meta.transportGeneration;
+   end function;
+
+   function toPtpMacPortRxMeta (value : slv) return PtpMacPortRxMetaType is
+      variable retVar  : PtpMacPortRxMetaType := PTP_MAC_PORT_RX_META_INIT_C;
+      variable capture : slv(PTP_RX_CAPTURE_BITS_C-1 downto 0);
+      variable index   : integer           := 0;
+   begin
+      assignRecord(index, value, retVar.transportGeneration);
+      assignRecord(index, value, retVar.frameLength);
+      assignRecord(index, value, capture);
+      retVar.capture := toPtpRxCapture(capture);
+      return retVar;
+   end function;
+
+   function toSlv (completion : PtpMacPortTxCompletionType) return slv is
+   begin
+      return completion.cookie & completion.outcome & completion.captureValid &
+         toSlv(completion.capture) & completion.transportGeneration;
+   end function;
+
+   function toPtpMacPortTxCompletion (value : slv) return PtpMacPortTxCompletionType is
+      variable retVar  : PtpMacPortTxCompletionType := PTP_MAC_PORT_TX_COMPLETION_INIT_C;
+      variable capture : slv(PTP_RX_CAPTURE_BITS_C-1 downto 0);
+      variable index   : integer                 := 0;
+   begin
+      assignRecord(index, value, retVar.transportGeneration);
+      assignRecord(index, value, capture);
+      retVar.capture := toPtpRxCapture(capture);
+      assignRecord(index, value, retVar.captureValid);
+      assignRecord(index, value, retVar.outcome);
+      assignRecord(index, value, retVar.cookie);
       return retVar;
    end function;
 

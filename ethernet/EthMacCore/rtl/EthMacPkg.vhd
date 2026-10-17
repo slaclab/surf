@@ -72,6 +72,132 @@ package EthMacPkg is
       TUSER_BITS_C  => EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
       TUSER_MODE_C  => EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
 
+   -- Opt-in timing-port token carrier. The default configurations above carry
+   -- zero TID bits, so ordinary MAC users are unchanged. A timing-capable
+   -- composition selects EMAC_TIMING_AXIS_CONFIG_C for the internal MAC stream
+   -- and its port-facing primary interface: every AxiStreamFifoV2/SsiFifo then
+   -- packs TID (the lesser of both sides' widths) and every register stage
+   -- already copies the whole master record. Token zero marks unowned frames,
+   -- such as generated pause frames or frames admitted without a reservation.
+   -- Nonzero tokens index the port's request/capture table. The contract is in
+   -- ethernet/PtpCore/timing-port.md; no production stage consumes it yet.
+   constant EMAC_TOKEN_BITS_C : positive := 8;
+   subtype EthMacTokenType is slv(EMAC_TOKEN_BITS_C-1 downto 0);
+   constant EMAC_TOKEN_NONE_C : EthMacTokenType := (others => '0');
+   -- Owned tokens 1..255; the eight-bit AxiStreamMasterType.tId bounds this.
+   constant EMAC_TOKEN_COUNT_C : positive := 2**EMAC_TOKEN_BITS_C-1;
+
+   constant EMAC_TIMING_AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => INT_EMAC_AXIS_CONFIG_C.TSTRB_EN_C,
+      TDATA_BYTES_C => INT_EMAC_AXIS_CONFIG_C.TDATA_BYTES_C,
+      TDEST_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TDEST_BITS_C,
+      TID_BITS_C    => EMAC_TOKEN_BITS_C,
+      TKEEP_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TKEEP_MODE_C,
+      TUSER_BITS_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_BITS_C,
+      TUSER_MODE_C  => INT_EMAC_AXIS_CONFIG_C.TUSER_MODE_C);
+
+   -- Wire-plane frame events from a timing-capable import or export leaf, in
+   -- ethClk. Registered, no handshake. start reports the first destination-MAC
+   -- octet exactly as it is sampled from (RX) or driven onto (TX) the MAC-side
+   -- GMII/XGMII pins: the leaf registers start on the same edge that registers
+   -- that pin word, so the port's capture-state sample on the following edge
+   -- refers to the pin-sample edge. A leaf that cannot be pin-coincident must
+   -- instead carry the captured state itself; it must not publish an earlier
+   -- or later start and ask the port to correct it. startLane is the XGMII
+   -- byte lane of that octet; GMII reports zero. done reports the final FCS
+   -- octet; doneError with done marks a frame corrupted, underrun or cut by
+   -- link loss at the wire, and doneLength counts Ethernet bytes from the
+   -- destination MAC through the last payload octet, FCS excluded and MAC
+   -- padding included. start and done may refer to different frames in one
+   -- cycle, so each carries its own token. lost reports a wire start the
+   -- import leaf could not qualify (shortened or corrupted preamble, a nested
+   -- start inside an open frame): no start, no beats and no token were
+   -- produced for it, so the port only counts it.
+   type EthMacFrameEventType is record
+      start      : sl;
+      startLane  : slv(2 downto 0);
+      startToken : EthMacTokenType;
+      done       : sl;
+      doneError  : sl;
+      doneLength : slv(15 downto 0);
+      doneToken  : EthMacTokenType;
+      lost       : sl;
+   end record EthMacFrameEventType;
+
+   constant ETH_MAC_FRAME_EVENT_INIT_C : EthMacFrameEventType := (
+      start      => '0',
+      startLane  => (others => '0'),
+      startToken => EMAC_TOKEN_NONE_C,
+      done       => '0',
+      doneError  => '0',
+      doneLength => (others => '0'),
+      doneToken  => EMAC_TOKEN_NONE_C,
+      lost       => '0');
+
+   -- Forced-abort handshake between the port and every tokened pipeline owner
+   -- (TX FIFO/checksum/pause/exporter, RX importer/pause/filter/FIFO), in
+   -- ethClk. The port holds request high; each owner stops accepting input,
+   -- discards its tokened contents and holds acknowledge high until request
+   -- falls. An owner with no tokened contents acknowledges immediately. The
+   -- exporter first terminates a frame already on the pins with its normal
+   -- done/doneError event, so a frame that touched the wire keeps a known
+   -- outcome. Owners publish no per-token retire during abort; the port
+   -- releases every remaining entry once after all owners acknowledge.
+   -- Registered, level-sensitive on both sides.
+   type EthMacAbortRequestType is record
+      request : sl;
+   end record EthMacAbortRequestType;
+
+   constant ETH_MAC_ABORT_REQUEST_INIT_C : EthMacAbortRequestType := (
+      request => '0');
+
+   type EthMacAbortAckType is record
+      acknowledge : sl;
+   end record EthMacAbortAckType;
+
+   constant ETH_MAC_ABORT_ACK_INIT_C : EthMacAbortAckType := (
+      acknowledge => '0');
+
+   type EthMacAbortAckArray is array (natural range<>) of EthMacAbortAckType;
+
+   -- A stage that consumes a tokened frame without delivering it publishes one
+   -- retire pulse carrying that token: TX checksum error drop, export dump
+   -- while the PHY is not ready, RX pause consumption, RX filter drop, RX FIFO
+   -- overflow and store-and-forward error drop. Registered, no handshake, at
+   -- most one per source per cycle; the port collects an array of sources.
+   type EthMacTokenRetireType is record
+      valid : sl;
+      token : EthMacTokenType;
+   end record EthMacTokenRetireType;
+
+   constant ETH_MAC_TOKEN_RETIRE_INIT_C : EthMacTokenRetireType := (
+      valid => '0',
+      token => EMAC_TOKEN_NONE_C);
+
+   type EthMacTokenRetireArray is array (natural range<>) of EthMacTokenRetireType;
+
+   -- Fixed positions of the retire owners in the arrays EthMacTop publishes
+   -- in timing mode, so the port collects each owner exactly once. Every
+   -- owner publishes its retire at the last beat of the frame it consumed,
+   -- so a retire always follows the import leaf's done for that token.
+   constant EMAC_TX_RETIRE_CSUM_C    : natural  := 0;  -- EthMacTxCsum EOFE drop after Fifo_Cache
+   constant EMAC_TX_RETIRE_EXPORT_C  : natural  := 1;  -- Exporter dump with the PHY not ready at SOF
+   constant EMAC_TX_RETIRE_SOURCES_C : positive := 2;
+
+   constant EMAC_RX_RETIRE_PAUSE_C   : natural  := 0;  -- EthMacRxPause consumed the frame
+   constant EMAC_RX_RETIRE_FILTER_C  : natural  := 1;  -- EthMacRxFilter dropped the frame
+   constant EMAC_RX_RETIRE_FIFO_IB_C : natural  := 2;  -- RX FIFO swallowed the frame at its SOF beat
+   constant EMAC_RX_RETIRE_FIFO_OB_C : natural  := 3;  -- RX FIFO dropped a stored frame marked EOFE
+   constant EMAC_RX_RETIRE_SOURCES_C : positive := 4;
+
+   -- Ethernet byte limits enforced by the timing port, FCS excluded: 60 to
+   -- 1518 (1500-byte MTU plus one VLAN tag). With JUMBO_G = false the
+   -- checksum stages only cut a frame whose payload exceeds 1500 bytes on a
+   -- beat before its last, so frames up to 1520 bytes cross the MAC and the
+   -- port's own check is what enforces 1518.
+   constant EMAC_TIMING_MIN_FRAME_C : positive := 60;
+   constant EMAC_TIMING_MAX_FRAME_C : positive := 1518;
+
    -- Generic XMAC Configuration
    type EthMacConfigType is record
       macAddress  : slv(47 downto 0);

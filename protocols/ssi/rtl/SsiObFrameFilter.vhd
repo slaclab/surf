@@ -45,6 +45,7 @@ entity SsiObFrameFilter is
       mAxisSlave     : in  AxiStreamSlaveType;
       mAxisDropWord  : out sl;          -- Word dropped status output
       mAxisDropFrame : out sl;          -- Frame dropped status output
+      mAxisDropTId   : out slv(7 downto 0);  -- tId of the beat reported by mAxisDropWord/mAxisDropFrame
       -- Clock and Reset
       axisClk        : in  sl;
       axisRst        : in  sl);
@@ -62,6 +63,7 @@ architecture rtl of SsiObFrameFilter is
       eofe         : sl;
       wordDropped  : sl;
       frameDropped : sl;
+      dropTId      : slv(7 downto 0);
       tDest        : slv(7 downto 0);
       master       : AxiStreamMasterType;
       slave        : AxiStreamSlaveType;
@@ -73,6 +75,7 @@ architecture rtl of SsiObFrameFilter is
       eofe         => '0',
       wordDropped  => '0',
       frameDropped => '0',
+      dropTId      => x"00",
       tDest        => x"00",
       master       => AXI_STREAM_MASTER_INIT_C,
       slave        => AXI_STREAM_SLAVE_INIT_C,
@@ -133,6 +136,7 @@ begin
                   -- Strobe the error flags
                   v.wordDropped  := sAxisMaster.tValid;
                   v.frameDropped := sAxisMaster.tLast;
+                  v.dropTId      := sAxisMaster.tId;
 
                   -- Check for non-EOF
                   if (sAxisMaster.tLast = '0') then
@@ -165,6 +169,7 @@ begin
             -- Strobe the error flags
             v.wordDropped  := sAxisMaster.tValid;
             v.frameDropped := sAxisMaster.tLast;
+            v.dropTId      := sAxisMaster.tId;
 
             -- Check for EOF
             if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
@@ -203,6 +208,7 @@ begin
                   -- Strobe the error flags
                   v.wordDropped  := sAxisMaster.tValid;
                   v.frameDropped := sAxisMaster.tLast;
+                  v.dropTId      := sAxisMaster.tId;
 
                   -- Next state
                   v.state := IDLE_S;
@@ -220,6 +226,7 @@ begin
       axisMaster     <= r.master;
       mAxisDropWord  <= r.wordDropped;
       mAxisDropFrame <= r.frameDropped;
+      mAxisDropTId   <= r.dropTId;
 
       -- Synchronous Reset
       if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then

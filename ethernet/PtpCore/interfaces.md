@@ -25,6 +25,7 @@ RAM packing or an acceptance/publication edge.
 | Filter and PI requests, live filtered estimate | `PtpServoPkg` | Requests capture sample provenance; filter status is a live registered record, with update/rejection events separate. |
 | Math, products, constant division, epoch normalization and shared services | `PtpMathPkg` | Request/result records retain exact operand widths; shared services use arrays indexed by client. |
 | Candidate scan and existing register/publication/snapshot interfaces | `PtpRegisterPkg` | Scan valid/index/data belongs to the frozen candidate; existing register transactions remain records. |
+| Timing-port RX metadata, TX request/completion and counters (`PtpMacPort*`) | `PtpPkg`; MAC token, timing configuration, frame-event, retire and abort-handshake records in `EthMacPkg` | Declared contract for a future timing-capable port; no production producer or consumer yet. The `PtpMacPort` prefix is distinct from the protocol-port records above. Lifetimes, token rules and the DMA projection are in the [timing-port contract](timing-port.md). |
 
 These are VHDL source-interface changes: callers of the affected entities must
 replace separate payload/valid associations with the corresponding record.

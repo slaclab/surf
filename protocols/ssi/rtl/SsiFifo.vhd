@@ -63,6 +63,11 @@ entity SsiFifo is
       -- Index = 0 is output, index = n is input
       CASCADE_PAUSE_SEL_G    : natural  := 0;
       CASCADE_SIZE_G         : positive := 1;
+      -- When VALID_THOLD_G /= 1, a full FIFO with no readable frame is cleared
+      -- by an internal reset pulse (lockupRstEvent). An owner that bounds the
+      -- stored frames itself may disable that monitor so no frame is ever
+      -- discarded without its knowledge.
+      PREVENT_LOCKUP_G       : boolean  := true;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G     : AxiStreamConfigType;
       MASTER_AXI_CONFIG_G    : AxiStreamConfigType);
@@ -80,6 +85,7 @@ entity SsiFifo is
       sAxisDropFrame  : out sl;
       mAxisDropWord   : out sl;
       mAxisDropFrame  : out sl;
+      mAxisDropTId    : out slv(7 downto 0);  -- tId of the frame reported by mAxisDropFrame
       lockupRstEvent  : out sl;
       -- Master Interface (mAxisClk domain)
       mAxisClk        : in  sl;
@@ -206,7 +212,7 @@ begin
    --------------
    -- Normal Mode
    --------------
-   NOT_CACHED : if (VALID_THOLD_G = 1) generate
+   NOT_CACHED : if (VALID_THOLD_G = 1) or (PREVENT_LOCKUP_G = false) generate
       fifoRst        <= sAxisRst;
       lockupRstEvent <= '0';
    end generate;
@@ -214,7 +220,7 @@ begin
    ---------------------------------------------
    -- Prevent locking up when VALID_THOLD_G /= 1
    ---------------------------------------------
-   PREVENT_LOCKUP : if (VALID_THOLD_G /= 1) generate
+   PREVENT_LOCKUP : if (VALID_THOLD_G /= 1) and (PREVENT_LOCKUP_G = true) generate
 
       comb : process (fifoFull, r, sAxisRst, txMaster) is
          variable v : RegType;
@@ -306,6 +312,7 @@ begin
          mAxisSlave     => obAxisSlave,
          mAxisDropWord  => mAxisDropWord,
          mAxisDropFrame => mAxisDropFrame,
+         mAxisDropTId   => mAxisDropTId,
          -- Clock and Reset
          axisClk        => sAxisClk,
          axisRst        => sAxisRst);

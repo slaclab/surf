@@ -14,6 +14,7 @@ hardware qualification remain open.
 | Exact handshake, lifecycle, RAM and service bounds | [Interface contracts](interfaces.md) |
 | AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |
 | Future waveform/oscillator/epoch integration | [Physical-clock requirements](physical-clock.md) |
+| Proposed timing-capable MAC port: frame/capture/completion records, token carrier and DMA envelope | [Timing-port contract](timing-port.md); declarations only, no production consumer yet |
 | Current results and unfinished acceptance | [Workstream](../../docs/plans/ethernet-ptp/README.md) |
 | Fixtures, independent oracles and focused test selection | [PTP tests](../../tests/ethernet/PtpCore/README.md) |
 
