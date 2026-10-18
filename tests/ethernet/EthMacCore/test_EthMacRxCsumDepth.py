@@ -37,14 +37,17 @@
 #   correct behaviour and fail on the current RTL; promote each to the default
 #   run with its fix.
 #   2. `rx_one_byte_last_beat_known_issue_test`: on a 16*n+1 byte frame IPERR
-#      shares tUser lane 0 with SOF and :357-360 overwrite EOFE with fragDet.
+#      shares tUser lane 0 with SOF, so the SOF/FRAG update at the pipeline
+#      exit overwrites EOFE with fragDet.
 #   11. `rx_back_to_back_known_issue_test`: getEthMacCsum (EthMacPkg.vhd)
 #      compares a delayed ipCsum with hdrCsum read live from r.ipv4Hdr, which
-#      the next frame overwrites (:206, :226-241) within 0-1 idle cycles (0
-#      after an oversize cut, which skips pipeFlush at :331-337).
+#      IDLE_S/IPV4_HDR0_S overwrite for the next frame within 0-1 idle cycles
+#      (0 after the MOVE_S oversize cut, which enters BLOWOFF_S without
+#      setting pipeFlush).
 #   12. `rx_frag_after_sof_gap_known_issue_test`: a TVALID gap after SOF while
-#      the previous frame still flushes (:140-141) puts a bubble behind SOF
-#      and FRAG (:357-360) reads its fragDet.
+#      pipeFlush still advances the pipeline for the previous frame puts a
+#      bubble behind SOF; the SOF/FRAG update at the pipeline exit reads the
+#      bubble's fragDet.
 # - Timing: EthMacRxCsum has no backpressure, so the source presents one beat
 #   per accepting edge and the monitor samples TVALID on rising edges, before
 #   the registered `TPD_G` update. Enables change only while the pipeline is
@@ -114,10 +117,10 @@ IPV4_MF = 0x2000
 IPV4_DF = 0x4000
 MIN_WIRE_FRAME = 60
 
-# EthMacRxCsum.vhd:48 sets MAX_FRAME_SIZE_C to 1500 (9000 with JUMBO_G) and
-# :295-329 compares the count of bytes after the Ethernet header with it only
-# on non-last beats, so with full 16-byte beats a 1520 (9024) byte frame is the
-# largest delivered intact; longer frames are cut after that many bytes.
+# EthMacRxCsum.vhd sets MAX_FRAME_SIZE_C to 1500 (9000 with JUMBO_G). MOVE_S
+# forces a non-last beat to be last when byteCnt exceeds that limit, so with
+# full 16-byte beats a 1520 (9024) byte frame is the largest delivered intact;
+# longer frames are cut after that many bytes.
 MAX_ADMITTED_STD = 1520
 MAX_ADMITTED_JUMBO = 9024
 ALL_ENABLES = [dict(zip(("ip", "udp", "tcp"), bits)) for bits in itertools.product((1, 0), repeat=3)]
@@ -198,9 +201,9 @@ class RxVerdict:
 def rx_truncation(length: int, max_size: int) -> int | None:
     """Delivered length when the oversize check fires, else None.
 
-    The byte count starts at 18 + bytes of beat 2 (EthMacRxCsum.vhd:295) and
-    grows by each MOVE_S beat (:327); a non-last beat that takes it past the
-    limit is forced to be the last one (:329-337).
+    EthMacRxCsum.vhd initializes byteCnt in IPV4_HDR1_S to 18 + bytes of
+    beat 2 (zero-based), then increments it on each MOVE_S beat. A non-last
+    beat that takes it past MAX_FRAME_SIZE_C is forced to be the last one.
     """
     beats = (length + 15) // 16
     count = 18 + min(16, max(0, length - 32))
@@ -244,7 +247,7 @@ def rx_model(frame: bytes, *, eofe: int, enables: dict[str, int], max_size: int)
     data = frame if cut is None else frame[:cut]
     eofe_in = eofe if cut is None else 1
     # FRAG comes from bytes 20-21 for every multi-beat frame, IPv4 or not
-    # (EthMacRxCsum.vhd:258 has no EtherType qualifier).
+    # (the IPV4_HDR0_S fragmentation check has no EtherType qualifier).
     frag = int(bool((data[20] & 0x3F) or data[21]))
     iperr = tcperr = udperr = 0
     if get16(data, 12) == ETH_TYPE_IPV4:
@@ -261,9 +264,6 @@ def rx_model(frame: bytes, *, eofe: int, enables: dict[str, int], max_size: int)
                 udperr = 1
         if protocol == IP_PROTOCOL_TCP and enables["tcp"] and not frag:
             tcperr = int(get16(data, 50) != rx_tcp_checksum(data))
-    # Known issue 2: a one-byte last beat keeps its first-lane (SOF/FRAG)
-    # and last-lane (EOFE/IPERR) tUser bits in lane 0, so IPERR reads as
-    # SOF and the FRAG update clears EOFE.
     eofe_out = int(bool(eofe_in or iperr or udperr or tcperr))
     return RxVerdict(
         payload=data,
@@ -273,6 +273,9 @@ def rx_model(frame: bytes, *, eofe: int, enables: dict[str, int], max_size: int)
         tcperr=tcperr,
         udperr=udperr,
         truncated=cut is not None,
+        # Known issue 2: a one-byte last beat keeps its first-lane (SOF/FRAG)
+        # and last-lane (EOFE/IPERR) tUser bits in lane 0, so IPERR reads as
+        # SOF and the FRAG update clears EOFE.
         eofe_known_issue=bool(len(data) % 16 == 1 and iperr),
     )
 
@@ -533,9 +536,10 @@ async def rx_fragments_and_non_ipv4(dut):
     assert results["frag_in_ignored"]["frag"] == 0
     assert results["nonip_zero"] == dict(frag=0, eofe=0, iperr=0, tcperr=0, udperr=0)
     # Current baseline behaviour: FRAG is derived from bytes 20-21 of every
-    # multi-beat frame without checking the EtherType (EthMacRxCsum.vhd:258),
-    # so non-IPv4 frames can carry FRAG; an 802.1Q-tagged frame has its inner
-    # IPv4 total length there. Tagged frames get no checksum verdicts.
+    # multi-beat frame without checking the EtherType (the IPV4_HDR0_S
+    # fragmentation check), so non-IPv4 frames can carry FRAG; an 802.1Q-tagged
+    # frame has its inner IPv4 total length there. Tagged frames get no
+    # checksum verdicts.
     assert results["nonip_frag_lookalike"] == dict(frag=1, eofe=0, iperr=0, tcperr=0, udperr=0)
     assert results["vlan_ipv4"] == dict(frag=1, eofe=0, iperr=0, tcperr=0, udperr=0)
 
@@ -563,7 +567,8 @@ async def rx_inbound_eofe_and_padding(dut):
         assert results[note] == dict(frag=0, eofe=1, iperr=0, tcperr=0, udperr=0), note
     # Current baseline behaviour: transport checksums sum every byte to the
     # end of the frame, including Ethernet padding beyond the IPv4 total
-    # length (EthMacRxCsum.vhd:306-313), so nonzero padding is an error.
+    # length (MOVE_S copies tData/tKeep without a length cutoff), so nonzero
+    # padding is an error.
     assert results["udp_nonzero_pad"]["udperr"] == 1 and results["udp_nonzero_pad"]["eofe"] == 1
     assert results["tcp_nonzero_pad"]["tcperr"] == 1 and results["tcp_nonzero_pad"]["eofe"] == 1
     assert verify_frame_checksums(pad(udp_frame(b"pad"), fill=0xA5)).udperr == 0
@@ -750,8 +755,9 @@ async def rx_one_byte_last_beat_known_issue_test(dut):
     wrong = {note: last_status(beats) for note, beats in results.items() if beats[-1].eofe != 1}
     assert not wrong, (
         "known issue: on a 16*n+1 byte frame IPERR shares tUser lane 0 with "
-        "SOF, so EthMacRxCsum.vhd:357-360 treat the last beat as SOF and "
-        f"overwrite EOFE with fragDet; (eofe, iperr, tcperr, udperr): {wrong}"
+        "SOF, so the SOF/FRAG update at the pipeline exit treats the last "
+        "beat as SOF and overwrites EOFE with fragDet; "
+        f"(eofe, iperr, tcperr, udperr): {wrong}"
     )
 
 
@@ -770,9 +776,9 @@ async def rx_back_to_back_known_issue_test(dut):
     assert not wrong, (
         "known issue: getEthMacCsum (EthMacPkg.vhd) compares an ipCsum summed "
         "three cycles earlier with hdrCsum read live from r.ipv4Hdr, which "
-        "EthMacRxCsum.vhd:206/:226-241 overwrite from the next frame before "
-        "the verdict is sampled at :158-161 (the oversize cut at :331-337 also "
-        f"skips pipeFlush); valid headers flagged: {wrong}"
+        "IDLE_S/IPV4_HDR0_S overwrite from the next frame before the final-beat "
+        "checksum update samples the verdict (the MOVE_S oversize cut enters "
+        f"BLOWOFF_S without setting pipeFlush); valid headers flagged: {wrong}"
     )
 
 
@@ -787,10 +793,10 @@ async def rx_frag_after_sof_gap_known_issue_test(dut):
         if results["fragment"]["frag"] != 1:
             wrong[f"fragment_gap{gap}"] = results["fragment"]
     assert not wrong, (
-        "known issue: while pipeFlush (EthMacRxCsum.vhd:140-141) still runs for "
-        "the previous frame, a TVALID gap after SOF inserts a bubble behind it "
-        "and the SOF beat's FRAG (:357-360) takes the bubble's fragDet; MF "
-        f"fragments delivered without FRAG: {wrong}"
+        "known issue: while pipeFlush still advances the pipeline for the "
+        "previous frame, a TVALID gap after SOF inserts a bubble behind it "
+        "and the SOF/FRAG update at the pipeline exit takes the bubble's "
+        f"fragDet; MF fragments delivered without FRAG: {wrong}"
     )
 
 
