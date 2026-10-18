@@ -28,7 +28,7 @@
 #   bytes (truncation included), TKEEP, SOF, FRAG on the first beat, and
 #   IPERR/TCPERR/UDPERR on the last beat. EOFE is expected to be the OR of the
 #   inbound EOFE, the oversize cut and every enabled check's error; it is left
-#   unchecked only for frames where known issue 1 or 2 changes it. For
+#   unchecked only for frames where known issue 1 changes it. For
 #   standard traffic the model's verdicts are cross-checked with the
 #   independent `verify_frame_checksums()`. RTL policy that differs from RFC
 #   practice but is not treated as a defect is asserted explicitly and
@@ -40,8 +40,6 @@
 #      assign EOFE from the last enabled check, so a bad IPv4 header with a
 #      valid UDP/TCP checksum, an inbound EOFE, or the oversize EOFE (:335)
 #      leaves with EOFE=0.
-#   2. `rx_one_byte_last_beat_known_issue_test`: on a 16*n+1 byte frame IPERR
-#      shares tUser lane 0 with SOF and :357-360 overwrite EOFE with fragDet.
 #   11. `rx_back_to_back_known_issue_test`: getEthMacCsum (EthMacPkg.vhd)
 #      compares a delayed ipCsum with hdrCsum read live from r.ipv4Hdr, which
 #      the next frame overwrites (:206, :226-241) within 0-1 idle cycles (0
@@ -194,7 +192,7 @@ class RxVerdict:
     udperr: int
     truncated: bool
     # True when the current RTL's EOFE differs from `eofe` because of a
-    # known issue (EOFE overwrite or one-byte-last-beat alias); the default
+    # known issue (EOFE overwrite); the default
     # run then leaves EOFE unchecked for that frame.
     eofe_known_issue: bool = False
 
@@ -241,7 +239,7 @@ def rx_model(frame: bytes, *, eofe: int, enables: dict[str, int], max_size: int)
 
     EOFE is the OR of the inbound EOFE, the oversize cut and every enabled
     check's error. `eofe_known_issue` marks frames where the current RTL
-    differs from that (known issues 1 and 2 in the methodology block).
+    differs from that (known issue 1 in the methodology block).
     """
     assert len(frame) >= 49, "model excludes runt frames"
     cut = rx_truncation(len(frame), max_size)
@@ -271,11 +269,6 @@ def rx_model(frame: bytes, *, eofe: int, enables: dict[str, int], max_size: int)
         if protocol == IP_PROTOCOL_TCP and enables["tcp"] and not frag:
             tcperr = int(get16(data, 50) != rx_tcp_checksum(data))
             eofe_rtl = tcperr
-    if len(data) % 16 == 1 and iperr:
-        # Known issue 2: a one-byte last beat keeps its first-lane (SOF/FRAG)
-        # and last-lane (EOFE/IPERR) tUser bits in lane 0, so IPERR reads as
-        # SOF and the FRAG update (EthMacRxCsum.vhd:357-360) clears EOFE.
-        eofe_rtl = 0
     eofe_out = int(bool(eofe_in or iperr or udperr or tcperr))
     return RxVerdict(
         payload=data,
@@ -657,14 +650,12 @@ async def rx_one_byte_last_beat(dut):
     bench = RxCsumBench(dut)
     await bench.start()
     results = {s.note: beats for _, s, beats, _ in await bench.run(one_byte_last_beat_stimuli())}
-    # IPERR/TCPERR/UDPERR are correct; EOFE of the bad-IPv4 16*n+1 frames is
-    # known issue 2 (rx_one_byte_last_beat_known_issue_test).
-    assert last_status(results["icmp81_bad_ip"])[1:] == (1, 0, 0)
-    assert last_status(results["icmp81_bad_ip_mf_eofe"])[1:] == (1, 0, 0)
-    assert last_status(results["udp81_bad_ip_bad_udp"])[1:] == (1, 0, 1)
-    assert last_status(results["tcp97_bad_ip_bad_tcp"])[1:] == (1, 1, 0)
-    # Without IPERR there is no lane-0 aliasing, and a 16*n+2 length is
-    # unaffected, so EOFE is checked for these.
+    # IPERR shares the wrapper's SOF view on a one-byte final beat, but
+    # must not cause the RTL to replace that beat's EOFE with FRAG.
+    assert last_status(results["icmp81_bad_ip"]) == (1, 1, 0, 0)
+    assert last_status(results["icmp81_bad_ip_mf_eofe"]) == (1, 1, 0, 0)
+    assert last_status(results["udp81_bad_ip_bad_udp"]) == (1, 1, 0, 1)
+    assert last_status(results["tcp97_bad_ip_bad_tcp"]) == (1, 1, 1, 0)
     assert last_status(results["udp81_bad_udp"]) == (1, 0, 0, 1)
     assert last_status(results["icmp82_bad_ip"]) == (1, 1, 0, 0)
 
@@ -722,7 +713,7 @@ async def rx_spaced_frames(dut):
 
 
 ###############################################################################
-# Known issues (RUN_KNOWN_ISSUE_TESTS=1; each asserts the correct behaviour)
+# Known-issue regressions (fixed cases run by default)
 ###############################################################################
 
 
@@ -747,18 +738,17 @@ async def rx_eofe_overwrite_known_issue_test(dut):
     )
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP)
-async def rx_one_byte_last_beat_known_issue_test(dut):
-    """Known issue 2: a one-byte last beat with IPERR clears EOFE."""
+@cocotb.test()
+async def rx_one_byte_last_beat_eofe_test(dut):
+    """Report #2: final-beat checksum flags must not trigger a SOF update."""
     bench = RxCsumBench(dut)
     await bench.start()
-    results = {s.note: beats for _, s, beats, _ in await bench.run(one_byte_last_beat_stimuli()[:4])}
-    wrong = {note: last_status(beats) for note, beats in results.items() if beats[-1].eofe != 1}
-    assert not wrong, (
-        "known issue: on a 16*n+1 byte frame IPERR shares tUser lane 0 with "
-        "SOF, so EthMacRxCsum.vhd:357-360 treat the last beat as SOF and "
-        f"overwrite EOFE with fragDet; (eofe, iperr, tcperr, udperr): {wrong}"
-    )
+    stimuli = one_byte_last_beat_stimuli()[:4]
+    stimuli.append(RxStimulus(pad(udp_frame(b"clean-after-one-byte-errors")), note="recovery"))
+    results = {s.note: beats for _, s, beats, _ in await bench.run(stimuli)}
+    for stimulus in stimuli[:-1]:
+        assert results[stimulus.note][-1].eofe == 1, (stimulus.note, last_status(results[stimulus.note]))
+    assert status(results["recovery"]) == CLEAN
 
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP)

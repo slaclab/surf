@@ -94,7 +94,7 @@ is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-The confirmed defect reproducers below assert the intended behavior, fail on
+The unresolved defect reproducers below assert the intended behavior, fail on
 the current RTL for the documented reason, and run only with
 `RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
 that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
@@ -119,7 +119,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | # | Old | Severity / applicability | Report and reproduction |
 | --- | --- | --- | --- |
 | 1 | 10 | High; runtime defaults | RX checksum stage clears inbound/earlier EOFE. Leaf: `test_EthMacRxCsumDepth.py::rx_eofe_overwrite_known_issue_test`. PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_known_issue_test` demonstrates bad-FCS UDP escaping error dropping. |
-| 2 | 11 | High; length/error dependent | One-byte final beat aliases IPERR/SOF and FRAG/EOFE. `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test`. |
+| 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
 | 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
 | 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
