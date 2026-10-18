@@ -38,7 +38,7 @@ entity EthMacTx is
       BYP_EN_G        : boolean                  := false;
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G    : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C;
-      -- Timing-port leaf events (GMII only in this revision)
+      -- Timing-port leaf events (GMII and XGMII)
       TIMING_EN_G     : boolean                  := false;
       -- RAM Synthesis mode
       SYNTH_MODE_G    : string                   := "inferred");
@@ -76,7 +76,10 @@ entity EthMacTx is
       txLinkNotReady : out sl;
       -- Timing port (TIMING_EN_G only)
       txFrameEvent   : out EthMacFrameEventType;
-      txRetire       : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0));
+      txRetire       : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0);
+      -- Forced abort of the frame on the pins; see EthMacTxExportGmii
+      exportAbortReq : in  sl := '0';
+      exportAbortAck : out sl);
 end EthMacTx;
 
 architecture mapping of EthMacTx is
@@ -141,7 +144,8 @@ begin
          sAxisMaster => bypassMaster,
          sAxisSlave  => bypassSlave,
          mAxisMaster => obCsumMaster,
-         mAxisSlave  => obCsumSlave);
+         mAxisSlave  => obCsumSlave,
+         retire      => txRetire(EMAC_TX_RETIRE_CSUM_C));
 
    ---------------------------------
    -- RoCEv2 Protocol iCRC insertion
@@ -176,7 +180,8 @@ begin
          TPD_G           => TPD_G,
          RST_POLARITY_G  => RST_POLARITY_G,
          PAUSE_EN_G      => PAUSE_EN_G,
-         PAUSE_512BITS_G => PAUSE_512BITS_G)
+         PAUSE_512BITS_G => PAUSE_512BITS_G,
+         TIMING_EN_G     => TIMING_EN_G)
       port map (
          -- Clock and Reset
          ethClk       => ethClk,
@@ -235,9 +240,8 @@ begin
          txLinkNotReady => txLinkNotReady,
          -- Timing port
          frameEvent     => txFrameEvent,
-         retire         => txRetire(EMAC_TX_RETIRE_EXPORT_C));
-
-   -- The checksum error-drop retire is not yet implemented
-   txRetire(EMAC_TX_RETIRE_CSUM_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+         retire         => txRetire(EMAC_TX_RETIRE_EXPORT_C),
+         abortReq       => exportAbortReq,
+         abortAck       => exportAbortAck);
 
 end mapping;

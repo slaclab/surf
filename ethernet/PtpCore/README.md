@@ -14,7 +14,7 @@ hardware qualification remain open.
 | Exact handshake, lifecycle, RAM and service bounds | [Interface contracts](interfaces.md) |
 | AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |
 | Future waveform/oscillator/epoch integration | [Physical-clock requirements](physical-clock.md) |
-| Proposed timing-capable MAC port: frame/capture/completion records, token carrier and DMA envelope | [Timing-port contract](timing-port.md); GMII timing leaves implemented, no port entity yet |
+| Timing-capable MAC port for a replaceable controller: records, token carrier, `PtpMacPort` and the DMA envelope | [Timing-port contract](timing-port.md); simulation-verified Phase 1 implementation, no register bank or hardware result yet |
 | Current results and unfinished acceptance | [Workstream](../../docs/plans/ethernet-ptp/README.md) |
 | Fixtures, independent oracles and focused test selection | [PTP tests](../../tests/ethernet/PtpCore/README.md) |
 
@@ -29,6 +29,9 @@ frame transmission), and `PtpTxLedger` (wire ownership). The flow delegates tabl
 `PtpTableScan`. The rate estimator and E2E arithmetic remain flow children. `EthMacPtpEndpoint` adds `EthMacTop`, the
 primary-stream guard and passive RX/TX taps. The RX tap composes the timestamp
 adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
+`PtpMacPortEthMac` is the separate timing-port composition: `PtpMacPort`
+(`PtpMacPortTx`, `PtpMacPortRx`) over a timing-mode `EthMacTop`, with the PHC
+supplied externally; see the [timing-port contract](timing-port.md#10-phase-1-implementation-map).
 
 `wrappers/` contains thin simulation adapters; stimulus lives in the test tree.
 The family directories below contain PHY compositions. Reusable PHY-only

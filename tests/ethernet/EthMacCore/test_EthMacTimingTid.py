@@ -10,9 +10,9 @@
 
 # Test methodology:
 # - Sweep: Build the EthMacTop loopback with the default MAC configuration
-#   (XGMII, zero TID bits) and with timing mode (GMII, EMAC_TIMING_AXIS_CONFIG_C
-#   and the timing leaves), so the opt-in token carrier is proven absent and
-#   present by construction.
+#   (XGMII, zero TID bits) and with timing mode (GMII and XGMII,
+#   EMAC_TIMING_AXIS_CONFIG_C and the timing leaves), so the opt-in token
+#   carrier is proven absent and present by construction.
 # - Stimulus: Send frames whose every TX beat carries a distinct tId, two of
 #   them while the RX sink is stalled so both sit in the RX FIFO together,
 #   plus one frame with tId zero and one maximum-length frame. In timing mode
@@ -180,6 +180,7 @@ async def eth_mac_timing_tid_test(dut):
 PARAMETER_SWEEP = [
     parameter_case("default_config_truncates_tid", PHY_TYPE_G="XGMII", TIMING_EN_G="false"),
     parameter_case("gmii_timing_carries_tokens", PHY_TYPE_G="GMII", TIMING_EN_G="true"),
+    parameter_case("xgmii_timing_carries_tokens", PHY_TYPE_G="XGMII", TIMING_EN_G="true"),
 ]
 
 

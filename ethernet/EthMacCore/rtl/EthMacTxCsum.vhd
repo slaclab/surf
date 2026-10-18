@@ -45,7 +45,9 @@ entity EthMacTxCsum is
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       mAxisMaster : out AxiStreamMasterType;
-      mAxisSlave  : in  AxiStreamSlaveType);
+      mAxisSlave  : in  AxiStreamSlaveType;
+      -- Timing port: one retire per EOFE frame dropped under DROP_ERR_PKT_G
+      retire      : out EthMacTokenRetireType);
 end EthMacTxCsum;
 
 architecture rtl of EthMacTxCsum is
@@ -78,6 +80,7 @@ architecture rtl of EthMacTxCsum is
       tKeep    : slv(15 downto 0);
       tData    : slv(127 downto 0);
       tranRd   : sl;
+      retire   : EthMacTokenRetireType;
       mvCnt    : natural range 0 to 4;
       dbg      : slv(5 downto 0);
       roce     : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -105,6 +108,7 @@ architecture rtl of EthMacTxCsum is
       tKeep    => (others => '0'),
       tData    => (others => '0'),
       tranRd   => '0',
+      retire   => ETH_MAC_TOKEN_RETIRE_INIT_C,
       mvCnt    => 0,
       dbg      => (others => '0'),
       roce     => (others => '0'),
@@ -182,6 +186,7 @@ begin
       -- Reset the flags
       v.tranWr  := '0';
       v.tranRd  := '0';
+      v.retire  := ETH_MAC_TOKEN_RETIRE_INIT_C;
       v.dbg     := (others => '0');
       v.tKeep   := (others => '0');
       v.rxSlave := AXI_STREAM_SLAVE_INIT_C;
@@ -513,6 +518,12 @@ begin
                -- Forward the EOFE
                axiStreamSetUserBit(INT_CONFIG_G, v.txMaster, EMAC_EOFE_BIT_C, eofeDet);
                v.dbg(5) := eofeDet;
+               -- The whole frame was withheld: retire its token (zero never)
+               if (DROP_ERR_PKT_G = true) and (eofeDet = '1') and
+                  (mMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0) /= EMAC_TOKEN_NONE_C) then
+                  v.retire.valid := '1';
+                  v.retire.token := mMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+               end if;
                -- Accept the data
                v.tranRd := '1';
             end if;
@@ -522,6 +533,7 @@ begin
       -- Outputs
       sMaster  <= r.sMaster;
       txMaster <= r.txMaster;
+      retire   <= r.retire;
       rxSlave  <= v.rxSlave;
       mSlave   <= v.mSlave;
 

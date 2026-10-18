@@ -39,7 +39,9 @@ entity EthMacRxPause is
       mAxisMaster  : out AxiStreamMasterType;
       -- Pause Values
       rxPauseReq   : out sl;
-      rxPauseValue : out slv(15 downto 0));
+      rxPauseValue : out slv(15 downto 0);
+      -- Timing port: one retire per consumed pause frame carrying a token
+      retire       : out EthMacTokenRetireType);
 end EthMacRxPause;
 
 architecture rtl of EthMacRxPause is
@@ -54,6 +56,7 @@ architecture rtl of EthMacRxPause is
       pauseEn     : sl;
       pauseValue  : slv(15 downto 0);
       mAxisMaster : AxiStreamMasterType;
+      retire      : EthMacTokenRetireType;
       state       : StateType;
    end record RegType;
 
@@ -61,6 +64,7 @@ architecture rtl of EthMacRxPause is
       pauseEn     => '0',
       pauseValue  => (others => '0'),
       mAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      retire      => ETH_MAC_TOKEN_RETIRE_INIT_C,
       state       => IDLE_S);
 
    signal r   : RegType := REG_INIT_C;
@@ -83,6 +87,7 @@ begin
          -- Reset flags
          v.pauseEn            := '0';
          v.mAxisMaster.tValid := '0';
+         v.retire             := ETH_MAC_TOKEN_RETIRE_INIT_C;
 
          -- State Machine
          case r.state is
@@ -97,6 +102,10 @@ begin
                      if (sAxisMaster.tLast = '0') then
                         -- Next State
                         v.state := PAUSE_S;
+                     else
+                        -- Single-beat header match: consumed here
+                        v.retire.token := sAxisMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+                        v.retire.valid := '1';
                      end if;
                   else
                      -- Move the data
@@ -120,6 +129,9 @@ begin
                   v.pauseValue(15 downto 8) := sAxisMaster.tData(7 downto 0);
                   -- Check for a EOF
                   if (sAxisMaster.tLast = '1') then
+                     -- Consumed through EOF, regardless of FCS
+                     v.retire.token := sAxisMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+                     v.retire.valid := '1';
                      -- Set the pause
                      v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                      -- Next State
@@ -133,6 +145,9 @@ begin
             when DUMP_S =>
                -- Check for a valid EOF
                if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  -- Consumed through EOF, regardless of FCS
+                  v.retire.token := sAxisMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+                  v.retire.valid := '1';
                   -- Set the pause
                   v.pauseEn := not axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, sAxisMaster, EMAC_EOFE_BIT_C);
                   -- Next State
@@ -150,6 +165,11 @@ begin
          ----------------------------------------------------------------------
          end case;
 
+         -- Token zero (legacy traffic, generated frames) is never retired
+         if (v.retire.token = EMAC_TOKEN_NONE_C) then
+            v.retire.valid := '0';
+         end if;
+
          -- Reset
          if ethRst = RST_POLARITY_G then
             v := REG_INIT_C;
@@ -162,6 +182,7 @@ begin
          mAxisMaster  <= r.mAxisMaster;
          rxPauseReq   <= r.pauseEn;
          rxPauseValue <= r.pauseValue;
+         retire       <= r.retire;
 
       end process;
 
@@ -178,6 +199,7 @@ begin
       mAxisMaster  <= sAxisMaster;
       rxPauseReq   <= '0';
       rxPauseValue <= (others => '0');
+      retire       <= ETH_MAC_TOKEN_RETIRE_INIT_C;
    end generate;
 
 end rtl;

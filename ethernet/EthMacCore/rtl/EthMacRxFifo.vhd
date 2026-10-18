@@ -39,7 +39,10 @@ entity EthMacRxFifo is
       BYP_COMMON_CLK_G  : boolean                := false;
       BYP_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
-      INT_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C);
+      INT_CONFIG_G      : AxiStreamConfigType    := INT_EMAC_AXIS_CONFIG_C;
+      -- Timing port: tokened drop retires and no SsiFifo lockup self-reset, so
+      -- no stored frame is discarded without a retire (timing-port.md section 6)
+      TIMING_EN_G       : boolean                := false);
    port (
       -- Clock and Reset
       sClk        : in  sl;
@@ -61,7 +64,12 @@ entity EthMacRxFifo is
       sBypMaster  : in  AxiStreamMasterType;
       sBypCtrl    : out AxiStreamCtrlType;
       mBypMaster  : out AxiStreamMasterType;
-      mBypSlave   : in  AxiStreamSlaveType);
+      mBypSlave   : in  AxiStreamSlaveType;
+      -- Timing port (TIMING_EN_G only, sClk = mPrimClk): a frame swallowed at
+      -- its SOF beat retires inbound; a stored EOFE frame retires outbound.
+      -- At most one of the two fires for one frame.
+      retireIb    : out EthMacTokenRetireType;
+      retireOb    : out EthMacTokenRetireType);
 end EthMacRxFifo;
 
 architecture rtl of EthMacRxFifo is
@@ -73,16 +81,36 @@ architecture rtl of EthMacRxFifo is
    type RegType is record
       rxFifoDrop      : sl;
       fifoPauseThresh : slv(FIFO_ADDR_WIDTH_G-1 downto 0);
+      -- Timing mode: the previous input beat, which the inbound filter's
+      -- registered drop strobes describe, and whether its frame lost its SOF
+      prevValid       : sl;
+      prevSof         : sl;
+      prevLast        : sl;
+      prevToken       : EthMacTokenType;
+      sofSwallowed    : sl;
+      retireIb        : EthMacTokenRetireType;
+      retireOb        : EthMacTokenRetireType;
    end record RegType;
+
    constant REG_INIT_C : RegType := (
       rxFifoDrop      => '0',
-      fifoPauseThresh => MAX_THRESH_SLV_C);
+      fifoPauseThresh => MAX_THRESH_SLV_C,
+      prevValid       => '0',
+      prevSof         => '0',
+      prevLast        => '0',
+      prevToken       => EMAC_TOKEN_NONE_C,
+      sofSwallowed    => '0',
+      retireIb        => ETH_MAC_TOKEN_RETIRE_INIT_C,
+      retireOb        => ETH_MAC_TOKEN_RETIRE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal primDrop : sl := '0';
-   signal bypDrop  : sl := '0';
+   signal primDrop     : sl              := '0';
+   signal bypDrop      : sl              := '0';
+   signal primDropWord : sl              := '0';
+   signal primObDrop   : sl              := '0';
+   signal primObTId    : slv(7 downto 0) := (others => '0');
 
 --   attribute dont_touch      : string;
 --   attribute dont_touch of r : signal is "TRUE";
@@ -99,6 +127,7 @@ begin
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
          VALID_THOLD_G       => VALID_THOLD_C,
+         PREVENT_LOCKUP_G    => not TIMING_EN_G,
          -- FIFO configurations
          SYNTH_MODE_G        => SYNTH_MODE_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -113,7 +142,10 @@ begin
          sAxisRst        => sRst,
          sAxisMaster     => sPrimMaster,
          sAxisCtrl       => sPrimCtrl,
+         sAxisDropWord   => primDropWord,
          sAxisDropFrame  => primDrop,
+         mAxisDropFrame  => primObDrop,
+         mAxisDropTId    => primObTId,
          fifoPauseThresh => r.fifoPauseThresh,
          mAxisClk        => mPrimClk,
          mAxisRst        => mPrimRst,
@@ -158,9 +190,14 @@ begin
             mAxisSlave      => mBypSlave);
    end generate;
 
-   comb : process (bypDrop, pauseThresh, phyReady, primDrop, r, sRst) is
-      variable v    : RegType;
-      variable drop : sl;
+   assert (TIMING_EN_G = false) or (PRIM_COMMON_CLK_G = true and BYP_EN_G = false and DROP_ERR_PKT_G = true)
+      report "EthMacRxFifo: TIMING_EN_G requires PRIM_COMMON_CLK_G, DROP_ERR_PKT_G and no bypass"
+      severity failure;
+
+   comb : process (bypDrop, pauseThresh, phyReady, primDrop, primDropWord,
+                   primObDrop, primObTId, r, sPrimMaster, sRst) is
+      variable v         : RegType;
+      variable swallowed : sl;
    begin
       -- Latch the current value
       v := r;
@@ -175,11 +212,48 @@ begin
          v.fifoPauseThresh := pauseThresh(FIFO_ADDR_WIDTH_G-1 downto 0);
       end if;
 
+      -- Timing-mode retires. The inbound strobes are registered: they describe
+      -- the beat the importer presented on the previous cycle (the importer
+      -- cannot be stalled). A frame retires inbound only if its SOF beat was
+      -- swallowed, so nothing of it is stored; a mid-frame overflow stores a
+      -- terminated partial frame, which retires outbound when it is dropped.
+      v.retireIb := ETH_MAC_TOKEN_RETIRE_INIT_C;
+      v.retireOb := ETH_MAC_TOKEN_RETIRE_INIT_C;
+      if TIMING_EN_G then
+         swallowed := r.sofSwallowed;
+         if (r.prevValid = '1') and (r.prevSof = '1') then
+            swallowed := primDropWord;
+         end if;
+         if (r.prevValid = '1') and (r.prevLast = '1') and (primDrop = '1') and (swallowed = '1') and
+            (r.prevToken /= EMAC_TOKEN_NONE_C) then
+            v.retireIb.valid := '1';
+            v.retireIb.token := r.prevToken;
+         end if;
+         v.sofSwallowed := swallowed;
+         if (primObDrop = '1') and (primObTId(EMAC_TOKEN_BITS_C-1 downto 0) /= EMAC_TOKEN_NONE_C) then
+            v.retireOb.valid := '1';
+            v.retireOb.token := primObTId(EMAC_TOKEN_BITS_C-1 downto 0);
+         end if;
+         v.prevValid := sPrimMaster.tValid;
+         v.prevSof   := axiStreamGetUserBit(INT_CONFIG_G, sPrimMaster, EMAC_SOF_BIT_C, 0);
+         v.prevLast  := sPrimMaster.tLast;
+         v.prevToken := sPrimMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+      end if;
+
       -- Outputs
       rxFifoDrop <= r.rxFifoDrop;
+      retireIb   <= r.retireIb;
+      retireOb   <= r.retireOb;
+
+      -- Link loss clears the legacy drop strobe and threshold only; the
+      -- retire tracking must still report a frame the importer just ended.
+      if (phyReady = '0') then
+         v.rxFifoDrop      := REG_INIT_C.rxFifoDrop;
+         v.fifoPauseThresh := REG_INIT_C.fifoPauseThresh;
+      end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and sRst = RST_POLARITY_G) or (phyReady = '0') then
+      if (RST_ASYNC_G = false and sRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 

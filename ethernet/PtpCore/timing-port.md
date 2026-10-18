@@ -37,12 +37,14 @@ consumes them, lets graceful drain finish an admitted TX frame, and raises the
 TX minimum to a full 16-byte first beat. It awaits a third review before
 Phase 0 closes.
 
-**Phase 1 leaf slice (October 17, 2026):** the GMII import and export leaves
-of §2.4 and §4.0 exist behind `EthMacTop` `TIMING_EN_G` (GMII only; XGMII
-and XLGMII are rejected at elaboration). They publish `start`/`done`/`lost`
-and the import/export retires, and match the passive adapter's capture edge
-in simulation (§8). The other pipeline retires, the abort handshake, the RX
-FIFO changes of §6 and the port entity do not exist yet. Implementation slices and acceptance are owned by the
+**Phase 1 implementation (October 17, 2026), simulation only:** timing
+leaves for GMII and XGMII, every retire owner, the timing-mode RX FIFO and
+pause behaviour, the forced-abort handshake in `EthMacTop`, the
+`PtpMacPort` entity and the standalone `PtpMacPortEthMac` composition exist
+and pass the §8 acceptance benches against the passive adapters. §10 maps
+the contract onto the entities and records where the implementation refines
+it. No AXI-Lite bank, synthesis, timing or hardware result exists for the
+port. Implementation slices and acceptance are owned by the
 [composable PTP plan](../../../../../docs/plans/composable-ptp/README.md); the
 existing endpoint's contracts remain in [interfaces.md](interfaces.md).
 
@@ -348,10 +350,11 @@ dead link to completion. The timing-capable exporters must:
   but no `start`, drains its input and completes `WIRE_ERR` with
   `captureValid = '0'`. `doneLength` counts every input octet consumed,
   including the drained remainder, plus padding already launched.
-- On underrun (`tValid` low mid-frame): XGMII continues as today (inverted
-  FCS) and publishes `done` with `doneError = '1'` at the frame's end; GMII
-  asserts `TX_ER`, dumps, and publishes `done` with `doneError = '1'` at
-  `tLast`. Neither emits a second `done` for the same token.
+- On underrun (`tValid` low mid-frame): the XGMII timing leaf ends the
+  frame with `/E/` and `/T/`, drains the remainder and publishes `done` with
+  `doneError = '1'` at its `tLast` (§10); GMII asserts `TX_ER`, dumps, and
+  publishes `done` with `doneError = '1'` at `tLast`. Neither emits a second
+  `done` for the same token.
 - The token register is cleared only by the terminal event, so a `phyReady`
   toggle cannot start a second frame with the same token, and the exporter
   acknowledges a forced abort only **after** publishing the terminal event
@@ -596,9 +599,52 @@ Phase 1 leaf evidence, October 17, 2026 (GHDL 6.0.0, cocotb 2.1.0, Python
   `test_SsiFifo.py`, `test_SsiObFrameFilter.py` and the two-step GMII and
   XGMII `test_ptp_endpoint_mac.py` cases pass.
 
-No simulation, synthesis, timing or hardware result applies to the port
-entity; none exists. The [existing endpoint validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
-is unaffected because no production entity changed.
+Phase 1 port evidence, October 17, 2026 (same tools), on SURF
+`ethernet-ptp` after `72c774a2a`:
+
+- `test_EthMacTimingXgmiiLeaf.py` (seven tests) is the XGMII counterpart of
+  the GMII leaf bench: starts coincide with the adapter on both `/S/` lanes
+  with the same start lane, across every last-word alignment, minimum IFG,
+  data-valued `/S/`/`/T/` octets, short/long/corrupted preambles, an illegal
+  `/S/` lane, `/E/` and nested `/S/` mid-frame, link loss and early ends; TX
+  covers every FCS/terminate split, padding to exactly 60, PHY-not-ready
+  dump, link loss in data and FCS, underrun and forced abort. Mutations
+  (`/S/` accepted in any lane; TX `start` one edge early) fail it.
+- `test_EthMacTimingRetire.py` (timing `EthMacTop`, 2048- and 512-word RX
+  FIFO) has a bench ledger require exactly one resolution per RX token:
+  filter drop, good- and bad-FCS pause consumption, a CRC error followed at
+  minimum spacing by a good frame, and FIFO overflow with a stalled sink that
+  exercises both the SOF-swallowed (inbound) and stored-partial (outbound)
+  retires; the TX checksum retires an EOFE frame; a received pause quantum
+  stops holding TX once the link drops. Letting the inbound retire fire for
+  every dropped `tLast` produces a double release and fails it.
+- `test_EthMacTimingAbort.py`: abort while idle, with a frame on the pins
+  (one `done`/`doneError` before the acknowledge, queued frames flushed with
+  no event) and with RX frames stored (never delivered); no event names a
+  released token; fresh traffic then flows. Removing the exporter's abort cut
+  fails it.
+- `test_EthMacTimingTid.py` gained an XGMII timing case.
+- `test_ptp_mac_port.py` runs `PtpMacPortEthMac` for GMII and XGMII (nine
+  tests each) with a PHC model driving the port and both adapters.
+  RATE/SET/PHASE commits and capture aborts placed one cycle before, on and
+  after each frame's pin cycle, and mid-frame, give TX completion captures
+  bit-identical to the TX tap and RX captures bit-identical to the pin
+  oracle, with `captureValid`/`capture.error` exactly as §3/§4 specify;
+  injected RX frames (including XGMII lane-4 starts) under random commits
+  match the RX adapter. The suite also covers every TX shape rule,
+  exhaustion with completions held, PHY-not-ready and link-loss outcomes,
+  runt/1518/1519/1520/bad-FCS dispositions, RX table exhaustion, the reset
+  generation, drain with a half-presented frame, and forced abort (frame on
+  the pins `WIRE_ERR`, queued frames `FLUSHED`, half-presented frame
+  `DISCARDED`, partial RX delivery ended with EOFE, held completions
+  delivered, generation advanced, stale request `FLUSHED`). Feeding the port
+  the live instead of the registered PHC tuple, or dropping the
+  generation-change invalidation, fails it.
+
+Production MAC entities changed (opt-in generics and ports, retire outputs
+and the `EthMacTop` reset wiring); their default paths were re-run as listed
+in the composable plan. The [existing endpoint validation](../../docs/plans/ethernet-ptp/README.md#current-validation)
+was not otherwise repeated.
 
 Phase 1 acceptance, per slice in the composable plan:
 
@@ -659,8 +705,41 @@ Phase 1 acceptance, per slice in the composable plan:
 | Linux projection | §7; raw-cycle fields dropped at the adapter; malformed records complete `FLUSHED`; RX frame at offset 40 accepted with an 8-byte shift stage. |
 | RTL backend reuse | §4.1 names the frontend and ledger mismatches; planning default keeps the passive RX path for the RTL backend and moves TX completion onto the port. |
 
-Resolved in Phase 1: the GMII leaves are pin-coincident (§2.4, §8). Still
-open for Phase 1: the XGMII timing leaves, the port's AXI-Lite bank offset and
-capability/fault register layout, the measured area of the wider FIFO word
-and the port's TX hold store. `SsiFifo` gained `PREVENT_LOCKUP_G` for §6;
-the RX FIFO does not use it yet.
+Resolved in Phase 1: the GMII and XGMII leaves are pin-coincident (§2.4,
+§8) and the §8 benches pass in simulation. Still open: the port's AXI-Lite
+bank (capability, control/status, counters and faults) with its PyRogue
+model and `register-map.md` entry; synthesis, area and timing of the port,
+its tables and the wider FIFO word; a third review of this contract; the
+`EthMacTxCsum` oversize defect regression; generation exhaustion, which is
+specified but not simulated; and hardware.
+
+## 10. Phase 1 implementation map
+
+| Contract item | Implementation |
+| --- | --- |
+| Opt-in carrier and leaves | `EthMacTop` `INT_CONFIG_G`/`TIMING_EN_G`; `EthMacRxImportTimingGmii`, `EthMacRxImportTimingXgmii`, `EthMacTxExportTimingXgmii` and the `TIMING_EN_G` branch of `EthMacTxExportGmii`, selected by `EthMacRxImport`/`EthMacTxExport`. |
+| Retire owners (§2.4) | `EthMacTxCsum`, the exporters, `EthMacRxPause`, `EthMacRxFilter`, `EthMacRxFifo` (inbound only when the SOF beat was swallowed, outbound from `SsiFifo.mAxisDropTId`) and the import leaves, at the `EthMacPkg` indices. |
+| Timing RX FIFO and pause (§5, §6) | `EthMacRxFifo` `TIMING_EN_G` sets `PREVENT_LOCKUP_G = false`; `EthMacTxPause` `TIMING_EN_G` clears both pause counters on link loss. |
+| Owner abort (§6 step three) | `EthMacTimingAbort` inside `EthMacTop`: the exporter ends a frame on the pins as for link loss and acknowledges when idle, then a four-cycle flush reset clears every other MAC owner. One aggregate `abortReq`/`abortAck` replaces a per-owner acknowledge array; flushed owners publish no retire. The port flushes its own TX hold store in the same step. |
+| Port (§3, §4, §6) | `PtpMacPort` (PHC copy, generation lifecycle, drain, four-step abort, counters, faults) over `PtpMacPortTx` (admission, shape checks, store-and-forward hold store, token table, wire capture, completion FIFO) and `PtpMacPortRx` (token offer, per-entry capture/length/generation, output stage, cancel terminator). |
+| Composition (plan slice 1d) | `PtpMacPortEthMac`: `PtpMacPort` over a timing `EthMacTop` with an external PHC; asserts the §5 RX FIFO bound. `EthMacPtpEndpoint` is unchanged. |
+
+Refinements made while implementing, within the contract's rules:
+
+- **XGMII underrun, link loss and abort** end the frame with `/E/` and `/T/`
+  in lanes 0 and 1, then drain only an outstanding input remainder; the
+  legacy exporter's inverted-FCS continuation is not used in timing mode.
+  An EOFE input frame is still sent with an inverted FCS and `doneError`.
+- **XGMII TX padding** is exactly 60 bytes; GMII keeps the legacy 61 (§4).
+- **Abandoned XGMII starts** follow the GMII rule: a start whose frame ends
+  with no byte beyond the four FCS octets publishes a retire instead of
+  `done`. An in-frame control other than `/T/` (including a nested `/S/`)
+  is an error termination; the nested `/S/` is reported `lost`.
+- **The flushed import leaf** restarts qualification mid-burst and may report
+  one `lost` for the remainder of a frame cut by the flush.
+- **Shape rejection happens in the hold store:** frames failing the TX shape
+  rules are terminated with EOFE and removed by the store's outbound filter;
+  their entries complete `DISCARDED` before the MAC sees any byte.
+- **RX capture storage** is a register array per table entry (16 × capture,
+  length and generation by default); a RAM-backed table is an area
+  optimization for later.

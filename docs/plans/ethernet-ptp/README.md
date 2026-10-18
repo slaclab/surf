@@ -15,7 +15,7 @@ configures and observes the endpoint; it is outside the timing loop.
 | How do I compose the MAC/PHY and find sources or tests? | [PtpCore integration guide](../../../ethernet/PtpCore/README.md), [test guide](../../../tests/ethernet/PtpCore/README.md) |
 | What is still unqualified or undecided? | [Acceptance and open decisions](acceptance.md), [specification coverage](../../../tests/ethernet/PtpCore/specification-coverage.md) |
 | What would physical clock control require? | [Physical-clock requirements](../../../ethernet/PtpCore/physical-clock.md); prospective integration, not an implemented actuator |
-| What would a replaceable-controller timing port look like? | [Timing-port contract](../../../ethernet/PtpCore/timing-port.md); declared records, stage audit and GMII timing leaves; no port entity yet. Owned by the consuming project's composable PTP plan |
+| What would a replaceable-controller timing port look like? | [Timing-port contract](../../../ethernet/PtpCore/timing-port.md); records, stage audit and a simulation-verified `PtpMacPort`/`PtpMacPortEthMac` composition for GMII and XGMII; no register bank or hardware result. Owned by the consuming project's composable PTP plan |
 | Why were alternatives rejected, and what evidence remains? | [Major design decisions and provenance](history/decisions.md), [validation milestones](history/verification.md), [deferred studies](history/design-studies.md) |
 
 ## Current validation

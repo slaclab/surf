@@ -40,7 +40,9 @@ entity EthMacRxFilter is
       -- Configuration
       dropOnPause : in  sl;
       macAddress  : in  slv(47 downto 0);
-      filtEnable  : in  sl);
+      filtEnable  : in  sl;
+      -- Timing port: one retire per dropped frame carrying a token
+      retire      : out EthMacTokenRetireType);
 end EthMacRxFilter;
 
 architecture rtl of EthMacRxFilter is
@@ -53,11 +55,13 @@ architecture rtl of EthMacRxFilter is
    type RegType is record
       state       : StateType;
       mAxisMaster : AxiStreamMasterType;
+      retire      : EthMacTokenRetireType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
       state       => IDLE_S,
-      mAxisMaster => AXI_STREAM_MASTER_INIT_C);
+      mAxisMaster => AXI_STREAM_MASTER_INIT_C,
+      retire      => ETH_MAC_TOKEN_RETIRE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -78,6 +82,7 @@ begin
 
          -- Move the data
          v.mAxisMaster := sAxisMaster;
+         v.retire      := ETH_MAC_TOKEN_RETIRE_INIT_C;
 
          -- State Machine
          case r.state is
@@ -93,6 +98,8 @@ begin
                      if (sAxisMaster.tLast = '0') then
                         -- Next State
                         v.state := DROP_S;
+                     else
+                        v.retire.valid := '1';
                      end if;
                   -- Local match, broadcast or multicast
                   elsif (filtEnable = '0') or
@@ -112,6 +119,8 @@ begin
                      if (sAxisMaster.tLast = '0') then
                         -- Next State
                         v.state := DROP_S;
+                     else
+                        v.retire.valid := '1';
                      end if;
                   end if;
                end if;
@@ -121,6 +130,7 @@ begin
                v.mAxisMaster.tValid := '0';
                -- Check for a valid EOF
                if (sAxisMaster.tValid = '1') and (sAxisMaster.tLast = '1') then
+                  v.retire.valid := '1';
                   -- Next State
                   v.state := IDLE_S;
                end if;
@@ -134,6 +144,12 @@ begin
          ----------------------------------------------------------------------
          end case;
 
+         -- The token of the beat that ends the dropped frame; zero is never retired
+         v.retire.token := sAxisMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
+         if (v.retire.token = EMAC_TOKEN_NONE_C) then
+            v.retire.valid := '0';
+         end if;
+
          -- Reset
          if (RST_ASYNC_G = false and ethRst = RST_POLARITY_G) then
             v := REG_INIT_C;
@@ -144,6 +160,7 @@ begin
 
          -- Outputs
          mAxisMaster <= r.mAxisMaster;
+         retire      <= r.retire;
 
       end process;
 
@@ -160,6 +177,7 @@ begin
 
    U_FiltDisGen : if (FILT_EN_G = false) generate
       mAxisMaster <= sAxisMaster;
+      retire      <= ETH_MAC_TOKEN_RETIRE_INIT_C;
    end generate;
 
 end rtl;

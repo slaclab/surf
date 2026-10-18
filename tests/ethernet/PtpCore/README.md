@@ -9,6 +9,14 @@ separates simulated behavior from remaining device and interoperability work.
   using `EthMacPtpExperimentWrapper`, with Python capture/association models.
   It checks CRC-loss ambiguity, byte order, FIFO pressure and recovery, and
   queued TX after logical restart and repeated pause.
+- `test_ptp_mac_port.py` runs the timing-port composition `PtpMacPortEthMac`
+  for GMII and XGMII with passive-adapter oracles on both pin directions and
+  a cycle-accurate PHC model (`ptp_mac_port_test_utils.py`). It checks
+  bit-identical captures under RATE/SET/PHASE commits and capture aborts
+  around the pin cycle, every TX stream-shape rule and outcome, RX
+  dispositions and table exhaustion, drain and the forced-abort procedure.
+  The MAC-side timing leaves, retires and abort handshake have their own
+  `test_EthMacTiming*.py` benches under `tests/ethernet/EthMacCore`.
 - `ptp_wire_utils.py` supplies physical stimulus and independent AXI/wire
   monitors, reusing the existing Ethernet AXI helpers.
 - `ptp_reference.py` and `test_ptp_reference.py` define exact arithmetic,
@@ -129,6 +137,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
+| Timing port (`PtpMacPort*`, `PtpMacPortEthMac`) or MAC timing mode | `test_ptp_mac_port.py` for the affected PHY; the matching `tests/ethernet/EthMacCore/test_EthMacTiming*.py` for leaf, retire or abort changes. | Run both PHY cases when capture timing, lanes or serialization change. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
 
 Select by dependency and assertion coverage, not filename alone. For shared helper

@@ -29,7 +29,7 @@ entity EthMacTxExport is
       PHY_TYPE_G     : string              := "XGMII";
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
-      -- Timing-port export leaf behaviour (GMII only in this revision)
+      -- Timing-port export leaf behaviour (GMII and XGMII)
       TIMING_EN_G    : boolean             := false;
       SYNTH_MODE_G   : string              := "inferred");
    port (
@@ -57,7 +57,9 @@ entity EthMacTxExport is
       txLinkNotReady : out sl;
       -- Timing port (TIMING_EN_G only)
       frameEvent     : out EthMacFrameEventType;
-      retire         : out EthMacTokenRetireType);
+      retire         : out EthMacTokenRetireType;
+      abortReq       : in  sl := '0';
+      abortAck       : out sl);
 end EthMacTxExport;
 
 architecture mapping of EthMacTxExport is
@@ -66,14 +68,15 @@ begin
 
    assert ((PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII") or (PHY_TYPE_G = "GMII")) report "EthMacTxExport: PHY_TYPE_G must be either GMII, XGMII, XLGMII" severity failure;
 
-   assert (TIMING_EN_G = false) or (PHY_TYPE_G = "GMII")
-      report "EthMacTxExport: TIMING_EN_G has a GMII export leaf only; XGMII and XLGMII are not implemented"
+   assert (TIMING_EN_G = false) or (PHY_TYPE_G = "GMII") or (PHY_TYPE_G = "XGMII")
+      report "EthMacTxExport: TIMING_EN_G has GMII and XGMII export leaves only"
       severity failure;
 
-   -- Only the GMII leaf publishes events in this revision
-   NO_TIMING_EVENTS : if (PHY_TYPE_G /= "GMII") generate
+   -- XLGMII and the legacy XGMII leaf publish no events
+   NO_TIMING_EVENTS : if (PHY_TYPE_G = "XLGMII") or (PHY_TYPE_G = "XGMII" and TIMING_EN_G = false) generate
       frameEvent <= ETH_MAC_FRAME_EVENT_INIT_C;
       retire     <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+      abortAck   <= '0';
    end generate;
 
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
@@ -104,8 +107,7 @@ begin
       gmiiTxd  <= (others => '0');
    end generate;
 
-   -- Timing mode is rejected above for XGMII and XLGMII.
-   U_10G : if (PHY_TYPE_G = "XGMII") generate
+   U_10G : if (PHY_TYPE_G = "XGMII") and (TIMING_EN_G = false) generate
       U_XGMII : entity surf.EthMacTxExportXgmii
          generic map (
             TPD_G          => TPD_G,
@@ -127,6 +129,41 @@ begin
             txCountEn      => txCountEn,
             txUnderRun     => txUnderRun,
             txLinkNotReady => txLinkNotReady);
+      -- Unused output ports
+      xlgmiiTxd <= (others => '0');
+      xlgmiiTxc <= (others => '0');
+      gmiiTxEn  <= '0';
+      gmiiTxEr  <= '0';
+      gmiiTxd   <= (others => '0');
+   end generate;
+
+   U_10G_TIMING : if (PHY_TYPE_G = "XGMII") and (TIMING_EN_G = true) generate
+      U_XGMII : entity surf.EthMacTxExportTimingXgmii
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            INT_CONFIG_G   => INT_CONFIG_G,
+            SYNTH_MODE_G   => SYNTH_MODE_G)
+         port map (
+            -- Clock and Reset
+            ethClk         => ethClk,
+            ethRst         => ethRst,
+            -- AXIS Interface
+            macObMaster    => macObMaster,
+            macObSlave     => macObSlave,
+            -- XGMII PHY Interface
+            phyTxd         => xgmiiTxd,
+            phyTxc         => xgmiiTxc,
+            phyReady       => phyReady,
+            -- Status
+            txCountEn      => txCountEn,
+            txUnderRun     => txUnderRun,
+            txLinkNotReady => txLinkNotReady,
+            -- Timing port
+            frameEvent     => frameEvent,
+            retire         => retire,
+            abortReq       => abortReq,
+            abortAck       => abortAck);
       -- Unused output ports
       xlgmiiTxd <= (others => '0');
       xlgmiiTxc <= (others => '0');
@@ -161,7 +198,9 @@ begin
             txLinkNotReady => txLinkNotReady,
             -- Timing port
             frameEvent     => frameEvent,
-            retire         => retire);
+            retire         => retire,
+            abortReq       => abortReq,
+            abortAck       => abortAck);
       -- Unused output ports
       xlgmiiTxd <= (others => '0');
       xlgmiiTxc <= (others => '0');

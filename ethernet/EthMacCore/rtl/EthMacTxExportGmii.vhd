@@ -59,7 +59,11 @@ entity EthMacTxExportGmii is
       txLinkNotReady : out sl;
       -- Timing port wire events (TIMING_EN_G only)
       frameEvent     : out EthMacFrameEventType;
-      retire         : out EthMacTokenRetireType);
+      retire         : out EthMacTokenRetireType;
+      -- Forced abort (TIMING_EN_G only): ends a frame on the pins as link loss
+      -- does, starts no new frame, and acknowledges once idle
+      abortReq       : in  sl := '0';
+      abortAck       : out sl);
 end EthMacTxExportGmii;
 
 architecture rtl of EthMacTxExportGmii is
@@ -109,6 +113,7 @@ architecture rtl of EthMacTxExportGmii is
       length         : slv(15 downto 0);
       frameEvent     : EthMacFrameEventType;
       retire         : EthMacTokenRetireType;
+      abortAck       : sl;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -132,7 +137,8 @@ architecture rtl of EthMacTxExportGmii is
       dmacLoaded     => '0',
       length         => (others => '0'),
       frameEvent     => ETH_MAC_FRAME_EVENT_INIT_C,
-      retire         => ETH_MAC_TOKEN_RETIRE_INIT_C);
+      retire         => ETH_MAC_TOKEN_RETIRE_INIT_C,
+      abortAck       => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -177,7 +183,7 @@ begin
          mAxisMaster => macMaster,      -- 8-bit AXI stream interface
          mAxisSlave  => macSlave);
 
-   comb : process (crcOut, ethClkEn, ethRst, macMaster, phyReady, r) is
+   comb : process (abortReq, crcOut, ethClkEn, ethRst, macMaster, phyReady, r) is
       variable v       : RegType;
       variable linkCut : boolean;
    begin
@@ -195,8 +201,9 @@ begin
       v.frameEvent     := ETH_MAC_FRAME_EVENT_INIT_C;
       v.retire         := ETH_MAC_TOKEN_RETIRE_INIT_C;
 
-      -- Timing mode: link loss once a frame has left IDLE_S ends it on the wire
-      linkCut := TIMING_EN_G and (phyReady = '0');
+      -- Timing mode: link loss or forced abort once a frame has left IDLE_S
+      -- ends it on the wire
+      linkCut := TIMING_EN_G and ((phyReady = '0') or (abortReq = '1'));
 
       -- Check for clock enable
       if (ethClkEn = '1') then
@@ -213,7 +220,8 @@ begin
                v.gmiiTxEn := '0';
                v.gmiiTxEr := '0';
                -- Wait for start flag
-               if ((macMaster.tValid = '1') and (ethRst = '0')) then
+               if ((macMaster.tValid = '1') and (ethRst = '0') and
+                   ((TIMING_EN_G = false) or (abortReq = '0'))) then
                   -- Frame token travels on every beat; latch it at SOF
                   if TIMING_EN_G then
                      v.token        := macMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0);
@@ -386,6 +394,13 @@ begin
             end if;
          end if;
 
+         -- Abort acknowledge: idle for at least one edge, so any terminal
+         -- event for the frame that was on the pins has already been published
+         v.abortAck := '0';
+         if TIMING_EN_G and (abortReq = '1') and ((r.state = IDLE_S) or (r.state = INTERGAP_S)) then
+            v.abortAck := '1';
+         end if;
+
          -- Start: the first destination-MAC octet was launched on the
          -- previous edge and is on the pins now, so register start on this
          -- edge, the edge the passive TX tap captures.
@@ -422,6 +437,7 @@ begin
       gmiiTxd        <= r.gmiiTxd;
       frameEvent     <= r.frameEvent;
       retire         <= r.retire;
+      abortAck       <= r.abortAck;
 
    end process comb;
 

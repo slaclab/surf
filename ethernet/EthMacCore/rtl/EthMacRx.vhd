@@ -38,7 +38,7 @@ entity EthMacRx is
       BYP_ETH_TYPE_G : slv(15 downto 0) := x"0000";
       -- MAC-internal stream format; EMAC_TIMING_AXIS_CONFIG_C adds the TID token.
       INT_CONFIG_G   : AxiStreamConfigType := INT_EMAC_AXIS_CONFIG_C;
-      -- Timing-port import leaf (GMII only in this revision)
+      -- Timing-port import leaf (GMII and XGMII)
       TIMING_EN_G    : boolean          := false;
       -- Internal RAM synthesis mode
       SYNTH_MODE_G   : string           := "inferred");
@@ -124,10 +124,7 @@ begin
          frameEvent  => rxFrameEvent,
          retire      => rxRetire(EMAC_RX_RETIRE_IMPORT_C));
 
-   -- Pause and filter retires are not yet implemented. The RX FIFO follows
-   -- this module in EthMacTop, which replaces those two entries.
-   rxRetire(EMAC_RX_RETIRE_PAUSE_C)   <= ETH_MAC_TOKEN_RETIRE_INIT_C;
-   rxRetire(EMAC_RX_RETIRE_FILTER_C)  <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   -- The RX FIFO follows this module in EthMacTop, which replaces these two
    rxRetire(EMAC_RX_RETIRE_FIFO_IB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
    rxRetire(EMAC_RX_RETIRE_FIFO_OB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
 
@@ -149,7 +146,8 @@ begin
          mAxisMaster  => pauseMaster,
          -- Pause Values
          rxPauseReq   => rxPauseReq,
-         rxPauseValue => rxPauseValue);
+         rxPauseValue => rxPauseValue,
+         retire       => rxRetire(EMAC_RX_RETIRE_PAUSE_C));
 
    ---------------------
    -- RX Checksum Module
@@ -234,6 +232,7 @@ begin
          -- Configuration
          dropOnPause => ethConfig.dropOnPause,
          macAddress  => ethConfig.macAddress,
-         filtEnable  => ethConfig.filtEnable);
+         filtEnable  => ethConfig.filtEnable,
+         retire      => rxRetire(EMAC_RX_RETIRE_FILTER_C));
 
 end mapping;

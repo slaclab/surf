@@ -30,7 +30,10 @@ entity EthMacTxPause is
       RST_POLARITY_G  : sl                      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean                 := false;
       PAUSE_EN_G      : boolean                 := true;
-      PAUSE_512BITS_G : natural range 1 to 1024 := 8);
+      PAUSE_512BITS_G : natural range 1 to 1024 := 8;
+      -- Timing port: a pause quantum does not outlive the link session, so
+      -- tokened frames cannot be held across link loss with no retire path
+      TIMING_EN_G     : boolean                 := false);
    port (
       -- Clock and Reset
       ethClk       : in  sl;
@@ -127,6 +130,12 @@ begin
          -- Remote pause count tracking
          if (r.remPauseCnt /= 0) and (r.remPreCnt = 0) then
             v.remPauseCnt := r.remPauseCnt - 1;
+         end if;
+
+         -- Timing mode: link loss ends both pause sessions
+         if TIMING_EN_G and (phyReady = '0') then
+            v.locPauseCnt := (others => '0');
+            v.remPauseCnt := (others => '0');
          end if;
 
          -- State Machine

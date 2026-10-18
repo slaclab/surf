@@ -53,7 +53,7 @@ entity EthMacTop is
       -- token survives every FIFO. See ethernet/PtpCore/timing-port.md.
       INT_CONFIG_G      : AxiStreamConfigType      := INT_EMAC_AXIS_CONFIG_C;
       -- Timing-port leaves: tokened wire events and retires for a timing port
-      -- composition. GMII only in this revision; see the assertions below.
+      -- composition. GMII and XGMII only; see the assertions below.
       TIMING_EN_G       : boolean                  := false);
    port (
       -- Core Clock and Reset
@@ -100,7 +100,10 @@ entity EthMacTop is
       rxFrameEvent    : out EthMacFrameEventType;
       rxRetire        : out EthMacTokenRetireArray(EMAC_RX_RETIRE_SOURCES_C-1 downto 0);
       txFrameEvent    : out EthMacFrameEventType;
-      txRetire        : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0));
+      txRetire        : out EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0);
+      -- Forced abort of every tokened owner (TIMING_EN_G only); see EthMacTimingAbort
+      abortReq        : in  EthMacAbortRequestType := ETH_MAC_ABORT_REQUEST_INIT_C;
+      abortAck        : out EthMacAbortAckType);
 end EthMacTop;
 
 architecture mapping of EthMacTop is
@@ -120,6 +123,12 @@ architecture mapping of EthMacTop is
    signal flowCtrl     : AxiStreamCtrlType;
 
    signal rxRetireRx : EthMacTokenRetireArray(EMAC_RX_RETIRE_SOURCES_C-1 downto 0);
+
+   -- Reset of the flushed MAC pipeline: ethRst, plus the abort flush in timing mode
+   signal macRst         : sl;
+   signal primMacRst     : sl;
+   signal exportAbortReq : sl;
+   signal exportAbortAck : sl;
 
    -- attribute dont_touch                 : string;
    -- attribute dont_touch of rxPauseReq   : signal is "true";
@@ -147,14 +156,38 @@ begin
    assert (TIMING_EN_G = false) or (
       INT_CONFIG_G.TID_BITS_C = EMAC_TOKEN_BITS_C and
       PRIM_CONFIG_G.TID_BITS_C = EMAC_TOKEN_BITS_C and
-      PHY_TYPE_G = "GMII" and
+      (PHY_TYPE_G = "GMII" or PHY_TYPE_G = "XGMII") and
       PRIM_COMMON_CLK_G = true and
       DROP_ERR_PKT_G = true and
       BYP_EN_G = false and
       JUMBO_G = false and
       ROCEV2_EN_G = false)
-      report "EthMacTop: TIMING_EN_G requires the TID token internally and on the primary stream, GMII, PRIM_COMMON_CLK_G, DROP_ERR_PKT_G and no bypass, jumbo or RoCEv2"
+      report "EthMacTop: TIMING_EN_G requires the TID token internally and on the primary stream, GMII or XGMII, PRIM_COMMON_CLK_G, DROP_ERR_PKT_G and no bypass, jumbo or RoCEv2"
       severity failure;
+
+   TIMING_ABORT : if (TIMING_EN_G = true) generate
+      U_Abort : entity surf.EthMacTimingAbort
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
+         port map (
+            ethClk         => ethClk,
+            ethRst         => ethRst,
+            abortReq       => abortReq,
+            abortAck       => abortAck,
+            exportAbortReq => exportAbortReq,
+            exportAbortAck => exportAbortAck,
+            macRst         => macRst);
+      -- Timing mode requires primRst = ethRst, so the flush reaches both sides
+      primMacRst <= macRst;
+   end generate;
+
+   NO_TIMING_ABORT : if (TIMING_EN_G = false) generate
+      macRst         <= ethRst;
+      primMacRst     <= primRst;
+      exportAbortReq <= '0';
+      abortAck       <= ETH_MAC_ABORT_ACK_INIT_C;
+   end generate;
 
    ethStatus.rxPauseCnt <= rxPauseReq;
    ethStatus.rxOverFlow <= flowCtrl.overflow;
@@ -176,10 +209,10 @@ begin
       port map (
          -- Master Clock and Reset
          mClk        => ethClk,
-         mRst        => ethRst,
+         mRst        => macRst,
          -- Primary Interface
          sPrimClk    => primClk,
-         sPrimRst    => primRst,
+         sPrimRst    => primMacRst,
          sPrimMaster => ibMacPrimMaster,
          sPrimSlave  => ibMacPrimSlave,
          mPrimMaster => sPrimMaster,
@@ -217,7 +250,7 @@ begin
          -- Clocks
          ethClkEn       => ethClkEn,
          ethClk         => ethClk,
-         ethRst         => ethRst,
+         ethRst         => macRst,
          -- Primary Interface
          sPrimMaster    => sPrimMaster,
          sPrimSlave     => sPrimSlave,
@@ -247,7 +280,9 @@ begin
          txLinkNotReady => ethStatus.txNotReadyCnt,
          -- Timing port
          txFrameEvent   => txFrameEvent,
-         txRetire       => txRetire);
+         txRetire       => txRetire,
+         exportAbortReq => exportAbortReq,
+         exportAbortAck => exportAbortAck);
 
    ---------------------
    -- Flow Control Logic
@@ -260,7 +295,7 @@ begin
       port map (
          -- Clock and Reset
          ethClk   => ethClk,
-         ethRst   => ethRst,
+         ethRst   => macRst,
          -- Inputs
          primCtrl => mPrimCtrl,
          bypCtrl  => mBypCtrl,
@@ -292,7 +327,7 @@ begin
          -- Clock and Reset
          ethClkEn     => ethClkEn,
          ethClk       => ethClk,
-         ethRst       => ethRst,
+         ethRst       => macRst,
          -- Primary Interface
          mPrimMaster  => mPrimMaster,
          mPrimCtrl    => mPrimCtrl,
@@ -322,13 +357,11 @@ begin
          rxFrameEvent => rxFrameEvent,
          rxRetire     => rxRetireRx);
 
-   -- EthMacRx owns the import, pause and filter retires. The RX FIFO entries
-   -- belong to U_RxFifo below and are not yet implemented.
-   rxRetire(EMAC_RX_RETIRE_PAUSE_C)   <= rxRetireRx(EMAC_RX_RETIRE_PAUSE_C);
-   rxRetire(EMAC_RX_RETIRE_FILTER_C)  <= rxRetireRx(EMAC_RX_RETIRE_FILTER_C);
-   rxRetire(EMAC_RX_RETIRE_IMPORT_C)  <= rxRetireRx(EMAC_RX_RETIRE_IMPORT_C);
-   rxRetire(EMAC_RX_RETIRE_FIFO_IB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
-   rxRetire(EMAC_RX_RETIRE_FIFO_OB_C) <= ETH_MAC_TOKEN_RETIRE_INIT_C;
+   -- EthMacRx owns the import, pause and filter retires; U_RxFifo below
+   -- drives the two RX FIFO entries.
+   rxRetire(EMAC_RX_RETIRE_PAUSE_C)  <= rxRetireRx(EMAC_RX_RETIRE_PAUSE_C);
+   rxRetire(EMAC_RX_RETIRE_FILTER_C) <= rxRetireRx(EMAC_RX_RETIRE_FILTER_C);
+   rxRetire(EMAC_RX_RETIRE_IMPORT_C) <= rxRetireRx(EMAC_RX_RETIRE_IMPORT_C);
 
    ----------
    -- RX FIFO
@@ -348,18 +381,19 @@ begin
          BYP_EN_G          => BYP_EN_G,
          BYP_COMMON_CLK_G  => BYP_COMMON_CLK_G,
          BYP_CONFIG_G      => BYP_CONFIG_G,
-         INT_CONFIG_G      => INT_CONFIG_G)
+         INT_CONFIG_G      => INT_CONFIG_G,
+         TIMING_EN_G       => TIMING_EN_G)
       port map (
          -- Slave Clock and Reset
          sClk        => ethClk,
-         sRst        => ethRst,
+         sRst        => macRst,
          -- Status/Config (sClk domain)
          phyReady    => phyReady,
          rxFifoDrop  => ethStatus.rxFifoDropCnt,
          pauseThresh => ethConfig.pauseThresh,
          -- Primary Interface
          mPrimClk    => primClk,
-         mPrimRst    => primRst,
+         mPrimRst    => primMacRst,
          sPrimMaster => mPrimMaster,
          sPrimCtrl   => mPrimCtrl,
          mPrimMaster => obMacPrimMaster,
@@ -370,6 +404,9 @@ begin
          sBypMaster  => mBypMaster,
          sBypCtrl    => mBypCtrl,
          mBypMaster  => obMacBypMaster,
-         mBypSlave   => obMacBypSlave);
+         mBypSlave   => obMacBypSlave,
+         -- Timing port
+         retireIb    => rxRetire(EMAC_RX_RETIRE_FIFO_IB_C),
+         retireOb    => rxRetire(EMAC_RX_RETIRE_FIFO_OB_C));
 
 end mapping;
