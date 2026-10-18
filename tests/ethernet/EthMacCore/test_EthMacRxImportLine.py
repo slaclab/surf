@@ -34,11 +34,9 @@
 #   sample on rising edges before the registered `TPD_G` update. After each
 #   stream the bench waits a fixed, enable-scaled drain time for the import
 #   pipeline before comparing, so absence checks are bounded windows.
-# - Known issue: GMII reception with a gated ethClkEn is broken (see
-#   GMII_CLK_EN_ISSUE below). The default `rx_clk_en_recovery_test` allows
-#   loss but checks any delivery and recovery; the exact-frame contract for
-#   1-in-10 and 1-in-100 enables runs only with `RUN_KNOWN_ISSUE_TESTS=1` and
-#   fails until the RTL is fixed.
+# - Clock enable: required delivery with 1-in-10 and 1-in-100 enables,
+#   bad-FCS marking and status, and recovery after returning to full rate
+#   run by default (regression for report #6).
 # - Not covered (known-issue set, owned elsewhere): XGMII rxPhyReady loss or a
 #   nested /S/ while a frame is being received.
 
@@ -631,36 +629,24 @@ async def rx_phy_ready(dut):
 
 @cocotb.test()
 async def rx_clk_en_recovery_test(dut):
-    """Recovery after a gated interval; report #6 owns required delivery."""
+    """Exact delivery during a gated interval and after returning to full rate."""
     bench = RxLineBench(dut)
     assert bench.gmii, "clock-enable scenarios apply to GMII only"
     await bench.start(clk_en_period=10)
-    # Allow the documented loss until #6 is fixed without requiring that
-    # broken outcome forever. Any emitted frame must still be intact and
-    # have the correct error marker and status; gated tests require delivery.
     for length, bad_fcs in ((60, False), (64, True)):
         frame = random_frame(bench.rng, length)
         frames, delta, ctx = await bench.receive(gmii_symbols(frame, bad_fcs=bad_fcs), f"1-in-10 bad_fcs={bad_fcs}")
-        assert len(frames) <= 1, f"{ctx}: duplicate frames"
-        if frames:
-            bench.check_frame(frames[0], frame, eofe=int(bad_fcs), ctx=ctx)
-            assert delta == (CRC_ERROR if bad_fcs else GOOD), f"{ctx}: status {delta}"
-        else:
-            assert delta == NO_STATUS, f"{ctx}: status without a frame {delta}"
+        assert len(frames) == 1, f"{ctx}: {len(frames)} frames"
+        bench.check_frame(frames[0], frame, eofe=int(bad_fcs), ctx=ctx)
+        assert delta == (CRC_ERROR if bad_fcs else GOOD), f"{ctx}: status {delta}"
     # With the enable held high again the importer receives normally.
     await bench.hold_clk_en_high()
     await bench.recover("gated clock enable")
     await bench.close()
 
 
-# Catalog #6 (GMII_CLK_EN_ISSUE): EthMacRxImportGmii clears delRxDv on every clock
-# (EthMacRxImportGmii.vhd:147) but shifts it into delRxDvSr only on enabled
-# clocks (:160). The one-clock pulse set at the SFD (:175) is gone before the
-# next enabled clock, delRxDvSr(3) never rises and WAIT_DATA_S (:179-184)
-# never reaches GET_DATA_S, so 10/100 Mb/s reception is lost. The entrypoints
-# below assert the intended contract and fail on the current RTL; promote
-# them to the default run with the fix and drop rx_clk_en_recovery_test.
-KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
+# Report #6: retain the SFD pulse until the next enabled clock shifts it
+# into delRxDvSr, so WAIT_DATA_S reaches GET_DATA_S at 10/100 Mb/s.
 
 
 async def run_clk_en(dut, period: int, lengths: list[int]) -> None:
@@ -679,32 +665,28 @@ async def run_clk_en(dut, period: int, lengths: list[int]) -> None:
     await bench.close()
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP)
-async def rx_clk_en_1_in_10_known_issue(dut):
-    """GMII 100 Mb/s style enable, one enabled clock in ten (GMII_CLK_EN_ISSUE)."""
+@cocotb.test()
+async def rx_clk_en_1_in_10_test(dut):
+    """GMII 100 Mb/s style enable, one enabled clock in ten."""
     await run_clk_en(dut, 10, [60, 100, 129])
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP)
-async def rx_clk_en_1_in_100_known_issue(dut):
-    """GMII 10 Mb/s style enable, one enabled clock in a hundred (GMII_CLK_EN_ISSUE)."""
+@cocotb.test()
+async def rx_clk_en_1_in_100_test(dut):
+    """GMII 10 Mb/s style enable, one enabled clock in a hundred."""
     await run_clk_en(dut, 100, [60])
 
 
-KNOWN_ISSUE_CLK_EN_TESTS = ("rx_clk_en_1_in_10_known_issue", "rx_clk_en_1_in_100_known_issue")
-CLK_EN_TESTS = ("rx_clk_en_recovery_test",) + KNOWN_ISSUE_CLK_EN_TESTS
+CLK_EN_TESTS = ("rx_clk_en_recovery_test", "rx_clk_en_1_in_10_test", "rx_clk_en_1_in_100_test")
 GMII_ONLY_TESTS = ("rx_gmii_rx_er",) + CLK_EN_TESTS
 XGMII_ONLY_TESTS = ("rx_xgmii_error_char",)
-# cocotb runs a skip-marked test anyway when a filter names it, so the
-# clock-enable node only names the known-issue entrypoints when gated in.
-SELECTED_CLK_EN_TESTS = CLK_EN_TESTS if not KNOWN_ISSUE_SKIP else ("rx_clk_en_recovery_test",)
 
 # XLGMII is omitted: EthMacRxImportXlgmii is a placeholder leaf with no line
 # behaviour, this wrapper ties its pins off and there is no XLGMII line model.
 # test_EthMacRxImport.py keeps the inert-placeholder check.
 PARAMETER_SWEEP = [
     pytest.param({"PHY_TYPE_G": "GMII"}, cocotb_test_filter_excluding(*CLK_EN_TESTS, *XGMII_ONLY_TESTS), id="gmii"),
-    pytest.param({"PHY_TYPE_G": "GMII"}, cocotb_test_filter(*SELECTED_CLK_EN_TESTS), id="gmii_clk_en"),
+    pytest.param({"PHY_TYPE_G": "GMII"}, cocotb_test_filter(*CLK_EN_TESTS), id="gmii_clk_en"),
     pytest.param({"PHY_TYPE_G": "XGMII"}, cocotb_test_filter_excluding(*GMII_ONLY_TESTS), id="xgmii"),
 ]
 

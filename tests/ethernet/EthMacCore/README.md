@@ -94,7 +94,7 @@ is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-The confirmed defect reproducers below assert the intended behavior, fail on
+The unresolved defect reproducers below assert the intended behavior, fail on
 the current RTL for the documented reason, and run only with
 `RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
 that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
@@ -123,7 +123,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
 | 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
-| 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
+| 6 | 9 | Fixed; previously High, GMII 10/100 only | Retain `delRxDv` until the next enabled clock. Default `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_test`, `rx_clk_en_1_in_100_test` and `rx_clk_en_recovery_test` require exact delivery, bad-FCS marking/status and recovery at full rate. |
 | 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
