@@ -17,8 +17,9 @@
 # - Stimulus / expected failures:
 #   #3: TX oversize followed by three distinct UDP frames loses the first and
 #       assigns earlier transaction lengths/checksums to subsequent frames.
-#   #5: XGMII RX link loss continues unterminated beats; the full MAC then
-#       swallows the first recovery frame while the checksum stage blows off.
+#   #5 fixed: XGMII RX link loss closes the active frame with EOFE, emits
+#       no further outage beats, and preserves the first recovery frame.
+#       Both start lanes, early loss and one-clock outages are exercised.
 #   #4: XGMII TX link loss sends the remaining bytes as a new valid-FCS frame.
 #   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
 #        lockup-reset event is not independently reproduced.
@@ -327,8 +328,8 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=100, timeout_unit="us")
-async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_xgmii_import_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     driver = XgmiiDriver(dut, clk=bench.clk)
     collector = EmacFrameCollector(dut, clk=bench.clk)
@@ -366,13 +367,42 @@ async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
         f"{describe_bytes(frame.payload, {'recovery': recovery})} eofe={frame.eofe}" for frame in collector.frames
     ) or "none"
     assert interrupted_closed and outage_beats == 0 and len(recovered) == 1, (
-        "Known defect (EthMacRxImportXgmii phyReady loss): phyReady clears the frame and "
-        "CRC pipeline but not intAdvance, so the importer keeps emitting beats with no "
-        "tLast and merges them with the next frame. "
+        "Report #5: link loss must terminate the partial frame with EOFE and preserve recovery. "
         f"seed={SEED + 1:#x}; interrupted frame closed within 16 clocks: "
         f"{interrupted_closed}; beats emitted during the next 184 link-down clocks: "
         f"{outage_beats}; importer frames: [{observed}]"
     )
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_link_loss_boundaries_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    rng = random.Random(SEED + 8)
+    # Drop before and after AXI output starts, at either /S/ alignment.
+    for lane in (0, 4):
+        for words, outage in ((1, 1), (3, 1), (5, 32), (25, 1)):
+            first = len(collector.frames)
+            interrupted = random_frame(rng, 400)
+            partial = xgmii_lanes(interrupted, terminate=False)[:8 * words - lane]
+            await driver.send(xgmii_words_from_lanes(partial, start_lane=lane, ifg=0))
+            dut.rxPhyReady.value = 0
+            await cycle(bench.clk, outage)
+            await FallingEdge(bench.clk)
+            dut.rxPhyReady.value = 1
+            # Send on the next available line clock: recovery must not need
+            # an extra idle window to flush stale CRC/FIFO data.
+            recovery = random_frame(rng, 100)
+            await driver.send(xgmii_words(recovery, start_lane=lane))
+            await cycle(bench.clk, 100)
+            observed = collector.frames[first:]
+            assert observed and observed[-1].payload == recovery and observed[-1].eofe == 0, (
+                lane, words, outage, collector.describe()
+            )
+            aborted = observed[:-1]
+            assert len(aborted) <= 1 and all(frame.eofe == 1 for frame in aborted), (lane, words, aborted)
+            assert not collector.open_beats, collector.describe()
 
 
 @cocotb.test(timeout_time=100, timeout_unit="us")
@@ -415,8 +445,8 @@ async def rx_xgmii_import_nested_start_recovery_test(dut):
     assert not failures, "Nested /S/ broke clean recovery: " + " | ".join(failures)
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=300, timeout_unit="us")
-async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_top_link_loss_recovery_test(dut):
     driver, collector, status = await start_top_phy_bench(dut)
     rng = random.Random(SEED + 1)
     interrupted = random_frame(rng, 400)
@@ -448,9 +478,7 @@ async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
     names = {"first_good": first_good, "second_good": second_good}
     observed = "; ".join(describe_bytes(payload, names) for payload in delivered) or "none"
     assert delivered == [first_good, second_good], (
-        "Known defect (EthMacRxImportXgmii phyReady loss + EthMacRxCsum blow-off): the "
-        "importer keeps emitting beats without tLast after phyReady drops, EthMacRxCsum "
-        "closes them at 1500 bytes and its BLOWOFF_S swallows the next frame. "
+        "Report #5: the RX checksum stage must receive EOF on link loss and preserve both recovery frames. "
         f"seed={SEED + 1:#x}; expected [first_good, second_good]; delivered [{observed}] "
         f"({collector.describe()}); {top_status(status)}"
     )
@@ -760,20 +788,10 @@ KNOWN_ISSUE_CASES = [
         IMPORT_EXPORT_WRAPPER,
         {"PHY_TYPE_G": "XGMII"},
         (
-            "rx_xgmii_import_link_loss_emits_beats_known_issue_test",
             "tx_xgmii_link_loss_sends_valid_fragment_known_issue_test",
             "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
         ),
         id="xgmii_import_export",
-    ),
-    pytest.param(
-        "surf.ethmactopphywrapper",
-        TOP_PHY_WRAPPER,
-        {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
-        (
-            "rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test",
-        ),
-        id="rx_xgmii_top",
     ),
     pytest.param(
         "surf.ethmacimportexportwrapper",
@@ -799,6 +817,19 @@ KNOWN_ISSUE_CASES = [
 def test_EthMacKnownIssues(toplevel, wrapper, parameters, entrypoints):
     if KNOWN_ISSUE_SKIP:
         pytest.skip("unresolved RTL reports; set RUN_KNOWN_ISSUE_TESTS=1")
+    _run_case(toplevel, wrapper, parameters, entrypoints)
+
+
+FIXED_ISSUE_CASES = [
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
+                 ("rx_xgmii_import_link_loss_recovery_test", "rx_xgmii_link_loss_boundaries_test"), id="xgmii_rx_link_loss"),
+    pytest.param("surf.ethmactopphywrapper", TOP_PHY_WRAPPER, {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
+                 ("rx_xgmii_top_link_loss_recovery_test",), id="xgmii_rx_top_link_loss"),
+]
+
+
+@pytest.mark.parametrize("toplevel, wrapper, parameters, entrypoints", FIXED_ISSUE_CASES)
+def test_EthMacFixedIssues(toplevel, wrapper, parameters, entrypoints):
     _run_case(toplevel, wrapper, parameters, entrypoints)
 
 
