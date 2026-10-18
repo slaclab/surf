@@ -12,18 +12,15 @@
 # - Sweep: XGMII EthMacTop with independent receive pins, asynchronous primary
 #   clock, all runtime checksum enables set, and error dropping on/off.
 # - Stimulus: Valid IPv4/UDP, IPv4/ICMP and fragmented UDP at short wire gaps,
-#   both start lanes and 64/65-byte boundaries. A separate gated regression
+#   both start lanes and 64/65-byte boundaries. A separate regression
 #   injects bad Ethernet FCS into otherwise valid UDP and follows with a good
 #   frame. This preserves the physical reproduction of catalog report #1.
 # - Checks: Exact ordered payload, SOF/TKEEP, FRAG and checksum/error sidebands,
 #   no unfinished output, exact importer CRC status. Bad FCS must retain EOFE
-#   when forwarding or be discarded when error dropping is enabled. The bad
-#   FCS entrypoint fails on current RTL; promote it with the separate RTL fix.
+#   when forwarding or be discarded when error dropping is enabled.
 # - Timing: PHY stimulus changes on falling edges, output accepts every beat;
 #   drain is bounded and both entrypoints have a final watchdog. Four idle
 #   octets after /T/ plus start-lane alignment exercise tight RX spacing.
-
-import os
 
 import cocotb
 import pytest
@@ -48,9 +45,6 @@ from tests.ethernet.EthMacCore.test_EthMacKnownIssues import (
     TOP_PHY_WRAPPER,
     start_top_phy_bench,
 )
-
-
-KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
 
 
 def ipv4_frame(length, *, fragment=False, udp=True):
@@ -118,8 +112,8 @@ async def rx_checksums_from_phy_test(dut):
         await cancel_and_join_tasks([collector.task, status.task])
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=100, timeout_unit="us")
-async def rx_bad_fcs_preserves_error_known_issue_test(dut):
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_bad_fcs_preserves_error_test(dut):
     driver, collector, status = await start_checked_rx(dut)
     try:
         errored, recovery = ipv4_frame(102), ipv4_frame(78)
@@ -142,9 +136,7 @@ async def rx_bad_fcs_preserves_error_known_issue_test(dut):
 @pytest.mark.parametrize("drop_err", ["true", "false"], ids=["drop_errors", "forward_errors"])
 def test_EthMacRxChecksumIntegration(drop_err):
     parameters = {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false", "DROP_ERR_PKT_G": drop_err}
-    scenarios = ["rx_checksums_from_phy_test"]
-    if not KNOWN_ISSUE_SKIP:
-        scenarios.append("rx_bad_fcs_preserves_error_known_issue_test")
+    scenarios = ["rx_checksums_from_phy_test", "rx_bad_fcs_preserves_error_test"]
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.ethmactopphywrapper",
