@@ -11,9 +11,9 @@
 # Test methodology:
 # - Sweep: EthMacTxCsum behind `EthMacTxCsumWrapper` (direct output, no RX
 #   checker). `drop_err` (DROP_ERR_PKT_G=true, JUMBO_G=false) runs every
-#   entrypoint. `pass_err` (DROP_ERR_PKT_G=false) runs the two entrypoints
-#   whose expectations depend on that generic: the EOFE policy and the random
-#   mix. `drop_err_jumbo` (JUMBO_G=true) runs the size boundary and the random
+#   entrypoint. `pass_err` (DROP_ERR_PKT_G=false) runs the EOFE policy,
+#   oversize recovery and random mix. `drop_err_jumbo` (JUMBO_G=true) runs
+#   the size boundary, oversize recovery and the random
 #   mix with jumbo lengths. The other entrypoints do not depend on these
 #   generics, and the simulation is slow enough (~300 cycles/s) that repeating
 #   them would exceed the runtime budget.
@@ -22,7 +22,10 @@
 #   insertion across all eight `ipCsumEn`/`udpCsumEn`/`tcpCsumEn` settings
 #   (odd payloads, zeroed and garbage checksums and lengths, sums that fold to
 #   zero), IPv4 fragments, non-IPv4 and 802.1Q-tagged frames, and the frame
-#   size boundary. A seeded random mix (`ETHMAC_CSUM_SEED`, default 0xC5A1)
+#   size boundary. Oversize non-IP/UDP/TCP frames are followed by distinct
+#   clean frames with input gaps and output backpressure; error forwarding
+#   must deliver exactly one truncated EOFE frame per oversize input.
+#   A seeded random mix (`ETHMAC_CSUM_SEED`, default 0xC5A1)
 #   of 200 frames runs in eight batches, one per enable setting, with random
 #   source gaps and sink backpressure.
 # - Checks: every delivered frame is compared byte-for-byte with a reference
@@ -37,11 +40,8 @@
 #   seen exactly once. Enables are changed only while the DUT is drained,
 #   because the RTL samples them as each frame leaves its cache FIFO. Every
 #   wait is bounded by a cycle limit scaled to the frame size.
-#   Oversize TX frames are not sent: the RTL truncates any frame whose byte
-#   count reaches beyond the limit before its last beat (1521+ bytes, or
-#   9025+ bytes with JUMBO_G), and that branch is in the known-issue set
-#   (missing tLast in Fifo_Cache, following frame lost, Fifo_Trans
-#   misaligned). The admitted maxima of 1520 and 9024 bytes are covered.
+#   Frames beyond the admitted maxima of 1520 and 9024 bytes are truncated
+#   at those boundaries and either dropped or forwarded with EOFE.
 #   IPv4 options (IHL > 5) and RoCEv2 (`ROCEV2_EN_G`) are not covered.
 
 from __future__ import annotations
@@ -226,7 +226,10 @@ def tx_model_frame(frame: bytes, *, frag: int, ip: int, udp: int, tcp: int) -> b
     return bytes(out)
 
 
-def tx_expectation(frame: bytes, *, frag: int, eofe: int, enables: dict[str, int], drop: bool, note: str = "") -> FrameExpectation:
+def tx_expectation(frame: bytes, *, frag: int, eofe: int, enables: dict[str, int], drop: bool, max_admitted: int, note: str = "") -> FrameExpectation:
+    if len(frame) > max_admitted:
+        frame = frame[:max_admitted]
+        eofe = 1
     eofe_out = 1 if tx_short_ipv4(frame) else eofe
     if drop and eofe_out:
         # EthMacTxCsum.vhd:437-440 suppresses every beat of an EOFE frame.
@@ -338,7 +341,7 @@ class TxCsumBench:
         """Send stimuli, check the output against the model and return the delivered frames."""
         start = len(self.frames)
         expectations = [
-            tx_expectation(s.frame, frag=s.frag, eofe=s.eofe, enables=self.enables, drop=self.drop, note=s.note)
+            tx_expectation(s.frame, frag=s.frag, eofe=s.eofe, enables=self.enables, drop=self.drop, max_admitted=self.max_admitted, note=s.note)
             for s in stimuli
         ]
         delivered = [(index, s, e) for index, (s, e) in enumerate(zip(stimuli, expectations)) if e.delivered]
@@ -575,7 +578,7 @@ async def tx_size_boundary(dut):
     if bench.jumbo:
         # Jumbo lengths are slow to simulate, so each appears once.
         sizes += [("udp", MAX_ADMITTED_STD + 1), ("tcp", 4097), ("udp", 9014), ("udp", 9015), ("tcp", MAX_ADMITTED_JUMBO)]
-    assert max(size for _, size in sizes) <= bench.max_admitted, "oversize TX frames belong to the known-issue set"
+    assert max(size for _, size in sizes) <= bench.max_admitted
     stimuli = []
     for kind, size in sizes:
         if kind == "udp":
@@ -594,6 +597,36 @@ async def tx_size_boundary(dut):
     # (EthMacTxCsum.vhd:385 checks the limit only on non-last beats).
     by_note = {s.note: payload_from_beats(beats) for _, s, beats in results}
     assert get16(by_note[f"udp_{MAX_ADMITTED_STD}"], 16) == MAX_ADMITTED_STD - 14
+
+
+@cocotb.test()
+async def tx_oversize_recovery(dut):
+    """Report #3: each truncated cache frame consumes exactly one transaction."""
+    bench = TxCsumBench(dut)
+    await bench.start()
+    bench.ready_probability = 0.5
+    bench.source_gap_probability = 0.2
+    limit = bench.max_admitted
+    oversize = [
+        build_ethernet_frame(dst_mac=DST_MAC, src_mac=SRC_MAC, eth_type=0x88B5,
+                             payload=random_payload(bench.rng, limit + 1 - 14)),
+        udp_frame(random_payload(bench.rng, limit + 16 - 42), ip_csum=0, udp_csum=0),
+        tcp_frame(random_payload(bench.rng, limit + 129 - 54), ip_csum=0, tcp_csum=0),
+    ]
+    stimuli = []
+    for index, frame in enumerate(oversize):
+        stimuli.append(TxStimulus(frame, note=f"oversize_{index}"))
+        for length in (40, 100, 70):
+            canary = udp_frame(bytes([index + length]) * length, ip_csum=0, udp_csum=0)
+            stimuli.append(TxStimulus(canary, note=f"recovery_{index}_{length}"))
+    results = await bench.run(stimuli)
+    assert len(results) == (9 if bench.drop else 12)
+    for _, stimulus, beats in results:
+        truncated = stimulus.note.startswith("oversize_")
+        assert beats[-1].eofe == int(truncated), stimulus.note
+        if truncated:
+            assert len(payload_from_beats(beats)) == limit, stimulus.note
+        assert_standard_checksums(payload_from_beats(beats), frag=0, enables=bench.enables, context=stimulus.note)
 
 
 ###############################################################################
@@ -691,12 +724,14 @@ ALL_TESTS = (
     "tx_fragments",
     "tx_non_ipv4_untouched",
     "tx_size_boundary",
+    "tx_oversize_recovery",
     "tx_random_scoreboard",
 )
 PARAMETER_SWEEP = [
     pytest.param({"DROP_ERR_PKT_G": "true", "JUMBO_G": "false"}, ALL_TESTS, id="drop_err"),
-    pytest.param({"DROP_ERR_PKT_G": "false", "JUMBO_G": "false"}, ("tx_eofe_policy", "tx_random_scoreboard"), id="pass_err"),
-    pytest.param({"DROP_ERR_PKT_G": "true", "JUMBO_G": "true"}, ("tx_size_boundary", "tx_random_scoreboard"), id="drop_err_jumbo"),
+    pytest.param({"DROP_ERR_PKT_G": "false", "JUMBO_G": "false"}, ("tx_eofe_policy", "tx_oversize_recovery", "tx_random_scoreboard"), id="pass_err"),
+    pytest.param({"DROP_ERR_PKT_G": "true", "JUMBO_G": "true"}, ("tx_size_boundary", "tx_oversize_recovery", "tx_random_scoreboard"), id="drop_err_jumbo"),
+    pytest.param({"DROP_ERR_PKT_G": "false", "JUMBO_G": "true"}, ("tx_oversize_recovery",), id="pass_err_jumbo"),
 ]
 
 
