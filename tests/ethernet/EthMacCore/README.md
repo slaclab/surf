@@ -94,7 +94,7 @@ is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-The confirmed defect reproducers below assert the intended behavior, fail on
+The unresolved defect reproducers below assert the intended behavior, fail on
 the current RTL for the documented reason, and run only with
 `RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
 that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
@@ -124,7 +124,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
 | 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
-| 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
+| 7 | 7 | Fixed; previously High, error forwarding | Propagate TX EOFE as GMII TX_ER or invalid XGMII FCS, including final beats at/above the padding boundary. Default `tx_eofe_frame_is_rejected_test` checks both PHYs across frame lengths and requires intact clean frames after every error. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
 | 10 | 15 | Medium; threshold boundary | `pauseThresh >= depth-1` is unreachable after writes stop at depth-2; default 562 is affected with a 512-entry FIFO. `test_EthMacRxFifoFlow.py::rx_fifo_pause_threshold_clamp_known_issue_test`. |

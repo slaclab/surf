@@ -430,7 +430,8 @@ begin
             -- Generate CRC Mask Value for CRC append after delay buffer.
             -- depends on number of bytes in last transfer
             if intLastLine = '1' and frameShift0 = '1' then
-               if intError = '1' then   -- Corrupt CRC
+               -- Include EOFE from the final beat being accepted now.
+               if nxtError = '1' then   -- Corrupt CRC
                   crcMaskIn <= x"FF" after TPD_G;
                   nxtMaskIn <= x"00" after TPD_G;
                else

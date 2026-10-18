@@ -22,7 +22,8 @@
 #   #4: XGMII TX link loss sends the remaining bytes as a new valid-FCS frame.
 #   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
 #        lockup-reset event is not independently reproduced.
-#   #7: EOFE TX frames leave with valid FCS (all GMII lengths, XGMII >=57).
+#   #7 fixed: EOFE TX frames must carry a line error or invalid FCS across
+#       padding/beat boundaries; every following clean frame is intact.
 #   #8: RX_ER followed by payload 0xD5 inside RX_DV starts a spurious frame.
 #   #16 policy candidate: nested XGMII /S/ sweeps both start lanes. Accept
 #       salvage or discard, require no clean merged frame and intact recovery.
@@ -627,7 +628,7 @@ async def rx_fifo_outbound_drop_not_counted_known_issue_test(dut):
 
 
 ###############################################################################
-# Report #7: EOFE frames leave the exporter with a valid FCS
+# Report #7: EOFE frames must be rejected on the wire
 ###############################################################################
 
 EOFE_LENGTHS = {
@@ -649,23 +650,28 @@ def length_ranges(lengths: list[int]) -> str:
     return ", ".join(f"{low}" if low == high else f"{low}-{high}" for low, high in ranges) or "none"
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=500, timeout_unit="us")
-async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
+@cocotb.test(timeout_time=500, timeout_unit="us")
+async def tx_eofe_frame_is_rejected_test(dut):
     phy = os.environ["PHY_TYPE_G"]
     bench = await start_import_export_bench(dut)
     monitor = XgmiiMonitor(dut, clk=bench.clk) if phy == "XGMII" else GmiiMonitor(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"txCountEn": dut.txCountEn, "txUnderRun": dut.txUnderRun})
     rng = random.Random(SEED + 6)
 
-    # Every frame is closed with EOFE on its last beat, as EthMacTx forwards
-    # it with DROP_ERR_PKT_G=false. Frames go back-to-back.
+    # Forward EOFE as with DROP_ERR_PKT_G=false. Follow every errored frame
+    # immediately with a clean frame to check that error state does not leak.
     lengths = EOFE_LENGTHS[phy]
     frames = [random_frame(rng, length) for length in lengths]
-    await send_frame_burst(bench.source, [frame_beats_from_bytes(frame, eofe=1) for frame in frames], clk=bench.clk)
+    recovery = [random_frame(rng, 100) for _ in frames]
+    beats = []
+    for errored, clean in zip(frames, recovery, strict=True):
+        beats.extend((frame_beats_from_bytes(errored, eofe=1), frame_beats_from_bytes(clean)))
+    await send_frame_burst(bench.source, beats, clk=bench.clk)
     per_frame = 90 if phy == "XGMII" else 1600
-    await wait_until(lambda: len(monitor.frames) >= len(frames), clk=bench.clk, cycles=per_frame * len(frames))
+    await wait_until(lambda: len(monitor.frames) >= len(beats), clk=bench.clk, cycles=per_frame * len(beats))
     await cycle(bench.clk, 100)
-    assert len(monitor.frames) == len(frames), (
-        f"Bench: {len(monitor.frames)} line frames decoded for {len(frames)} submitted"
+    assert len(monitor.frames) == len(beats), (
+        f"Bench: {len(monitor.frames)} line frames decoded for {len(beats)} submitted"
     )
 
     # Expected: every EOFE frame that reaches the line carries an invalid FCS
@@ -675,7 +681,7 @@ async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
     # exporter pads short frames to 61 octets (baseline behaviour owned by
     # test_EthMacTxExportLine).
     valid_fcs = []
-    for length, frame, line in zip(lengths, frames, monitor.frames, strict=True):
+    for length, frame, line in zip(lengths, frames, monitor.frames[::2], strict=True):
         prefix = min(len(frame), 56)
         assert line.preamble_ok and line.frame[:prefix] == frame[:prefix], (
             f"Bench: line frame for length {length} does not start with the submitted payload"
@@ -683,18 +689,16 @@ async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
         if line.fcs_ok and not line.error:
             valid_fcs.append(length)
     assert not valid_fcs, (
-        f"Known defect (EthMacTxExport{'Gmii' if phy == 'GMII' else 'Xgmii'} EOFE): "
-        + (
-            "EthMacTxExportGmii never looks at EOFE, so an EOFE frame leaves with a valid FCS. "
-            if phy == "GMII"
-            else "when tLast falls on the 8th or later 64-bit word (ST_READ_C, exportWordCnt >= 7) "
-            "intLastLine is set in the same cycle that EOFE is ORed into nxtError, so the FCS "
-            "mask is chosen from the old intError and the EOFE is lost; only frames finished "
-            "through ST_PAD_C (<= 56 bytes) get the inverted FCS. "
-        )
-        + f"seed={SEED + 6:#x}; EOFE frames with a valid FCS on the line, by length (bytes "
+        f"Report #7 ({phy}): EOFE must produce a line error or invalid FCS. "
+        f"seed={SEED + 6:#x}; EOFE frames with a valid FCS on the line, by length (bytes "
         f"without FCS): {length_ranges(valid_fcs)}; tested lengths: {length_ranges(lengths)}"
     )
+    for expected, line in zip(recovery, monitor.frames[1::2], strict=True):
+        assert line.frame == expected and line.preamble_ok and line.terminated and line.fcs_ok and not line.error, (
+            f"{phy}: EOFE leaked into the following clean frame"
+        )
+    assert not monitor.frame_pending, f"{phy}: unterminated frame after recovery"
+    assert status.counts == {"txCountEn": len(beats), "txUnderRun": 0}, status.counts
 
 
 ###############################################################################
@@ -762,7 +766,6 @@ KNOWN_ISSUE_CASES = [
         (
             "rx_xgmii_import_link_loss_emits_beats_known_issue_test",
             "tx_xgmii_link_loss_sends_valid_fragment_known_issue_test",
-            "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
         ),
         id="xgmii_import_export",
     ),
@@ -780,7 +783,6 @@ KNOWN_ISSUE_CASES = [
         IMPORT_EXPORT_WRAPPER,
         {"PHY_TYPE_G": "GMII"},
         (
-            "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
             "rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test",
         ),
         id="gmii_import_export",
@@ -799,6 +801,18 @@ KNOWN_ISSUE_CASES = [
 def test_EthMacKnownIssues(toplevel, wrapper, parameters, entrypoints):
     if KNOWN_ISSUE_SKIP:
         pytest.skip("unresolved RTL reports; set RUN_KNOWN_ISSUE_TESTS=1")
+    _run_case(toplevel, wrapper, parameters, entrypoints)
+
+
+FIXED_ISSUE_CASES = [
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": phy},
+                 ("tx_eofe_frame_is_rejected_test",), id=f"{phy.lower()}_tx_eofe")
+    for phy in ("GMII", "XGMII")
+]
+
+
+@pytest.mark.parametrize("toplevel, wrapper, parameters, entrypoints", FIXED_ISSUE_CASES)
+def test_EthMacFixedIssues(toplevel, wrapper, parameters, entrypoints):
     _run_case(toplevel, wrapper, parameters, entrypoints)
 
 
