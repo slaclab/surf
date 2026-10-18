@@ -23,7 +23,7 @@
 #   0xC5A2) of 320 wire-sized frames runs in eight enable batches with random
 #   TVALID gaps from the third beat on and random interframe gaps.
 #   Back-to-back (0/1 idle cycle) frames are mixed in only while `ipCsumEn` is
-#   low, and no gap is placed after the SOF beat (known issues 3 and 4).
+#   low, and no gap is placed after the SOF beat (known issues 11 and 12).
 # - Checks: every output frame is compared with a reference model: delivered
 #   bytes (truncation included), TKEEP, SOF, FRAG on the first beat, and
 #   IPERR/TCPERR/UDPERR on the last beat. EOFE is expected to be the OR of the
@@ -42,11 +42,11 @@
 #      leaves with EOFE=0.
 #   2. `rx_one_byte_last_beat_known_issue_test`: on a 16*n+1 byte frame IPERR
 #      shares tUser lane 0 with SOF and :357-360 overwrite EOFE with fragDet.
-#   3. `rx_back_to_back_known_issue_test`: getEthMacCsum (EthMacPkg.vhd)
+#   11. `rx_back_to_back_known_issue_test`: getEthMacCsum (EthMacPkg.vhd)
 #      compares a delayed ipCsum with hdrCsum read live from r.ipv4Hdr, which
 #      the next frame overwrites (:206, :226-241) within 0-1 idle cycles (0
 #      after an oversize cut, which skips pipeFlush at :331-337).
-#   4. `rx_frag_after_sof_gap_known_issue_test`: a TVALID gap after SOF while
+#   12. `rx_frag_after_sof_gap_known_issue_test`: a TVALID gap after SOF while
 #      the previous frame still flushes (:140-141) puts a bubble behind SOF
 #      and FRAG (:357-360) reads its fragDet.
 # - Timing: EthMacRxCsum has no backpressure, so the source presents one beat
@@ -54,9 +54,10 @@
 #   the registered `TPD_G` update. Enables change only while the pipeline is
 #   drained, because the RTL samples them as the last beat leaves. Every wait
 #   is bounded by a cycle limit scaled to the frame size.
-#   Not covered: runt frames of 17..59 bytes (never delivered by the line
-#   importers after padding; their verdicts reuse header state left by the
-#   previous frame), IPv4 options (IHL > 5), RoCEv2 and asynchronous reset.
+#   Not covered: runt frames of 17..59 bytes. The RX importers DO deliver
+#   good-FCS runts without padding (see rx_runts); checksum handling and
+#   subsequent-frame recovery on this exposed malformed-input path remain
+#   unverified. Also excluded: IPv4 options (IHL > 5), RoCEv2 and async reset.
 
 from __future__ import annotations
 
@@ -762,7 +763,7 @@ async def rx_one_byte_last_beat_known_issue_test(dut):
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP)
 async def rx_back_to_back_known_issue_test(dut):
-    """Known issue 3: the next frame's header corrupts a closely followed IPv4 verdict."""
+    """Known issue 11: the next frame's header corrupts a closely followed IPv4 verdict."""
     bench = RxCsumBench(dut)
     await bench.start()
     wrong = {}
@@ -783,7 +784,7 @@ async def rx_back_to_back_known_issue_test(dut):
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP)
 async def rx_frag_after_sof_gap_known_issue_test(dut):
-    """Known issue 4: FRAG lost after a TVALID gap behind SOF during a flush."""
+    """Known issue 12: FRAG lost after a TVALID gap behind SOF during a flush."""
     bench = RxCsumBench(dut)
     await bench.start()
     wrong = {}
@@ -850,10 +851,10 @@ def random_rx_stimulus(rng: random.Random, bench: RxCsumBench) -> RxStimulus:
             frame = patch16(frame, 24, internet_checksum(frame[14:34]))
     frame = pad(frame)
     eofe = int(rng.random() < 0.08)
-    # Back-to-back frames corrupt the IPv4 header verdict (known issue 3), so
+    # Back-to-back frames corrupt the IPv4 header verdict (known issue 11), so
     # they are only mixed in while the header check is disabled; the
     # transport checks see them either way. The source never gaps between
-    # the first two beats (known issue 4).
+    # the first two beats (known issue 12).
     gap = rng.choice([0, 0, 1, 2, 4]) if not bench.enables["ip"] else rng.choice([2, 3, 4])
     return RxStimulus(frame, eofe=eofe, gap_after=gap, note=f"{kind} len={len(frame)} eofe={eofe} gap={gap}")
 

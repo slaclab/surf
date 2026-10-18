@@ -13,7 +13,10 @@
 #   defaults; filter plus pause with a common primary clock; bypass with an
 #   asynchronous bypass clock; an asynchronous, slower primary clock;
 #   `DROP_ERR_PKT_G = false`; jumbo frames; and a small RX FIFO forced to
-#   overflow. Each case has a fixed seed. `RUN_ETHMAC_EXTENDED_TESTS=1` adds a
+#   overflow. The short default matrix combines slow-primary CDC with bypass;
+#   reset runs on GMII defaults and XGMII bypass/CDC. Directed first frames
+#   guarantee each enabled route, error-drop and jumbo path before random
+#   traffic. Each case has a fixed seed. `RUN_ETHMAC_EXTENDED_TESTS=1` adds a
 #   soak with more frames and several seeds per case, plus a GMII 1-in-10
 #   `ethClkEn` (100 Mb/s) TX case.
 # - Stimulus: Independent seeded random traffic in both directions through
@@ -22,8 +25,10 @@
 #   lengths, input gaps and EOFE; RX frames are driven onto the line with good
 #   or bad FCS, GMII RX_ER, pause frames, foreign/multicast/broadcast
 #   destinations and the bypass EtherType, with random sink backpressure.
+#   The small-FIFO case first blocks RX and requires an overflow pulse.
 #   Traffic runs in bursts separated by `phyReady` low windows while both
-#   directions are idle. A second scenario asserts every reset mid-traffic.
+#   directions are idle. Selected cases assert every reset during an observed
+#   TX frame; extended cases repeat reset throughout the original matrix.
 # - Checks: Every frame carries a stream/epoch/sequence tag. A reference model
 #   gives each frame's expected disposition: delivered intact, delivered with
 #   EOFE, or dropped. Line frames must have a valid preamble and FCS, the
@@ -35,14 +40,14 @@
 #   `rxFifoDropCnt` pulse. After a reset no frame from before it may appear,
 #   and traffic after it must be exact. Failures report seed and frame index.
 # - Timing: All waits are bounded by frame-count-scaled cycle limits; monitors
-#   sample accepted handshakes and PHY pins on rising edges before the DUT's
-#   `TPD_G` update, and stimulus changes on falling edges.
+#   check stalled beat stability, accepted handshakes and PHY pins on rising
+#   edges before the DUT's `TPD_G` update; stimulus changes on falling edges.
 #
 # Known defects kept out of the default run (see the EthMacCore test README):
 # `phyReady` changes only while both directions are idle, because mid-frame
 # link loss reaches the XGMII importer/exporter and GMII exporter defects; TX
 # frames never exceed the checksum stage's size limit; and EOFE TX frames are
-# not sent on GMII with `DROP_ERR_PKT_G = false`, whose exporter ignores EOFE.
+# not sent with `DROP_ERR_PKT_G = false`, since both exporters can lose EOFE.
 
 from __future__ import annotations
 
@@ -57,6 +62,8 @@ from cocotb.triggers import FallingEdge, RisingEdge
 
 from tests.common.regression_utils import (
     cancel_and_join_tasks,
+    cocotb_filtered_env,
+    cocotb_test_filter,
     env_flag,
     env_int,
     hdl_parameters_from,
@@ -79,6 +86,8 @@ from tests.ethernet.EthMacCore.ethmac_line_models import (
 )
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
+    EmacStallChecker,
+    EmacBeat,
     build_ethernet_frame,
     build_pause_frame,
     mac_config_word_from_wire,
@@ -148,8 +157,8 @@ class TopConfig:
         return cls(
             phy=phy,
             seed=env_int("SEED", default=1),
-            frames=env_int("FRAMES", default=120),
-            bursts=env_int("BURSTS", default=3),
+            frames=env_int("FRAMES", default=12),
+            bursts=env_int("BURSTS", default=2),
             filt_en=env_flag("FILT_EN_G", default=False),
             pause_en=env_flag("PAUSE_EN_G", default=True),
             drop_err=env_flag("DROP_ERR_PKT_G", default=True),
@@ -245,6 +254,9 @@ class TopBench:
         self.epoch = 0
         self.expected: dict[tuple[int, int, int], Expected] = {}
         self.tx_order: dict[int, list[tuple[int, int, int]]] = {STREAM_TX_PRIM: [], STREAM_TX_BYP: []}
+        self.rx_order: dict[str, list[tuple[int, int, int]]] = {"prim": [], "byp": []}
+        self.open_beats = {"prim": [], "byp": []}
+        self.force_stall = False
         self.errors: list[str] = []
         self.delivered = {"prim": [], "byp": []}
         self.pause_frames_on_line = 0
@@ -252,6 +264,8 @@ class TopBench:
         self.ignore_line_until = 0
         self.tasks: list = []
         self.seq = 0
+        self.rx_index = 0
+        self.tx_index = {STREAM_TX_PRIM: 0, STREAM_TX_BYP: 0}
         self.rx_pause_sent = 0
         self.line_index = 0
         self.last_sink_activity = 0
@@ -356,22 +370,48 @@ class TopBench:
         ready = getattr(dut, f"{prefix}TReady")
         valid = getattr(dut, f"{prefix}TValid")
         rng = random.Random(self.cfg.seed * 7 + (1 if name == "byp" else 0))
-        beats: list[tuple[bytes, int, int]] = []
+        fields = {"data": "TData", "keep": "TKeep", "last": "TLast", "sof": "Sof", "eofe": "Eofe"}
+        if name == "prim":
+            fields.update(frag="Frag", iperr="IpErr", tcperr="TcpErr", udperr="UdpErr")
+        signals = {field: getattr(dut, f"{prefix}{suffix}") for field, suffix in fields.items()}
+        stability = EmacStallChecker()
+        beats = self.open_beats[name]
         while True:
             await FallingEdge(clk)
             if self.in_reset:
-                beats = []
+                beats.clear()
+                stability.pending = None
                 ready.value = 0
                 continue
-            ready.value = 0 if rng.random() < self.cfg.backpressure else 1
+            ready.value = 0 if self.force_stall or rng.random() < self.cfg.backpressure else 1
             await RisingEdge(clk)
             if self.in_reset:
-                beats = []
+                beats.clear()
+                stability.pending = None
                 continue
+            beat = EmacBeat(**{field: int(signal.value) for field, signal in signals.items()}) if resolved_int(valid) else None
+            try:
+                stability.sample(valid=resolved_int(valid), ready=resolved_int(ready), beat=beat)
+            except AssertionError as error:
+                # Report from the main test, after orderly agent cleanup.
+                # Throwing from a lifetime task can obscure the original
+                # assertion during cocotb's global cancellation.
+                self.errors.append(f"{name}: {error}")
+                stability.pending = None
             if resolved_int(valid):
                 self.last_sink_activity = self.status.cycle
             if resolved_int(valid) and resolved_int(ready):
-                keep = int(getattr(dut, f"{prefix}TKeep").value)
+                keep = beat.keep
+                if not keep or (keep & (keep + 1)):
+                    self.errors.append(f"{name}: noncontiguous TKEEP={keep:#x}")
+                if not beat.last and keep != 0xFFFF:
+                    self.errors.append(f"{name}: partial non-final beat {beat}")
+                # Checksum verdicts belong to TLAST. FRAG is not meaningful
+                # for this non-IP traffic: the stage decodes those byte
+                # positions even for a private EtherType. The PHY checksum
+                # integration suite checks FRAG on actual IPv4 frames.
+                if beat.last and (beat.iperr or beat.tcperr or beat.udperr):
+                    self.errors.append(f"{name}: unexpected checksum verdict {beat}")
                 data = int(getattr(dut, f"{prefix}TData").value).to_bytes(16, "little")
                 payload = bytes(data[i] for i in range(16) if (keep >> i) & 1)
                 beats.append((payload, int(getattr(dut, f"{prefix}Sof").value), int(getattr(dut, f"{prefix}Eofe").value)))
@@ -380,7 +420,7 @@ class TopBench:
                     sof_ok = beats[0][1] == 1 and all(beat[1] == 0 for beat in beats[1:])
                     self.delivered[name].append((frame, beats[-1][2], sof_ok))
                     self._check_delivery(name, frame, beats[-1][2], sof_ok)
-                    beats = []
+                    beats.clear()
 
     def _check_delivery(self, name: str, frame: bytes, eofe: int, sof_ok: bool) -> None:
         key = parse_tag(frame)
@@ -399,11 +439,19 @@ class TopBench:
             return
         if exp.seen:
             self.errors.append(f"{name}: duplicate delivery: {where}")
+        order = self.rx_order[name]
+        # Overflow may delete entries but cannot reorder the survivors. Remove
+        # only an allowed missing prefix; a late arrival then fails membership.
+        if key in order:
+            preceding = order[:order.index(key)]
+            if any(not self._loss_allowed(self.expected[item]) for item in preceding):
+                self.errors.append(f"{name}: out of order, expected {order[:1]}: {where}")
+            del order[:order.index(key) + 1]
+        else:
+            self.errors.append(f"{name}: out of order or unexpected delivery: {where}")
         exp.seen = True
         overflow_ok = self.cfg.fifo_addr_width < 11 and not self.cfg.drop_err
         if exp.deliver != name:
-            if overflow_ok and eofe and exp.deliver == name:
-                return
             self.errors.append(f"{name}: frame delivered but expected {exp.deliver}: {where}")
             return
         if eofe != exp.eofe and not (overflow_ok and eofe):
@@ -454,10 +502,13 @@ class TopBench:
         cfg, rng = self.cfg, self.rng
         self.seq += 1
         eth_type = DATA_ETHERTYPE
-        frame = tagged_frame(rng, random_length(rng, cfg), dst=REMOTE_MAC, src=LOCAL_MAC, eth_type=eth_type, stream=stream, epoch=self.epoch, seq=self.seq)
+        tx_index = self.tx_index[stream]
+        self.tx_index[stream] += 1
+        length = 9000 if cfg.jumbo_frames and tx_index == 0 else random_length(rng, cfg)
+        frame = tagged_frame(rng, length, dst=REMOTE_MAC, src=LOCAL_MAC, eth_type=eth_type, stream=stream, epoch=self.epoch, seq=self.seq)
         # EOFE TX frames only where DROP_ERR_PKT_G drops them: when they are
         # forwarded, the exporters can still send a valid FCS (known issue).
-        eofe = int(rng.random() < 0.08 and cfg.drop_err)
+        eofe = int((tx_index == 1 or rng.random() < 0.08) and cfg.drop_err)
         deliver = None if (eofe and cfg.drop_err) else "line"
         exp = Expected(stream, self.epoch, self.seq, "tx_eofe" if eofe else "tx", frame, eofe=eofe, deliver=deliver)
         self.expected[(stream, self.epoch, self.seq)] = exp
@@ -475,7 +526,7 @@ class TopBench:
             for _ in range(rng.choice((0, 0, 0, 1, 5, 40))):
                 await RisingEdge(clk)
 
-    def _new_rx(self) -> tuple[Expected, list]:
+    def _new_rx(self, *, kind: str | None = None, length: int | None = None) -> tuple[Expected, list]:
         cfg, rng = self.cfg, self.rng
         self.seq += 1
         kinds = ["good"] * 10 + ["bad_fcs"] * 2 + ["multicast", "broadcast"]
@@ -487,10 +538,22 @@ class TopBench:
             kinds += ["bypass"] * 3
         if cfg.phy == "GMII":
             kinds += ["rx_er"]
-        kind = rng.choice(kinds)
+        if kind is None:
+            directed = ["good", "bad_fcs", "multicast", "broadcast"]
+            if cfg.byp_en:
+                directed.insert(0, "bypass")
+            if cfg.filt_en:
+                directed.insert(0, "foreign")
+            if cfg.pause_en:
+                directed.insert(1, "pause")
+            if cfg.phy == "GMII":
+                directed.append("rx_er")
+            kind = directed[self.rx_index] if self.rx_index < len(directed) else rng.choice(kinds)
+            self.rx_index += 1
         dst = {"multicast": MULTICAST_MAC, "broadcast": BROADCAST_MAC, "foreign": FOREIGN_MAC}.get(kind, LOCAL_MAC)
         eth_type = BYPASS_ETHERTYPE if kind == "bypass" else DATA_ETHERTYPE
-        length = max(60, random_length(rng, cfg))
+        if length is None:
+            length = 9000 if cfg.jumbo_frames and self.rx_index == 1 else max(60, random_length(rng, cfg))
         if kind == "pause":
             value = rng.randint(1, 40)
             frame = build_pause_frame(value)
@@ -527,7 +590,10 @@ class TopBench:
         if kind == "pause":
             self.rx_pause_sent += 1
         else:
-            self.expected[(STREAM_RX, self.epoch, self.seq)] = exp
+            key = (STREAM_RX, self.epoch, self.seq)
+            self.expected[key] = exp
+            if exp.deliver:
+                self.rx_order[exp.deliver].append(key)
         return exp, symbols
 
     async def rx_source(self, count: int) -> list[Expected]:
@@ -550,6 +616,8 @@ class TopBench:
             line = frames[index]
             if line.end_cycle <= self.ignore_line_until:
                 continue
+            if line.error or not line.terminated:
+                self.errors.append(f"line frame {index}: error={line.error} terminated={line.terminated}")
             if not line.preamble_ok:
                 self.errors.append(f"line frame {index}: bad preamble {line.raw[:8].hex()}")
                 continue
@@ -595,7 +663,8 @@ class TopBench:
         last_line = max((frame.end_cycle for frame in self.line_tx.frames), default=0)
         # The GMII monitor counts enabled clocks only.
         line_quiet = (self.line_tx.cycle - last_line) * self.cfg.clk_en_div
-        return now - self.last_sink_activity > cycles and line_quiet > cycles
+        return (not self.line_tx.frame_pending and not any(self.open_beats.values())
+                and now - self.last_sink_activity > cycles and line_quiet > cycles)
 
     async def drain(self, limit: int) -> None:
         # Wait for every expected frame and, where RX loss is allowed, for the
@@ -604,7 +673,7 @@ class TopBench:
         for _ in range(limit // 64):
             await self.eth_cycles(64)
             self.line_index = self.check_line(self.line_index)
-            if not self.outstanding() and self.quiet(quiet_cycles):
+            if self.errors or (not self.outstanding() and self.quiet(quiet_cycles)):
                 break
         await self.eth_cycles(200)
         self.line_index = self.check_line(self.line_index)
@@ -615,6 +684,8 @@ class TopBench:
         return int(frames * avg * per_byte * 4 * self.cfg.clk_en_div * (1 + self.cfg.backpressure * 4)) + 20_000
 
     def assert_clean(self) -> None:
+        assert not self.line_tx.frame_pending, "unfinished PHY transmit frame at drain"
+        assert not any(self.open_beats.values()), "unfinished AXI receive frame at drain"
         assert not self.errors, "\n".join(self.errors[:20]) + f"\n({len(self.errors)} errors, seed={self.cfg.seed})"
         missing = self.outstanding()
         assert not missing, "frames not delivered: " + ", ".join(
@@ -678,7 +749,7 @@ def check_counts(bench: TopBench, before: dict[str, int], line_start: int) -> di
     return counts
 
 
-@cocotb.test()
+@cocotb.test(timeout_time=100, timeout_unit="ms")
 async def eth_mac_top_scoreboard_test(dut):
     cfg = TopConfig.from_env()
     bench = TopBench(dut, cfg)
@@ -686,6 +757,18 @@ async def eth_mac_top_scoreboard_test(dut):
     before = bench.status.snapshot()
     per_burst = max(1, cfg.frames // cfg.bursts)
     try:
+        if cfg.fifo_addr_width < 11:
+            # Force overflow rather than hoping random stalls fill the FIFO.
+            # Eight legal frames exceed the 512-entry FIFO while RX is blocked.
+            bench.force_stall = True
+            for _ in range(8):
+                _, symbols = bench._new_rx(kind="good", length=1514)
+                await bench.line_rx.send(symbols)
+            await bench.eth_cycles(32)
+            assert bench.status.delta(before)["rxOverFlow"] > 0, "overflow stimulus did not fill RX FIFO"
+            bench.force_stall = False
+            await bench.drain(bench.drain_limit(8))
+            bench.assert_clean()
         for burst in range(cfg.bursts):
             await run_traffic(bench, per_burst)
             await bench.drain(bench.drain_limit(per_burst))
@@ -707,7 +790,7 @@ async def eth_mac_top_scoreboard_test(dut):
         await cancel_and_join_tasks(bench.tasks)
 
 
-@cocotb.test()
+@cocotb.test(timeout_time=100, timeout_unit="ms")
 async def eth_mac_top_reset_recovery_test(dut):
     cfg = TopConfig.from_env()
     bench = TopBench(dut, cfg)
@@ -720,8 +803,14 @@ async def eth_mac_top_reset_recovery_test(dut):
         ]
         if cfg.byp_en:
             sources.append(cocotb.start_soon(bench.tx_source("sByp", dut.bypClk, STREAM_TX_BYP, frames)))
-        # Reset at a seeded point while traffic is flowing in both directions.
-        await bench.eth_cycles(bench.rng.randint(800, 2500) * cfg.clk_en_div)
+        # Assert reset during an observed line frame, not after a random delay
+        # that might land after all traffic has drained.
+        for _ in range(5000 * cfg.clk_en_div):
+            await FallingEdge(dut.ethClk)
+            if bench.line_tx.frame_pending:
+                break
+        else:
+            raise AssertionError("reset stimulus never reached an active TX frame")
         await cancel_and_join_tasks(sources)
         for prefix in ("sAxis", "sByp"):
             getattr(dut, f"{prefix}TValid").value = 0
@@ -734,6 +823,8 @@ async def eth_mac_top_reset_recovery_test(dut):
         bench.pause_frames_on_line = 0
         for stream in bench.tx_order:
             bench.tx_order[stream] = []
+        for name in bench.rx_order:
+            bench.rx_order[name] = []
         before = bench.status.snapshot()
         line_start = len(bench.line_tx.frames)
         await run_traffic(bench, frames)
@@ -772,12 +863,25 @@ def _matrix(phy: str, *, extended: bool = False) -> list:
     return [parameter_case(f"{phy.lower()}_{name}", **{**base, **overrides}) for name, overrides in cases]
 
 
-PARAMETER_SWEEP = _matrix("GMII") + _matrix("XGMII")
+# Short integration cases cover distinct composed paths. The original full
+# matrix and all of its reset scenarios remain available in the extended gate.
+PARAMETER_SWEEP = [
+    parameter_case("gmii_defaults", PHY_TYPE_G="GMII", SEED="11", FRAMES="8", BURSTS="2", RESET_TEST="1"),
+    parameter_case("gmii_filter_pause", PHY_TYPE_G="GMII", SEED="12", FRAMES="8", BURSTS="2",
+                   FILT_EN_G="true", PRIM_COMMON_CLK_G="true", JUMBO_G="false"),
+    parameter_case("xgmii_defaults", PHY_TYPE_G="XGMII", SEED="11", FRAMES="12", BURSTS="2"),
+    parameter_case("xgmii_bypass_async_prim", PHY_TYPE_G="XGMII", SEED="13", FRAMES="12", BURSTS="2",
+                   BYP_EN_G="true", BYP_ETH_TYPE_G=str(BYPASS_ETHERTYPE_GENERIC), PRIM_PERIOD_NS="8.77", RESET_TEST="1"),
+    parameter_case("xgmii_drop_err_false", PHY_TYPE_G="XGMII", SEED="15", FRAMES="12", BURSTS="2", DROP_ERR_PKT_G="false"),
+    parameter_case("xgmii_jumbo", PHY_TYPE_G="XGMII", SEED="16", FRAMES="6", BURSTS="2", JUMBO_FRAMES="1"),
+    parameter_case("xgmii_small_fifo", PHY_TYPE_G="XGMII", SEED="17", FRAMES="8", BURSTS="2",
+                   FIFO_ADDR_WIDTH_G="9", BACKPRESSURE="0.85", PAUSE_THRESH="64"),
+]
 
 EXTENDED_SWEEP = [
     parameter_case(
         f"{case.id}_soak_seed{seed}",
-        **{**case.values[0], "SEED": str(seed), "FRAMES": str(int(case.values[0]["FRAMES"]) * 4)},
+        **{**case.values[0], "SEED": str(seed), "FRAMES": str(int(case.values[0]["FRAMES"]) * 4), "BURSTS": "3", "RESET_TEST": "1"},
     )
     for case in _matrix("GMII", extended=True) + _matrix("XGMII")
     for seed in (101, 202, 303)
@@ -785,11 +889,14 @@ EXTENDED_SWEEP = [
 
 
 def _run(parameters: dict[str, str]) -> None:
+    scenarios = ["eth_mac_top_scoreboard_test"]
+    if parameters.get("RESET_TEST") == "1":
+        scenarios.append("eth_mac_top_reset_recovery_test")
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel="surf.ethmactopphywrapper",
         parameters=hdl_parameters_from(parameters),
-        extra_env=parameters,
+        extra_env=cocotb_filtered_env(parameters, cocotb_test_filter(*scenarios)),
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER_PATH]},
     )
 

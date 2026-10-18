@@ -335,6 +335,11 @@ class GmiiMonitor:
         """Discard a partially decoded frame, for example across a reset."""
         self._raw = None
 
+    @property
+    def frame_pending(self) -> bool:
+        """Whether a start has been observed without a matching end."""
+        return self._raw is not None
+
     async def _run(self) -> None:
         """Lifetime agent: decode GMII transmit symbols until the test ends."""
         while True:
@@ -422,6 +427,11 @@ class XgmiiMonitor:
     def abort(self) -> None:
         """Discard a partially decoded frame, for example across a reset."""
         self._raw = None
+
+    @property
+    def frame_pending(self) -> bool:
+        """Whether /S/ has been observed without /T/."""
+        return self._raw is not None
 
     async def _run(self) -> None:
         """Lifetime agent: decode XGMII transmit words until the test ends."""
@@ -526,6 +536,9 @@ def build_udp_segment(*, src_ip: str, dst_ip: str, src_port: int, dst_port: int,
     header = src_port.to_bytes(2, "big") + dst_port.to_bytes(2, "big") + (8 + len(payload)).to_bytes(2, "big") + b"\x00\x00"
     if checksum is None:
         checksum = internet_checksum(l4_pseudo_header(src_ip, dst_ip, IP_PROTOCOL_UDP, 8 + len(payload)) + header + payload)
+        # RFC 768: a computed zero is transmitted as all ones. An explicit
+        # checksum=0 still requests the IPv4 UDP "checksum disabled" value.
+        checksum = checksum or 0xFFFF
     return header[:6] + checksum.to_bytes(2, "big") + payload
 
 

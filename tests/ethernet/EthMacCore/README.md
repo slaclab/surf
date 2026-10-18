@@ -1,8 +1,9 @@
 # EthMacCore Regressions
 
 These benches make the default (non-RoCEv2) behaviour of `ethernet/EthMacCore`
-an executable contract. They follow the repository [test guide](../../README.md)
-and [runner conventions](../../common/README.md); this page adds the
+an executable contract. They follow the repository [test guide](../../README.md),
+[protocol guidance](../../protocols/README.md) and
+[runner conventions](../../common/README.md); this page adds the
 EthMacCore-specific selection guide, the known-issue list and the soak command.
 
 ## Layers and shared helpers
@@ -41,16 +42,35 @@ change crosses stages. All commands run from the repository root after
 | `EthCrc32Parallel` | `test_EthCrc32Parallel.py` |
 | `EthMacTop` or any change crossing stages | `test_EthMacTopScoreboard.py`, `test_EthMacTop.py`, `test_EthMacTopPause.py` |
 
-`test_EthMacTopScoreboard.py` is the integration contract. Its pytest IDs are
-`<phy>_<case>` for `gmii`/`xgmii` and the cases `defaults`, `filter_pause`,
-`bypass_async`, `async_prim`, `drop_err_false`, `jumbo` and `small_fifo`. Each
-runs a seeded random scoreboard (traffic in bursts
-separated by idle `phyReady` drops) and a mid-traffic reset scenario. Select
-one PHY or case with `-k`, for example:
+`test_EthMacTopScoreboard.py` runs seven short default configurations:
+
+| Case | Integration contract |
+| --- | --- |
+| `gmii_defaults` | GMII framing, default generics, reset during an observed TX frame |
+| `gmii_filter_pause` | Filtering/pause with a common primary clock |
+| `xgmii_defaults` | XGMII framing with default generics |
+| `xgmii_bypass_async_prim` | Bypass and slow-primary CDC, reset during an observed TX frame |
+| `xgmii_drop_err_false` | Forward RX errors with EOFE |
+| `xgmii_jumbo` | A guaranteed 9000-byte frame in each direction |
+| `xgmii_small_fifo` | Deliberately blocked RX, required overflow, ordered survivors and recovery |
+
+Each runs 6–12 frames per direction in two bursts with an idle link-down
+window. Directed first packets exercise each configured route and error mode,
+then seeded traffic adds variety. RX order is checked independently per output;
+all exposed beat fields must remain stable under stalls, and drains reject
+partial AXI or PHY frames. Runtime checksum checks are disabled in this routing
+scoreboard; `test_EthMacRxChecksumIntegration.py` separately exercises actual
+PHY input with all three checksum enables set, both error-drop policies,
+fragments, one-byte final beats and tight receive spacing.
+
+Select one case with `-k`, for example:
 
 ```bash
-./.venv/bin/python -m pytest -n 2 -q tests/ethernet/EthMacCore/test_EthMacTopScoreboard.py -k xgmii_bypass_async
+./.venv/bin/python -m pytest -n 2 -q tests/ethernet/EthMacCore/test_EthMacTopScoreboard.py -k xgmii_bypass
 ```
+
+`test_ethmac_models.py` is a fast simulator-free check of checksum/FCS known
+answers and deliberately corrupted observations that the scoreboards must reject.
 
 Random benches take their seed from the case (`SEED` for the scoreboard,
 `ETHMAC_LINE_SEED` for the line benches, `ETHMAC_CSUM_SEED` for the checksum
@@ -66,14 +86,18 @@ RUN_ETHMAC_EXTENDED_TESTS=1 ./.venv/bin/python -m pytest -n auto -q \
     tests/ethernet/EthMacCore/test_EthMacTopScoreboard.py -k extended
 ```
 
-This runs every scoreboard case with three further seeds and four times the
-frame count, plus a GMII 1-in-10 `ethClkEn` (100 Mb/s) TX-only case. It is stable coverage that is too slow for the default run, not a
-known-issue gate.
+This retains the original seven cases on each PHY (30 GMII / 80 XGMII
+frames, smaller jumbo cases), runs each with three seeds and four times those
+frame counts, and repeats mid-traffic reset in every configuration. It also
+includes a GMII 1-in-10 `ethClkEn` (100 Mb/s) TX-only case. This slow coverage
+is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-Each case below asserts the correct behaviour, fails on the current RTL for the
-documented reason, and runs only with `RUN_KNOWN_ISSUE_TESTS=1`. Promote a case
+The confirmed defect reproducers below assert the intended behavior, fail on
+the current RTL for the documented reason, and run only with
+`RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
+that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
 to the default run together with its fix. With cocotb 2.1, a `skip=True`
 entrypoint still runs whenever a `COCOTB_TEST_FILTER` matches it, including an
 exclusion pattern that does not name it. Benches therefore name known-issue
@@ -84,28 +108,41 @@ from any other filter while it is not.
 RUN_KNOWN_ISSUE_TESTS=1 ./.venv/bin/python -m pytest -n 2 -q tests/ethernet/EthMacCore/test_EthMacKnownIssues.py
 ```
 
-| Defect | Reproduction |
-| --- | --- |
-| `EthMacTxCsum` oversize branch leaves a `tLast`-less frame in `Fifo_Cache`, drops the next frame and misaligns `Fifo_Trans`, so later frames get the previous frame's length/checksum. | `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test` |
-| `EthMacRxImportXgmii` keeps emitting beats with no `tLast` after `phyReady` loss; at `EthMacTop` level `EthMacRxCsum`'s blow-off then swallows the next frame. | `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test` |
-| XGMII nested `/S/`: with the first frame in lane 4 and the nested `/S/` in lane 0 the second frame is appended to the first; with both in lane 0 the second frame is discarded silently. A nested `/S/` in lane 4 is handled. | `rx_xgmii_import_nested_start_known_issue_test`, `rx_xgmii_top_nested_start_loses_frame_known_issue_test` |
-| `EthMacTxExportXgmii` sends the remainder of a frame interrupted by link loss as a fresh, correctly-CRC'd frame after the link returns. | `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test` |
-| `EthMacTxExportGmii` checks `phyReady` only in idle, so a frame in flight is driven to completion on a dead link with no `txLinkNotReady`. | `tx_gmii_link_loss_completes_frame_known_issue_test` |
-| `EthMacRxFifo` leaves `mAxisDropFrame` and `lockupRstEvent` unconnected, so outbound EOFE drops are not counted in `rxFifoDropCnt`. | `rx_fifo_outbound_drop_not_counted_known_issue_test` |
-| With `DROP_ERR_PKT_G = false`, EOFE frames reach the line with a valid FCS: the GMII exporter ignores EOFE, and the XGMII exporter loses it for frames of 57 bytes or more (tLast on the 8th or later 64-bit word). | `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test` (GMII and XGMII nodes) |
-| `EthMacRxImportGmii` re-arms its SFD search while `RX_DV` is still high, so after an `RX_ER` abort a later `0xD5` octet starts a spurious frame with EOFE and `rxCrcError`. | `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test` |
-| `EthMacRxImportGmii` loses every frame when `ethClkEn` is gated (10/100 Mb/s): the one-clock `delRxDv` pulse is cleared before the next enabled clock shifts it. | `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue` |
-| `EthMacRxCsum` assigns EOFE from the last enabled check instead of OR-ing it with IPERR, the inbound EOFE and the oversize EOFE. | `test_EthMacRxCsumDepth.py::rx_eofe_overwrite_known_issue_test` |
-| On a 16n+1-byte frame `EthMacRxCsum` treats the one-byte last beat as SOF (lane-0 alias) and overwrites EOFE with FRAG. | `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test` |
-| Back-to-back frames (0–1 idle cycles, or an oversize cut followed directly) corrupt `EthMacRxCsum`'s IPv4 verdict: the live header is compared with a sum from three cycles earlier. | `test_EthMacRxCsumDepth.py::rx_back_to_back_known_issue_test` |
-| `EthMacRxCsum` loses FRAG on a fragment when a `tValid` gap follows SOF while the previous frame is still flushing. | `test_EthMacRxCsumDepth.py::rx_frag_after_sof_gap_known_issue_test` |
-| An RX FIFO frame larger than the FIFO with `DROP_ERR_PKT_G = true` is dropped or delivered depending on a stale last-frame entry that reset does not clear; it should always be delivered truncated with EOFE, as in cut-through. | `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test` |
-| `EthMacRxFifo` clamps `pauseThresh` to depth−1 but the write count tops out at depth−2, so a threshold at or above depth−1 (including the default 562 with `FIFO_ADDR_WIDTH_G = 9`) never pauses. | `test_EthMacRxFifoFlow.py::rx_fifo_pause_threshold_clamp_known_issue_test` |
-| The RX FIFO pause flag reads busy in reset, so `EthMacTop` transmits a pause frame after every reset with an empty FIFO. | `test_EthMacTopPause.py::top_no_pause_frame_after_reset_known_issue_test` |
-| `EthMacTxPause` sizes its quantum pre-counter with `bitSize(PAUSE_512BITS_G-1)`, so a quantum is the next power of two (2 cycles for a setting of 1). | `test_EthMacTxPauseTiming.py::tx_pause_quantum_length_known_issue_test` |
+Reports are numbered in recommended fix order, with scope and severity from
+the review. **High** denotes data integrity or sustained loss in an affected
+supported path; **Medium** a bounded functional/configuration failure; **Low**
+a diagnostic, startup or unusual-configuration issue. Priority also accounts
+for default-path exposure and strength of the reproducer. Keep these IDs stable
+in subsequent fix PRs; `Old` preserves the initial PR review numbering.
+Reports #16 and #17 remain policy candidates, not confirmed contract violations.
+
+| # | Old | Severity / applicability | Report and reproduction |
+| --- | --- | --- | --- |
+| 1 | 10 | High; runtime defaults | RX checksum stage clears inbound/earlier EOFE. Leaf: `test_EthMacRxCsumDepth.py::rx_eofe_overwrite_known_issue_test`. PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_known_issue_test` demonstrates bad-FCS UDP escaping error dropping. |
+| 2 | 11 | High; length/error dependent | One-byte final beat aliases IPERR/SOF and FRAG/EOFE. `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test`. |
+| 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
+| 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
+| 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
+| 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
+| 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
+| 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
+| 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
+| 10 | 15 | Medium; threshold boundary | `pauseThresh >= depth-1` is unreachable after writes stop at depth-2; default 562 is affected with a 512-entry FIFO. `test_EthMacRxFifoFlow.py::rx_fifo_pause_threshold_clamp_known_issue_test`. |
+| 11 | 12 | Medium; leaf trigger | Adjacent frames compare a delayed IPv4 sum against a live next header. Normal wire incidence remains unproven. `test_EthMacRxCsumDepth.py::rx_back_to_back_known_issue_test`. |
+| 12 | 13 | Medium; leaf trigger | Gap after SOF during prior flush misaligns FRAG. Normal wire incidence remains unproven. `test_EthMacRxCsumDepth.py::rx_frag_after_sof_gap_known_issue_test`. |
+| 13 | 6 | Low; diagnostics | Outbound EOFE drops do not increment `rxFifoDrop`. Counter semantics need agreement; unconnected lockup-reset reporting is not independently reproduced. `rx_fifo_outbound_drop_not_counted_known_issue_test`. |
+| 14 | 16 | Low; startup transient | Empty RX FIFO can generate pause if pause/link are enabled during reset-busy. Not every reset in every configuration. `test_EthMacTopPause.py::top_no_pause_frame_after_reset_known_issue_test`. |
+| 15 | 17 | Low; unusual generic | Pause quantum rounds to power of two (setting 1 becomes 2). Normal wrapper values 8/64 work. `test_EthMacTxPauseTiming.py::tx_pause_quantum_length_known_issue_test`. |
+| 16 | 3 | Medium robustness candidate; policy unresolved | Nested XGMII /S/ has lane-dependent salvage/discard. This malformed sequence has no termination/legal gap; salvaging its second frame is not an established requirement. Default `rx_xgmii_import_nested_start_recovery_test` and `rx_xgmii_top_nested_start_recovery_test` require clean recovery without accepting clean merged data. |
+| 17 | 5 | Low policy candidate; defect unproven | GMII completes an in-flight frame after link loss without a not-ready pulse. No abort deadline is specified. Default `tx_gmii_link_loss_recovery_test` accepts completion or abort and requires intact recovery without fabricated valid frames. |
+
+Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
+failure nodes skip **before simulator launch** unless the gate is enabled;
+its three policy/recovery nodes run by default and are expected to pass.
+
 
 The integration and leaf benches keep their default-run stimulus clear of
-these defects: `phyReady` changes only while the line is idle, TX frames stay
+confirmed defects: `phyReady` changes only while the line is idle, TX frames stay
 within the checksum stage's size limit, EOFE TX frames are sent only where
 `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry no `0xD5` after the error, and
 the gated-clock GMII scoreboard case is TX-only.
@@ -113,8 +150,9 @@ the gated-clock GMII scoreboard case is TX-only.
 ## Current behaviour pinned by the default run
 
 Some behaviour differs from IEEE 802.3 or from what a reader might expect but
-is not treated as a defect. The benches assert it explicitly, with a comment
-naming the RTL, so a change is noticed. Notable cases:
+is retained as characterization rather than settled acceptance policy. The
+benches name the RTL behavior so a deliberate improvement can update the
+corresponding characterization in its fix PR. Notable cases:
 
 - The GMII exporter pads every frame shorter than 60 bytes to 61 bytes; XGMII
   pads to 60. On TX underrun GMII keeps `TX_ER` high with `TX_EN` low until idle.
@@ -139,3 +177,8 @@ naming the RTL, so a change is noticed. Notable cases:
   policy.
 - `PREVENT_LOCKUP` cannot trigger in the MAC's RX FIFO configuration: writes
   stop at almost-full, so the FIFO is never full while its output is stalled.
+
+The RX checksum leaf does not yet cover 17–59-byte runt handling or recovery
+from it. The importers can deliver these runts without padding; this is an
+exposed verification gap, not an unreachable case. Nonzero Ethernet padding
+entering transport checksum calculations also needs follow-up classification.

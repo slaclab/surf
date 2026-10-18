@@ -32,7 +32,7 @@
 # - Baseline: frames discarded by `dropOnPause` are not counted in
 #   `rxFifoDropCnt` (EthMacRxFilter has no status output).
 # - Known issue (`RUN_KNOWN_ISSUE_TESTS=1`; promote to the default run with its
-#   fix): 1. `top_no_pause_frame_after_reset_known_issue_test` asserts that no
+#   fix): 14. `top_no_pause_frame_after_reset_known_issue_test` asserts that no
 #   pause frame leaves after reset with an empty RX FIFO. On this tree the RX
 #   FIFO pause flag reads busy in reset (AxiStreamFifoV2.vhd:217, write count
 #   reset to all ones at FifoWrFsm.vhd:83), FlowCtrl forwards it as
@@ -154,7 +154,7 @@ class TopPauseBench:
         dut.primRst.value = 0
         await cycle(self.clk, 40)
 
-        # Known issue 1 sends one pause frame right after reset. Tolerate it
+        # Known issue 14 sends one pause frame right after reset. Tolerate it
         # (anything else is a failure) and let its retransmit hold expire
         # before the scenario starts.
         self.reset_frames = [f.frame for f in self.tx.frames]
@@ -342,7 +342,7 @@ async def top_drop_on_pause_test(dut):
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=2, timeout_unit="ms")
 async def top_no_pause_frame_after_reset_known_issue_test(dut):
-    # Known issue 1: with an empty RX FIFO and no traffic, reset must not
+    # Known issue 14: with an empty RX FIFO and no traffic, reset must not
     # produce a pause frame on the wire or a `txPauseCnt` pulse.
     tb = TopPauseBench(dut)
     await tb.start(pause_time=0x0020, pause_thresh=4)

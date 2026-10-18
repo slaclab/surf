@@ -11,7 +11,7 @@
 # Test methodology:
 # - Sweep: `PAUSE_512BITS_G` of 8 and 64 (powers of two, the 10G and 1G
 #   quanta) run every default entrypoint. The 1 and 5 nodes exist only for
-#   known issue 1 and are skipped unless `RUN_KNOWN_ISSUE_TESTS=1`.
+#   known issue 15 and are skipped unless `RUN_KNOWN_ISSUE_TESTS=1`.
 # - DUT shape: EthMacTxPauseWrapper with the sink always ready, so every hold
 #   is visible as the cycle at which the stage next accepts a client beat.
 # - Stimulus: one-cycle `rxPauseReq` pulses with pause values 0, 1, 2, 7 and
@@ -30,7 +30,7 @@
 # - Baselines: generated pause frames use an all-zero source MAC. A pause
 #   time below two quanta regenerates continuously and starves client traffic.
 # - Known issue (`RUN_KNOWN_ISSUE_TESTS=1`; promote to the default run with its
-#   fix): 1. `tx_pause_quantum_length_known_issue_test` on the `quanta_1clk`
+#   fix): 15. `tx_pause_quantum_length_known_issue_test` on the `quanta_1clk`
 #   and `quanta_5clk` nodes asserts a hold of `value * PAUSE_512BITS_G`. The
 #   pre-counter is `bitSize(PAUSE_512BITS_G-1)` bits wide
 #   (EthMacTxPause.vhd:59), so a quantum is the next power of two at or above
@@ -222,7 +222,7 @@ async def tx_pause_hold_quanta_test(dut):
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=2, timeout_unit="ms")
 async def tx_pause_quantum_length_known_issue_test(dut):
-    # Known issue 1: a non-power-of-two `PAUSE_512BITS_G` (and 1) should still
+    # Known issue 15: a non-power-of-two `PAUSE_512BITS_G` (and 1) should still
     # hold `value * PAUSE_512BITS_G` cycles; this tree rounds the quantum up.
     tb = await TxPauseBench.create(dut)
     check_hold_delays(tb, await measure_hold_delays(tb, (0, 1, 2, 7)))
@@ -401,17 +401,17 @@ async def tx_pause_short_pause_time_test(dut):
 
 
 PARAMETER_SWEEP = [
-    # Known issue 1 only: these settings are not powers of two (or are 1), so
+    # Known issue 15 only: these settings are not powers of two (or are 1), so
     # every default entrypoint would observe the rounded quantum.
     pytest.param(
         {"PAUSE_512BITS_G": "1", "KNOWN_ISSUE_ONLY": "1"},
         id="quanta_1clk",
-        marks=pytest.mark.skipif(KNOWN_ISSUE_SKIP, reason="known issue 1 (PAUSE_512BITS_G rounding); set RUN_KNOWN_ISSUE_TESTS=1"),
+        marks=pytest.mark.skipif(KNOWN_ISSUE_SKIP, reason="known issue 15 (PAUSE_512BITS_G rounding); set RUN_KNOWN_ISSUE_TESTS=1"),
     ),
     pytest.param(
         {"PAUSE_512BITS_G": "5", "KNOWN_ISSUE_ONLY": "1"},
         id="quanta_5clk",
-        marks=pytest.mark.skipif(KNOWN_ISSUE_SKIP, reason="known issue 1 (PAUSE_512BITS_G rounding); set RUN_KNOWN_ISSUE_TESTS=1"),
+        marks=pytest.mark.skipif(KNOWN_ISSUE_SKIP, reason="known issue 15 (PAUSE_512BITS_G rounding); set RUN_KNOWN_ISSUE_TESTS=1"),
     ),
     parameter_case("quanta_8clk", PAUSE_512BITS_G="8"),
     parameter_case("quanta_64clk", PAUSE_512BITS_G="64"),

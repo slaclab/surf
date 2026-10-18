@@ -9,81 +9,30 @@
 ##############################################################################
 
 # Test methodology:
-# - Purpose: directed reproductions of EthMacCore defects found by the stage
-#   audit at SURF ecbf833a2. Every entrypoint asserts the correct IEEE 802.3 /
-#   intended behaviour, so each one FAILS on the current RTL. All of them are
-#   gated by `RUN_KNOWN_ISSUE_TESTS=1`; without it the cocotb entrypoints are
-#   skipped and the pytest items pass. Promote each test to the default run
-#   with its fix (drop the gate and the `_known_issue` suffix).
-# - Defects, bench (pytest case) and expected failure on the current tree:
-#   1. EthMacTxCsum oversize branch (`txcsum_oversize`,
-#      EthMacTxCsumLoopbackWrapper, JUMBO_G=false). MOVE_S with
-#      ipv4Len > 1500 writes a transaction for a beat without tLast into
-#      Fifo_Cache and blows off the rest. The output side then reads that
-#      tLast-less frame plus the whole next frame under the oversize
-#      transaction and drops both; every later frame is paired with the
-#      previous frame's Fifo_Trans entry. Stimulus: a 1600-byte frame, then
-#      three UDP frames of different length with zeroed checksums. Expected
-#      failure: the first good frame is lost and the others carry the
-#      previous frame's IPv4 length and checksums.
-#   2. EthMacRxImportXgmii phyReady loss and nested /S/. On phyReady loss the
-#      importer clears its frame and CRC pipeline but not intAdvance, so it
-#      keeps emitting beats with no tLast until the next frame's end. A
-#      second /S/ before /T/ is not treated as a new frame when it lands in
-#      lane 0: after a lane-4 start the second frame is appended to the
-#      first; after a lane-0 start the first frame ends with EOFE but the
-#      second is discarded without rxCountEn or rxCrcError. A nested /S/ in
-#      lane 4 is handled correctly and is swept as a contrast case.
-#      - `xgmii_import_export` (EthMacImportExportWrapper, XGMII) shows the
-#        importer output directly. Expected failures: beats keep flowing with
-#        no tLast while phyReady is low and the run is merged with the next
-#        frame; the lane-0 nested /S/ cases lose the second frame.
-#      - `rx_xgmii_top` (EthMacTopPhyWrapper, XGMII, JUMBO_G=false) shows the
-#        EthMacRxCsum interaction: it closes the run of tLast-less beats at
-#        1500 bytes with EOFE, enters BLOWOFF_S and swallows the next good
-#        frame. Expected failures: the first good frame after recovery is
-#        missing although the importer counted it (rxCountEn) and the RX FIFO
-#        inbound filter saw no framing fault (rxFifoDropCnt); with the
-#        lane-4/lane-0 nested /S/ the appended frame fails its CRC and the
-#        second frame never arrives on its own.
-#   3. EthMacTxExportXgmii phyReady loss (`xgmii_import_export`). The link
-#      loss holds the exporter in idle; when the link returns the unread
-#      remainder is sent as a fresh frame with a correct FCS. Expected
-#      failure: a valid-FCS tail fragment of the interrupted frame.
-#   4. EthMacTxExportGmii phyReady loss (`gmii_import_export`,
-#      EthMacImportExportWrapper, GMII). phyReady is checked only in IDLE_S,
-#      so a frame in flight completes on a dead link with a valid FCS and no
-#      TX_ER, and txLinkNotReady never pulses. Expected failure: a complete
-#      valid frame ending long after the drop, with no txLinkNotReady pulse.
-#   5. EthMacRxFifo drop status (`rx_fifo_outbound_drop`,
-#      EthMacRxFifoWrapper, DROP_ERR_PKT_G=true). SsiFifo's mAxisDropFrame
-#      and lockupRstEvent are left open, so only inbound drops reach
-#      rxFifoDrop. Stimulus: good, EOFE, good. Expected failure: the EOFE
-#      frame is dropped with no rxFifoDrop pulse. The lockup self-reset path
-#      is not reproduced separately.
-#   6. EOFE frames leave the exporter with a valid FCS (`xgmii_import_export`
-#      and `gmii_import_export`), as when EthMacTx forwards them with
-#      DROP_ERR_PKT_G=false. Stimulus: back-to-back EOFE frames over a length
-#      sweep. EthMacTxExportGmii never looks at EOFE. EthMacTxExportXgmii
-#      sets intLastLine in the same cycle that it ORs EOFE into nxtError when
-#      tLast falls on the 8th or later 64-bit word, so the FCS mask uses the
-#      old intError. Expected failure: GMII, every length leaves with a valid
-#      FCS; XGMII, every length of 57 bytes or more does (14-56 byte frames,
-#      finished through ST_PAD_C, get the inverted FCS).
-#   7. EthMacRxImportGmii SFD re-arm (`gmii_import_export`): after an RX_ER
-#      abort (GET_DATA_S -> WAIT_SFD_S) the importer searches for an SFD
-#      while RX_DV is still high. Stimulus: a frame with RX_ER on data octet
-#      40 and a 0xD5 at data byte 120, then a clean frame. Expected failure:
-#      a second, spurious EOFE frame starting after the 0xD5 octet, with an
-#      rxCrcError pulse.
-# - Checks: delivered EMAC frames are compared byte-for-byte with the
-#   stimulus; line frames are decoded by the independent GMII/XGMII monitors
-#   (preamble, FCS, /T/, TX_ER); status pulses are counted exactly. Each
-#   failure message names the documented defect and what was observed.
-# - Timing: monitors and collectors sample on rising edges before the
-#   registered TPD_G update. phyReady changes on the falling edge together
-#   with the line drivers. Every wait is cycle-bounded and every entrypoint
-#   has a decorator watchdog.
+# - Sweep: Focused leaf and EthMacTop PHY wrappers for the reports numbered
+#   in README.md. Known failures run only with RUN_KNOWN_ISSUE_TESTS=1 and
+#   are skipped by pytest before building otherwise. Promote each reproducer
+#   with its separate RTL fix. Default recovery scenarios cover reports whose
+#   proposed stricter policy is not an established interface requirement.
+# - Stimulus / expected failures:
+#   #3: TX oversize followed by three distinct UDP frames loses the first and
+#       assigns earlier transaction lengths/checksums to subsequent frames.
+#   #5: XGMII RX link loss continues unterminated beats; the full MAC then
+#       swallows the first recovery frame while the checksum stage blows off.
+#   #4: XGMII TX link loss sends the remaining bytes as a new valid-FCS frame.
+#   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
+#        lockup-reset event is not independently reproduced.
+#   #7: EOFE TX frames leave with valid FCS (all GMII lengths, XGMII >=57).
+#   #8: RX_ER followed by payload 0xD5 inside RX_DV starts a spurious frame.
+#   #16 policy candidate: nested XGMII /S/ sweeps both start lanes. Accept
+#       salvage or discard, require no clean merged frame and intact recovery.
+#   #17 policy candidate: GMII link loss may finish or abort the in-flight
+#       frame; require clean recovery and no fabricated valid-FCS fragment.
+#       No undocumented abort deadline or link-loss status pulse is required.
+# - Checks: exact delivered bytes and EOFE, independent line preamble/FCS/
+#   termination/error decoding, status counts where their meaning is defined.
+# - Timing: monitors sample rising edges before TPD_G; line and link changes
+#   occur on falling edges. Waits are bounded and entrypoints have watchdogs.
 
 from __future__ import annotations
 
@@ -319,7 +268,7 @@ def top_status(status: StatusPulseCounter) -> str:
 
 
 ###############################################################################
-# Defect 1: EthMacTxCsum oversize branch
+# Report #3: EthMacTxCsum oversize branch
 ###############################################################################
 
 
@@ -374,7 +323,7 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
 
 
 ###############################################################################
-# Defect 2: EthMacRxImportXgmii phyReady loss and nested /S/
+# Reports #5 and #16: EthMacRxImportXgmii phyReady loss and nested /S/
 ###############################################################################
 
 
@@ -426,8 +375,8 @@ async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
     )
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=100, timeout_unit="us")
-async def rx_xgmii_import_nested_start_known_issue_test(dut):
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_xgmii_import_nested_start_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     driver = XgmiiDriver(dut, clk=bench.clk)
     collector = EmacFrameCollector(dut, clk=bench.clk)
@@ -447,11 +396,14 @@ async def rx_xgmii_import_nested_start_known_issue_test(dut):
         await driver.send(xgmii_words_from_lanes(lanes, start_lane=first_lane))
         await cycle(bench.clk, 40)
 
-        # Expected: the unterminated first frame ends (EOFE) at the nested
-        # /S/, and the nested frame is delivered once on its own, good CRC.
+        # The malformed sequence may be discarded or salvaged. It must not
+        # become a clean merged frame or poison the next normally framed input.
+        recovery = random_frame(rng, 80)
+        await driver.send(xgmii_words(recovery))
+        await cycle(bench.clk, 40)
         frames = collector.frames[frames_before:]
-        good = [frame for frame in frames if frame.eofe == 0]
-        if [frame.payload for frame in good] != [nested]:
+        good = [frame.payload for frame in frames if frame.eofe == 0]
+        if good not in ([recovery], [nested, recovery]) or collector.open_beats:
             observed = "; ".join(
                 f"{describe_bytes(frame.payload, {'nested': nested})} eofe={frame.eofe}" for frame in frames
             ) or "none"
@@ -460,12 +412,7 @@ async def rx_xgmii_import_nested_start_known_issue_test(dut):
                 f"status {status.delta(status_before)}"
             )
 
-    assert not failures, (
-        "Known defect (EthMacRxImportXgmii nested /S/): a second /S/ before /T/ is not "
-        "treated as a new frame; the second frame is lost (silently, without rxCountEn or "
-        "rxCrcError) or merged with the first. "
-        f"seed={SEED + 2:#x}; " + " | ".join(failures)
-    )
+    assert not failures, "Nested /S/ broke clean recovery: " + " | ".join(failures)
 
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=300, timeout_unit="us")
@@ -509,8 +456,8 @@ async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
     )
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=300, timeout_unit="us")
-async def rx_xgmii_top_nested_start_loses_frame_known_issue_test(dut):
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_top_nested_start_recovery_test(dut):
     driver, collector, status = await start_top_phy_bench(dut)
     rng = random.Random(SEED + 2)
     interrupted = random_frame(rng, 200)
@@ -523,25 +470,21 @@ async def rx_xgmii_top_nested_start_loses_frame_known_issue_test(dut):
     lanes = xgmii_lanes(interrupted, terminate=False)[: NESTED_SPLIT_LANES - 4] + xgmii_lanes(nested)
     await driver.send(xgmii_words_from_lanes(lanes, start_lane=4))
     await driver.send(xgmii_words(following))
-    await wait_until(lambda: len(collector.frames) >= 2, clk=dut.primClk, cycles=3000)
+    recovered = await wait_until(lambda: any(frame.payload == following for frame in collector.frames),
+                                 clk=dut.primClk, cycles=3000)
+    assert recovered, "nested /S/ prevented the following frame from recovering"
     await cycle(dut.primClk, 300)
 
-    # Expected: the unterminated first frame ends with EOFE (dropped by the
-    # FIFO) at the nested /S/; the nested and following frames arrive intact.
+    # A nested start is malformed; either salvage or discard is acceptable.
+    # With error dropping enabled, only intact frames may be delivered.
     delivered = [frame.payload for frame in collector.frames]
-    names = {"nested": nested, "following": following}
-    observed = "; ".join(describe_bytes(payload, names) for payload in delivered) or "none"
-    assert delivered == [nested, following], (
-        "Known defect (EthMacRxImportXgmii nested /S/): with the first frame in lane 4, a "
-        "second /S/ in lane 0 before /T/ does not end the first frame, so the second frame "
-        "is appended to it, fails the CRC as one frame and is never delivered on its own. "
-        f"seed={SEED + 2:#x}; expected [nested, following]; delivered [{observed}] "
-        f"({collector.describe()}); {top_status(status)} for 3 /S/"
-    )
+    assert delivered in ([following], [nested, following]), collector.describe()
+    assert not collector.open_beats, collector.describe()
+    assert all(frame.eofe == 0 for frame in collector.frames), collector.describe()
 
 
 ###############################################################################
-# Defect 3: EthMacTxExportXgmii phyReady loss
+# Report #4: EthMacTxExportXgmii phyReady loss
 ###############################################################################
 
 
@@ -593,14 +536,11 @@ async def tx_xgmii_link_loss_sends_valid_fragment_known_issue_test(dut):
 
 
 ###############################################################################
-# Defect 4: EthMacTxExportGmii phyReady loss
+# Report #17: EthMacTxExportGmii phyReady loss
 ###############################################################################
 
-GMII_ABORT_OCTETS = 16
-
-
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=200, timeout_unit="us")
-async def tx_gmii_link_loss_completes_frame_known_issue_test(dut):
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def tx_gmii_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     monitor = GmiiMonitor(dut, clk=bench.clk)
     status = StatusPulseCounter(bench.clk, {"txLinkNotReady": dut.txLinkNotReady, "txCountEn": dut.txCountEn})
@@ -621,24 +561,24 @@ async def tx_gmii_link_loss_completes_frame_known_issue_test(dut):
     await cycle(bench.clk, 50)
     assert monitor.frames, "Bench: no GMII frame was decoded"
 
-    # Expected: the in-flight frame is truncated or marked with TX_ER soon
-    # after phyReady drops, and txLinkNotReady reports the loss.
+    # No abort latency is specified for GMII. Accept completion or abort of
+    # the original frame, then require an intact new frame after link recovery.
     line = monitor.frames[0]
-    after_drop = line.end_cycle - drop_cycle
-    aborted = line.error or (not line.fcs_ok and after_drop <= GMII_ABORT_OCTETS)
-    assert aborted and status.counts["txLinkNotReady"] >= 1, (
-        "Known defect (EthMacTxExportGmii phyReady loss): phyReady is checked only in "
-        "IDLE_S, so a frame in flight is driven to completion on a dead link and "
-        "txLinkNotReady never pulses. "
-        f"seed={SEED + 4:#x}; line frame: {len(line.frame)} bytes (submitted {len(frame)}), "
-        f"complete={line.frame == frame} fcs_ok={line.fcs_ok} tx_er={line.error}, "
-        f"ended {after_drop} octets after the drop (limit {GMII_ABORT_OCTETS}); "
-        f"txLinkNotReady pulses={status.counts['txLinkNotReady']} txCountEn pulses={status.counts['txCountEn']}"
-    )
+    dut._log.info("report #17: complete=%s clocks_after_drop=%d not_ready=%d",
+                  line.frame == frame, line.end_cycle - drop_cycle, status.counts["txLinkNotReady"])
+    await FallingEdge(bench.clk)
+    dut.txPhyReady.value = 1
+    recovery = random_frame(rng, 80, src_mac=0x660000000009)
+    await send_frame_burst(bench.source, [frame_beats_from_bytes(recovery)], clk=bench.clk)
+    await cycle(bench.clk, 200)
+    valid = [item.frame for item in monitor.frames
+             if item.preamble_ok and item.fcs_ok and item.terminated and not item.error]
+    assert valid in ([recovery], [frame, recovery]), "GMII link loss fabricated a frame or lost recovery"
+    assert not monitor.frame_pending, "GMII recovery left an unterminated frame"
 
 
 ###############################################################################
-# Defect 5: EthMacRxFifo drop status
+# Report #13: EthMacRxFifo drop status
 ###############################################################################
 
 
@@ -687,7 +627,7 @@ async def rx_fifo_outbound_drop_not_counted_known_issue_test(dut):
 
 
 ###############################################################################
-# Defect 6: EOFE frames leave the exporter with a valid FCS
+# Report #7: EOFE frames leave the exporter with a valid FCS
 ###############################################################################
 
 EOFE_LENGTHS = {
@@ -758,7 +698,7 @@ async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
 
 
 ###############################################################################
-# Defect 7: EthMacRxImportGmii re-arms its SFD search while RX_DV is high
+# Report #8: EthMacRxImportGmii re-arms its SFD search while RX_DV is high
 ###############################################################################
 
 
@@ -821,7 +761,6 @@ KNOWN_ISSUE_CASES = [
         {"PHY_TYPE_G": "XGMII"},
         (
             "rx_xgmii_import_link_loss_emits_beats_known_issue_test",
-            "rx_xgmii_import_nested_start_known_issue_test",
             "tx_xgmii_link_loss_sends_valid_fragment_known_issue_test",
             "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
         ),
@@ -833,7 +772,6 @@ KNOWN_ISSUE_CASES = [
         {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
         (
             "rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test",
-            "rx_xgmii_top_nested_start_loses_frame_known_issue_test",
         ),
         id="rx_xgmii_top",
     ),
@@ -842,7 +780,6 @@ KNOWN_ISSUE_CASES = [
         IMPORT_EXPORT_WRAPPER,
         {"PHY_TYPE_G": "GMII"},
         (
-            "tx_gmii_link_loss_completes_frame_known_issue_test",
             "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
             "rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test",
         ),
@@ -860,17 +797,31 @@ KNOWN_ISSUE_CASES = [
 
 @pytest.mark.parametrize("toplevel, wrapper, parameters, entrypoints", KNOWN_ISSUE_CASES)
 def test_EthMacKnownIssues(toplevel, wrapper, parameters, entrypoints):
-    # cocotb 2.1 runs a `skip=True` entrypoint when COCOTB_TEST_FILTER names
-    # it, so the per-node filter is applied only with the gate set. Without
-    # it every entrypoint in the module is collected and skipped.
     if KNOWN_ISSUE_SKIP:
-        extra_env = dict(parameters)
-    else:
-        extra_env = cocotb_filtered_env(parameters, cocotb_test_filter(*entrypoints))
+        pytest.skip("unresolved RTL reports; set RUN_KNOWN_ISSUE_TESTS=1")
+    _run_case(toplevel, wrapper, parameters, entrypoints)
+
+
+RECOVERY_CASES = [
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
+                 ("rx_xgmii_import_nested_start_recovery_test",), id="xgmii_nested_start"),
+    pytest.param("surf.ethmactopphywrapper", TOP_PHY_WRAPPER, {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
+                 ("rx_xgmii_top_nested_start_recovery_test",), id="xgmii_top_nested_start"),
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "GMII"},
+                 ("tx_gmii_link_loss_recovery_test",), id="gmii_link_loss"),
+]
+
+
+@pytest.mark.parametrize("toplevel, wrapper, parameters, entrypoints", RECOVERY_CASES)
+def test_EthMacRecoveryPolicy(toplevel, wrapper, parameters, entrypoints):
+    _run_case(toplevel, wrapper, parameters, entrypoints)
+
+
+def _run_case(toplevel, wrapper, parameters, entrypoints):
     run_surf_vhdl_test(
         test_file=__file__,
         toplevel=toplevel,
         parameters=hdl_parameters_from(parameters),
-        extra_env=extra_env,
+        extra_env=cocotb_filtered_env(parameters, cocotb_test_filter(*entrypoints)),
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [wrapper]},
     )

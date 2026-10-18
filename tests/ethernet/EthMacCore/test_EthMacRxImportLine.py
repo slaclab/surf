@@ -35,8 +35,8 @@
 #   stream the bench waits a fixed, enable-scaled drain time for the import
 #   pipeline before comparing, so absence checks are bounded windows.
 # - Known issue: GMII reception with a gated ethClkEn is broken (see
-#   GMII_CLK_EN_ISSUE below). The default run pins the current drop and the
-#   recovery in `rx_clk_en_baseline`; the intended exact-frame contract for
+#   GMII_CLK_EN_ISSUE below). The default `rx_clk_en_recovery_test` allows
+#   loss but checks any delivery and recovery; the exact-frame contract for
 #   1-in-10 and 1-in-100 enables runs only with `RUN_KNOWN_ISSUE_TESTS=1` and
 #   fails until the RTL is fixed.
 # - Not covered (known-issue set, owned elsewhere): XGMII rxPhyReady loss or a
@@ -630,29 +630,36 @@ async def rx_phy_ready(dut):
 
 
 @cocotb.test()
-async def rx_clk_en_baseline(dut):
-    """GMII importer with a gated ethClkEn: current baseline drops every frame."""
+async def rx_clk_en_recovery_test(dut):
+    """Recovery after a gated interval; report #6 owns required delivery."""
     bench = RxLineBench(dut)
     assert bench.gmii, "clock-enable scenarios apply to GMII only"
     await bench.start(clk_en_period=10)
-    # Current baseline behaviour (RTL defect, see GMII_CLK_EN_ISSUE): with any
-    # enable period above one the importer never leaves WAIT_DATA_S, so good
-    # and bad frames alike vanish without a status pulse.
-    await bench.expect_nothing(gmii_symbols(random_frame(bench.rng, 60)), "1-in-10 good frame")
-    await bench.expect_nothing(gmii_symbols(random_frame(bench.rng, 64), bad_fcs=True), "1-in-10 bad FCS")
+    # Allow the documented loss until #6 is fixed without requiring that
+    # broken outcome forever. Any emitted frame must still be intact and
+    # have the correct error marker and status; gated tests require delivery.
+    for length, bad_fcs in ((60, False), (64, True)):
+        frame = random_frame(bench.rng, length)
+        frames, delta, ctx = await bench.receive(gmii_symbols(frame, bad_fcs=bad_fcs), f"1-in-10 bad_fcs={bad_fcs}")
+        assert len(frames) <= 1, f"{ctx}: duplicate frames"
+        if frames:
+            bench.check_frame(frames[0], frame, eofe=int(bad_fcs), ctx=ctx)
+            assert delta == (CRC_ERROR if bad_fcs else GOOD), f"{ctx}: status {delta}"
+        else:
+            assert delta == NO_STATUS, f"{ctx}: status without a frame {delta}"
     # With the enable held high again the importer receives normally.
     await bench.hold_clk_en_high()
     await bench.recover("gated clock enable")
     await bench.close()
 
 
-# GMII_CLK_EN_ISSUE: EthMacRxImportGmii clears delRxDv on every clock
+# Catalog #6 (GMII_CLK_EN_ISSUE): EthMacRxImportGmii clears delRxDv on every clock
 # (EthMacRxImportGmii.vhd:147) but shifts it into delRxDvSr only on enabled
 # clocks (:160). The one-clock pulse set at the SFD (:175) is gone before the
 # next enabled clock, delRxDvSr(3) never rises and WAIT_DATA_S (:179-184)
 # never reaches GET_DATA_S, so 10/100 Mb/s reception is lost. The entrypoints
 # below assert the intended contract and fail on the current RTL; promote
-# them to the default run with the fix and drop rx_clk_en_baseline.
+# them to the default run with the fix and drop rx_clk_en_recovery_test.
 KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
 
 
@@ -685,12 +692,12 @@ async def rx_clk_en_1_in_100_known_issue(dut):
 
 
 KNOWN_ISSUE_CLK_EN_TESTS = ("rx_clk_en_1_in_10_known_issue", "rx_clk_en_1_in_100_known_issue")
-CLK_EN_TESTS = ("rx_clk_en_baseline",) + KNOWN_ISSUE_CLK_EN_TESTS
+CLK_EN_TESTS = ("rx_clk_en_recovery_test",) + KNOWN_ISSUE_CLK_EN_TESTS
 GMII_ONLY_TESTS = ("rx_gmii_rx_er",) + CLK_EN_TESTS
 XGMII_ONLY_TESTS = ("rx_xgmii_error_char",)
 # cocotb runs a skip-marked test anyway when a filter names it, so the
 # clock-enable node only names the known-issue entrypoints when gated in.
-SELECTED_CLK_EN_TESTS = CLK_EN_TESTS if not KNOWN_ISSUE_SKIP else ("rx_clk_en_baseline",)
+SELECTED_CLK_EN_TESTS = CLK_EN_TESTS if not KNOWN_ISSUE_SKIP else ("rx_clk_en_recovery_test",)
 
 # XLGMII is omitted: EthMacRxImportXlgmii is a placeholder leaf with no line
 # behaviour, this wrapper ties its pins off and there is no XLGMII line model.

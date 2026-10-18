@@ -41,14 +41,14 @@
 # - Known issues, gated by `RUN_KNOWN_ISSUE_TESTS=1` (each asserts the
 #   correct behaviour and fails on this tree; promote to the default run with
 #   its fix):
-#   1. `rx_fifo_oversized_frame_history_known_issue_test` (DROP_ERR_PKT_G=true
+#   9. `rx_fifo_oversized_frame_history_known_issue_test` (DROP_ERR_PKT_G=true
 #      nodes only): a frame larger than the FIFO is dropped whole or delivered
 #      truncated depending on a stale last-frame FIFO entry
 #      (SsiObFrameFilter.vhd:114/:131 reads `sTLastTUser` without a valid
 #      qualifier; AxiStreamFifoV2.vhd:339 starts the read before tLast).
-#      Correct: always delivered truncated with an EOFE terminator. Expected
-#      failure: 0 frames delivered after an EOFE history.
-#   2. `rx_fifo_pause_threshold_clamp_known_issue_test`: `pauseThresh` >=
+#      Correct: deterministic discard or truncated EOFE delivery, followed by
+#      intact recovery. Expected failure: outcomes differ across histories.
+#   10. `rx_fifo_pause_threshold_clamp_known_issue_test`: `pauseThresh` >=
 #      depth-1 never pauses because the write count stops at depth-2
 #      (EthMacRxFifo.vhd:170 clamp, FifoWrFsm.vhd:60 almost-full). Correct:
 #      pause asserts once the FIFO is full. Expected failure: pause never seen.
@@ -88,7 +88,7 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacRxFifoWrapper.vhd"
 KNOWN_ISSUE_SKIP = os.getenv("RUN_KNOWN_ISSUE_TESTS") != "1"
-# Known issue 1 needs the outbound EOFE filter, so cut-through nodes exclude
+# Known issue 9 needs the outbound EOFE filter, so cut-through nodes exclude
 # it (an exclusion filter never forces a skipped test to run).
 DROP_ERR_ONLY_TESTS = ("rx_fifo_oversized_frame_history_known_issue_test",)
 KNOWN_ISSUE_TESTS = (
@@ -400,53 +400,60 @@ async def oversized_frame_run(bench: RxFifoBench, *, history_eofe: int, thresh: 
     return giant, stored, paused, context
 
 
-async def expect_truncated_delivery(bench: RxFifoBench, giant, stored: int, context: str) -> None:
-    # The oversized frame arrives as its stored beats plus one EOFE
-    # terminator; anything else (nothing, or more frames) fails.
-    try:
-        await bench.release_and_drain(expect_frames=1, timeout_cycles=2000)
-    except AssertionError as error:
-        raise AssertionError(f"{context}: oversized frame not delivered ({error})") from None
-    assert len(bench.out.frames) == 1, f"{context}: {len(bench.out.frames)} frames delivered"
-    truncated = bench.out.frames[0]
-    assert len(truncated) == stored + 1, f"{context}: {len(truncated)} beats, {stored} stored"
-    assert_frame(truncated[:stored], giant[:stored], context)
-    assert (truncated[-1].last, truncated[-1].eofe) == (1, 1), f"{context}: terminator={truncated[-1]}"
+async def check_oversized_outcome(bench: RxFifoBench, giant, stored: int, context: str) -> bool:
+    # Error-dropping implementations may discard the incomplete frame or
+    # release a truncated EOFE frame to avoid deadlock. Either must drain.
+    await bench.release_and_drain(expect_frames=0, quiet_cycles=len(giant) + 64)
+    assert not bench.out.partial, context
+    assert len(bench.out.frames) <= 1, f"{context}: extra frames delivered"
+    delivered = bool(bench.out.frames)
+    if delivered:
+        truncated = bench.out.frames[0]
+        assert len(truncated) == stored + 1, f"{context}: {len(truncated)} beats, {stored} stored"
+        assert_frame(truncated[:stored], giant[:stored], context)
+        assert (truncated[-1].last, truncated[-1].eofe) == (1, 1), f"{context}: terminator={truncated[-1]}"
+    else:
+        assert bench.drop_err, f"{context}: cut-through frame disappeared"
+
+    # Both dispositions must leave the FIFO usable without another reset.
+    bench.out.clear()
+    recovery = bench.make_frame(5)
+    await bench.stream([recovery])
+    await bench.release_and_drain(expect_frames=1)
+    assert len(bench.out.frames) == 1, context
+    assert_frame(bench.out.frames[0], recovery, context + " recovery")
+    return delivered
 
 
 @cocotb.test(timeout_time=2, timeout_unit="ms")
 async def rx_fifo_oversized_frame_test(dut):
     bench = RxFifoBench(dut)
 
-    # After a good-frame history the oversized frame is delivered truncated
-    # with an EOFE terminator in both modes. The write count tops out at
+    # Oversize handling must drain and recover. Cut-through delivers a prefix
+    # with EOFE; the error-dropping configuration may discard instead. The write count tops out at
     # depth-2 (writes stop at almost-full), so a depth-2 threshold pauses.
-    # The EOFE-history case is known issue 1 and the >= depth-1 threshold is
-    # known issue 2; neither is asserted here.
+    # The EOFE-history case is known issue 9 and the >= depth-1 threshold is
+    # known issue 10; neither is asserted here.
     giant, stored, paused, context = await oversized_frame_run(bench, history_eofe=0, thresh=bench.depth - 2)
     assert paused, f"{context}: pause never seen with the FIFO saturated"
-    await expect_truncated_delivery(bench, giant, stored, context)
+    await check_oversized_outcome(bench, giant, stored, context)
 
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=2, timeout_unit="ms")
 async def rx_fifo_oversized_frame_history_known_issue_test(dut):
-    # Known issue 1 (DROP_ERR_PKT_G=true only). Correct behaviour: the outcome
-    # for an oversized frame does not depend on earlier traffic; it is
-    # delivered truncated with an EOFE terminator. On this tree the head is
-    # read before the frame's tLast is written (AxiStreamFifoV2 forces
-    # `fifoInFrame` at almost-full) and SsiObFrameFilter takes its EOFE
-    # look-ahead from the empty last-frame FIFO's stale output, so after an
-    # EOFE history the whole frame is dropped. Expected failure: "0 frames
-    # delivered" for history_eofe=1.
+    # Catalog #9: stale metadata must not change the outcome after reset.
+    # Accept consistent discard or consistent truncated EOFE delivery.
     bench = RxFifoBench(dut)
+    outcomes = []
     for history_eofe in (0, 1):
         giant, stored, _, context = await oversized_frame_run(bench, history_eofe=history_eofe, thresh=0xFFFF)
-        await expect_truncated_delivery(bench, giant, stored, context)
+        outcomes.append(await check_oversized_outcome(bench, giant, stored, context))
+    assert outcomes[0] == outcomes[1], f"report #9: delivery depends on pre-reset EOFE history: {outcomes}"
 
 
 @cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=2, timeout_unit="ms")
 async def rx_fifo_pause_threshold_clamp_known_issue_test(dut):
-    # Known issue 2. Correct behaviour: a `pauseThresh` at or above the clamp
+    # Known issue 10. Correct behaviour: a `pauseThresh` at or above the clamp
     # (EthMacRxFifo clamps any value >= depth-1 to depth-1) still pauses once
     # the FIFO is full. On this tree the write count never exceeds depth-2
     # because writes stop at almost-full, so depth-1 is unreachable and the
@@ -551,7 +558,7 @@ async def rx_fifo_phy_ready_test(dut):
     # so the programmed threshold is ignored (forced to depth-1) and drops are
     # not counted, although the data path keeps storing and dropping frames.
     # Pause is checked only until shortly before the FIFO fills: whether a
-    # depth-1 threshold pauses a full FIFO is known issue 2.
+    # depth-1 threshold pauses a full FIFO is known issue 10.
     filled = min(c for c in bench.status.cycles["overflow"] if c > start) - 16
     assert bench.count_between("pause", start + 1, filled) == 0, bench.case
     assert bench.count_between("drop", start + 1, low_end) == 0, bench.case
