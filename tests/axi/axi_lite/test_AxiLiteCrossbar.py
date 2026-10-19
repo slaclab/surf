@@ -22,6 +22,9 @@
 # - Timing: The test checks that read and write responses complete cleanly
 #   through optional channel pauses and that decode-error responses are
 #   returned as proper AXI-Lite responses rather than hanging the transaction.
+#   Lower response READY after request acceptance and hold it low for 20 clocks;
+#   check stable response fields, completion on release, and no stale responses
+#   on subsequent accesses with different data, including READY starting low.
 
 import itertools
 import logging
@@ -29,10 +32,10 @@ import random
 
 import cocotb
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge, Timer
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
-from tests.common.regression_utils import run_surf_vhdl_test
+from tests.common.regression_utils import cancel_and_join_tasks, run_surf_vhdl_test
 
 
 class TB:
@@ -170,6 +173,111 @@ async def concurrent_region_stress_test(dut):
 
     while workers:
         await workers.pop(0)
+
+
+@cocotb.test()
+@cocotb.parametrize(channel=["write", "read"])
+async def response_backpressure_test(dut, channel):
+    # Drive the source directly so READY falls only after request acceptance.
+    # The existing pause generator does not enforce that ordering.
+    inputs = {
+        "S_AXI_ARESETN": 0,
+        "S_AXI_AWADDR": 0, "S_AXI_AWPROT": 0, "S_AXI_AWVALID": 0,
+        "S_AXI_WDATA": 0, "S_AXI_WSTRB": 0xF, "S_AXI_WVALID": 0,
+        "S_AXI_BREADY": 1,
+        "S_AXI_ARADDR": 0, "S_AXI_ARPROT": 0, "S_AXI_ARVALID": 0,
+        "S_AXI_RREADY": 1,
+    }
+    for name, value in inputs.items():
+        getattr(dut, name).value = value
+    # Lifetime agent: clock this test's raw AXI-Lite source.
+    clock_task = cocotb.start_soon(Clock(dut.S_AXI_ACLK, 8, unit="ns").start())
+
+    async def cycle():
+        # Sample the accepting edge before the registered outputs change at
+        # TPD_G=1 ns, then drive the next cycle on the falling edge.
+        await RisingEdge(dut.S_AXI_ACLK)
+        await ReadOnly()
+        values = {
+            name: int(getattr(dut, "S_AXI_" + name).value)
+            for name in ("AWREADY", "WREADY", "ARREADY", "BVALID", "BRESP",
+                         "RVALID", "RRESP", "RDATA")
+        }
+        await FallingEdge(dut.S_AXI_ACLK)
+        return values
+
+    async def transfer(write, address, data, initial_ready, stall):
+        response = "B" if write else "R"
+        ready = getattr(dut, "S_AXI_" + response + "READY")
+        ready.value = initial_ready
+        if write:
+            dut.S_AXI_AWADDR.value = address
+            dut.S_AXI_WDATA.value = data
+        else:
+            dut.S_AXI_ARADDR.value = address
+        requests = ["AW", "W"] if write else ["AR"]
+        for request in requests:
+            getattr(dut, "S_AXI_" + request + "VALID").value = 1
+        pending = set(requests)
+        for _ in range(64):
+            values = await cycle()
+            for request in tuple(pending):
+                if values[request + "READY"]:
+                    getattr(dut, "S_AXI_" + request + "VALID").value = 0
+                    pending.remove(request)
+            if not pending:
+                break
+        else:
+            raise AssertionError(f"Request timed out at {address:#x}")
+
+        held = None
+        if stall:
+            ready.value = 0
+            for _ in range(20):
+                values = await cycle()
+                fields = (values[response + "VALID"], values[response + "RESP"])
+                if not write:
+                    fields += (values["RDATA"],)
+                if held is not None:
+                    assert fields == held, f"Stalled {response} response changed at {address:#x}"
+                elif values[response + "VALID"]:
+                    held = fields
+            assert held is not None, f"No {response} response during stall at {address:#x}"
+            ready.value = 1
+
+        for _ in range(64):
+            values = await cycle()
+            if values[response + "VALID"]:
+                assert values[response + "RESP"] == AxiResp.OKAY
+                if not write:
+                    assert values["RDATA"] == data, f"Read data mismatch at {address:#x}"
+                break
+        else:
+            raise AssertionError(f"{response} response timed out at {address:#x}")
+        for _ in range(8):
+            values = await cycle()
+            assert not values[response + "VALID"], f"Duplicate {response} response at {address:#x}"
+
+    try:
+        for _ in range(20):
+            await cycle()
+        dut.S_AXI_ARESETN.value = 1
+        for _ in range(10):
+            await cycle()
+
+        for region in (0x0000_0000, 0x0010_2000, 0x0016_0000):
+            # Also start READY low to prove downstream completion does not
+            # depend on the READY value captured with the request. Reusing
+            # each address with distinct data exposes stale responses.
+            for initial_ready in (1, 0):
+                for data in (0x76543210, 0x89ABCDEF):
+                    address = region + 0x20
+                    await transfer(True, address, data, initial_ready if channel == "write" else 1,
+                                   channel == "write")
+                    await transfer(False, address, data, initial_ready if channel == "read" else 1,
+                                   channel == "read")
+    finally:
+        await cancel_and_join_tasks([clock_task])
 
 
 def test_AxiLiteCrossbar():
