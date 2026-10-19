@@ -36,8 +36,10 @@ metadata. When one dictionary contains both, pass it through
 
 Use `extra_vhdl_sources` only for a cocotb-only wrapper or simulation model whose
 design unit is absent from the ruckus import. Check the imported source tree
-under `build/SRC_VHDL/` before adding a path. Production and reusable wrapper RTL
-belongs in the nearest `ruckus.tcl`; do not use this argument to hide a missing
+under `build/SRC_VHDL/` before adding a path. Keep cocotb wrappers out of
+`ruckus.tcl`; list the complete test-only wrapper dependency chain here,
+including a wrapper instantiated by another wrapper. Production RTL belongs
+in the nearest `ruckus.tcl`; do not use this argument to hide a missing
 build-manifest entry or repeat an imported design unit. Compiling the same unit
 from both paths can redefine it, make compile order significant, or leave a
 cached build using a different source than the reviewer expects.

@@ -17,6 +17,19 @@ separates simulated behavior from remaining device and interoperability work.
   dispositions and table exhaustion, drain and the forced-abort procedure.
   The MAC-side timing leaves, retires and abort handshake have their own
   `test_EthMacTiming*.py` benches under `tests/ethernet/EthMacCore`.
+- `test_ptp_mac_port_contract.py` independently checks all bits of the capture,
+  RX metadata and TX completion encodings and initializers, then drives the
+  real port through every transport generation to exhaustion using public
+  abort acknowledgements. It checks closed admission, retained exhaustion
+  and system-reset recovery without forcing internal state.
+  Select `-k record_layouts` for a packing-only change. The exhaustive lifecycle
+  sweep requires `RUN_PTP_GENERATION_EXHAUSTION=1` and `-k generation_exhaustion`;
+  it traverses all 65,534 abort handshakes and is excluded from routine runs.
+  Add `--log-cli-level=INFO` to see its generation milestones while it runs.
+- `test_ptp_mac_port_rx_errors.py` checks good/bad-FCS/good IPv4/UDP traffic
+  with checksum checking enabled, stalled RX delivery and token reuse on
+  both PHYs. The wire-error verdict must survive the legacy checksum stage's
+  EOFE overwrite; rejected frames retain ownership until retirement.
 - `ptp_wire_utils.py` supplies physical stimulus and independent AXI/wire
   monitors, reusing the existing Ethernet AXI helpers.
 - `ptp_reference.py` and `test_ptp_reference.py` define exact arithmetic,
@@ -35,6 +48,9 @@ separates simulated behavior from remaining device and interoperability work.
   consumed on the following edge, including full-queue consume/overflow.
 - `test_ptp_rx_mac.py` runs the RX RTL beside the unchanged MAC under the
   original CRC loss, duplicate, FIFO pressure, and retained-head scenarios.
+  Both legacy MAC fixtures explicitly load `EthMacPtpExperimentWrapper` and
+  its `PtpRxFrontendWrapper` dependency; neither test wrapper is imported by
+  the EthMacCore/PtpCore ruckus manifests.
 - `test_ptp_rx_storage.py` checks the dedicated two-entry TX observer:
   lossless capture increment/error storage, pointer wrap, generation retention,
   simultaneous consume/enqueue, fixed-length compact-store decoding, consumption and

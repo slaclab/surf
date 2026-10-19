@@ -7,46 +7,24 @@ The declarations live in [EthMacPkg](../EthMacCore/rtl/EthMacPkg.vhd) and
 [PtpPkg](rtl/PtpPkg.vhd); this guide fixes their meaning, the MAC-stage audit
 that selected the carrier, the supported modes and the DMA projection.
 
-**Status (October 16, 2026): draft contract, not frozen.** The records and
-constants are declared, analyzed and lint-clean. No production entity produces
-or consumes them; the legacy `EthMacPtpEndpoint` composition and its passive
-taps are unchanged. A first review found the lifecycle, capture-alignment and
-abort sections unsound; a five-lens adversarial audit of that revision against
-the MAC RTL then found that several promises about *existing* MAC behaviour
-were false and that the RX FIFO's two drop mechanisms act on one frame. This
-revision: separates wire resolution from ownership release (§2.3); requires
-pin-coincident capture state (§2.4); adopts the passive adapter's start
-qualification so the oracle comparison is total (§2.4); makes the RX FIFO one
-retire owner and adds port-owned length and token-zero drop stages (§2.4, §3);
-specifies the importer and exporter changes that link loss and nested starts
-need (§2.4, §4.0); fixes TX stream shape, completion ordering and sidebands
-(§4); fixes the clock/reset/generic set the port assumes (§5); splits graceful
-drain from acknowledged forced abort with FIFO-owner bulk release and disables
-`PREVENT_LOCKUP` (§6); defines the transport-generation lifecycle (§6.1); and
-names the frontend/ledger mismatches Phase 3 must bridge (§4.1). The MAC-port
-records use the `PtpMacPort*` prefix to stay distinct from the protocol-port
-records. A second review then found the abort, drain, token-zero, length and
-TX capture-edge rules internally inconsistent; this revision adds the §2.4
-edge table, the §6 four-step abort procedure with a controller/adapter
-cancellation handshake (`PtpMacPortControlType`/`PtpMacPortStatusType`) and a
-single global release, restricts `FLUSHED` to frames with no wire start while
-the ledger still quarantines it, moves token-zero suppression into the
-importer so storage is bounded by the table, separates input-EOF from wire-EOF
-in the exporter, keeps rejected RX frames owned until the output stage
-consumes them, lets graceful drain finish an admitted TX frame, and raises the
-TX minimum to a full 16-byte first beat. It awaits a third review before
-Phase 0 closes.
+**Status (October 18, 2026): Phase 1 implementation and simulation gates closed.**
+The GMII/XGMII timing leaves, retire owners, forced-abort sequencer,
+`PtpMacPort` and `PtpMacPortEthMac` are committed in `744fdcbc2`; merge
+`babf2234e` adds the default-MAC regression suite. The third contract review
+traced the implemented capture, admission, release and abort paths. It found
+that RX checksum checking could erase a bad-FCS frame's EOFE before the
+FIFO, so the port now retains `doneError` as a rejected-frame verdict until
+MAC retirement or output consumption. The focused reproducer fails on both
+PHYs before that fix. Current verification is recorded in §8.
 
-**Phase 1 implementation (October 17, 2026), simulation only:** timing
-leaves for GMII and XGMII, every retire owner, the timing-mode RX FIFO and
-pause behaviour, the forced-abort handshake in `EthMacTop`, the
-`PtpMacPort` entity and the standalone `PtpMacPortEthMac` composition exist
-and pass the §8 acceptance benches against the passive adapters. §10 maps
-the contract onto the entities and records where the implementation refines
-it. No AXI-Lite bank, synthesis, timing or hardware result exists for the
-port. Implementation slices and acceptance are owned by the
-[composable PTP plan](../../../../../docs/plans/composable-ptp/README.md); the
-existing endpoint's contracts remain in [interfaces.md](interfaces.md).
+The review also clarifies the physical capture edge, the uniform Ethernet
+byte cap, completion capacity, stale-request generation and the aggregate
+owner-abort acknowledgement. These are the interfaces for the subsequent
+independent-PHC and backend work. The legacy `EthMacPtpEndpoint` composition
+and passive taps remain usable; their contracts are in [interfaces.md](interfaces.md).
+No AXI-Lite port bank, timing-port area/routing qualification or hardware
+result is implied. The [composable PTP plan](../../../../../docs/plans/composable-ptp/README.md)
+owns phase status; §10 maps this contract to the implementation.
 
 ## 1. Scope and modes
 
@@ -231,7 +209,7 @@ must carry the token to the pulse):
 | `EthMacRxPause` | Any frame whose first beat matches the pause header, regardless of FCS or length | Not `rxPauseReq`, which fires only for good-FCS pause frames. |
 | `EthMacRxFilter` | Address mismatch or `dropOnPause` | — |
 | `EthMacRxFifo` | **One pulse per frame across two indices** (`EMAC_RX_RETIRE_FIFO_IB_C`, `_OB_C`): the inbound filter retires only when it swallows the SOF beat (nothing stored); otherwise the synthetic `tLast`+EOFE terminator reaches the outbound filter, which retires on the read-side drop. | **Required change:** connect `mAxisDropFrame` with the token (`SsiFifo`/`SsiObFrameFilter` now publish `mAxisDropTId`); suppress the inbound pulse for mid-frame overflow. |
-| Port RX output stage | A frame marked *rejected* at `done` (length outside 60..1518, §3) reaches the FIFO output; the stage consumes it through `tLast` and retires at that beat | No MAC stage checks runts and `EthMacRxCsum` admits up to 1520. The token stays owned while the rejected bytes are buffered. |
+| Port RX output stage | A frame marked *rejected* at `done` (wire error or length outside 60..1518, §3) reaches the FIFO output; the stage consumes it through `tLast` and retires at that beat | No MAC stage checks runts and `EthMacRxCsum` admits up to 1520. The token stays owned while the rejected bytes are buffered. |
 | Timing-capable importer | Frame whose sampled `nextToken` was `EMAC_TOKEN_NONE_C` | Emits **no beats** for it, drains to its terminator and publishes `start`/`done` with token zero; the port counts `rxDropped`. Nothing untokened enters packet storage (§3). Not a retire. |
 | Timing-capable importer (`EMAC_RX_RETIRE_IMPORT_C`) | Owned start that ended before any frame byte followed the four FCS octets | Replaces `done` for that start; no beat exists anywhere; the port counts `rxLost`. Token zero is never retired. |
 
@@ -277,15 +255,15 @@ capture for the same frame.
 | --- | --- |
 | Delivery | Store-and-forward. The SOF beat is presented only after the frame's `done` event has been observed with `doneError = '0'`, the MAC-address/pause/checksum stages accepted it and FIFO storage holds it completely. `meta` is valid on every beat and stable until the last beat is accepted. |
 | Ownership | The RX table entry is *wire-resolved* at `done` and **released** only when the controller accepts the last beat, or a `retire` confirms the frame was consumed (pause, filter, FIFO overflow, FIFO error drop), or forced abort clears every owner. A frame stalled in `EthMacRxFifo` or at the consumer keeps its token and capture; a later `retire` for it releases the entry without a second `done`. |
-| FCS | Stripped by the existing importer; `frameLength` counts destination MAC through the last payload byte. Minimum delivered length is 60 (padding retained); maximum is 1514 untagged or 1518 with one VLAN tag, and the capacity check in §5 governs. |
+| FCS | Stripped by the existing importer; `frameLength` counts destination MAC through the last payload byte. Minimum delivered length is 60 (padding retained); the port applies a uniform 1518-byte cap, independent of EtherType or VLAN tags. A controller enforcing a 1500-byte network MTU permits 1514 untagged or 1518 with one tag; the port does not parse headers to enforce that network policy (§5). |
 | Capture | Complete `PtpRxCaptureType` at the first destination-MAC octet, aligned per §2.4. `capture.error` marks an unusable timestamp (epoch range or capture inhibited) but does **not** suppress the frame; `capture.timeValid` reports clock quality and may be low during acquisition. |
 | Transport generation | `meta.transportGeneration` is the live generation when the frame's wire `start` was admitted (§6.1). A consumer discards frames whose generation it has not observed. |
 | Dropped frames | Never appear. `rxDropped` counts tokened frames consumed by a MAC stage, by the port's length/token-zero stages, or released by forced abort; `rxLost` counts abandoned and unqualified starts (§2.4). Loss is counted, never re-associated. |
-| Counting rule | Every token increments exactly one `PtpMacPortCountersType` field, at its **release** event: a CRC-bad RX frame counts in `rxDropped` when the FIFO's outbound drop retires it, not at `done`. Counters saturate. `PtpRxCountersType` is the legacy frontend's unrelated diagnostic record and is not mapped onto these. |
+| Counting rule | Every token increments exactly one `PtpMacPortCountersType` field, at its **release** event: a CRC-bad RX frame counts in `rxDropped` when a MAC drop retires it or the port consumes its last buffered beat, never at `done`. Counters saturate. `PtpRxCountersType` is the legacy frontend's unrelated diagnostic record and is not mapped onto these. |
 | Token allocation | The port holds a registered `nextToken` (or `EMAC_TOKEN_NONE_C` when the table is full) that the import leaf samples on the pin edge of the first destination-MAC octet, stamps on every beat and echoes in `start`. The echoed value is the allocation; the port's table entry is created on the `start` edge. |
 | Admission under pressure | If `nextToken` was `EMAC_TOKEN_NONE_C` at start, the timing-capable importer emits **no beats** for the frame: it drains to the terminator and publishes `start`/`done` with token zero, which the port counts in `rxDropped`. No untokened frame enters packet storage, so the RX FIFO holds at most *table depth* frames and is sized for `tableDepth × maxFrameWords + tableDepth` words (one synthetic terminator per frame); overflow is then impossible, the inbound-overflow retire is a fault indication, and the §6 lockup-monitor argument holds. Dropping at the FIFO output instead would let unbounded token-zero traffic queue behind one stalled tokened frame. The wire cannot be backpressured. PTP frames have no reserved priority in the initial port; coexistence policy belongs to the composition. |
-| Length | At `done` the port checks `doneLength`: below 60 or above 1518 marks the entry *rejected*. The bytes are already buffered, so the token stays owned; the port's RX output stage consumes the rejected frame through `tLast` and releases the entry at that beat (`rxDropped`). `EthMacRxCsum` admits up to 1520 and nothing checks runts, so this is a port stage. |
-| Sidebands at the port boundary | Delivered frames carry SSI SOF on the first beat; EOFE is never set (the FIFO's `DROP_ERR_PKT_G` path removed it); `FRAG`, `IPERR`, `TCPERR`, `UDPERR` are forwarded as the MAC set them and are informational. `tId` is cleared to zero and `tDest` is zero at the port output; the token is never exposed to the controller. |
+| Wire verdict and length | At `done`, `doneError = '1'` or `doneLength` below 60 or above 1518 marks the entry *rejected*. The wire verdict is independent of EOFE because the legacy checksum stage can overwrite it. The bytes are already buffered, so the token stays owned; the port's RX output stage consumes the rejected frame through `tLast` and releases the entry at that beat (`rxDropped`). `EthMacRxCsum` admits up to 1520 and nothing checks runts, so this is a port stage. |
+| Sidebands at the port boundary | Delivered frames carry SSI SOF on the first beat; EOFE is never set (the FIFO error drop and port wire-verdict check enforce this, except for the explicit abort terminator in §6); `FRAG`, `IPERR`, `TCPERR`, `UDPERR` are forwarded as the MAC set them and are informational. `tId` is cleared to zero and `tDest` is zero at the port output; the token is never exposed to the controller. |
 | Generation change mid-frame | A frame whose `phcStatus.generation` at `done` differs from `capture.generation` is delivered with `capture.error = '1'`; it is not dropped. The passive adapter discards such a frame, so §8's oracle comparison excludes frames the adapter dropped on a generation change and checks only that the port flagged them. |
 
 The timing port does **not** instantiate the legacy RX bypass drain or
@@ -321,7 +299,7 @@ discontinuity between start and done retires the cookie with its outcome and
 
 ### 4.0 Exporter changes required for `WIRE_ERR`
 
-Today's exporters cannot produce the mid-frame link-loss outcome above.
+The baseline default-mode exporters cannot produce the mid-frame link-loss outcome above.
 [EthMacTxExportXgmii.vhd:190](../EthMacCore/rtl/EthMacTxExportXgmii.vhd)
 resets `curState` to `ST_IDLE_C` on `phyReady = '0'` while `DATA_MUX` still
 holds the frame remainder; on link return the remainder is transmitted as a
@@ -402,10 +380,10 @@ Both protections survive either choice.
 | --- | --- |
 | Primary configuration | `EMAC_TIMING_AXIS_CONFIG_C` inside the MAC and on the port-to-MAC streams; the **controller-facing** streams use `EMAC_AXIS_CONFIG_C` with `tId` cleared, so the token never leaves the port. `EMAC_AXIS_CONFIG_C` remains the default for every other MAC user. |
 | Clock and reset | All port records, streams, events and the abort handshake are in `ethClk`. Timing mode requires `PRIM_COMMON_CLK_G = true` with `primClk = ethClk` and `primRst = ethRst`, so one system reset reaches `EthMacTxFifo` storage, both RX FIFO sides and every tokened owner. Any CDC to a DMA or application clock is the adapter's responsibility and must move `meta`/completions in the same FIFO word as the frame beats. `ethClkEn` must be held at `'1'`; the port raises a fault bit if it ever samples `'0'`, since a gated enable cannot be rejected at elaboration. |
-| Fixed generics | `DROP_ERR_PKT_G = true` (the only mechanism behind "EOFE never delivered" and the TX checksum-error drop), `BYP_EN_G = false` (the port is the sole token writer and owner; a bypass producer could inject `tId` and bypass-routed RX frames would hold tokens with no owner), `JUMBO_G = false`, `ROCEV2_EN_G = false`, `FILT_EN_G` free. All asserted at elaboration. |
-| MTU and byte limit | 1500 network MTU; 1518 Ethernet bytes including one VLAN tag, FCS excluded. `JUMBO_G = false`. Raising it requires a new capacity check across MAC FIFOs, the capture/completion tables and DMA buffers together. |
+| Fixed generics | `DROP_ERR_PKT_G = true` (RX store-and-forward/error dropping and TX checksum-error dropping), `BYP_EN_G = false` (the port is the sole token writer and owner; a bypass producer could inject `tId` and bypass-routed RX frames would hold tokens with no owner), `JUMBO_G = false`, `ROCEV2_EN_G = false`, `FILT_EN_G` free. All asserted at elaboration. |
+| MTU and byte limit | 1500 network MTU is the controller policy; the port enforces a uniform 1518 Ethernet-byte cap, FCS excluded, sufficient for that MTU plus one VLAN tag. It does not classify untagged/tagged lengths or VLAN depth. `JUMBO_G = false`. Raising it requires a new capacity check across MAC FIFOs, the capture/completion tables and DMA buffers together. |
 | RX storage | Block RAM, `MEMORY_TYPE_G = "block"`; depth at least `tableDepth × ceil(1518/16) + tableDepth` words, so a full table of maximum frames plus one synthetic terminator each fits. Because untokened frames never enter storage (§3), this bound is complete and overflow is impossible; asserted at elaboration. The legacy `EthMacPtpEndpoint` keeps `MEMORY_TYPE_G = "distributed"`, `FIFO_ADDR_WIDTH_G = 9`. |
-| Tables | TX and RX table depth each at most `EMAC_TOKEN_COUNT_C`; initial depth 16 per direction, a generic. Completion FIFO depth equals the TX table depth. |
+| Tables | TX and RX table depth each at most `EMAC_TOKEN_COUNT_C`; initial depth 16 per direction, a generic. Admission reserves one completion credit per TX entry. The physical FIFO depth is `2**max(4, bitSize(TX_TABLE_DEPTH_G))`, at least the table depth; unused physical slots do not increase admission capacity. |
 | Checksum offload | RX checking and TX insertion may stay enabled; TX `DROP_ERR_PKT_G` drops are completed `DISCARDED`. |
 | Pause | Supported in both directions; generated pause frames carry token zero and produce no completion. |
 | Filter | `FILT_EN_G` supported; filtered frames are counted in `rxDropped`. |
@@ -424,7 +402,7 @@ token space.
 | Event | Effect on the port |
 | --- | --- |
 | System reset (`rst`) | Clears MAC pipeline, tables, completion FIFO and counters; sets `transportGeneration` to `PTP_MAC_PORT_GENERATION_RESET_C` and closes admission; a same-edge completion transfer is invalid. Consumers must also reset. |
-| Port restart / link loss (`phyReady = '0'`) | **Required leaf behaviour, not today's:** exporter dumps frames at SOF (`DISCARDED`) or drains them `WIRE_ERR` mid-frame (§4.0); importer terminates an open frame with `tLast`+EOFE and `done`/`doneError` (§2.4). The timing-mode `EthMacTxPause` clears `locPauseCnt`/`remPauseCnt` on `phyReady` falling, so a peer's pause quantum does not outlive the link session and cannot park tokened frames with no retire path. Tables are not cleared; every outstanding token still resolves through `done`, `retire` or forced abort, and every completion is still delivered. |
+| Port restart / link loss (`phyReady = '0'`) | **Timing-mode leaf behaviour:** exporter dumps frames at SOF (`DISCARDED`) or drains them `WIRE_ERR` mid-frame (§4.0); importer terminates an open frame with `tLast`+EOFE and `done`/`doneError` (§2.4). The timing-mode `EthMacTxPause` clears `locPauseCnt`/`remPauseCnt` on `phyReady` falling, so a peer's pause quantum does not outlive the link session and cannot park tokened frames with no retire path. Tables are not cleared; every outstanding token still resolves through `done`, `retire` or forced abort, and every completion is still delivered. |
 | AXI-Lite reset | Register responses only; no effect on frames, tables or generation. |
 | PHC discontinuity / capture inhibit | Captures taken on the affected edge are `error`; outstanding TX requests complete with `captureValid = '0'`. Frames are not dropped and tokens are unaffected. |
 | Graceful drain | Controller sets `PtpMacPortControlType.drainRequest`. The port stops accepting **new** TX SOF beats but keeps accepting the remaining beats of a TX frame whose SOF it already admitted, and completes that frame normally; RX starts are given `EMAC_TOKEN_NONE_C` and suppressed at the importer (§3). `PtpMacPortStatusType.drainIdle` rises when every table entry is *released*. Nothing is retired without wire evidence. Drain can stall only on the controller's own backpressure (unaccepted completions or RX frames), visible in the table-occupancy register; it is not a port fault. |
@@ -473,7 +451,7 @@ their one frame and acknowledge. FIFO owners (`EthMacTxFifo`,
 `Fifo_Cache`/`Fifo_Trans`, exporter `DATA_MUX`, importer `DATA_MUX`,
 `EthMacRxFifo`) cannot enumerate stored tokens; the timing-mode wrapper
 applies a synchronous flush reset to both FIFO sides on `request` and
-acknowledges when the FIFO reads empty.
+uses the four-cycle synchronous flush in `EthMacTimingAbort`, then acknowledges as a group (§10); it does not enumerate stored tokens or wait on per-FIFO acknowledgements.
 
 `SsiFifo`'s `PREVENT_LOCKUP` self-reset (`lockupRstEvent`, active today
 because `VALID_THOLD_G = 0`) would discard stored frames with no
@@ -494,7 +472,7 @@ is the controlled recovery.
 | Reset value | `PTP_MAC_PORT_GENERATION_RESET_C` (`0x0000`) after system reset. This value never admits traffic and never appears in a delivered record. |
 | First live value | The port advances to `0x0001` when the controller opens admission (register write); it advances again on every acknowledged forced abort. Graceful drain does not advance it. |
 | Exhaustion | `PTP_MAC_PORT_GENERATION_EXHAUST_C` (`0xFFFF`) is a fault: admission closes, the fault bit is set, and only system reset recovers. The value never wraps to zero. 65,534 forced aborts between system resets is the budget. |
-| Stamping | RX: the live generation at the frame's wire `start`. TX completion: the live generation at the request's admission. The two are identical for any request/frame that did not cross an abort. |
+| Stamping | RX: the live generation at the frame's wire `start`. TX completion: the request's generation, including a stale request completed `FLUSHED`. For a current-generation request this equals the live generation at admission; later aborts do not rewrite it. |
 | Stale TX request | A request whose `transportGeneration` differs from the live value is consumed through EOF without entering the MAC and completed `FLUSHED` with the request's own generation echoed. This covers DMA requests built before an abort and delivered after it. |
 | Consumer notification | `PtpMacPortStatusType.abortDone` rises (IRQ-capable) with the new `transportGeneration` readable; the controller took part in the abort through `cancelRequest`/`cancelAck` (§6), so it already knows the old generation is dead before issuing new requests. Linux: the netdev driver treats a generation change as a link-down/up pair and drops any queued skbs. |
 | Record view | Both envelope records and completions carry the generation, so software can recognise a stale record even after missing the IRQ. |
@@ -556,7 +534,7 @@ port stream.
 
 ## 8. Baseline evidence and acceptance
 
-Current evidence at SURF `ecbf833a2` with these declarations added:
+Contract baseline evidence at SURF `ecbf833a2` with these declarations added:
 
 - GHDL 6.0.0 analysis (`--std=08 -fsynopsys -frelaxed-rules -fexplicit`) of
   the package chain `StdRtlPkg`, `TextUtilPkg`, `AxiPkg`, `AxiStreamPkg`,
@@ -568,8 +546,84 @@ Current evidence at SURF `ecbf833a2` with these declarations added:
   generation in the LSBs, and `getSlvSize(EMAC_TIMING_AXIS_CONFIG_C) = 149`
   versus 141 for the internal default. The request record gained a
   `transportGeneration` field after that bench; the completion/meta layouts it
-  checked are unchanged. The bench is not retained; a declaration/packing
-  regression under `tests/ethernet/PtpCore/` replaces it in Phase 1.
+  checked are unchanged. The throwaway bench is superseded by
+  `test_ptp_mac_port_contract.py`, which checks encoding and decoding against
+  independent field offsets and bit-walking vectors, plus the initializers
+  and stream widths. Its lifecycle case exercises the full generation range
+  through public handshakes; execution status is below.
+
+### October 18 closure verification
+
+Sources are `ecbf833a2` (baseline) and merge `babf2234e` plus the working-tree
+Phase 1 closure patch. Local tools are Python 3.12.7, cocotb 2.1.0 and GHDL
+6.0.0; the isolated rdsrv401 runs use Python 3.10.12, cocotb 2.1.0 and GHDL
+1.0.0. Generated sources and logs are outside maintained source in the
+consuming project's `.planning/composable-ptp-phase1/20261018-closure/` and
+`rdsrv401:/u1/bareese/agent-builds/surf/20261018-phase1-closure/`.
+
+- `test_ptp_mac_port_rx_errors.py`: both GMII/XGMII cases fail before the
+  `PtpMacPortRx` fix and pass after (195.79 s locally). Eighteen frames per
+  PHY exercise good/bad-FCS/good traffic, checksum checks enabled, a stalled
+  earlier frame, exact retirement counts and capture association. The fix
+  is confined to the timing port; default MAC behavior is preserved.
+- The two older MAC/PTP fixtures pass locally (502.47 s) after explicitly
+  loading their experiment/frontend wrappers. EthMacCore's ruckus import no
+  longer includes the experiment wrapper; a fresh remote import confirms it.
+- All 12 timing/legacy pytest configurations pass on rdsrv401 (2784.50 s):
+  GMII/XGMII timing leaves, retire/abort/TID, both port compositions and the
+  two legacy MAC/PTP fixtures. The retained record-layout case also passes
+  from the final fixture checkout.
+- After fixture task-ownership and bounded-wait cleanup, all 14 selected
+  configurations pass (682.37 s). This includes both checksum-enabled RX
+  error cases, the packing check, and representative timing/port/legacy
+  cases. Existing test inventories are unchanged. Focused test compliance,
+  Python lint, VSG on changed/new VHDL, and the final local import pass.
+- The complete 65,534-abort generation sweep passes locally (1468.25 s):
+  each generation advances through the public handshake, exhaustion blocks
+  reopen/TX admission/RX tokens, another abort cannot wrap, and system reset
+  recovers. The idle-MAC contract wrapper uses `TPD_G=0 ns` to reduce GHDL
+  event-scheduling cost; normal-delay wire/capture behavior is covered by
+  the separate timing/port benches. The superseded `TPD_G=1 ns` sweep was
+  terminated after this pass and is not counted as completed evidence.
+  `RUN_PTP_GENERATION_EXHAUSTION=1` opts into this long check.
+- All 27 selected baseline known-issue scenarios across 15 pytest nodes fail
+  at the documented behavioral assertions. They cover the 15 confirmed
+  reports in the [MAC test guide](../../tests/ethernet/EthMacCore/README.md).
+- Paired default MAC and SSI selections pass on both isolated trees:
+  107 passed and 52 gated skips each, with all 159 named outcomes identical.
+  Current runtime is 3431.42 s; baseline is 3424.30 s. The long soak and
+  known-defect cases are gated out of this default selection. This selects
+  the imported default-MAC files and the two SSI FIFO/filter files; the five
+  timing files and new opt-in differential fixture are checked separately.
+- Matched default-mode `EthMacTop` synthesis, Vivado 2025.2 on rdsrv401,
+  `xcku040-ffva1156-2-e`, OOC with rebuilt hierarchy and zero black boxes:
+
+  | PHY | CLB LUTs, baseline → current | Registers | BRAM36 tiles |
+  | --- | --- | --- | --- |
+  | GMII | 5067 → 5066 | 8627 unchanged | 12 unchanged |
+  | XGMII | 7229 → 7228 | 9866 unchanged | 12 unchanged |
+
+  Distributed RAM and SRL counts are also unchanged. These unconstrained
+  synthesis results establish no default-mode storage overhead; they are
+  not timing-port area, routed timing or hardware qualification.
+- Source review finds 78 instances of changed MAC/SSI entities in 56
+  checked-out firmware files, all with named generic and port associations,
+  and no matching component declarations. This includes the GigEthCore,
+  TenGigEthCore, XauiCore and UDP testbench callers; no direct caller was
+  found outside SURF in the checked-out dependencies. Unavailable external
+  repositories and vendor PHY simulations are not qualified by this review.
+- All ten opt-in differential configurations pass: seven top-level modes
+  (seeds 467–473) and three GMII exporter cases (seeds 601/610/700, enable
+  divisors 1/10/100). Every original output matches before/after propagation
+  on each clock domain. An inverted baseline-ready mutation fails as expected,
+  and the restored case passes. Nine configurations completed in the parallel
+  batch; the final XGMII common-clock case passed separately (1478.91 s).
+  The original batch's duplicate final case was intentionally interrupted;
+  its nine completed passes and the independent final pass form this matrix.
+  This preserves recorded baseline behavior, including known defects; it is
+  not exhaustive equivalence or extended-soak coverage.
+
+### October 17 implementation evidence
 
 Phase 1 leaf evidence, October 17, 2026 (GHDL 6.0.0, cocotb 2.1.0, Python
 3.12.7), on SURF `ethernet-ptp` after `c1b7b95e4`:
@@ -709,9 +763,11 @@ Resolved in Phase 1: the GMII and XGMII leaves are pin-coincident (§2.4,
 §8) and the §8 benches pass in simulation. Still open: the port's AXI-Lite
 bank (capability, control/status, counters and faults) with its PyRogue
 model and `register-map.md` entry; synthesis, area and timing of the port,
-its tables and the wider FIFO word; a third review of this contract; the
-`EthMacTxCsum` oversize defect regression; generation exhaustion, which is
-specified but not simulated; and hardware.
+its tables and the wider FIFO word; and hardware. The third contract review
+is addressed by the October 18 fixes/clarifications above. The default-MAC
+suite retains the `EthMacTxCsum` oversize reproducer; fixing that baseline
+defect is separate work. The retained lifecycle bench verifies generation
+exhaustion and reset recovery (§8).
 
 ## 10. Phase 1 implementation map
 

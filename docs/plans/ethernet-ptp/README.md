@@ -39,6 +39,16 @@ accumulate into qualification of the latest source automatically.
 
 | October 15 PtpCore-wide port records over `649bea094` | 59 distinct configurations pass with Python 3.12.7/GHDL 6.0.0: 14 math/service/servo/PHC/E2E/register cases; four ledger cases; 41 arithmetic-leaf, exchange/rejection, interval, TX, pair/history/negative-guard, direct-sample, RX and GMII/XGMII port cases. All 48 changed/new VHDL files pass VSG. [Record interfaces](../../../ethernet/PtpCore/interfaces.md#record-interfaces-and-source-compatibility) | VHDL source API changes; register/wire formats and operand widths retained. Initial integration failures exposed a duplicated RX-wrapper declaration and a missing scalar monitor alias; both are fixed and affected cases pass. Final formatting preserves tested VHDL tokens. No full-suite, closed-loop endpoint/real-MAC, synthesis, routed timing or hardware result. |
 
+The October 18 timing-port Phase 1 closure over `babf2234e` is recorded in
+[timing-port verification](../../../ethernet/PtpCore/timing-port.md#october-18-closure-verification).
+Paired default MAC/SSI suites, ten differential configurations, selected
+timing/legacy integration, retained packing and full generation exhaustion
+pass. The closure patch fixes timing-port RX wire-error rejection and keeps
+test wrappers outside the Ruckus import. Matched default-MAC synthesis has
+unchanged storage and no black boxes; timing-port area/routing, the management
+register bank and hardware acceptance remain open. These closure edits are
+working-tree changes, not a new source pin.
+
 The [October 15 test-suite follow-up](history/verification.md#october-15-test-suite-follow-up)
 over `ed7d30cbe` passes **91 distinct selected cases**, including all eight
 endpoint/real-MAC mode/PHY configurations; one strict expected failure exposes

@@ -6,4 +6,3 @@ loadSource -lib surf -dir "$::DIR_PATH/rtl"
 
 # Load Simulation
 loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
-loadSource -lib surf -sim_only -path "$::DIR_PATH/wrappers/EthMacPtpExperimentWrapper.vhd"

@@ -38,6 +38,7 @@ async def atomic_rx_beside_real_mac(dut):
     aborts = []
 
     async def drive_time():
+        """Lifetime agent: test-owned PHC stimulus, cancelled after the assertions."""
         tick = 0
         while True:
             await FallingEdge(dut.ethClk)
@@ -51,6 +52,7 @@ async def atomic_rx_beside_real_mac(dut):
             tick += 1
 
     async def observe():
+        """Lifetime agent: test-owned RX recorder, cancelled after the assertions."""
         while True:
             await RisingEdge(dut.ethClk)
             if int(dut.ptpAbort.value):
@@ -126,5 +128,6 @@ def test_ptp_rx_mac():
         test_file=__file__, toplevel="surf.ethmacptpexperimentwrapper",
         parameters={"PTP_RX_EN_G": True, "FIFO_ADDR_WIDTH_G": 9},
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES +
-                            ["ethernet/EthMacCore/wrappers/EthMacPtpExperimentWrapper.vhd"]},
+                            ["ethernet/EthMacCore/wrappers/EthMacPtpExperimentWrapper.vhd",
+                             "ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]},
     )

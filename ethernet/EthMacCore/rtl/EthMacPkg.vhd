@@ -80,7 +80,7 @@ package EthMacPkg is
    -- already copies the whole master record. Token zero marks unowned frames,
    -- such as generated pause frames or frames admitted without a reservation.
    -- Nonzero tokens index the port's request/capture table. The contract is in
-   -- ethernet/PtpCore/timing-port.md; no production stage consumes it yet.
+   -- ethernet/PtpCore/timing-port.md; PtpMacPort owns the token tables.
    constant EMAC_TOKEN_BITS_C : positive := 8;
    subtype EthMacTokenType is slv(EMAC_TOKEN_BITS_C-1 downto 0);
    constant EMAC_TOKEN_NONE_C : EthMacTokenType := (others => '0');
@@ -99,9 +99,9 @@ package EthMacPkg is
    -- Wire-plane frame events from a timing-capable import or export leaf, in
    -- ethClk. Registered, no handshake. start reports the first destination-MAC
    -- octet exactly as it is sampled from (RX) or driven onto (TX) the MAC-side
-   -- GMII/XGMII pins: the leaf registers start on the same edge that registers
-   -- that pin word, so the port's capture-state sample on the following edge
-   -- refers to the pin-sample edge. A leaf that cannot be pin-coincident must
+   -- GMII/XGMII pins. The leaf registers start on the edge ending that pin
+   -- cycle; the port uses its registered PHC copy from that same edge on the
+   -- following edge (timing-port.md section 2.4). A non-coincident leaf must
    -- instead carry the captured state itself; it must not publish an earlier
    -- or later start and ask the port to correct it. startLane is the XGMII
    -- byte lane of that octet; GMII reports zero. done reports the final FCS

@@ -9,7 +9,7 @@
 -- closed or the table is full. The leaf's start allocates that entry; its
 -- capture is evaluated from the registered PHC copy while start is visible,
 -- with the leaf's start lane (section 2.4). done records the frame length,
--- marks frames outside 60..1518 bytes rejected and flags a PHC generation
+-- rejects wire errors and frames outside 60..1518 bytes, and flags a PHC generation
 -- change since the capture. MAC-stage retires release entries (rxDropped;
 -- the import leaf's own retire counts as rxLost). Done with token zero is a
 -- frame suppressed at the importer and counts as rxDropped.
@@ -214,7 +214,7 @@ begin
          end if;
       end if;
 
-      -- done: length check and PHC generation change since the capture
+      -- done: wire/length verdict and PHC generation change since the capture
       if (rxFrameEvent.done = '1') then
          if (rxFrameEvent.doneToken = EMAC_TOKEN_NONE_C) then
             v.incDropped := v.incDropped + 1;
@@ -223,7 +223,11 @@ begin
             if (index >= 0) and (v.entry(index).state = ALLOC_C) then
                v.entry(index).state  := DONE_C;
                v.entry(index).length := rxFrameEvent.doneLength;
-               if (unsigned(rxFrameEvent.doneLength) < MIN_LENGTH_C) or
+               -- Preserve the physical verdict independently of the stream's
+               -- EOFE: the legacy checksum stage can overwrite that sideband.
+               -- Keep ownership until a MAC retire or output consumption.
+               if (rxFrameEvent.doneError = '1') or
+                  (unsigned(rxFrameEvent.doneLength) < MIN_LENGTH_C) or
                   (unsigned(rxFrameEvent.doneLength) > MAX_LENGTH_C) then
                   v.entry(index).rejected := '1';
                end if;

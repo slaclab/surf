@@ -30,9 +30,6 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
 from tests.ethernet.PtpCore.ptp_reference import KeyedJoin, RequestLedger
 from tests.ethernet.PtpCore.ptp_wire_utils import MacBench, ptp_frame, ptp_key
 
-WRAPPER = "ethernet/EthMacCore/wrappers/EthMacPtpExperimentWrapper.vhd"
-
-
 @cocotb.test(timeout_time=100, timeout_unit="us")
 async def crc_drop_duplicate_and_byte_order(dut):
     bench = MacBench(dut)
@@ -142,4 +139,6 @@ async def paused_request_survives_logical_restart(dut):
 def test_ptp_mac_association():
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ethmacptpexperimentwrapper",
                        parameters={"PAUSE_EN_G": True, "FIFO_ADDR_WIDTH_G": 9},
-                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + [WRAPPER]})
+                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES +
+                                           ["ethernet/EthMacCore/wrappers/EthMacPtpExperimentWrapper.vhd",
+                                            "ethernet/PtpCore/wrappers/PtpRxFrontendWrapper.vhd"]})

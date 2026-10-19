@@ -205,7 +205,7 @@ class PortBench:
 
     async def start(self, *, open_admission: bool = True) -> None:
         dut = self.dut
-        cocotb.start_soon(Clock(self.clk, self.period, unit="ns").start())
+        self.clock_task = cocotb.start_soon(Clock(self.clk, self.period, unit="ns").start())
         dut.rst.setimmediatevalue(1)
         dut.phyReady.setimmediatevalue(1)
         for name in ("openAdmission", "drainRequest", "abortRequest", "cancelAck", "sAxisTValid",
@@ -219,15 +219,16 @@ class PortBench:
         dut.cmplReady.setimmediatevalue(1)
         dut.mAxisTReady.setimmediatevalue(1)
         self.phc.drive()
-        cocotb.start_soon(self._phc_driver())
+        self.phc_task = cocotb.start_soon(self._phc_driver())
         await self.edge(6)
         dut.rst.value = 0
         await self.edge(4)
-        cocotb.start_soon(self._monitor())
+        self.monitor_task = cocotb.start_soon(self._monitor())
         if open_admission:
             await self.open()
 
     async def _phc_driver(self) -> None:
+        """Lifetime agent: bench-owned PHC driver. Propagation sampling: tuple at +1 ns."""
         while True:
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
@@ -235,6 +236,7 @@ class PortBench:
             self.phc.drive()
 
     async def edge(self, count: int = 1) -> None:
+        """Propagation sampling: drive point after the 1 ns registered delay."""
         for _ in range(count):
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
@@ -256,6 +258,7 @@ class PortBench:
         return {name: (value >> (32 * i)) & 0xFFFFFFFF for i, name in enumerate(COUNTER_NAMES)}
 
     async def _monitor(self) -> None:
+        """Lifetime agent: bench-owned monitor. Propagation sampling: outputs at +2 ns."""
         dut = self.dut
         obs = self.obs
         while True:
@@ -294,6 +297,7 @@ class PortBench:
                    generation: int | None = None, eofe: int = 0, keep_override: dict | None = None,
                    omit_last: bool = False, sof: int = 1, pause_after: int | None = None,
                    pause_cycles: int = 0, pause_hook=None) -> None:
+        """Propagation sampling: ready is observed at the established +1 ns drive point."""
         dut = self.dut
         dut.txCookie.value = cookie
         dut.txTimestamp.value = timestamp
@@ -312,11 +316,13 @@ class PortBench:
             dut.sAxisTLast.value = 1 if (last and not omit_last) else 0
             dut.sAxisSof.value = sof if index == 0 else 0
             dut.sAxisEofe.value = eofe if last else 0
-            while True:
+            for _ in range(20000):
                 await RisingEdge(self.clk)
                 await Timer(1, unit="ns")
                 if int(dut.sAxisTReady.value) == 1:
                     break
+            else:
+                raise AssertionError(f"TX beat {index} of cookie {cookie:#x} remained stalled")
             if pause_after is not None and index == pause_after:
                 dut.sAxisTValid.value = 0
                 if pause_hook is not None:

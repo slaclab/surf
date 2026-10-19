@@ -35,6 +35,7 @@ entity PtpMacPortEthMacWrapper is
    generic (
       TPD_G             : time             := 1 ns;
       PHY_TYPE_G        : string           := "GMII";
+      CSUM_EN_G         : boolean          := false;
       INGRESS_LATENCY_G : slv(63 downto 0) := x"0000000000000000";
       EGRESS_LATENCY_G  : slv(63 downto 0) := x"0000000000000000");
    port (
@@ -165,9 +166,9 @@ begin
    ethConfig.macAddress  <= x"554433221100";
    ethConfig.filtEnable  <= '0';
    ethConfig.pauseEnable <= '0';
-   ethConfig.ipCsumEn    <= '0';
-   ethConfig.tcpCsumEn   <= '0';
-   ethConfig.udpCsumEn   <= '0';
+   ethConfig.ipCsumEn    <= toSl(CSUM_EN_G);
+   ethConfig.tcpCsumEn   <= toSl(CSUM_EN_G);
+   ethConfig.udpCsumEn   <= toSl(CSUM_EN_G);
    ethConfig.dropOnPause <= '0';
 
    txComb : process (sAxisEofe, sAxisSof, sAxisTData, sAxisTKeep, sAxisTLast, sAxisTValid,

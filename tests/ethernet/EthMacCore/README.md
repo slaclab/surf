@@ -13,7 +13,8 @@ EthMacCore-specific selection guide, the known-issue list and the soak command.
 | `ethmac_test_utils.py` | Flattened EMAC stream endpoints, packet builders (Ethernet, IPv4/UDP, pause), reset/clock helpers and the `ETHMAC_RTL_SOURCES` list. |
 | `ethmac_line_models.py` | RTL-independent GMII/XGMII line models: encoders with error injection (bad FCS, `RX_ER`, short or missing preamble/SFD, `/E/`, unterminated frames for nested `/S/`, both XGMII start lanes), receive-pin drivers that honour `ethClkEn`, transmit-pin monitors that decode `LineFrame` records (preamble, FCS, error, interframe gap), `StatusPulseCounter`, IPv4/UDP/TCP checksum builders and `verify_frame_checksums`, and the `FrameExpectation`/`describe_case` scoreboard helpers. |
 
-Wrappers live in `ethernet/EthMacCore/wrappers/`. Two are aimed at line-level
+Test wrappers live in `ethernet/EthMacCore/wrappers/` and are selected by the
+pytest runner's `extra_vhdl_sources`, outside the ruckus import. Two are aimed at line-level
 benches: `EthMacImportExportWrapper` exposes the exporter's transmit pins and
 the importer's receive pins separately, with separate `phyReady` inputs, and
 `EthMacTopPhyWrapper` exposes `EthMacTop` with separate PHY transmit/receive
@@ -78,6 +79,28 @@ benches); every failure message reports the seed and frame index.
 
 XLGMII has no line model; `test_EthMacTxExport.py` and `test_EthMacRxImport.py`
 keep checking that its placeholder leaves stay inert.
+
+## Pinned default-mode compatibility
+
+`test_EthMacCompatibility.py` is an opt-in differential check against
+`ecbf833a2ebae68433f5b29ce02cec86f8f11bf6`, the pre-timing MAC baseline.
+That commit must be available in the local Git object database. The helper
+generates renamed baseline MAC/SSI entities in the ignored simulation directory;
+no historical RTL copies belong in maintained sources.
+
+```bash
+RUN_ETHMAC_COMPATIBILITY_TESTS=1 ./.venv/bin/python -m pytest -n 4 -q \
+    tests/ethernet/EthMacCore/test_EthMacCompatibility.py
+```
+
+Seven top configurations use seeds 467–473: GMII/XGMII defaults and mode
+combinations, common/asynchronous primary and bypass clocks, GMII clock-enable
+gating, and the XLGMII placeholder. Three direct GMII import/export cases use
+enable divisors 1/10/100 and seeds 601/610/700. They compare every original
+output bit, including invalid AXI cycles, before and after propagation on each
+clock domain. Traffic includes stalls, RX errors, link changes, reset and leaf
+TX starvation. This checks preservation of baseline behavior for those stimuli;
+the directed suite and known-issue tests separately judge correctness.
 
 ## Extended soak
 

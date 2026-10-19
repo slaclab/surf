@@ -123,7 +123,7 @@ class XgmiiBench:
 
     async def start(self) -> None:
         dut = self.dut
-        cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
+        self.clock_task = cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
         dut.ethRst.setimmediatevalue(1)
         dut.phyReady.setimmediatevalue(1)
         dut.xgmiiRxd.setimmediatevalue(0x0707070707070707)
@@ -134,9 +134,10 @@ class XgmiiBench:
         await self.edge(4)
         dut.ethRst.value = 0
         await self.edge(4)
-        cocotb.start_soon(self._monitor())
+        self.monitor_task = cocotb.start_soon(self._monitor())
 
     async def edge(self, count: int = 1) -> None:
+        """Propagation sampling: drive point after the 1 ns registered delay."""
         for _ in range(count):
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
@@ -162,6 +163,7 @@ class XgmiiBench:
                 obs.tx_wire_octets += 1
 
     async def _monitor(self) -> None:
+        """Lifetime agent: bench-owned monitor. Propagation sampling: outputs at +2 ns."""
         dut = self.dut
         obs = self.obs
         while True:
@@ -251,6 +253,7 @@ class XgmiiBench:
     async def drop_phy_at_octets(self, count: int, cycles: int = 4000) -> None:
         # React in the same cycle the monitor counts the octet (it samples at
         # +2 ns), so phyReady is low at the very next edge.
+        """Real-time timing: react at +3 ns, after the +2 ns wire monitor."""
         target = self.obs.tx_wire_octets + count
         for _ in range(cycles):
             await RisingEdge(self.clk)

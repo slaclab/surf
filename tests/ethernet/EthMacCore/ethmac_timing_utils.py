@@ -76,7 +76,7 @@ class RetireBench:
 
     async def start(self, *, filt: int = 0, pause: int = 1) -> None:
         dut = self.dut
-        cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
+        self.clock_task = cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
         dut.ethRst.setimmediatevalue(1)
         dut.phyReady.setimmediatevalue(1)
         dut.rxInject.setimmediatevalue(1)
@@ -93,9 +93,10 @@ class RetireBench:
         await self.edge(4)
         dut.ethRst.value = 0
         await self.edge(4)
-        cocotb.start_soon(self._monitor())
+        self.monitor_task = cocotb.start_soon(self._monitor())
 
     async def edge(self, count: int = 1) -> None:
+        """Propagation sampling: drive point after the 1 ns registered delay."""
         for _ in range(count):
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
@@ -117,6 +118,7 @@ class RetireBench:
         return released
 
     async def _monitor(self) -> None:
+        """Lifetime agent: bench-owned monitor. Propagation sampling: outputs at +2 ns."""
         dut = self.dut
         while True:
             await RisingEdge(self.clk)

@@ -83,6 +83,7 @@ class EventLog:
 
 
 async def _allocate_and_log(dut, log: EventLog) -> None:
+    """Lifetime agent: bench-owned allocator. Propagation sampling: events at +2 ns."""
     # Offer the next token after each RX start, like the port's registered
     # nextToken; log TX events for comparison with the sent tIds.
     tokens = iter(RX_TOKENS)
@@ -122,7 +123,7 @@ async def eth_mac_timing_tid_test(dut):
 
     log = EventLog()
     if timing:
-        cocotb.start_soon(_allocate_and_log(dut, log))
+        bench.timing_monitor = cocotb.start_soon(_allocate_and_log(dut, log))
 
     frames = [
         (_frame(0x10, 64), 0x5A),
@@ -156,6 +157,7 @@ async def eth_mac_timing_tid_test(dut):
     delivered = [{beat.tid for beat in beats} for beats in observed]
     if not timing:
         assert delivered == [{0}] * len(frames), f"default configuration must truncate tId: {delivered}"
+        # Terminal scenario: payload and default TID truncation were checked.
         return
 
     # RX: one token per frame, on every beat, as allocated at the importer

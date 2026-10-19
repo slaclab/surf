@@ -117,7 +117,7 @@ class LeafBench:
 
     async def start(self) -> None:
         dut = self.dut
-        cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
+        self.clock_task = cocotb.start_soon(Clock(self.clk, CLK_PERIOD_NS, unit="ns").start())
         dut.ethRst.setimmediatevalue(1)
         dut.phyReady.setimmediatevalue(1)
         dut.gmiiRxDv.setimmediatevalue(0)
@@ -128,15 +128,17 @@ class LeafBench:
         await self.edge(4)
         dut.ethRst.value = 0
         await self.edge(4)
-        cocotb.start_soon(self._monitor())
+        self.monitor_task = cocotb.start_soon(self._monitor())
 
     async def edge(self, count: int = 1) -> None:
         # Drive point: 1 ns after the edge, held until the next edge.
+        """Propagation sampling: drive point after the 1 ns registered delay."""
         for _ in range(count):
             await RisingEdge(self.clk)
             await Timer(1, unit="ns")
 
     async def _monitor(self) -> None:
+        """Lifetime agent: bench-owned monitor. Propagation sampling: outputs at +2 ns."""
         dut = self.dut
         obs = self.obs
         while True:
