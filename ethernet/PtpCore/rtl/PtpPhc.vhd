@@ -51,7 +51,9 @@
 -- external request is never admitted (ready stays low), and a non-owner AXI
 -- SET/PHASE/RATE/VALID submission returns SLVERR before freezing operands, so
 -- neither can occupy the slot or inhibit captures. AXI PPS is the only
--- cross-owner command. A configuration transaction (configControl.busy)
+-- cross-owner command.
+-- MANUAL_EN_G = false (fixed external control) removes manual operand storage,
+-- its register words and PHASE preparation; AXI PPS keeps its completion path. A configuration transaction (configControl.busy)
 -- closes both admission paths; commandIdle tells the coordinator when every
 -- accepted command has been acknowledged. clearValid revokes qualification
 -- only while the external client owns the clock.
@@ -88,7 +90,10 @@ entity PtpPhc is
       TPD_G          : time     := 1 ns;
       RST_POLARITY_G : sl       := '1';
       RST_ASYNC_G    : boolean  := false;
-      CLK_FREQ_G     : positive := 156250000);
+      CLK_FREQ_G     : positive := 156250000;
+      -- false omits manual SET/PHASE/RATE/VALID submission, operand storage
+      -- and PHASE preparation (fixed external control); AXI PPS remains.
+      MANUAL_EN_G    : boolean  := true);
    port (
       -- Shared endpoint clock domain.
       clk : in  sl;
@@ -271,21 +276,32 @@ begin
    operandMasters(0) <= r.operandBus.master;
    operandMasters(1) <= r.operandMaster;
 
-   U_Operands : entity surf.PtpConfigBank
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         DEFAULTS_G     => Slv32Array'(0 to 9 => (others => '0')))
-      port map (
-         clk      => clk,               -- [in]
-         rst      => rst,               -- [in]
-         prepare  => r.operandPrepare,  -- [in]
-         apply    => '0',               -- [in]
-         prepared => operandPrepared,   -- [out]
-         scan     => open,              -- [out]
-         masters  => operandMasters,    -- [in]
-         slaves   => operandSlaves);    -- [out]
+   -- Manual operands exist only with AXI steering. Without them, the operand
+   -- words decode as unmapped and no software-writable storage remains.
+   GEN_NO_OPERANDS : if not MANUAL_EN_G generate
+      operandSlaves   <= (others => PTP_REGISTER_SLAVE_INIT_C);
+      operandPrepared <= '1';
+   end generate GEN_NO_OPERANDS;
+
+   GEN_OPERANDS : if MANUAL_EN_G generate
+
+      U_Operands : entity surf.PtpConfigBank
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            DEFAULTS_G     => Slv32Array'(0 to 9 => (others => '0')))
+         port map (
+            clk      => clk,               -- [in]
+            rst      => rst,               -- [in]
+            prepare  => r.operandPrepare,  -- [in]
+            apply    => '0',               -- [in]
+            prepared => operandPrepared,   -- [out]
+            scan     => open,              -- [out]
+            masters  => operandMasters,    -- [in]
+            slaves   => operandSlaves);    -- [out]
+
+   end generate GEN_OPERANDS;
 
    comb : process (all) is
       variable readAddress  : slv(11 downto 0);
@@ -356,11 +372,11 @@ begin
       writeIndex := -1;
       wordMask   := (others => '0');
 
-      if unsigned(readAddress(11 downto 2)) >= 10 and unsigned(readAddress(11 downto 2)) <= 19 then
+      if MANUAL_EN_G and unsigned(readAddress(11 downto 2)) >= 10 and unsigned(readAddress(11 downto 2)) <= 19 then
          readIndex := to_integer(unsigned(readAddress(11 downto 2)))-10;
       end if;
 
-      if unsigned(writeAddress(11 downto 2)) >= 10 and unsigned(writeAddress(11 downto 2)) <= 19 then
+      if MANUAL_EN_G and unsigned(writeAddress(11 downto 2)) >= 10 and unsigned(writeAddress(11 downto 2)) <= 19 then
          writeIndex := to_integer(unsigned(writeAddress(11 downto 2)))-10;
          if writeIndex = 1 then
             if ep.axiWriteMaster.wstrb(1 downto 0) = "11" then
@@ -384,7 +400,7 @@ begin
          -- external client owns the clock.
          if r.manualState /= IDLE_S or configControl.busy = '1' then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
-         elsif externalOwner = '1' and commandWord(2 downto 0) /= PTP_CMD_PPS_C then
+         elsif (externalOwner = '1' or not MANUAL_EN_G) and commandWord(2 downto 0) /= PTP_CMD_PPS_C then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
          elsif unsigned(commandWord(2 downto 0)) > unsigned(PTP_CMD_PPS_C) then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
