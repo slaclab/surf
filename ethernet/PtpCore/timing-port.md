@@ -366,11 +366,19 @@ this contract does not claim they do:
 - `PtpRxFrontend` and `PtpDelayReqObserver` expect destination-MAC-through-FCS
   bytes on an 8-byte stream with no ready and a 64-byte minimum.
   `PtpMacPortRxMasterType` is FCS-stripped, 16 bytes wide, ready/valid, 60-byte
-  minimum. Phase 3 either adds a frontend variant (`FCS_PRESENT_G = false`,
-  16-byte width, ready-aware) or keeps the passive adapter path for the RTL
-  backend's RX and moves only TX completion onto the port. The second option
-  is the planning default; the first is measured against it before Phase 3
-  starts.
+  minimum. **Decision, October 19, 2026:** the autonomous endpoint keeps
+  both MAC implementations as a build-time option. The tapped build keeps
+  the passive adapters. The timing-port build has no pin tap: a shim resizes
+  the port's RX stream to 8 bytes and supplies the capture from RX metadata
+  at SOF, and `PtpRxFrontend` gains a no-FCS input mode (the timing-mode MAC
+  already drops bad-CRC frames). The frontend's parsing and validation stay
+  shared. Phase 3 slice 3a measures this against the passive path before
+  the RX change is implemented.
+- In the timing-port build, a completion adapter maps `SENT` to the existing
+  observed-Delay_Req record and emits nothing for `WIRE_ERR`, `DISCARDED` or
+  `FLUSHED`, so `PtpTxLedger` and its quarantine rules are unchanged in both
+  builds. The key-release rules in the first item are a later optional
+  ledger improvement.
 
 Both protections survive either choice.
 
