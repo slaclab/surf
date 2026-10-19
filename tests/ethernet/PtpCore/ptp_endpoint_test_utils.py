@@ -93,9 +93,9 @@ class Bench:
         assert False, "snapshot command timeout"
 
     async def manual(self, kind, value=0):
-        await self.write(0x1020, 0x80 | kind | (value << 3))
+        await self.write(0x5020, 0x80 | kind | (value << 3))
         for _ in range(100):
-            state = await self.read(0x1024)
+            state = await self.read(0x5024)
             if not state & 1:
                 assert state & 2 and not state & 4, state
                 return
@@ -121,8 +121,9 @@ class Bench:
             await self.write(address, value, 8)
         await self.write(0x3050, 3)
         await self.write(0x3004, 4 if self.allow_step else 0)
-        await self.write(0x1004, 8)
-        await self.write(0x004, 3)
+        await self.write(0x5004, 8)
+        await self.write(0x004, 1)
+        await self.write(0x4004, 1)  # PhcCore.Owner: the servo steers the PHC.
         await self.commit()
 
     def frame(self, kind, sequence, remote=0, correction=0, *, two_step=True):

@@ -30,7 +30,7 @@ entity GigEthPtp is
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
       -- Relative offsets allow a board to retain an existing register map.
       ETH_OFFSET_G      : slv(31 downto 0)     := x"00000000";
-      PTP_OFFSET_G      : slv(31 downto 0)     := x"00004000";
+      PTP_OFFSET_G      : slv(31 downto 0)     := x"00008000";
       COMMON_CLK_G      : boolean              := false;
       PACKET_LIFETIME_G : positive             := 125000000;
       FIFO_ADDR_WIDTH_G : positive             := 9;
@@ -84,7 +84,7 @@ architecture rtl of GigEthPtp is
    constant PHY_INDEX_C      : natural := 0;
    constant ENDPOINT_INDEX_C : natural := 1;
 
-   -- Default aperture: Ethernet 4 KiB at +0, endpoint 16 KiB at +0x4000.
+   -- Default aperture: Ethernet 4 KiB at +0, endpoint 32 KiB at +0x8000.
    -- Parent allocation must enclose both banks if the offsets are overridden.
    constant ETH_BASE_C : slv(31 downto 0) :=
       slv(unsigned(AXIL_BASE_ADDR_G) + unsigned(ETH_OFFSET_G));
@@ -97,7 +97,7 @@ architecture rtl of GigEthPtp is
          connectivity => x"0001"),
       ENDPOINT_INDEX_C => (
          baseAddr     => PTP_BASE_C,
-         addrBits     => 14,
+         addrBits     => 15,
          connectivity => x"0001"));
 
    signal localReadMaster  : AxiLiteReadMasterType;
@@ -120,9 +120,9 @@ begin
           unsigned(AXIL_BASE_ADDR_G) <= unsigned(not PTP_OFFSET_G)
       report "GigEthPtp address addition overflows" severity failure;
    assert ETH_BASE_C(11 downto 0) = (11 downto 0 => '0') and
-          PTP_BASE_C(13 downto 0) = (13 downto 0 => '0')
-      report "GigEthPtp requires 4 KiB Ethernet and 16 KiB PTP alignment" severity failure;
-   assert ETH_BASE_C(31 downto 14) /= PTP_BASE_C(31 downto 14)
+          PTP_BASE_C(14 downto 0) = (14 downto 0 => '0')
+      report "GigEthPtp requires 4 KiB Ethernet and 32 KiB PTP alignment" severity failure;
+   assert ETH_BASE_C(31 downto 15) /= PTP_BASE_C(31 downto 15)
       report "GigEthPtp register banks overlap" severity failure;
 
    -- Cross complete transactions into the PHC domain before selecting a bank.

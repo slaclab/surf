@@ -59,6 +59,19 @@ about 95–97% relative to the former fixed waits alone. This closes the functio
 integration gap in the historical rows above, not service-envelope, normative,
 timing/CDC or hardware qualification.
 
+The October 18–19 shared PHC subsystem (composable-PTP Phase 2) over
+`91a6bc5d6` adds `PtpPhcCore`/`PtpPhcControl` and owner-gated `PtpPhc`
+admission, and rebuilds `PtpEndpoint` around the core in a 32 KiB map; see the
+[PHC subsystem contract](../../../ethernet/PtpCore/phc.md). With Python
+3.12.7/GHDL 6.0.0: the three standalone `test_ptp_phc_core.py` cases, both
+`test_ptp_phc_mac_port.py` PHYs, both `test_ptp_phc.py` and `test_ptp_reg.py`
+cases, the 13 static map checks, GMII two-step/XGMII one-step closed-loop
+endpoints, the three GMII port scenarios and the GMII two-step real-MAC
+endpoint pass. Four standalone and one composed RTL mutation each fail. It
+also fixes a pre-existing manual-PHASE result handshake that hung every manual
+PHASE after the first until system reset. Other endpoint/port/real-MAC
+configurations, synthesis/resources, routed timing and hardware remain unrun.
+
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
 the acceptance backlog does not require a full-suite replay after routine edits.

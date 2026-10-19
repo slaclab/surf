@@ -9,11 +9,12 @@
 #-----------------------------------------------------------------------------
 
 # Test methodology:
-# - Sweep: All four distributed PyRogue banks and their RTL decode entries.
+# - Sweep: All five distributed PyRogue banks and their RTL decode entries.
 # - Stimulus: Parse maintained sources without importing unavailable PyRogue.
 # - Checks: Exact field-start offsets/bits and access modes match literal RTL
 #   decodes or the preserved word-bank ABI; software fields never overlap or
-#   escape a 4 KiB bank; parent child offsets agree. AXI tests cover RAM decodes.
+#   escape a 4 KiB bank; parent child offsets agree, including the PHC core's
+#   placement in the 32 KiB endpoint. AXI tests cover RAM decodes.
 #   The documented ABI independently anchors widths, exact access and signedness;
 #   in-memory mutations must fail for truncated fields and altered commands.
 # - Timing: Static schema checks complement the real AXI/cocotb regressions.
@@ -25,14 +26,19 @@ import re
 import pytest
 
 ROOT = Path(__file__).resolve().parents[3]
-BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhc', 'PtpPhc'),
-         ('PtpProtocolEngine', 'PtpProtocolReg'), ('PtpServo', 'PtpServo')]
+BANKS = [('PtpEndpoint', 'PtpEndpointControl'), ('PtpPhcCore', 'PtpPhcControl'),
+         ('PtpPhc', 'PtpPhc'), ('PtpProtocolEngine', 'PtpProtocolReg'), ('PtpServo', 'PtpServo')]
+CHILDREN = {
+    'PtpEndpoint': {'ProtocolEngine': 0x2000, 'Servo': 0x3000, 'PhcCore': 0x4000},
+    'PtpPhcCore': {'Phc': 0x1000},
+}
 
 # Numerical interpretation is an ABI property even when RTL stores an slv.
 # Compare against the owning register guide and signed arithmetic consumers,
 # not against another extraction of the Python device under test.
 SIGNED_FIELDS = {
     'PtpEndpoint': set(),
+    'PtpPhcCore': set(),
     'PtpPhc': {'Phase', 'RateAddend', 'AppliedRateAddend'},
     'PtpProtocolEngine': {'MaxPathDelay', 'IngressLatency', 'EgressLatency',
                           'CurrentUtcOffset', 'ExchangeSyncCorrection', 'ExchangeDelayCorrection'},
@@ -44,7 +50,7 @@ SIGNED_FIELDS = {
 def documented_schema(device):
     source = (ROOT/'ethernet/PtpCore/register-map.md').read_text()
     section = source.split(f'## {device} fields\n', 1)[1].split('\n## ', 1)[0]
-    bank = dict(PtpEndpoint=0, PtpPhc=0x1000, PtpProtocolEngine=0x2000, PtpServo=0x3000)[device]
+    bank = dict(PtpEndpoint=0, PtpPhcCore=0x4000, PtpPhc=0x5000, PtpProtocolEngine=0x2000, PtpServo=0x3000)[device]
     fields = {}
     for offset, name, bits, access in re.findall(
             r'^\| `(0x[0-9A-Fa-f]+)` \| `([^`]+)` \| ([0-9:]+) \| (RO|RW|WO) \|', section, re.M):
@@ -155,7 +161,7 @@ def check_local_register_schema(device, rtl, python_source):
         if not isinstance(node, ast.Call):
             continue
         keywords = {kw.arg: kw.value for kw in node.keywords}
-        if isinstance(node.func, ast.Name) and node.func.id in ('PtpPhc', 'PtpProtocolEngine', 'PtpServo'):
+        if isinstance(node.func, ast.Name) and node.func.id in ('PtpPhcCore', 'PtpPhc', 'PtpProtocolEngine', 'PtpServo'):
             children[ast.literal_eval(keywords['name'])] = ast.literal_eval(keywords['offset'])
         if not isinstance(node.func, ast.Attribute) or node.func.attr not in ('RemoteVariable', 'RemoteCommand'):
             continue
@@ -169,14 +175,14 @@ def check_local_register_schema(device, rtl, python_source):
         access = 'WO' if node.func.attr == 'RemoteCommand' else mode
         described[name] = (offset, bit, width, access, base == 'pr.Int')
         assert described[name] == expected.get(name), f'schema {name}: {described[name]} != {expected.get(name)}'
-        if device == 'PtpEndpoint' and name in ('CommitConfig', 'Snapshot'):
+        if device in ('PtpEndpoint', 'PtpPhcCore') and name in ('CommitConfig', 'Snapshot'):
             assert node.func.attr == 'RemoteCommand', f'command {name}: expected RemoteCommand'
             assert ast.unparse(keywords['function']) == 'pr.BaseCommand.createTouch(1)', f'command {name}: strobe'
         if mode == 'WO':
             mode = 'RW'  # command strobes have deterministic hardware readback
-        # Config bits are described individually in software but use a two-bit
-        # vector in the central hardware endpoint.
-        key = (offset, 0) if device == 'PtpEndpoint' and offset in (4, 0x44) and bit < 2 else (offset, bit)
+        # The capability fields are described individually in software but are
+        # one constant word in hardware.
+        key = (offset, 0) if device == 'PtpPhcCore' and offset == 0x008 else (offset, bit)
         if device == 'PtpProtocolEngine' and offset == 0x48:
             key = (offset, 0)  # packed ledger status
         assert hardware.get(key) == mode, (name, key, mode)
@@ -187,8 +193,7 @@ def check_local_register_schema(device, rtl, python_source):
         occupied.update(bits)
     assert software == hardware
     assert described == expected
-    if device == 'PtpEndpoint':
-        assert children == {'Phc': 0x1000, 'ProtocolEngine': 0x2000, 'Servo': 0x3000}
+    assert children == CHILDREN.get(device, {})
 
 
 @pytest.mark.parametrize('device,rtl', BANKS)
@@ -202,6 +207,8 @@ def test_local_register_schema(device, rtl):
     ('PtpProtocolEngine', 'PtpProtocolReg', 'CurrentUtcOffset', 'base', 'pr.UInt'),
     ('PtpEndpoint', 'PtpEndpointControl', 'IrqClear', 'mode', "'RW'"),
     ('PtpEndpoint', 'PtpEndpointControl', 'CommitConfig', 'function', 'pr.BaseCommand.createTouch(0)'),
+    ('PtpPhcCore', 'PtpPhcControl', 'Owner', 'bitOffset', '1'),
+    ('PtpPhcCore', 'PtpPhcControl', 'Snapshot', 'function', 'pr.BaseCommand.createTouch(0)'),
     ('PtpServo', 'PtpServo', 'DelayAsymmetry', 'bitSize', '32'),
 ])
 def test_schema_rejects_mutation(device, rtl, name, keyword, replacement):

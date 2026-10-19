@@ -94,6 +94,7 @@ async def adversarial_port(d):
         await b.start()
         await b.configure()
         await b.write(0x004, 1)
+        await b.write(0x4004, 0)  # AXI owns the PHC; the servo only drains.
         # Keep receipt expiry out of association-policy checks; each frame retires
         # through the real frontend/engine handshake before the next is injected.
         await b.write(0x2088, 200000, 8)
@@ -210,6 +211,7 @@ async def tx_restart(d):
         await b.start()
         await b.configure()
         await b.write(0x004, 1)
+        await b.write(0x4004, 0)  # AXI owns the PHC; the servo only drains.
         generation = int(d.timeGeneration.value)
         # Qualify the real rate estimator with independent physical timing, then
         # hold the builder's first beat across a logical restart. Bytes already
@@ -267,6 +269,7 @@ async def physical_one_step_policy(d):
         await b.start()
         await b.configure()
         await b.write(0x004, 1)  # Drain measurements without steering the PHC.
+        await b.write(0x4004, 0)
         await b.write(0x20A0, 1000000, 8)
         await b.write(0x20A8, 1000000, 8)
         await b.commit()

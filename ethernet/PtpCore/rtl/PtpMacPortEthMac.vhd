@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 -- Phase 1 composition of the composable PTP plan: a timing-mode EthMacTop
 -- (EMAC_TIMING_AXIS_CONFIG_C, TIMING_EN_G) behind PtpMacPort, with the PHC
--- supplied from outside (a fixture or an existing PtpPhc until Phase 2). The
+-- tuple supplied from outside (normally a PtpPhcCore, or a fixture). The
 -- controller owns untagged 0x88F7 in both directions: there is no bypass
 -- path, primary guard or drain. This is a build-time alternative to
 -- EthMacPtpEndpoint, which is unchanged. Contract and limits:

@@ -21,7 +21,7 @@ project; [physical-clock integration](physical-clock.md) remains future work.
 | Passive, independently validated wire observation | Keeps each capture with its own bytes before any lossy queue and preserves the existing MAC. It costs duplicate framing/FCS logic; header-key joins after independent loss were rejected. |
 | Fixed source and L2 E2E scope | Bounds policy and association state. It does not imply BMCA, VLAN/UDP, Pdelay, one-step transmit or full profile conformance. |
 | Raw-tick rate estimation and capture-specific calibration | PHC steering must not feed back into the oscillator estimate or change the units of an earlier capture. E2E needs a qualified rate even before valid path delay exists. |
-| Local arithmetic state with two narrowly shared services | SECOND conversion is shared by servo/manual PHC and variable division by rate/E2E. Registered local operations replace descriptors and operand workspaces; the existing association floor remains until the complete replacement bound is validated. |
+| Local arithmetic state with one narrowly shared service | Variable division is shared by rate/E2E. The servo and the PHC core each own a private SECOND converter, so the clock subsystem has no protocol/servo arithmetic dependency. Registered local operations replace descriptors and operand workspaces; the existing association floor remains until the complete replacement bound is validated. |
 | Physical TX fate retained across logical restart | A queued MAC frame can still reach the wire after timeout or reconfiguration. Freeing its key early risks associating a late completion/response with a new exchange. |
 | Registered publication and explicit cancellation edges | Makes payload, validity and lifecycle observable together. Cancellation can veto pending work but cannot retroactively undo a consumed sample or committed clock command. |
 | Local register ownership with coordinated commit/snapshot | Each core owns its settings and diagnostics. Frozen candidates and versioned result banks provide atomic transactions without central wide copies. |
@@ -147,10 +147,12 @@ old work once and permits subsequent frequency-only holdover control.
 
 ## Shared compute and storage
 
-`PtpEndpoint` owns one [PtpSecondService](rtl/PtpSecondService.vhd) for servo
-and manual PHC conversion, and one [PtpVariableDivide](rtl/PtpVariableDivide.vhd)
-for rate estimation and E2E calibration. Each has two owners, round-robin
-admission, independently held responses and owner-local cancellation. There is
+`PtpEndpoint` owns a one-client [PtpSecondService](rtl/PtpSecondService.vhd)
+for the servo and one [PtpVariableDivide](rtl/PtpVariableDivide.vhd) for rate
+estimation and E2E calibration, with two owners. `PtpPhcCore` owns its own
+one-client SECOND converter for manual PHASE, so the same clock subsystem works
+standalone. Services use round-robin admission, independently held responses
+and owner-local cancellation. There is
 no shared descriptor engine or addressed operand workspace. `PtpCompute`, its
 package and its legacy-only fixtures are deleted; Git history preserves them.
 
@@ -161,9 +163,9 @@ flowchart TD
     Protocol --> Measurement["Rate estimation / E2E: local state"]
     Measurement <--> Divide["Shared variable divider"]
     Measurement --> Servo["Local filter / PI"]
-    Servo <--> Second["Shared SECOND converter"]
-    Manual["Frozen manual operands"] <--> Second
-    Servo --> PHC["PHC command arbitration / commit"]
+    Servo <--> Second["Servo SECOND converter"]
+    Manual["Frozen manual operands"] <--> PhcSecond["PHC core SECOND converter"]
+    Servo --> PHC["Owner-gated PHC admission / commit"]
     Manual --> PHC
     PHC --> Tick["Dedicated tick / PPS / generation"]
     Tick --> Capture
@@ -224,7 +226,7 @@ arithmetic latency does not make these other ownership rules unnecessary.
 | `PtpServoFilter` | Median/sample-history selection independent of PHC command lifetime. |
 | `PtpServoPi` | Reused signed96×unsigned95 limb product, rounded shifts, local BILLION/NOMINAL converters, registered clamp/anti-windup equations. |
 | `PtpServo` | Phase acquisition through SECOND; candidate/command/ACK sequencing, configuration and snapshots. |
-| `PtpPhc` | Dedicated counting/PPS and live command application; shared SECOND preparation only. |
+| `PtpPhc` | Dedicated counting/PPS and live command application; private SECOND preparation only, inside `PtpPhcCore`. |
 | Protocol tables and TX ledger | Word-oriented scans, native adds/comparisons and raw-age checks; separate from arithmetic services. |
 
 [Primitive contracts](interfaces.md#arithmetic-primitive-contracts) define width,
@@ -787,7 +789,7 @@ hierarchy. Its earlier resource figures describe the previous implementation.
 
 `PtpServo` composes `PtpServoFilter` and `PtpServoPi`. PI uses named local
 state, a reused product, registered clamp/anti-windup stages, local constant
-converters and shared SECOND conversion for commands. Shifts retain nearest
+converters and private SECOND conversion for commands. Shifts retain nearest
 ties away from zero at 30 and 62 bits. Overflow rejection, unsigned32 gains and
 signed128 intermediate semantics remain unchanged. Applied configuration is
 read from the active record. Candidate frequency becomes committed frequency
@@ -808,9 +810,9 @@ See the [service contract](interfaces.md#shared-service-bound) for bounds.
 
 ## AXI-Lite register map
 
-The [register map](register-map.md) defines the implemented four-bank ABI,
+The [register map](register-map.md) defines the implemented endpoint ABI,
 PyRogue hierarchy, commit/snapshot completion semantics, strobes and the current development layout.
-`AXIL_BASE_ADDR_G` sets the aligned 16 KiB base on the endpoint/MAC composition;
+`AXIL_BASE_ADDR_G` sets the aligned 32 KiB base on the endpoint/MAC composition;
 the crossbar receives full addresses without local address stripping.
 
 Configuration is stored in local shadows, frozen and validated by coordinated

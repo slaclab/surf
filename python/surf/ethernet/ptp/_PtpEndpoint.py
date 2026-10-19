@@ -10,20 +10,23 @@
 
 import pyrogue as pr
 
-from ._PtpPhc import PtpPhc
+from ._PtpPhcCore import PtpPhcCore
 from ._PtpProtocolEngine import PtpProtocolEngine
 from ._PtpServo import PtpServo
 
 
 class PtpEndpoint(pr.Device):
-    """Development PTP register map: four 4 KiB banks in a 16 KiB aperture.
+    """Development PTP register map in a 32 KiB aperture.
 
-    Configuration variables in this device and Phc/ProtocolEngine/Servo children are
-    shadows. CommitConfig prepares immutable candidates, validates all banks,
-    then applies all or none. Poll ConfigBusy and ConfigSequence and check
-    ConfigError; submission success alone is not commit success. Snapshot
-    captures all local status banks on one edge with a common sequence.
-    Register reset preserves accepted operations and active configuration.
+    Endpoint control at 0x0000, ProtocolEngine at 0x2000, Servo at 0x3000 and
+    the shared PhcCore (control 0x4000, Phc 0x5000). Configuration variables
+    here and in the children, including PhcCore.Owner (1 selects the servo),
+    are shadows. CommitConfig prepares immutable candidates, drains PHC
+    commands, validates all banks, then applies all or none. Poll ConfigBusy
+    and ConfigSequence and check ConfigError; submission success alone is not
+    commit success. Snapshot captures all local status banks on one edge with
+    a common sequence. Register reset preserves accepted operations and active
+    configuration.
     """
 
     def __init__(self, **kwargs):
@@ -43,15 +46,6 @@ class PtpEndpoint(pr.Device):
             description = 'Enable fixed-source port after CommitConfig.',
             offset      = 0x004,
             bitOffset   = 0,
-            bitSize     = 1,
-            mode        = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'ServoEnable',
-            description = 'Enable automatic clock control after CommitConfig.',
-            offset      = 0x004,
-            bitOffset   = 1,
             bitSize     = 1,
             mode        = 'RW',
         ))
@@ -78,15 +72,6 @@ class PtpEndpoint(pr.Device):
             description = 'Committed port enable.',
             offset      = 0x044,
             bitOffset   = 0,
-            bitSize     = 1,
-            mode        = 'RO',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'ActiveServoEnable',
-            description = 'Committed servo enable.',
-            offset      = 0x044,
-            bitOffset   = 1,
             bitSize     = 1,
             mode        = 'RO',
         ))
@@ -198,6 +183,6 @@ class PtpEndpoint(pr.Device):
             mode        = 'RO',
         ))
 
-        self.add(PtpPhc(name="Phc", offset=0x1000))
         self.add(PtpProtocolEngine(name="ProtocolEngine", offset=0x2000))
         self.add(PtpServo(name="Servo", offset=0x3000))
+        self.add(PtpPhcCore(name="PhcCore", offset=0x4000))

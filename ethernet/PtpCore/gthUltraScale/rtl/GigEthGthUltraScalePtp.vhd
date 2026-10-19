@@ -27,7 +27,7 @@ entity GigEthGthUltraScalePtp is
       AXIL_BASE_ADDR_G  : slv(31 downto 0)     := (others => '0');
       -- Relative offsets allow a board to retain an existing register map.
       ETH_OFFSET_G      : slv(31 downto 0)     := x"00000000";
-      PTP_OFFSET_G      : slv(31 downto 0)     := x"00004000";
+      PTP_OFFSET_G      : slv(31 downto 0)     := x"00008000";
       COMMON_CLK_G      : boolean              := false;
       PACKET_LIFETIME_G : positive             := 125000000;
       FIFO_ADDR_WIDTH_G : positive             := 9;

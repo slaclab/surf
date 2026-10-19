@@ -10,7 +10,7 @@
 -- clock behavior against an independent numerical model. The standard AXI
 -- adapter exposes the PHC register bank; Python programs monotonic policy and
 -- drives prepare/apply strobes. Hardware commands use the servo arbitration
--- path, with automatic control enabled and ownership held through completion.
+-- path, with the external owner selected and ownership held through completion.
 --
 -- Also instantiates PtpPhcRead with a separately driven reader clock/reset and
 -- exposes its request, completion, snapshot and sequence fields. Reset
@@ -258,7 +258,7 @@ begin
          snapshotControl   => snapshotControl,        -- [in]
          snapshotPrepared  => snapshotPrepared,       -- [out]
          configValid       => configValid,            -- [out]
-         servoEnable       => '1',                    -- [in]
+         externalOwner     => '1',                    -- [in]
          clearValid        => clearValid,             -- [in]
          phcTime           => timeValue,              -- [out]
          status            => status,                 -- [out]

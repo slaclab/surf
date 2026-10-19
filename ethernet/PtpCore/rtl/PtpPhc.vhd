@@ -42,18 +42,28 @@
 -- already being prepared.
 -- Manual preparation progresses through issue, math completion, target request
 -- and acknowledgement states; ordinary commands skip the math states.
--- Manual and servo requests share the same command slot; ownership is retained
--- through acknowledgement, including rejection and independent cancellation.
--- A command's own capture-abort pulse does not revoke its PHC commit.
+-- Manual and external requests share the same command slot; ownership is
+-- retained through acknowledgement, including rejection and independent
+-- cancellation. A command's own capture-abort pulse does not revoke its commit.
 --
--- PtpEndpoint connects this bank directly to its AXI-Lite crossbar. Common
--- prepare/apply strobes freeze and activate monotonic policy, and a shared
--- snapshot strobe captures pre-edge state with the endpoint sequence. regRst
--- clears only AXI responses; accepted commands, policy and time survive it.
--- Monotonic policy always comes from the local active register. The
--- commandMaster/commandSlave records carry the servo payload and its admission,
--- cancellation and completion handshake. The returned error belongs to the
--- acknowledged servo command; manual completion remains in the local bank.
+-- Admission is gated at the committed owner. externalOwner selects the
+-- external command client; otherwise the AXI bank owns steering. A non-owner
+-- external request is never admitted (ready stays low), and a non-owner AXI
+-- SET/PHASE/RATE/VALID submission returns SLVERR before freezing operands, so
+-- neither can occupy the slot or inhibit captures. AXI PPS is the only
+-- cross-owner command. A configuration transaction (configControl.busy)
+-- closes both admission paths; commandIdle tells the coordinator when every
+-- accepted command has been acknowledged. clearValid revokes qualification
+-- only while the external client owns the clock.
+--
+-- PtpPhcCore connects this bank to its local crossbar. Common prepare/apply
+-- strobes freeze and activate monotonic policy, and a shared snapshot strobe
+-- captures pre-edge state with the coordinator sequence. regRst clears only
+-- AXI responses; accepted commands, policy and time survive it. The
+-- commandMaster/commandSlave records carry the external payload and its
+-- admission, cancellation and completion handshake. The returned error belongs
+-- to the acknowledged external command; manual completion remains local.
+-- Contract: ethernet/PtpCore/phc.md.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -93,10 +103,11 @@ entity PtpPhc is
       snapshotControl  : in  PtpSnapshotControlType := PTP_SNAPSHOT_CONTROL_INIT_C;
       snapshotPrepared : out sl;
       configValid      : out sl;
-      servoEnable      : in  sl                     := '0';
+      externalOwner    : in  sl                     := '0';
       restart          : in  sl                     := '0';
       portCommandAbort : in  sl                     := '0';
       manualBusy       : out sl;
+      commandIdle      : out sl;
       -- Protocol/clock interface.
       clearValid    : in  sl                      := '0';
       phcTime       : out PtpTimeType;
@@ -105,9 +116,9 @@ entity PtpPhc is
       captureAbort  : out sl;
       commandMaster : in  PtpPhcCommandMasterType := PTP_PHC_COMMAND_MASTER_INIT_C;
       commandSlave  : out PtpPhcCommandSlaveType;
-      -- Shared SECOND service, also used by the servo. Manual phase
-      -- preparation is the only arithmetic this core performs; the tick and
-      -- PPS datapath needs no multiply or divide.
+      -- SECOND service client. Manual phase preparation is the only
+      -- arithmetic this core performs; the tick and PPS datapath needs no
+      -- multiply or divide.
       secondRequest     : out PtpSecondRequestType;
       secondReady       : in  sl                  := '0';
       secondCancel      : out sl;
@@ -155,6 +166,7 @@ architecture rtl of PtpPhc is
       -- Accepted manual work survives AXI reset and later operand writes.
       manualState : ManualStateType;
       manualBusy : sl;
+      commandIdle : sl;
       -- Four 32-bit submission words are frozen on admission. The fourth is
       -- an admission guard, not a converter operand: it makes an oversized
       -- software write observable in hardware, which a three-word register
@@ -195,6 +207,7 @@ architecture rtl of PtpPhc is
       operandWord        => 0,
       manualState        => IDLE_S,
       manualBusy         => '0',
+      commandIdle        => '1',
       phaseSubmission    => (others => '0'),
       phaseOperand       => (others => '0'),
       secondValid        => '0',
@@ -367,10 +380,11 @@ begin
 
       if commandWord(7) = '1' then
          -- Admission uses pre-edge ownership even if an old command completes
-         -- below. PPS control is the only manual command allowed with the servo.
+         -- below. PPS control is the only manual command allowed while the
+         -- external client owns the clock.
          if r.manualState /= IDLE_S or configControl.busy = '1' then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
-         elsif servoEnable = '1' and commandWord(2 downto 0) /= PTP_CMD_PPS_C then
+         elsif externalOwner = '1' and commandWord(2 downto 0) /= PTP_CMD_PPS_C then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
          elsif unsigned(commandWord(2 downto 0)) > unsigned(PTP_CMD_PPS_C) then
             ep.axiWriteSlave.bresp := AXI_RESP_SLVERR_C;
@@ -501,10 +515,12 @@ begin
             end if;
 
          when PHASE_WAIT_S =>
+            -- Hold ready through the valid cycle: the service releases its
+            -- held result only on that transfer. Dropping ready with valid
+            -- left the result held and blocked every later manual PHASE.
             v.secondReady := '1';
 
             if secondResult.valid = '1' then
-               v.secondReady := '0';
                v.manualState := PHASE_CHECK_S;
 
                -- The quotient must fit signed64 and the remainder signed48,
@@ -617,7 +633,7 @@ begin
          epochError      := r.timeValue.seconds = x"FFFFFFFFFFFF";
       end if;
 
-      -- The admission-to-commit cycle allows registered servo cancellation
+      -- The admission-to-commit cycle allows registered client cancellation
       -- to revoke a request accepted on the cancellation detection edge.
       -- Only an already pending command commits. SET replaces commit-edge
       -- time; PHASE adjusts the ordinary tick; RATE affects subsequent ticks.
@@ -627,11 +643,13 @@ begin
          if r.command.generation /= r.status.generation or r.status.fault = '1' then
             v.status.error := '1';
          elsif r.owner = AUTO_S and
-            ((portCommandAbort and not r.abortSeen) or restart or commandMaster.cancel or commandMaster.stale or not servoEnable) = '1' then
-            -- Registered servo cancellation can arrive after admission and
-            -- still veto this commit. Only automatic commands are affected.
+            ((portCommandAbort and not r.abortSeen) or restart or commandMaster.cancel or commandMaster.stale or not externalOwner) = '1' then
+            -- Registered client cancellation can arrive after admission and
+            -- still veto this commit. Only external commands are affected.
             -- A held port abort cancels once, allowing later holdover commands.
             -- The PHC's own capture abort does not cancel its pending command.
+            -- Owner changes wait for an idle slot, so losing ownership here
+            -- is a defensive veto rather than a reachable transition.
             v.status.error := '1';
          else
 
@@ -732,12 +750,13 @@ begin
          v.timeValue        := r.timeValue;
          v.status.timeValid := '0';
       else
-         -- Invalid time still advances. clearValid revokes its qualification;
-         -- it does not stop timekeeping or erase the retained rate correction.
+         -- Invalid time still advances. clearValid revokes its qualification
+         -- only for the owning external client; an inactive controller cannot.
+         -- Revocation does not stop timekeeping or erase the rate correction.
          v.timeValue.seconds     := slv(nextSeconds(47 downto 0));
          v.timeValue.nanoseconds := slv(nextNanoseconds(63 downto 32));
          v.timeValue.fraction    := slv(nextNanoseconds(31 downto 0));
-         if v.status.discontinuity = '1' or clearValid = '1' then
+         if v.status.discontinuity = '1' or (clearValid and externalOwner) = '1' then
             v.status.timeValid := '0';
          end if;
       end if;
@@ -761,7 +780,11 @@ begin
          v.commandSlave.error := v.status.error;
       end if;
 
-      if v.owner = NONE_S and v.manualState /= REQUEST_S and v.status.fault = '0' then
+      -- Ready is an owner-qualified promise. A transaction or ownership change
+      -- withdraws it on the next edge; a promise already published may still
+      -- admit once, which the coordinator drains through commandIdle.
+      if v.owner = NONE_S and v.manualState /= REQUEST_S and v.status.fault = '0' and
+         externalOwner = '1' and configControl.busy = '0' then
          v.commandSlave.ready := '1';
       end if;
 
@@ -780,10 +803,15 @@ begin
          v.snapshotSequence := snapshotControl.sequenceId;
       end if;
 
-      v.manualBusy := '0';
+      v.manualBusy  := '0';
+      v.commandIdle := '0';
 
       if v.manualState /= IDLE_S then
          v.manualBusy := '1';
+      end if;
+
+      if v.manualState = IDLE_S and v.owner = NONE_S then
+         v.commandIdle := '1';
       end if;
 
       -- Combinatorial outputs before the reset
@@ -800,6 +828,7 @@ begin
       commandSlave <= r.commandSlave;
       captureAbort <= r.captureAbort;
       manualBusy   <= r.manualBusy;
+      commandIdle  <= r.commandIdle;
       -- Representation-only extension of the retained signed96 phase operand.
       -- Rounding is truncation; the exact remainder supplies the subsecond part.
       secondRequest <=

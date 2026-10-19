@@ -11,8 +11,11 @@
 -- register-only reset preserves lifecycle state and accepted coordination.
 --
 -- PHC, port and servo settings and wide diagnostic payloads remain in their
--- local AXI managers. A commit freezes all candidates, checks their votes,
--- then applies every bank on one common edge or leaves all active state intact.
+-- local AXI managers. The clock owner (formerly ServoEnable) belongs to the
+-- PtpPhcCore control bank, which participates in every commit and snapshot.
+-- A commit freezes all candidates, waits for every bank's preparation,
+-- including the PHC command drain, checks their votes, then applies every
+-- bank on one common edge or leaves all active state intact.
 -- Commit submission returns immediately; software polls ConfigBusy and checks
 -- ConfigError/ConfigSequence. Shadow writes after prepare affect a later commit.
 -- Snapshots defer during commits or capture invalidation, then all banks latch
@@ -58,6 +61,7 @@ entity PtpEndpointControl is
       phcConfigValid      : in  sl;
       portConfigValid     : in  sl;
       servoConfigValid    : in  sl;
+      phcConfigPrepared   : in sl;
       portConfigPrepared  : in sl;
       servoConfigPrepared : in sl;
       -- Narrow live status inputs; wide snapshots stay in their owning banks.
@@ -77,7 +81,6 @@ entity PtpEndpointControl is
       restart         : out sl;
       rxFlush         : out sl;
       enable          : out sl;
-      servoEnable     : out sl;
       irq             : out sl;
       configControl   : out PtpConfigControlType;
       snapshotControl : out PtpSnapshotControlType);
@@ -96,9 +99,9 @@ architecture rtl of PtpEndpointControl is
       writeSlave       : AxiLiteWriteSlaveType;
       state            : CommitStateType;
       configControl    : PtpConfigControlType;
-      shadow           : slv(1 downto 0);
-      candidate        : slv(1 downto 0);
-      activeConfig     : slv(1 downto 0);
+      shadow           : sl;
+      candidate        : sl;
+      activeConfig     : sl;
       configError      : sl;
       configSequence   : slv(31 downto 0);
       snapshotPending  : sl;
@@ -118,9 +121,9 @@ architecture rtl of PtpEndpointControl is
       writeSlave       => AXI_LITE_WRITE_SLAVE_INIT_C,
       state            => IDLE_S,
       configControl    => PTP_CONFIG_CONTROL_INIT_C,
-      shadow           => (others => '0'),
-      candidate        => (others => '0'),
-      activeConfig     => (others => '0'),
+      shadow           => '0',
+      candidate        => '0',
+      activeConfig     => '0',
       configError      => '0',
       configSequence   => (others => '0'),
       snapshotPending  => '0',
@@ -186,7 +189,8 @@ begin
 
       -- Identification, enable shadows and coordinated commit.
       -- Provisional development identification; no released ABI version yet.
-      axiSlaveRegisterR(ep, x"000", 0, slv'(x"00020000"));
+      -- 3.0 moved the clock owner and PHC banks into PtpPhcCore at 0x4000.
+      axiSlaveRegisterR(ep, x"000", 0, slv'(x"00030000"));
       axiSlaveRegister(ep, x"004", 0, v.shadow);
       axiSlaveRegister(ep, x"03C", 0, commitRequest);
       axiSlaveRegisterR(ep, x"040", 0, r.configError);
@@ -254,7 +258,7 @@ begin
             v.state     := VALIDATE_S;
          when VALIDATE_S =>
 
-            if portConfigPrepared = '0' or servoConfigPrepared = '0' then
+            if phcConfigPrepared = '0' or portConfigPrepared = '0' or servoConfigPrepared = '0' then
                null;
             elsif phcConfigValid = '1' and portConfigValid = '1' and
                servoConfigValid = '1' and manualBusy = '0' then
@@ -325,8 +329,7 @@ begin
       rxFlush         <= r.rxFlush;
       configControl   <= r.configControl;
       snapshotControl <= r.snapshotControl;
-      enable          <= r.activeConfig(0);
-      servoEnable     <= r.activeConfig(1);
+      enable          <= r.activeConfig;
       irq             <= r.irq;
       axiReadSlave    <= r.readSlave;
       axiWriteSlave   <= r.writeSlave;

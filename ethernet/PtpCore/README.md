@@ -13,15 +13,19 @@ hardware qualification remain open.
 | Data flow, numerical behavior, storage and design rationale | [Architecture](architecture.md) |
 | Exact handshake, lifecycle, RAM and service bounds | [Interface contracts](interfaces.md) |
 | AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |
+| Shared PHC subsystem: owner-gated admission, coordination, resets and qualification | [PHC subsystem contract](phc.md) |
 | Future waveform/oscillator/epoch integration | [Physical-clock requirements](physical-clock.md) |
 | Timing-capable MAC port for a replaceable controller: records, token carrier, `PtpMacPort` and the DMA envelope | [Timing-port contract](timing-port.md); simulation-verified Phase 1 implementation, no register bank or hardware result yet |
 | Current results and unfinished acceptance | [Workstream](../../docs/plans/ethernet-ptp/README.md) |
 | Fixtures, independent oracles and focused test selection | [PTP tests](../../tests/ethernet/PtpCore/README.md) |
 
 `rtl/` contains the common endpoint, packages, MAC composition and `GigEthPtp`.
-`PtpEndpoint` connects `PtpEndpointControl`, `PtpProtocolEngine`, `PtpServo`,
-`PtpPhc`, `PtpSecondService`, `PtpVariableDivide`, TX adaptation and the AXI
-crossbar. `PtpProtocolEngine` structurally connects `PtpProtocolReg` (configuration
+`PtpEndpoint` connects `PtpEndpointControl`, `PtpProtocolEngine`, `PtpServo`
+(with its private `PtpSecondService`), `PtpVariableDivide`, TX adaptation, the
+AXI crossbar and the shared `PtpPhcCore` clock subsystem (`PtpPhcControl`,
+`PtpPhc` and a private SECOND converter), with the servo as the core's external
+command client; see the [PHC subsystem contract](phc.md). The same core is used
+standalone, without protocol or servo. `PtpProtocolEngine` structurally connects `PtpProtocolReg` (configuration
 and snapshots), `PtpPortPolicy` (admission and lifecycle), `PtpSyncFlow`
 (association and measurement coordination), `PtpDelayReqTx` (scheduling and
 frame transmission), and `PtpTxLedger` (wire ownership). The flow delegates table ownership to
@@ -31,13 +35,14 @@ primary-stream guard and passive RX/TX taps. The RX tap composes the timestamp
 adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
 `PtpMacPortEthMac` is the separate timing-port composition: `PtpMacPort`
 (`PtpMacPortTx`, `PtpMacPortRx`) over a timing-mode `EthMacTop`, with the PHC
-supplied externally; see the [timing-port contract](timing-port.md#10-phase-1-implementation-map).
+supplied externally (for example by a standalone `PtpPhcCore`); see the
+[timing-port contract](timing-port.md#10-phase-1-implementation-map).
 
 `wrappers/` contains thin simulation adapters; stimulus lives in the test tree.
 The family directories below contain PHY compositions. Reusable PHY-only
 adapters live in [GigEthCore](../GigEthCore/README.md). The
 [PyRogue endpoint](../../python/surf/ethernet/ptp/_PtpEndpoint.py) exposes
-`Phc`, `ProtocolEngine` and `Servo` children. `ruckus.tcl` owns the source
+`ProtocolEngine`, `Servo` and `PhcCore` (with its `Phc`) children. `ruckus.tcl` owns the source
 inventory for production RTL. Tests load their simulation wrappers explicitly
 through `extra_vhdl_sources`.
 Production transactions use package-owned records; the
@@ -100,11 +105,11 @@ Default register locations relative to `AXIL_BASE_ADDR_G`:
 | Offset | Size | Device |
 | --- | --- | --- |
 | `0x0000` | 4 KiB | `GigEthReg` |
-| `0x4000` | 16 KiB | `PtpEndpoint`: control, PHC, port, servo at 4 KiB strides |
+| `0x8000` | 32 KiB | `PtpEndpoint`: control, port, servo and the 8 KiB PHC core ([map](register-map.md)) |
 
-Allocate at least a 32 KiB aligned parent window for the default map.
+Allocate at least a 64 KiB aligned parent window for the default map.
 `ETH_OFFSET_G` and `PTP_OFFSET_G` can retain an existing board map. The resolved
-Ethernet/PTP addresses must be 4 KiB/16 KiB aligned and disjoint; address addition
+Ethernet/PTP addresses must be 4 KiB/32 KiB aligned and disjoint; address addition
 must not wrap. Elaboration assertions check those conditions. The parent must
 allocate an aperture enclosing both banks. Holes return DECERR. The KCU105
 integration uses relative `0x10000`/`0x20000` in its existing 256 KiB aperture,

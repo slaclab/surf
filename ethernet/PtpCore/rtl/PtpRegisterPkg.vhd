@@ -113,6 +113,19 @@ package PtpRegisterPkg is
       index => (others => '0'),
       data  => (others => '0'));
 
+   -- PtpEndpoint aperture (ethernet/PtpCore/register-map.md): 32 KiB with the
+   -- endpoint coordinator at 0x0000, ProtocolEngine at 0x2000, Servo at
+   -- 0x3000 and the 8 KiB PtpPhcCore at 0x4000. Offsets 0x1000-0x1FFF and
+   -- 0x6000-0x7FFF are unmapped. Slot order is part of the register ABI.
+   constant PTP_ENDPOINT_AXIL_APERTURE_BITS_C : positive := 15;
+   constant PTP_ENDPOINT_AXIL_MASTERS_C       : positive := 4;
+   constant PTP_ENDPOINT_CONTROL_INDEX_C      : natural  := 0;
+   constant PTP_ENDPOINT_PHC_INDEX_C          : natural  := 1;
+   constant PTP_ENDPOINT_PORT_INDEX_C         : natural  := 2;
+   constant PTP_ENDPOINT_SERVO_INDEX_C        : natural  := 3;
+
+   function ptpEndpointAxilConfig (base : slv(31 downto 0)) return AxiLiteCrossbarMasterConfigArray;
+
 end package PtpRegisterPkg;
 
 package body PtpRegisterPkg is
@@ -182,5 +195,26 @@ package body PtpRegisterPkg is
       end if;
 
    end procedure;
+
+   function ptpEndpointAxilConfig (base : slv(31 downto 0)) return AxiLiteCrossbarMasterConfigArray is
+      variable retVar : AxiLiteCrossbarMasterConfigArray(PTP_ENDPOINT_AXIL_MASTERS_C-1 downto 0);
+
+      -- Keep the aperture-selection bits of base and place the local offset.
+      function slot (offset : natural; addrBits : positive) return AxiLiteCrossbarMasterConfigType is
+      begin
+         return (
+            baseAddr     => base(31 downto PTP_ENDPOINT_AXIL_APERTURE_BITS_C) &
+                            slv(to_unsigned(offset, PTP_ENDPOINT_AXIL_APERTURE_BITS_C)),
+            addrBits     => addrBits,
+            connectivity => x"FFFF");
+      end function;
+
+   begin
+      retVar(PTP_ENDPOINT_CONTROL_INDEX_C) := slot(16#0000#, 12);
+      retVar(PTP_ENDPOINT_PORT_INDEX_C)    := slot(16#2000#, 12);
+      retVar(PTP_ENDPOINT_SERVO_INDEX_C)   := slot(16#3000#, 12);
+      retVar(PTP_ENDPOINT_PHC_INDEX_C)     := slot(16#4000#, 13);
+      return retVar;
+   end function;
 
 end package body PtpRegisterPkg;

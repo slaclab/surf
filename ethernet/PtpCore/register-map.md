@@ -1,18 +1,25 @@
 # PTP development register map
 
-The endpoint exposes four 4 KiB banks in a 16 KiB aperture. Set the 16 KiB-aligned
+The endpoint occupies a 32 KiB aperture. Set the 32 KiB-aligned
 `AXIL_BASE_ADDR_G` on `PtpEndpoint` or `EthMacPtpEndpoint` to the board address.
-`genAxiLiteConfig(4, AXIL_BASE_ADDR_G, 14, 12)` configures the existing SURF
-crossbar; full addresses reach it unchanged. Addresses below are offsets from
-that base. Local bank decoders use twelve address bits, expressed as three-digit hex
-literals in the AXI register helpers. Bank-local offsets are unchanged.
+`ptpEndpointAxilConfig` in `PtpRegisterPkg` configures the SURF crossbar; full
+addresses reach it unchanged. Addresses below are offsets from that base.
+Local bank decoders use twelve address bits, expressed as three-digit hex
+literals in the AXI register helpers; bank-local offsets are unchanged.
+`0x1000`–`0x1FFF` and `0x6000`–`0x7FFF` are unmapped and return DECERR.
 
 | Bank | Offset | RTL owner | PyRogue path |
 | --- | --- | --- | --- |
 | Endpoint | `0x000` | `PtpEndpointControl` | `PtpEndpoint` |
-| PHC | `0x1000` | `PtpPhc` | `PtpEndpoint.Phc` |
 | Protocol engine | `0x2000` | `PtpProtocolReg` inside `PtpProtocolEngine` | `PtpEndpoint.ProtocolEngine` |
 | Servo | `0x3000` | `PtpServo` | `PtpEndpoint.Servo` |
+| PHC core control | `0x4000` | `PtpPhcControl` inside `PtpPhcCore` | `PtpEndpoint.PhcCore` |
+| PHC | `0x5000` | `PtpPhc` inside `PtpPhcCore` | `PtpEndpoint.PhcCore.Phc` |
+
+The PHC core is the same 8 KiB subsystem used standalone, documented in the
+[PHC subsystem contract](phc.md). Its local offsets are the endpoint offsets
+below minus `0x4000`. Inside the endpoint it runs under enclosing coordination:
+use the endpoint's CommitConfig and Snapshot, not its local submissions.
 
 Word-backed registers retain their addresses, widths, defaults and field strobes.
 Reads/writes can wait for bounded initialization or candidate copying. Port and
@@ -26,7 +33,8 @@ Previous snapshot values remain readable during copying. See
 
 | Owner | Register responsibilities |
 | --- | --- |
-| Endpoint control | ABI/capabilities, endpoint and automatic-control enables, coordinated commit and snapshot commands/completion, restart policy, aggregate status and IRQ |
+| Endpoint control | ABI version, port enable, coordinated commit and snapshot commands/completion, restart policy, aggregate status and IRQ |
+| PHC core control | Identity/capabilities, clock owner (AXI or servo), owner/command status and PHC event IRQ |
 | PHC | Set/phase/rate operands, manual command submission/completion, monotonic and PPS policy, time/rate/raw-tick snapshots, clock constants and faults |
 | Port | Source/domain/local identity, MAC-derived identity, request and association timers, rate-estimator limits, path-delay acceptance limit, calibration readback, Announce/exchange snapshots, ledger status and protocol/RX counters |
 | Servo | Step policy, gains, frequency/slew limits, delay-age/holdover/sample limits, asymmetry, lock thresholds/counters, filter/offset/rate snapshots and servo diagnostics |
@@ -39,10 +47,10 @@ diagnostics; a separate bus endpoint for every internal helper is unnecessary.
 RX counters may enter port management from the physical frontend in the enclosing
 MAC composition. They need not pass through endpoint control.
 
-Manual operands, phase normalization and manual/servo arbitration belong to
-`PtpPhc`, with accepted ownership retained through acknowledgement. Endpoint
-control supplies permission and lifecycle policy; a command's own capture
-invalidation must not cancel that command.
+Manual operands, phase normalization and owner-gated admission belong to
+`PtpPhc`, with accepted ownership retained through acknowledgement. The
+committed owner belongs to `PtpPhcControl`; endpoint control supplies lifecycle
+policy. A command's own capture invalidation must not cancel that command.
 
 - `PtpProtocolReg` owns `PtpPortConfigType`, MAC-derived identity, shared active
   limits and diagnostic snapshot/publication storage inside `PtpProtocolEngine`.
@@ -50,16 +58,18 @@ invalidation must not cancel that command.
 - `PtpServo` owns `PtpServoConfigType` and diagnostics, consuming the port's
   authoritative `PtpSharedConfigType`.
 - `PtpPhc` owns its register map, manual operands, phase normalization,
-  snapshots and final manual/automatic command arbitration.
+  snapshots and final manual/external command admission. `PtpPhcControl`
+  owns the committed clock owner and drains commands before changing it.
 - PHC and servo retain register state in their existing `RegType`/`comb`/`seq`
   pair; protocol management has its own two-process `PtpProtocolReg` owner.
   All three cores always use their local AXI banks, with no optional configuration
   bypass. Standalone PHC and servo fixtures configure the real banks through AXI and prepare/apply strobes.
-- `PtpEndpointControl` (formerly `PtpReg`) stores global enable shadows/candidates,
-  commit/snapshot transactions, completion sequences and IRQ masks/status. It
-  also owns the existing registered restart/RX-flush/event stages and
-  combinational AXI reset. It sees local validation votes and narrow status
-  signals, never wide diagnostic payloads; the register map is unchanged.
+- `PtpEndpointControl` (formerly `PtpReg`) stores the port-enable shadow and
+  candidate, commit/snapshot transactions, completion sequences and IRQ
+  masks/status. It also owns the registered restart/RX-flush/event stages and
+  combinational AXI reset. It sees local validation and preparation votes,
+  including the PHC core's command drain, and narrow status signals, never
+  wide diagnostic payloads.
 
 Shared `associationTimeout`, `syncTimeout` and `maxPathDelay` have one writable
 owner in the protocol engine and reach Servo as active `PtpSharedConfigType`
@@ -96,13 +106,15 @@ and submissions during an accepted manual command return SLVERR. Local invalid
 settings complete with `ConfigError=1`, advancing the sequence without applying
 any bank. The previous error remains visible until completion.
 
-PREPARE freezes all local and endpoint shadows. VALIDATE waits for preparation
-completion before checking the frozen
-port/servo candidates and manual-command exclusion. APPLY activates all candidates
+PREPARE freezes all local and endpoint shadows and closes PHC command
+admission. VALIDATE waits for preparation completion, including acknowledgement
+of every accepted PHC command, before checking the frozen PHC owner, port and
+servo candidates and manual-command exclusion. APPLY activates all candidates
 on one common edge and restarts protocol/servo acquisition. Shadow edits after
 PREPARE affect a subsequent commit. Shared association/Sync age and maximum path
 limits have one writable owner in ProtocolEngine; Servo exposes read-only active copies.
-PHC monotonic policy lives in Phc; phase-step permission lives in Servo.
+PHC monotonic policy lives in Phc, the clock owner in PhcCore and
+phase-step permission in Servo.
 
 Snapshot submission is separate from commit. A pending request waits until
 there is no commit in progress and PHC capture is qualified. All banks then
@@ -112,7 +124,7 @@ After all banks report ready, one common publication edge exposes the cohort
 and advances endpoint/local sequences. Previous snapshot data remains readable
 while copying; SnapshotBusy includes that interval.
 Poll `SnapshotSequence` before reading multiword values; local bank sequences
-at `0x13FC`, `0x23FC`, and `0x33FC` must match. If snapshot capture coincides with
+at `0x23FC`, `0x33FC`, `0x4104` and `0x53FC` must match. If snapshot capture coincides with
 acceptance of a new commit, it captures the old configuration cohort before
 PREPARE. A snapshot deferred across APPLY captures the subsequent cohort.
 These counters saturate; system reset is required to regain distinguishable
@@ -123,8 +135,8 @@ Accepted commit, snapshot and manual-command operations survive, as do shadows,
 active configuration, PHC time and TX reservations. Software recovers completion
 through status after bus reset. `portRst` cancels acquisition while preserving
 PHC time and physical TX ownership. System reset must reach the full MAC/endpoint
-TX pipeline. Manual steering is rejected with ServoEnable active; PPS control
-remains allowed. PHC command operands stay latched through target backpressure
+TX pipeline. Manual steering is rejected while PhcCore.ActiveOwner selects the
+servo; PPS control remains allowed. PHC command operands stay latched through target backpressure
 and acknowledgement.
 
 Unmapped addresses and writes to read-only fields return DECERR. Standard SURF
@@ -141,11 +153,10 @@ and identities retain network significance within their numerical value.
 ## Development status
 
 This map is still under development; there is no released ABI compatibility
-contract. The existing `Version` register value (`0x00020000`) is retained while
-the layout evolves. The bank spacing is now 4 KiB, with PHC, ProtocolEngine and Servo at
-`0x1000`, `0x2000` and `0x3000`. Software should use the updated PyRogue children
-or the offsets below. Fields within each bank keep their existing local offsets.
-The endpoint window occupies 16 KiB and must be aligned accordingly.
+contract. `Version` is `0x00030000`: the clock owner (formerly `ServoEnable`)
+and the PHC bank moved into the shared PHC core at `0x4000`/`0x5000`, and the
+endpoint window grew to 32 KiB. Fields within each bank keep their local
+offsets. Software should use the updated PyRogue children or the offsets below.
 
 ## PtpEndpoint fields
 
@@ -153,12 +164,10 @@ The endpoint window occupies 16 KiB and must be aligned accordingly.
 | --- | --- | --- | --- | --- |
 | `0x000` | `Version` | 31:0 | RO | Register ABI version: major in upper 16 bits, minor in lower 16 bits. |
 | `0x004` | `Enable` | 0 | RW | Enable fixed-source port after CommitConfig. |
-| `0x004` | `ServoEnable` | 1 | RW | Enable automatic clock control after CommitConfig. |
 | `0x03C` | `CommitConfig` | 0 | WO | Submit a coordinated commit; poll ConfigBusy/ConfigSequence, then check ConfigError. Busy submissions return SLVERR. |
 | `0x040` | `ConfigError` | 0 | RO | Validation of the last completed commit failed; no bank applied its candidate. |
 | `0x040` | `ConfigBusy` | 1 | RO | Candidate preparation, validation or common-edge apply is in progress. |
 | `0x044` | `ActiveEnable` | 0 | RO | Committed port enable. |
-| `0x044` | `ActiveServoEnable` | 1 | RO | Committed servo enable. |
 | `0x044` | `PortActive` | 4 | RO | A fresh configured Sync source is established. |
 | `0x044` | `ServoState` | 10:8 | RO | 0 disabled, 1 acquiring, 2 tracking, 3 locked, 4 holdover, 5 fault. |
 | `0x044` | `FilterCount` | 14:12 | RO | Number of populated median-filter samples, zero through five. |
@@ -171,32 +180,58 @@ The endpoint window occupies 16 KiB and must be aligned accordingly.
 | `0x104` | `SnapshotSequence` | 31:0 | RO | Saturating count of completed snapshots; multiword read data remains stable until the next snapshot. |
 | `0x108` | `SnapshotBusy` | 0 | RO | An accepted snapshot is awaiting capture, frozen-bank copy or common publication. |
 
+## PtpPhcCore fields
+
+Endpoint offsets; subtract `0x4000` for a standalone core.
+
+| Aperture offset | Field | Bits | Access | Meaning |
+| --- | --- | --- | --- | --- |
+| `0x4000` | `Version` | 31:0 | RO | PHC core register ABI version: major in upper 16 bits, minor in lower 16 bits. |
+| `0x4004` | `Owner` | 0 | RW | Clock owner shadow: 0 AXI bank, 1 external command client. Activate with CommitConfig. |
+| `0x4008` | `CommandMask` | 4:0 | RO | Supported command kinds: one bit each for set, phase, rate, validity and PPS. |
+| `0x4008` | `ExternalCommand` | 8 | RO | External command admission is present in this build. |
+| `0x4008` | `ExternalCoordination` | 9 | RO | An enclosing coordinator owns commits and snapshots; local submissions return SLVERR. |
+| `0x4008` | `ManagementCrossing` | 10 | RO | AXI-Lite crosses from an independent management clock. |
+| `0x4008` | `PhysicalSteering` | 11 | RO | Physical clock actuator control is present (always 0 in this core). |
+| `0x403C` | `CommitConfig` | 0 | WO | Submit a local commit; poll ConfigBusy/ConfigSequence, then check ConfigError. SLVERR when busy, during a manual command, or under enclosing coordination. |
+| `0x4040` | `ConfigError` | 0 | RO | The last local commit failed validation; no setting changed. |
+| `0x4040` | `ConfigBusy` | 1 | RO | A local or enclosing transaction is in progress; command admission is closed. |
+| `0x4044` | `ActiveOwner` | 0 | RO | Committed clock owner: 0 AXI bank, 1 external command client. |
+| `0x4044` | `CommandIdle` | 4 | RO | No manual command is in progress and the PHC command slot is free. |
+| `0x4048` | `ConfigSequence` | 31:0 | RO | Saturating count of completed local commits, successful or invalid. |
+| `0x404C` | `IrqStatus` | 2:0 | RO | Sticky events: bit 0 PHC fault, 1 discontinuity, 2 command error. |
+| `0x4050` | `IrqMask` | 2:0 | RW | Enable corresponding sticky events on the IRQ output. |
+| `0x4054` | `IrqClear` | 2:0 | WO | Write-one-to-clear event mask; a concurrent new event wins. |
+| `0x4100` | `Snapshot` | 0 | WO | Capture PHC time, rate and ticks on one edge; SLVERR when pending or under enclosing coordination. |
+| `0x4104` | `SnapshotSequence` | 31:0 | RO | Last published snapshot sequence, local or enclosing. |
+| `0x4108` | `SnapshotBusy` | 0 | RO | An accepted local snapshot is awaiting capture or publication. |
+
 ## PtpPhc fields
 
 | Aperture offset | Field | Bits | Access | Meaning |
 | --- | --- | --- | --- | --- |
-| `0x1004` | `Monotonic` | 3 | RW | Reject backward phase steps and absolute sets while PHC time is valid. |
-| `0x1008` | `Seconds` | 47:0 | RO | PHC seconds snapshot. |
-| `0x1010` | `Nanoseconds` | 31:0 | RO | Canonical nanoseconds snapshot, below one billion. |
-| `0x1014` | `Fraction` | 31:0 | RO | Fractional nanoseconds snapshot, Q32. |
-| `0x1018` | `Generation` | 31:0 | RO | PHC time-generation snapshot. |
-| `0x101C` | `TimeValid` | 0 | RO | PHC validity snapshot. |
-| `0x1020` | `PhcCommand` | 7:0 | WO | Write bit 7 to submit; kind bits 2:0: 0 set, 1 phase, 2 rate, 3 validity, 4 PPS; bit 3 is validity/PPS value. |
-| `0x1024` | `CommandBusy` | 0 | RO | A manual command is normalizing, queued, or awaiting PHC acknowledgement. |
-| `0x1024` | `CommandAck` | 1 | RO | Sticky completion of the most recently submitted manual command. |
-| `0x1024` | `CommandError` | 2 | RO | Most recently completed manual command failed; cleared on new submission. |
-| `0x1028` | `SetSeconds` | 47:0 | RW | Absolute set-time seconds shadow; target names the PHC commit edge. |
-| `0x1030` | `SetNanoseconds` | 31:0 | RW | Absolute set nanoseconds shadow, below one billion. |
-| `0x1034` | `SetFraction` | 31:0 | RW | Absolute set fractional nanoseconds shadow, Q32. |
-| `0x1038` | `Phase` | 127:0 | RW | Signed Q16 nanosecond phase delta; applied to normally advanced commit-edge time. |
-| `0x1048` | `RateAddend` | 63:0 | RW | Signed Q32 nanoseconds per cycle added to the nominal increment. |
-| `0x1050` | `NominalAddend` | 63:0 | RO | Build-time nominal Q32 nanoseconds per clock cycle. |
-| `0x1058` | `AppliedRateAddend` | 63:0 | RO | Snapshot of the applied signed Q32 rate addend. |
-| `0x1060` | `Ticks` | 63:0 | RO | Snapshot of unsteered cycles; phase/set commands do not change this counter. |
-| `0x1068` | `PhcFault` | 0 | RO | Fatal epoch/generation/tick exhaustion; system reset is required. |
-| `0x1080` | `ClockFrequency` | 31:0 | RO | Build-time clock frequency in Hz; timer values use cycles of this clock. |
-| `0x1084` | `ActiveMonotonic` | 3 | RO | Committed monotonic policy. |
-| `0x13FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
+| `0x5004` | `Monotonic` | 3 | RW | Reject backward phase steps and absolute sets while PHC time is valid. |
+| `0x5008` | `Seconds` | 47:0 | RO | PHC seconds snapshot. |
+| `0x5010` | `Nanoseconds` | 31:0 | RO | Canonical nanoseconds snapshot, below one billion. |
+| `0x5014` | `Fraction` | 31:0 | RO | Fractional nanoseconds snapshot, Q32. |
+| `0x5018` | `Generation` | 31:0 | RO | PHC time-generation snapshot. |
+| `0x501C` | `TimeValid` | 0 | RO | PHC validity snapshot. |
+| `0x5020` | `PhcCommand` | 7:0 | WO | Write bit 7 to submit; kind bits 2:0: 0 set, 1 phase, 2 rate, 3 validity, 4 PPS; bit 3 is validity/PPS value. |
+| `0x5024` | `CommandBusy` | 0 | RO | A manual command is normalizing, queued, or awaiting PHC acknowledgement. |
+| `0x5024` | `CommandAck` | 1 | RO | Sticky completion of the most recently submitted manual command. |
+| `0x5024` | `CommandError` | 2 | RO | Most recently completed manual command failed; cleared on new submission. |
+| `0x5028` | `SetSeconds` | 47:0 | RW | Absolute set-time seconds shadow; target names the PHC commit edge. |
+| `0x5030` | `SetNanoseconds` | 31:0 | RW | Absolute set nanoseconds shadow, below one billion. |
+| `0x5034` | `SetFraction` | 31:0 | RW | Absolute set fractional nanoseconds shadow, Q32. |
+| `0x5038` | `Phase` | 127:0 | RW | Signed Q16 nanosecond phase delta; applied to normally advanced commit-edge time. |
+| `0x5048` | `RateAddend` | 63:0 | RW | Signed Q32 nanoseconds per cycle added to the nominal increment. |
+| `0x5050` | `NominalAddend` | 63:0 | RO | Build-time nominal Q32 nanoseconds per clock cycle. |
+| `0x5058` | `AppliedRateAddend` | 63:0 | RO | Snapshot of the applied signed Q32 rate addend. |
+| `0x5060` | `Ticks` | 63:0 | RO | Snapshot of unsteered cycles; phase/set commands do not change this counter. |
+| `0x5068` | `PhcFault` | 0 | RO | Fatal epoch/generation/tick exhaustion; system reset is required. |
+| `0x5080` | `ClockFrequency` | 31:0 | RO | Build-time clock frequency in Hz; timer values use cycles of this clock. |
+| `0x5084` | `ActiveMonotonic` | 3 | RO | Committed monotonic policy. |
+| `0x53FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
 
 ## PtpProtocolEngine fields
 

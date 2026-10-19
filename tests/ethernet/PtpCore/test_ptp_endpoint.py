@@ -36,15 +36,15 @@ from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench
 async def autonomous_endpoint(d):
     b = Bench(d)
     await b.start()
-    assert await b.read(0) == 0x20000
+    assert await b.read(0) == 0x30000
     assert (await b.axil.read(0x3F0, 4)).resp == AxiResp.DECERR
-    await b.write(0x1028, 5, 8)
-    await b.write(0x1030, NS-100)
+    await b.write(0x5028, 5, 8)
+    await b.write(0x5030, NS-100)
     await b.manual(0)
     await b.manual(3, 1)
     await b.snapshot()
-    assert await b.read(0x101C) == 1
-    assert await b.read(0x1008, 8) in (5, 6)
+    assert await b.read(0x501C) == 1
+    assert await b.read(0x5008, 8) in (5, 6)
     await b.configure()
     # The former 30000-clock Sync spacing and 240000-clock holdover setting
     # were inherited service allowances. Exercise the same physical/control
@@ -60,9 +60,10 @@ async def autonomous_endpoint(d):
     # Start invalid so autonomous acquisition may correct the arbitrary epoch.
     # Configuration changes intentionally do not reset or set the PHC.
     await b.write(0x004, 1)
+    await b.write(0x4004, 0)
     await b.commit()
     await b.manual(3, 0)
-    await b.write(0x004, 3)
+    await b.write(0x4004, 1)
     await b.commit()
     if not b.allow_step:
         await RisingEdge(d.clk)

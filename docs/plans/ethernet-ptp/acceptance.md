@@ -131,8 +131,9 @@ resolved. RX overflow policy and the integration/qualification items below remai
 open; completing the arithmetic migration does not close them.
 
 1. **Shared compute boundary: implemented.** Local named state replaces addressed
-   arithmetic workspaces and descriptors. PHC/servo share SECOND; rate/E2E share
-   a positive-divisor divider. Native local arithmetic, exact converters and
+   arithmetic workspaces and descriptors. The PHC core and servo each own a
+   one-client SECOND converter (October 18, so the PHC subsystem stands alone);
+   rate/E2E share a positive-divisor divider. Native local arithmetic, exact converters and
    selected product pipelines replace the general compute engine. Prototype
    and matched production evidence are retained in [arithmetic history](history/arithmetic.md).
 
@@ -147,7 +148,7 @@ open; completing the arithmetic migration does not close them.
    occupancy, expiry, overflow and recovery under nominal 8/10 Hz Sync,
    bounded bursts and continuing competing traffic. Exercise reachable owner
    combinations; manual PHC steering and automatic servo operation are not
-   freely concurrent. Extend endpoint tests beyond isolated compute arbitration.
+   freely concurrent (the PHC core's committed owner gates admission). Extend endpoint tests beyond isolated compute arbitration.
    Keep analytical ceilings, observed maxima and hardware results distinct.
    Re-derive the association floor for changed scheduling/storage; do not lower
    it merely because measured cases are faster. **Done when:** supported traffic

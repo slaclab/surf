@@ -3,9 +3,12 @@
 -------------------------------------------------------------------------------
 -- Description: Autonomous PTP protocol, clock-control and register subsystem.
 --
--- Connects the AXI banks inside PtpPhc, PtpProtocolEngine and PtpServo directly through
--- AxiLiteCrossbar. Each core owns its configuration and snapshot storage.
--- PtpEndpointControl coordinates configuration, snapshots and lifecycle events.
+-- Connects the endpoint coordinator, PtpProtocolEngine, PtpServo and the shared
+-- PtpPhcCore clock subsystem through AxiLiteCrossbar in a 32 KiB aperture.
+-- Each core owns its configuration and snapshot storage. PtpEndpointControl
+-- coordinates configuration, snapshots and lifecycle events; the PHC core
+-- participates as an enclosed bank (EXT_COORDINATION_G) through the same
+-- prepare/apply and capture/publish strobes as the protocol and servo banks.
 -- Validated RX records and observed TX completion records arrive from the
 -- physical frontends. The port produces Delay_Req frames and timing
 -- measurements; the servo turns qualified measurements into PHC commands. The
@@ -17,10 +20,12 @@
 -- AxiStreamResize. Only system reset clears that TX stage, so port/register
 -- resets leave accepted frames free to drain toward physical transmission.
 --
--- PHC-local management arbitrates software and servo commands through
--- acknowledgement, so each response reaches the correct requester. Manual
--- steering requires automatic control to be disabled; PPS remains available
--- in either mode. A disabled servo continues to drain measurements.
+-- The PHC core's committed owner selects AXI or the servo, its external
+-- command client; servoEnable is that owner. Admission is gated at the owner
+-- and owner changes wait for an idle command slot, so each response reaches
+-- the correct requester. PPS remains available to AXI under either owner. A
+-- disabled servo continues to drain measurements, and its expiry cannot
+-- revoke PHC qualification.
 --
 -- Coordinates protocol restart, stale-work cancellation and clock validity
 -- without feeding a PHC command's own capture invalidation back into that
@@ -44,6 +49,7 @@ use surf.PtpMathPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.PtpPkg.all;
+use surf.PtpRegisterPkg.all;
 
 entity PtpEndpoint is
    generic (
@@ -96,16 +102,15 @@ end entity PtpEndpoint;
 
 architecture rtl of PtpEndpoint is
 
-   constant NUM_AXIL_MASTERS_C : positive := 4;
-   -- Bank order defines the development register offsets within the 16 KiB aperture.
-   constant CONTROL_AXIL_INDEX_C : natural := 0;
-   constant PHC_AXIL_INDEX_C     : natural := 1;
-   constant PORT_AXIL_INDEX_C    : natural := 2;
-   constant SERVO_AXIL_INDEX_C   : natural := 3;
-   constant AXIL_APERTURE_BITS_C : positive := 14; -- 16 KiB endpoint.
-   constant AXIL_BANK_BITS_C     : positive := 12; -- 4 KiB per owner.
+   -- Slot order and offsets are the endpoint register ABI (PtpRegisterPkg).
+   constant NUM_AXIL_MASTERS_C   : positive := PTP_ENDPOINT_AXIL_MASTERS_C;
+   constant CONTROL_AXIL_INDEX_C : natural  := PTP_ENDPOINT_CONTROL_INDEX_C;
+   constant PHC_AXIL_INDEX_C     : natural  := PTP_ENDPOINT_PHC_INDEX_C;
+   constant PORT_AXIL_INDEX_C    : natural  := PTP_ENDPOINT_PORT_INDEX_C;
+   constant SERVO_AXIL_INDEX_C   : natural  := PTP_ENDPOINT_SERVO_INDEX_C;
+   constant AXIL_APERTURE_BITS_C : positive := PTP_ENDPOINT_AXIL_APERTURE_BITS_C;  -- 32 KiB endpoint.
    constant AXIL_CONFIG_C        : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) :=
-      genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, AXIL_APERTURE_BITS_C, AXIL_BANK_BITS_C);
+      ptpEndpointAxilConfig(AXIL_BASE_ADDR_G);
    signal readMasters           : AxiLiteReadMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal readSlaves            : AxiLiteReadSlaveArray(NUM_AXIL_MASTERS_C-1 downto 0);
    signal writeMasters          : AxiLiteWriteMasterArray(NUM_AXIL_MASTERS_C-1 downto 0);
@@ -121,6 +126,7 @@ architecture rtl of PtpEndpoint is
    signal abortCapture          : sl;
    signal clearValid            : sl;
    signal phcConfigValid        : sl;
+   signal phcConfigPrepared     : sl;
    signal portConfigValid       : sl;
    signal servoConfigValid      : sl;
    signal portConfigPrepared    : sl;
@@ -139,22 +145,18 @@ architecture rtl of PtpEndpoint is
    signal portLifecycle         : PtpPortLifecycleType;
    signal portTxMaster          : AxiStreamMasterType;
    signal portTxSlave           : AxiStreamSlaveType;
-   -- Two narrowly shared arithmetic services. SECOND converts between a Q16
-   -- nanosecond scalar and seconds for manual PHC preparation (owner 0) and
-   -- the servo (owner 1). The variable divider serves the rate estimator
-   -- (owner 0) and the E2E calibration planes (owner 1). Everything else is
-   -- local to its client.
-   constant SECOND_PHC_C    : natural := 0;
-   constant SECOND_SERVO_C  : natural := 1;
-   signal secondReady       : slv(1 downto 0);
-   signal secondCancel      : slv(1 downto 0);
-   signal secondResultReady : slv(1 downto 0);
+   -- Protocol/servo arithmetic stays with its clients. The servo's SECOND
+   -- converter is private, as the PHC core's is; the variable divider serves
+   -- the rate estimator (owner 0) and the E2E calibration planes (owner 1).
+   signal secondReady       : slv(0 downto 0);
+   signal secondCancel      : slv(0 downto 0);
+   signal secondResultReady : slv(0 downto 0);
    signal divideReady       : slv(1 downto 0);
    signal divideCancel      : slv(1 downto 0);
    signal divideResultReady : slv(1 downto 0);
 
-   signal secondRequests : PtpConstDivideRequestArray(2-1 downto 0)(operand(128-1 downto 0));
-   signal secondResults  : PtpConstDivideResultArray(2-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
+   signal secondRequests : PtpConstDivideRequestArray(1-1 downto 0)(operand(128-1 downto 0));
+   signal secondResults  : PtpConstDivideResultArray(1-1 downto 0)(value(128-1 downto 0), remainder(128-1 downto 0));
    signal divideRequests : PtpDivideRequestArray(2-1 downto 0)(operandB(80-1 downto 0));
    signal divideResults  : PtpDivideResultArray(2-1 downto 0);
 
@@ -165,7 +167,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         NUM_CLIENTS_G  => 2,
+         NUM_CLIENTS_G  => 1,
          WIDTH_G        => 128)
       port map (
          clk         => clk,                 -- [in]
@@ -193,7 +195,7 @@ begin
          resultReady => divideResultReady);  -- [in]
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
-      report "PTP AXI-Lite base address must be 16 KiB aligned" severity failure;
+      report "PTP AXI-Lite base address must be 32 KiB aligned" severity failure;
    -- Structural forwarding preserves each child's registered boundary.
    phcTime      <= timeValue;
    phcStatus    <= status;
@@ -238,6 +240,7 @@ begin
          axiWriteSlave         => writeSlaves(CONTROL_AXIL_INDEX_C),   -- [out]
          manualBusy            => manualBusy,                          -- [in]
          phcConfigValid        => phcConfigValid,                      -- [in]
+         phcConfigPrepared     => phcConfigPrepared,                   -- [in]
          portConfigValid       => portConfigValid,                     -- [in]
          servoConfigValid      => servoConfigValid,                    -- [in]
          portConfigPrepared    => portConfigPrepared,                  -- [in]
@@ -257,45 +260,45 @@ begin
          restart               => restart,                             -- [out]
          rxFlush               => rxFlush,                             -- [out]
          enable                => enable,                              -- [out]
-         servoEnable           => servoEnable,                         -- [out]
          irq                   => irq,                                 -- [out]
          configControl         => configControl,                       -- [out]
          snapshotControl       => snapshotControl);                    -- [out]
 
-   U_Phc : entity surf.PtpPhc
+   U_PhcCore : entity surf.PtpPhcCore
       generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         CLK_FREQ_G     => CLK_FREQ_G)
+         TPD_G              => TPD_G,
+         RST_POLARITY_G     => RST_POLARITY_G,
+         RST_ASYNC_G        => RST_ASYNC_G,
+         AXIL_BASE_ADDR_G   => AXIL_CONFIG_C(PHC_AXIL_INDEX_C).baseAddr,
+         CLK_FREQ_G         => CLK_FREQ_G,
+         COMMON_CLK_G       => true,
+         EXT_COMMAND_EN_G   => true,
+         EXT_COORDINATION_G => true)
       port map (
-         clk               => clk,                               -- [in]
-         rst               => rst,                               -- [in]
-         regRst            => regRst,                            -- [in]
-         axiReadMaster     => readMasters(PHC_AXIL_INDEX_C),     -- [in]
-         axiReadSlave      => readSlaves(PHC_AXIL_INDEX_C),      -- [out]
-         axiWriteMaster    => writeMasters(PHC_AXIL_INDEX_C),    -- [in]
-         axiWriteSlave     => writeSlaves(PHC_AXIL_INDEX_C),     -- [out]
-         configControl     => configControl,                     -- [in]
-         snapshotControl   => snapshotControl,                   -- [in]
-         snapshotPrepared  => phcSnapshotPrepared,               -- [out]
-         configValid       => phcConfigValid,                    -- [out]
-         servoEnable       => servoEnable,                       -- [in]
-         restart           => restart,                           -- [in]
-         portCommandAbort  => portLifecycle.commandAbort,        -- [in]
-         manualBusy        => manualBusy,                        -- [out]
-         clearValid        => clearValid,                        -- [in]
-         phcTime           => timeValue,                         -- [out]
-         status            => status,                            -- [out]
-         pps               => pps,                               -- [out]
-         captureAbort      => abortCapture,                      -- [out]
-         commandMaster     => commandMaster,                     -- [in]
-         commandSlave      => commandSlave,                      -- [out]
-         secondRequest     => secondRequests(SECOND_PHC_C),      -- [out]
-         secondReady       => secondReady(SECOND_PHC_C),         -- [in]
-         secondCancel      => secondCancel(SECOND_PHC_C),        -- [out]
-         secondResult      => secondResults(SECOND_PHC_C),       -- [in]
-         secondResultReady => secondResultReady(SECOND_PHC_C));  -- [out]
+         axiReadMaster    => readMasters(PHC_AXIL_INDEX_C),   -- [in]
+         axiReadSlave     => readSlaves(PHC_AXIL_INDEX_C),    -- [out]
+         axiWriteMaster   => writeMasters(PHC_AXIL_INDEX_C),  -- [in]
+         axiWriteSlave    => writeSlaves(PHC_AXIL_INDEX_C),   -- [out]
+         clk              => clk,                             -- [in]
+         rst              => rst,                             -- [in]
+         regRst           => regRst,                          -- [in]
+         restart          => restart,                         -- [in]
+         commandAbort     => portLifecycle.commandAbort,      -- [in]
+         commandMaster    => commandMaster,                   -- [in]
+         commandSlave     => commandSlave,                    -- [out]
+         clearValid       => clearValid,                      -- [in]
+         externalOwner    => servoEnable,                     -- [out]
+         configControl    => configControl,                   -- [in]
+         snapshotControl  => snapshotControl,                 -- [in]
+         configPrepared   => phcConfigPrepared,               -- [out]
+         configValid      => phcConfigValid,                  -- [out]
+         snapshotPrepared => phcSnapshotPrepared,             -- [out]
+         manualBusy       => manualBusy,                      -- [out]
+         phcTime          => timeValue,                       -- [out]
+         phcStatus        => status,                          -- [out]
+         captureAbort     => abortCapture,                    -- [out]
+         pps              => pps,                             -- [out]
+         irq              => open);                           -- [out]
 
    U_ProtocolEngine : entity surf.PtpProtocolEngine
       generic map (
@@ -402,10 +405,10 @@ begin
          commandMaster     => commandMaster,                       -- [out]
          commandSlave      => commandSlave,                        -- [in]
          status            => servoStatus,                         -- [out]
-         secondRequest     => secondRequests(SECOND_SERVO_C),      -- [out]
-         secondReady       => secondReady(SECOND_SERVO_C),         -- [in]
-         secondCancel      => secondCancel(SECOND_SERVO_C),        -- [out]
-         secondResult      => secondResults(SECOND_SERVO_C),       -- [in]
-         secondResultReady => secondResultReady(SECOND_SERVO_C));  -- [out]
+         secondRequest     => secondRequests(0),                   -- [out]
+         secondReady       => secondReady(0),                      -- [in]
+         secondCancel      => secondCancel(0),                     -- [out]
+         secondResult      => secondResults(0),                    -- [in]
+         secondResultReady => secondResultReady(0));               -- [out]
 
 end architecture rtl;

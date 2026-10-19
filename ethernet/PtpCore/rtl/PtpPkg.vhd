@@ -243,6 +243,10 @@ package PtpPkg is
       fault         => '0');
 
    function ptpNominalIncrement (frequency : positive) return slv;
+
+   -- PtpPhcCore register ABI identity (ethernet/PtpCore/phc.md): major in
+   -- bits 31:16, minor in 15:0. Unreleased development layout.
+   constant PTP_PHC_CORE_VERSION_C : slv(31 downto 0) := x"00010000";
    -- timestamp is calibrated PHC time; ticks/tickPhase remain at the raw
    -- MAC/PCS message point. Their reference-plane difference matters when
    -- reconstructing elapsed time for E2E arithmetic. generation invalidates

@@ -157,7 +157,8 @@ subsecond values fit the unsigned94 sum; the returned signed95 value has a zero
 sign bit. Timestamp canonicality and signed corrections remain caller checks.
 
 Manual PHASE retains all four signed128 submission words and checks sign
-extension into signed96 before preparation through the shared SECOND128 service.
+extension into signed96 before preparation through the PHC core's private
+SECOND128 service.
 High-word mismatch rejects the command early without a PHC fault or generation
 change. Representable adjustments that fail at the live commit epoch retain
 late-fault behavior. Servo phase retains its full signed128 contract.
@@ -277,7 +278,8 @@ port status, time/capture and protocol payload records remain in use.
   queue handshakes and abort signals remain explicit: RX queue
   invalidation and physical TX observation have distinct lifetime rules.
 - Shared arithmetic uses operand/result handshakes on `PtpSecondService` and
-  `PtpVariableDivide`. Each service owns two clients at endpoint scope, with
+  `PtpVariableDivide`. The variable divider owns two endpoint clients; the PHC
+  core and the servo each own a one-client SECOND instance. Services use
   round-robin admission, registered independently held responses and owner-local
   cancellation. Consumers exclude cancel/reset edges from transfers. Algorithm
   state stays local to the client; there is no shared addressed workspace.
@@ -296,7 +298,10 @@ busy. Current fixture behavior is described under output ownership above.
 The servo publishes registered command payload, valid, cancel and stale. The
 PHC publishes registered ready, acknowledgement and error. Ready promises the
 available command slot; admission requires valid/ready and cancel/stale low.
-Manual request priority is resolved before advertising that slot.
+Manual request priority is resolved before advertising that slot. Ready is
+published only while the external client is the committed owner and no
+configuration transaction is open, so a non-owner is never admitted or
+acknowledged ([PHC subsystem contract](phc.md#3-ownership-and-admission)).
 
 A command accepted at N commits at N+1. Cancellation registered by the servo or
 port at N can veto that commit. Cancellation first detected by those producers
@@ -309,6 +314,7 @@ It can conservatively inhibit captures even if the command is later rejected.
 Fault/discontinuity also assert inhibition with the resulting clock state.
 A command's own capture inhibition does not revoke its commit. Expiry remains a
 registered level; its consumption overrides validity-setting commands and PPS.
+The PHC consumes it only while the servo is the committed owner.
 
 ## Registered lifecycle and queue boundaries
 
@@ -497,8 +503,9 @@ not change initialization, copy, snapshot, cancellation or ownership timing.
 
 ## Shared service bound
 
-Each endpoint owns one `PtpSecondService` for the servo/manual PHC clients and
-one `PtpVariableDivide` for the rate/E2E clients. E2E sequences its two
+Each endpoint owns one `PtpVariableDivide` for the rate/E2E clients and a
+one-client `PtpSecondService` for the servo; the PHC core owns another for
+manual PHASE, so manual preparation no longer contends with servo conversion. E2E sequences its two
 calibration planes through the same owner. Both services arbitrate round-robin,
 hold each owner's response independently, and cancel only the selected owner.
 Cancellation wins over completion. Clients retain their algorithm state locally;

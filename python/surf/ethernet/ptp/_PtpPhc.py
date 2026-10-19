@@ -14,9 +14,10 @@ import pyrogue as pr
 class PtpPhc(pr.Device):
     """PHC-local operands, command status, policy and time snapshots.
 
-    Manual steering requires parent ServoEnable committed low; PPS commands
-    remain available. Poll CommandBusy and check CommandError. Multiword
-    snapshots are captured by the parent Snapshot command.
+    Manual steering requires the parent PtpPhcCore ActiveOwner to select the
+    AXI bank; PPS commands remain available under either owner. Poll
+    CommandBusy and check CommandError. Multiword snapshots are captured by the
+    coordinating Snapshot command.
     """
 
     def __init__(self, **kwargs):
