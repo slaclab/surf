@@ -153,9 +153,13 @@ and identities retain network significance within their numerical value.
 ## Development status
 
 This map is still under development; there is no released ABI compatibility
-contract. `Version` is `0x00030000`: the clock owner (formerly `ServoEnable`)
-and the PHC bank moved into the shared PHC core at `0x4000`/`0x5000`, and the
-endpoint window grew to 32 KiB. Fields within each bank keep their local
+contract. `Version` is `0x00030001`. Version 3.0 moved the clock owner and the
+PHC bank into the shared PHC core at `0x4000`/`0x5000` and grew the endpoint
+window to 32 KiB; 3.1 restores `ServoEnable` as servo run/stop, separate from
+the PHC owner, and adds build-time PHC control modes (`CONTROL_MODE_G`) whose
+`PhcCore` capability bits describe the compiled command paths. In an
+`"EXTERNAL"` build the `Phc` set/phase/rate operand words (`0x5028`–`0x504F`)
+are absent and return DECERR, and only PPS commands are accepted from AXI. Fields within each bank keep their local
 offsets. Software should use the updated PyRogue children or the offsets below.
 
 ## PtpEndpoint fields
@@ -164,10 +168,12 @@ offsets. Software should use the updated PyRogue children or the offsets below.
 | --- | --- | --- | --- | --- |
 | `0x000` | `Version` | 31:0 | RO | Register ABI version: major in upper 16 bits, minor in lower 16 bits. |
 | `0x004` | `Enable` | 0 | RW | Enable fixed-source port after CommitConfig. |
+| `0x004` | `ServoEnable` | 1 | RW | Run the servo after CommitConfig. It steers only while `PhcCore.ActiveOwner` selects it; stopping it never grants AXI steering. |
 | `0x03C` | `CommitConfig` | 0 | WO | Submit a coordinated commit; poll ConfigBusy/ConfigSequence, then check ConfigError. Busy submissions return SLVERR. |
 | `0x040` | `ConfigError` | 0 | RO | Validation of the last completed commit failed; no bank applied its candidate. |
 | `0x040` | `ConfigBusy` | 1 | RO | Candidate preparation, validation or common-edge apply is in progress. |
 | `0x044` | `ActiveEnable` | 0 | RO | Committed port enable. |
+| `0x044` | `ActiveServoEnable` | 1 | RO | Committed servo run request. |
 | `0x044` | `PortActive` | 4 | RO | A fresh configured Sync source is established. |
 | `0x044` | `ServoState` | 10:8 | RO | 0 disabled, 1 acquiring, 2 tracking, 3 locked, 4 holdover, 5 fault. |
 | `0x044` | `FilterCount` | 14:12 | RO | Number of populated median-filter samples, zero through five. |
@@ -187,12 +193,14 @@ Endpoint offsets; subtract `0x4000` for a standalone core.
 | Aperture offset | Field | Bits | Access | Meaning |
 | --- | --- | --- | --- | --- |
 | `0x4000` | `Version` | 31:0 | RO | PHC core register ABI version: major in upper 16 bits, minor in lower 16 bits. |
-| `0x4004` | `Owner` | 0 | RW | Clock owner shadow: 0 AXI bank, 1 external command client. Activate with CommitConfig. |
-| `0x4008` | `CommandMask` | 4:0 | RO | Supported command kinds: one bit each for set, phase, rate, validity and PPS. |
+| `0x4004` | `Owner` | 0 | RW | Clock owner: 0 AXI bank, 1 external command client. A CommitConfig shadow when OwnerSelectable; read-only (fixed source) otherwise. |
+| `0x4008` | `CommandMask` | 4:0 | RO | AXI-submittable command kinds: one bit each for set, phase, rate, validity and PPS. |
 | `0x4008` | `ExternalCommand` | 8 | RO | External command admission is present in this build. |
 | `0x4008` | `ExternalCoordination` | 9 | RO | An enclosing coordinator owns commits and snapshots; local submissions return SLVERR. |
 | `0x4008` | `ManagementCrossing` | 10 | RO | AXI-Lite crosses from an independent management clock. |
 | `0x4008` | `PhysicalSteering` | 11 | RO | Physical clock actuator control is present (always 0 in this core). |
+| `0x4008` | `ManualCommand` | 12 | RO | Manual set/phase/rate/validity steering and its operands are present in this build. |
+| `0x4008` | `OwnerSelectable` | 13 | RO | Owner is a runtime-selectable commit setting (SELECTABLE build); otherwise it is fixed. |
 | `0x403C` | `CommitConfig` | 0 | WO | Submit a local commit; poll ConfigBusy/ConfigSequence, then check ConfigError. SLVERR when busy, during a manual command, or under enclosing coordination. |
 | `0x4040` | `ConfigError` | 0 | RO | The last local commit failed validation; no setting changed. |
 | `0x4040` | `ConfigBusy` | 1 | RO | A local or enclosing transaction is in progress; command admission is closed. |

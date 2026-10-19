@@ -36,7 +36,7 @@ from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench
 async def autonomous_endpoint(d):
     b = Bench(d)
     await b.start()
-    assert await b.read(0) == 0x30000
+    assert await b.read(0) == 0x30001
     assert (await b.axil.read(0x3F0, 4)).resp == AxiResp.DECERR
     await b.write(0x5028, 5, 8)
     await b.write(0x5030, NS-100)
@@ -63,6 +63,8 @@ async def autonomous_endpoint(d):
     await b.write(0x4004, 0)
     await b.commit()
     await b.manual(3, 0)
+    # Return control to the servo: run it and hand it the PHC owner.
+    await b.write(0x004, 3)
     await b.write(0x4004, 1)
     await b.commit()
     if not b.allow_step:

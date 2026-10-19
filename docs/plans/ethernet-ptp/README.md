@@ -72,6 +72,14 @@ also fixes a pre-existing manual-PHASE result handshake that hung every manual
 PHASE after the first until system reset. Other endpoint/port/real-MAC
 configurations, synthesis/resources, routed timing and hardware remain unrun.
 
+Slice 2e (October 19, working tree over `0704a92b4`) adds build-time PHC
+control modes (`CONTROL_MODE_G`) and restores endpoint `ServoEnable` as servo
+run/stop. The four standalone mode cases, three register cases (including a
+fixed `"EXTERNAL"` endpoint), static map, both PHC leaf cases, GMII composed
+timing port, two closed-loop endpoint configurations, one GMII port scenario
+and the GMII two-step real-MAC endpoint pass (27 nodes). Synthesis and the
+matched resource comparison are not run.
+
 Behavioral verification has been authorized since October 9, 2026. Use the
 [focused test-selection policy](../../../tests/ethernet/PtpCore/README.md#selecting-tests);
 the acceptance backlog does not require a full-suite replay after routine edits.

@@ -12,7 +12,10 @@
 # - Sweep: Five 4 KiB AXI banks, including the PHC core control bank, at
 #   zero/nonzero bases, decode/strobes/errors,
 #   frozen candidates, all-or-none commits, shared limits, coherent snapshots,
-#   MAC identity changes, immutable manual commands, and register-only reset.
+#   MAC identity changes, immutable manual commands, and register-only reset,
+#   with CONTROL_MODE_G "SELECTABLE". A fixed "EXTERNAL" build checks the
+#   read-only owner, absent manual steering/operands, retained PPS and that
+#   ServoEnable stops the servo without granting AXI steering.
 # - Stimulus: Raw AXI-Lite transactions preserve deliberately unaligned addresses;
 #   the real PHC prepares and executes commands while shadows are rewritten.
 # - Checks: Twelve-bit bank decode and 32 KiB aperture bounds, low address-bit
@@ -21,16 +24,22 @@
 #   full phase operand latching, accepted commit survival across AXI reset,
 #   signed phase remainder/epoch boundaries and signed96 admission from signed128,
 #   busy/ack/error ownership, IRQ W1C and build constants.
-# - Timing: Clock edges are stepped explicitly; bus and command waits are bounded.
+# - Timing: Clock edges are stepped explicitly in the selectable contract; the
+#   fixed-mode scenario uses a free-running clock. Waits are bounded.
 
 import os
 import pytest
 import cocotb
-from cocotb.triggers import Timer
+from cocotb.clock import Clock
+from cocotb.triggers import RisingEdge, Timer
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 from tests.common.regression_utils import run_surf_vhdl_test
 from tests.ethernet.PtpCore.ptp_reference import NS, Q16, Q32
 
-@cocotb.test()
+MODE = os.environ.get("CONTROL_MODE", "SELECTABLE")
+
+
+@cocotb.test(skip=MODE != "SELECTABLE")
 async def register_contract(d):
     base = int(os.environ["AXIL_BASE"])
     snapshots = []
@@ -130,11 +139,11 @@ async def register_contract(d):
 
     await edge(rst=1)
     await edge(rst=0)
-    assert await read(0) == 0x30000
+    assert await read(0) == 0x30001
     assert await read(0x4000) == 0x10000
     # The PHC core runs under endpoint coordination: its local submissions
     # would be a second coordinator and are refused.
-    assert await read(0x4008) == 0x31F
+    assert await read(0x4008) == 0x331F
     await write(0x403C, 1, response=2)
     await write(0x4100, 1, response=2)
     # The crossbar decodes the actual base address; an unrelated high address
@@ -175,7 +184,7 @@ async def register_contract(d):
 
     # SURF register helpers ignore address bits 1:0. All four byte addresses
     # select the same word; write strobes still select eligible field slices.
-    for address, mask in ((0x004, 1), (0x4004, 1), (0x5004, 8), (0x2004, 16), (0x3004, 4)):
+    for address, mask in ((0x004, 3), (0x4004, 1), (0x5004, 8), (0x2004, 16), (0x3004, 4)):
         original = await read(address)
         for low_bits in (1, 2, 3):
             assert await read(address+low_bits) == await read(address)
@@ -202,7 +211,7 @@ async def register_contract(d):
     await write(0x3F3, 0, response=3)
     # SURF helpers require strobes covering the whole addressed field slice.
     # Narrow fields permit a byte write; a partial wide-field write is rejected.
-    for address, value in ((0x004, 1), (0x4004, 1), (0x5004, 0), (0x3024, 0x03020100)):
+    for address, value in ((0x004, 3), (0x4004, 1), (0x5004, 0), (0x3024, 0x03020100)):
         original = await read(address)
         await write(address, value, strobe=0, response=3)
         assert await read(address) == original
@@ -397,7 +406,7 @@ async def register_contract(d):
     assert await read_wide(0x5060, 2) == snapshots[-1]
 
     # Automatic ownership rejects manual steering; PPS remains a safe command.
-    await write(0x004, 1)
+    await write(0x004, 3)
     await write(0x4004, 1)
     await commit()
     assert await read(0x4044) & 1
@@ -494,8 +503,75 @@ async def register_contract(d):
             assert after_time-before_time == elapsed*8*Q32, delta
 
 
-@pytest.mark.parametrize('base', [0, 0xA5808000])
-def test_ptp_reg(base):
+@cocotb.test(skip=MODE != "EXTERNAL")
+async def external_mode_contract(d):
+    """Fixed external PHC control inside the endpoint map."""
+    for name in ('rst', 'regRst', 'bankControlOverride', 'bankPrepare', 'bankApply', 'snapshotInhibit'):
+        getattr(d, name).value = 0
+    d.localMac.value = int.from_bytes(bytes.fromhex('020000000001'), 'little')
+    d.rst.value = 1
+    cocotb.start_soon(Clock(d.clk, 8, unit='ns').start())
+    axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, 'axil'), d.clk, d.rst, reset_active_level=True)
+    for _ in range(8):
+        await RisingEdge(d.clk)
+    d.rst.value = 0
+    for _ in range(8):
+        await RisingEdge(d.clk)
+
+    async def write(address, value, resp=AxiResp.OKAY):
+        result = await axil.write(address, value.to_bytes(4, 'little'))
+        assert result.resp == resp, (hex(address), result.resp)
+
+    async def read(address, resp=AxiResp.OKAY):
+        result = await axil.read(address, 4)
+        assert result.resp == resp, (hex(address), result.resp)
+        return int.from_bytes(result.data, 'little')
+
+    async def commit():
+        sequence = await read(0x048)
+        await write(0x03C, 1)
+        for _ in range(200):
+            if await read(0x048) != sequence:
+                assert await read(0x040) == 0
+                return
+        assert False, 'configuration commit timeout'
+
+    async def manual_pps(value):
+        await write(0x5020, 0x84 | (value << 3))
+        for _ in range(100):
+            state = await read(0x5024)
+            if not state & 1:
+                assert state == 2, state
+                return
+        assert False, 'PPS command timeout'
+
+    # External command path only, endpoint-coordinated, owner fixed to it.
+    assert await read(0x4008) == 0x310
+    assert await read(0x4004) == 1
+    await write(0x4004, 0, AxiResp.DECERR)
+    assert await read(0x4044) & 1
+    # Manual steering and its operands are absent; PPS remains available.
+    await write(0x5020, 0x80, AxiResp.SLVERR)
+    await read(0x5028, AxiResp.DECERR)
+    await write(0x5038, 0, AxiResp.DECERR)
+    await manual_pps(1)
+    # ServoEnable runs or stops the servo; stopping it grants no AXI steering.
+    assert not int(d.activeServo.value)
+    await write(0x004, 3)
+    await commit()
+    assert int(d.activeServo.value)
+    await write(0x004, 1)
+    await commit()
+    assert not int(d.activeServo.value)
+    await write(0x5020, 0x83, AxiResp.SLVERR)
+    await write(0x5020, 0x80, AxiResp.SLVERR)
+    await manual_pps(0)
+    assert await read(0x4004) == 1
+
+
+@pytest.mark.parametrize('base,mode', [(0, 'SELECTABLE'), (0xA5808000, 'SELECTABLE'), (0, 'EXTERNAL')])
+def test_ptp_reg(base, mode):
     run_surf_vhdl_test(test_file=__file__, toplevel='surf.ptpregwrapper',
-                      extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRegWrapper.vhd"]},
-                      parameters={'AXIL_BASE_ADDR_G': f'{base:032b}'}, extra_env={'AXIL_BASE': base})
+                       extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpRegWrapper.vhd"]},
+                       parameters={'AXIL_BASE_ADDR_G': f'{base:032b}', 'CONTROL_MODE_G': mode},
+                       extra_env={'AXIL_BASE': base, 'CONTROL_MODE': mode})

@@ -33,6 +33,10 @@ CHILDREN = {
     'PtpPhcCore': {'Phc': 0x1000},
 }
 
+# Fields whose RTL decode depends on a build-time mode: the documented and
+# software access is the most permissive build's (SELECTABLE owner is RW).
+MODE_DEPENDENT_FIELDS = {('PtpPhcCore', 0x004, 0): 'RW'}
+
 # Numerical interpretation is an ABI property even when RTL stores an slv.
 # Compare against the owning register guide and signed arithmetic consumers,
 # not against another extraction of the Python device under test.
@@ -151,6 +155,9 @@ def check_local_register_schema(device, rtl, python_source):
     for ro, offset, bit in re.findall(
             r'axiSlaveRegister(R?)\(ep, x"([0-9A-F]{3})", (\d+),', source):
         key = int(offset, 16), int(bit)
+        if (device, *key) in MODE_DEPENDENT_FIELDS:
+            hardware[key] = MODE_DEPENDENT_FIELDS[(device, *key)]
+            continue
         assert key not in hardware
         hardware[key] = 'RO' if ro else 'RW'
     hardware.update(WORD_BANK_FIELDS.get(device, {}))
@@ -180,9 +187,13 @@ def check_local_register_schema(device, rtl, python_source):
             assert ast.unparse(keywords['function']) == 'pr.BaseCommand.createTouch(1)', f'command {name}: strobe'
         if mode == 'WO':
             mode = 'RW'  # command strobes have deterministic hardware readback
-        # The capability fields are described individually in software but are
-        # one constant word in hardware.
-        key = (offset, 0) if device == 'PtpPhcCore' and offset == 0x008 else (offset, bit)
+        # The capability fields and the endpoint enable/servo-run bits are
+        # described individually in software but are vectors in hardware.
+        key = (offset, bit)
+        if device == 'PtpPhcCore' and offset == 0x008:
+            key = (offset, 0)
+        if device == 'PtpEndpoint' and offset in (4, 0x44) and bit < 2:
+            key = (offset, 0)
         if device == 'PtpProtocolEngine' and offset == 0x48:
             key = (offset, 0)  # packed ledger status
         assert hardware.get(key) == mode, (name, key, mode)

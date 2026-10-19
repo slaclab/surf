@@ -149,7 +149,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Protocol policy or correction handling | Select `test_ptp_exchange.py::test_exchange_rejection` cases for overflow/response matching; `test_ptp_port_samples.py` for direct production-engine assertions. | Add affected `test_ptp_port.py` PHY cases for wire timing/serialization or physical-path behavior. |
 | Delay_Req scheduler or transmitter | `test_ptp_scheduler.py` for interval policy/distribution; `test_ptp_delay_req_tx.py` for stream lifecycle; ordinary exchange cases for wire fields. | Select `test_ptp_port.py -k tx_restart` for both PHYs' stream integration; real-MAC cases when downstream queue/reset behavior changes. |
 | Domain admission or rate dynamics | `test_ptp_domain.py` for candidate boundaries; `test_ptp_disturbance.py` for drift, path variation, loss and freshness. | Add continuous endpoint cases for PHC/servo phase-error bounds; raw-tick tests alone do not establish them. |
-| PHC subsystem: owner/admission, coordination, resets, qualification/PPS (`PtpPhcCore`, `PtpPhcControl`, `PtpPhc` admission) | `test_ptp_phc_core.py` (all three cases); `test_ptp_phc.py` when cycle semantics change; `test_ptp_reg.py` for enclosing coordination. | `test_ptp_phc_mac_port.py` (both PHYs) when the live tuple or capture inhibition changes; affected endpoint/servo cases when servo ownership or expiry changes. |
+| PHC subsystem: owner/admission, coordination, resets, qualification/PPS (`PtpPhcCore`, `PtpPhcControl`, `PtpPhc` admission) | `test_ptp_phc_core.py` (all four mode cases); `test_ptp_phc.py` when cycle semantics change; `test_ptp_reg.py` for enclosing coordination. | `test_ptp_phc_mac_port.py` (both PHYs) when the live tuple or capture inhibition changes; affected endpoint/servo cases when servo ownership or expiry changes. |
 | PHC carry/normalization or unsigned age arithmetic | `test_ptp_timing_math.py` for integer boundary/random oracles; `test_ptp_phc.py` for cycle semantics and epoch faults. | Add protocol expiry and servo cancellation cases when the shared age predicate changes. |
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
@@ -389,7 +389,9 @@ an observable completion condition.
   cancellation excludes transfer without requiring ready to change mid-cycle.
 - `test_ptp_phc_core.py`: the real standalone `PtpPhcCore` through AXI and its
   external port at 125 MHz with a nonzero base, 156.25 MHz behind an
-  independent management clock, and with external support compiled out. A
+  independent management clock (both `CONTROL_MODE_G = "SELECTABLE"`), fixed
+  `"AXI"` at 156.25 MHz and fixed `"EXTERNAL"` behind the crossing. Scenarios
+  that need an absent path are skipped explicitly per mode. A
   lockstep checker compares every cycle with `PhcModel`, applying each command
   on its acknowledged edge, and requires capture inhibition exactly one edge
   before SET/PHASE commits. Scenarios cover identity/capabilities, manual
@@ -418,7 +420,9 @@ an observable completion condition.
   configuration apply is observed separately from the registered endpoint restart path.
   The fixture composes the production `PtpPhcCore` under endpoint coordination,
   matching the production endpoint, and checks that its local submissions are
-  refused. Manual phase tests retain all signed128 submission
+  refused. A fixed `CONTROL_MODE_G = "EXTERNAL"` case checks the read-only
+  owner, absent manual steering and operands, retained PPS, and that
+  `ServoEnable` stops the servo without granting AXI steering. Manual phase tests retain all signed128 submission
   words and check the signed96 admission boundary separately from later epoch faults.
 - `test_ptp_register_map.py`: every PyRogue field start/access mode against its
   local RTL decoder (including the protocol bank in `PtpProtocolReg`), plus

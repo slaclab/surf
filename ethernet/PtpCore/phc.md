@@ -3,9 +3,10 @@
 `PtpPhcCore` is the one PTP hardware clock (PHC) subsystem used by both
 compositions: standalone, where a software controller or an external command
 client steers it, and inside the autonomous `PtpEndpoint`, where `PtpServo` is
-the external client. The core contains `PtpPhcControl`, `PtpPhc` and a private
-one-client `PtpSecondService`; it has no protocol engine, servo or variable
-divider. This guide owns the core's source interface, ownership and admission
+the external client. The core contains `PtpPhcControl`, `PtpPhc` and, when
+manual steering is compiled in, a private one-client `PtpSecondService`; it has
+no protocol engine, servo or variable divider. `CONTROL_MODE_G` selects which
+command sources exist (§3.1). This guide owns the core's source interface, ownership and admission
 rules, coordination handshakes, reset lifetimes and register map. The
 [timing-port contract](timing-port.md) owns packet transport;
 [interfaces.md](interfaces.md) owns the command record timing it reuses.
@@ -19,14 +20,14 @@ endpoint-owned PHC wiring and four-bank map; no compatibility wrapper exists.
 | --- | --- |
 | `PtpPhc` | Running time, applied increment, raw ticks, generation, PPS, manual operands/normalization, snapshots, and final command admission, commit and acknowledgement. The numerical algorithm is unchanged from the former endpoint PHC. |
 | `PtpPhcControl` | Identity/capabilities, committed owner selection, configuration and snapshot coordination (local, or as a participant of an enclosing coordinator), PHC event IRQ. |
-| `PtpPhcCore` | Upstream AXI-Lite interface, optional management-clock crossing, local two-slot crossbar, the blocks above and a private `PtpSecondService` with `NUM_CLIENTS_G = 1`, `WIDTH_G = 128`. |
+| `PtpPhcCore` | Upstream AXI-Lite interface, optional management-clock crossing, local two-slot crossbar, the blocks above and, unless `CONTROL_MODE_G = "EXTERNAL"`, a private `PtpSecondService` with `NUM_CLIENTS_G = 1`, `WIDTH_G = 128`. |
 
 | Generic | Default | Meaning |
 | --- | --- | --- |
 | `AXIL_BASE_ADDR_G` | `0` | 8 KiB-aligned base of the local aperture. |
 | `CLK_FREQ_G` | 156250000 | PHC clock frequency; sets the nominal Q32 increment. |
 | `COMMON_CLK_G` | `true` | `false` inserts `AxiLiteAsync` from `axilClk` to `clk`. |
-| `EXT_COMMAND_EN_G` | `true` | `false` removes external command admission; selecting the external owner fails validation. |
+| `CONTROL_MODE_G` | `"SELECTABLE"` | `"AXI"`, `"EXTERNAL"` or `"SELECTABLE"` (§3.1). Other values fail elaboration. |
 | `EXT_COORDINATION_G` | `false` | `true` makes the core a participant of an enclosing coordinator (§4.2); local CommitConfig/Snapshot return SLVERR. |
 
 All PHC outputs, commands and coordination records are in `clk`. Only AXI-Lite
@@ -91,6 +92,30 @@ is still vetoed before commit by `cancel`, `stale`, `restart`, a new
 `commandAbort` assertion or loss of external ownership. That last veto cannot
 fire in normal operation, because owner changes wait for an idle slot.
 
+### 3.1 Build-time control modes
+
+| `CONTROL_MODE_G` | Compiled command paths | Owner |
+| --- | --- | --- |
+| `"AXI"` | Manual SET/PHASE/RATE/VALID/PPS with operands and PHASE normalization. No external admission (`commandSlave` idle) and no `clearValid` revocation. | Fixed AXI (`Owner = 0`, read-only). |
+| `"EXTERNAL"` | External client only. Manual SET/PHASE/RATE/VALID submission, the operand words (`0x1028`–`0x104F`, DECERR) and the private SECOND converter are omitted; AXI PPS remains. | Fixed external (`Owner = 1`, read-only). |
+| `"SELECTABLE"` | Both paths. | Committed runtime selection, reset to AXI (§4.1). |
+
+In a fixed mode a write to `Owner` returns DECERR. Configuration and snapshot
+coordination, monotonic and PPS policy, time/rate/tick snapshots, IRQs and
+command bookkeeping are present in every mode, and every configuration
+transaction still drains accepted commands before applying policy. A
+non-present path is excluded exactly like a non-owner (§3). The capability
+word reports `CommandMask` (AXI-submittable kinds: `0x1F`, or `0x10` without
+manual steering), `ExternalCommand`, `ManualCommand` and `OwnerSelectable`.
+
+Use `"SELECTABLE"` for development images that need manual override,
+`"AXI"` for software control and `"EXTERNAL"` for an autonomous deployment
+without override. Inside `PtpEndpoint` the servo is the external client; the
+endpoint's separate `ServoEnable` runs or stops it, and stopping it never grants
+AXI steering. Returning a selectable owner to the servo restarts acquisition.
+The area saved by `"EXTERNAL"` has not been measured; compare matched
+`"SELECTABLE"` and `"EXTERNAL"` builds before claiming it.
+
 ## 4. Configuration and snapshots
 
 ### 4.1 Transaction phases
@@ -103,7 +128,7 @@ transaction:
 | --- | --- |
 | PREPARE (`prepare`, `busy` high) | Candidate ← shadow. `busy` closes manual submission (SLVERR) and external ready. `configPrepared` falls on the next edge. |
 | Drain | From the second edge after PREPARE, `configPrepared` rises once the PHC reports no manual work and no slot owner. This covers a command admitted on the PREPARE edge by an already published ready. |
-| VALIDATE | Coordinator waits for every `configPrepared`, then checks votes. The core votes invalid when the candidate selects an absent external owner, or a manual command is still busy. |
+| VALIDATE | Coordinator waits for every `configPrepared`, then checks votes. The core votes invalid while a manual command is still busy; both owners exist whenever the owner is selectable. |
 | APPLY (`apply`) | Active owner and monotonic policy change on this edge. `busy` falls with the coordinator's return to idle; admission reopens for the new owner only. |
 | Rejected | No active state changes; ConfigError and ConfigSequence report it. |
 
@@ -186,7 +211,7 @@ conventions, strobes and DECERR follow the
 
 | Local offset | Contents |
 | --- | --- |
-| `0x000`–`0x008` | `Version` (`PTP_PHC_CORE_VERSION_C`), `Owner` shadow, capability word. |
+| `0x000`–`0x008` | `Version` (`PTP_PHC_CORE_VERSION_C`), `Owner` (shadow when selectable, read-only when fixed), capability word. |
 | `0x03C`–`0x048` | Local CommitConfig, ConfigError/ConfigBusy, ActiveOwner/CommandIdle, ConfigSequence. |
 | `0x04C`–`0x054` | PHC event IRQ status, mask and write-one-to-clear. |
 | `0x100`–`0x108` | Local Snapshot, SnapshotSequence, SnapshotBusy. |
@@ -200,6 +225,6 @@ keeps its own aggregate IRQ; the core's `irq` output is unused there.
 | Fixture | Covers |
 | --- | --- |
 | `test_ptp_phc.py` (`PtpPhcWrapper`) | Cycle-exact numerical model, command edges, cancellation, normalization limits, snapshot reader. |
-| `test_ptp_phc_core.py` (`PtpPhcCoreWrapper`) | The real core through AXI: owner admission and transitions, no-side-effect rejection, external support compiled out, AXI reset during normalization/transition, controller restart, snapshot/config collisions, VALID/clearValid/PPS at rollover, both frequencies, nonzero base, independent management clock. |
+| `test_ptp_phc_core.py` (`PtpPhcCoreWrapper`) | The real core through AXI in all three modes: owner admission and transitions, no-side-effect rejection, fixed-owner write rejection, absent manual path and operands, AXI reset during normalization/transition, management reset mid-read, controller restart, snapshot/config collisions, VALID/clearValid/PPS at rollover, both frequencies, nonzero base, independent management clock. Inapplicable scenarios are skipped explicitly per mode. |
 | `test_ptp_phc_mac_port.py` (`PtpPhcMacPortWrapper`) | The real core with `PtpMacPortEthMac`, GMII/125 MHz and XGMII/156.25 MHz: capture alignment at RATE/SET/PHASE, usable unqualified capture, PHC step during outstanding TX. |
-| `test_ptp_reg.py`, `test_ptp_register_map.py`, endpoint/servo cases | Enclosing coordination and the endpoint map. |
+| `test_ptp_reg.py`, `test_ptp_register_map.py`, endpoint/servo cases | Enclosing coordination and the endpoint map, including a fixed `"EXTERNAL"` endpoint with servo run/stop. |

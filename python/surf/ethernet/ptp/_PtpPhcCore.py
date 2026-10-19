@@ -17,9 +17,12 @@ class PtpPhcCore(pr.Device):
     """Shared PHC subsystem: control bank at 0x000 and PHC bank at 0x1000.
 
     Owner selects which path may steer the clock: the AXI bank (Phc manual
-    commands) or the external command client. Owner and Phc.Monotonic are
-    shadows; CommitConfig drains accepted commands, then applies both on one
-    edge. Inside PtpEndpoint the endpoint coordinates commits and snapshots
+    commands) or the external command client. It is a commit shadow only when
+    OwnerSelectable=1; fixed AXI/EXTERNAL builds report it read-only and
+    return DECERR on writes. ManualCommand=0 builds omit the manual
+    set/phase/rate/validity operands; Phc PPS commands remain available.
+    CommitConfig drains accepted commands, then applies Owner and
+    Phc.Monotonic on one edge. Inside PtpEndpoint the endpoint coordinates commits and snapshots
     (ExternalCoordination=1), so use the endpoint's CommitConfig and Snapshot.
     The selector cannot separate two software agents writing this bank; the
     integration must give diagnostics read-only access.
@@ -39,7 +42,7 @@ class PtpPhcCore(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'Owner',
-            description = 'Clock owner shadow: 0 AXI bank, 1 external command client. Activate with CommitConfig.',
+            description = 'Clock owner: 0 AXI bank, 1 external command client. A CommitConfig shadow when OwnerSelectable; read-only (fixed source) otherwise.',
             offset      = 0x004,
             bitOffset   = 0,
             bitSize     = 1,
@@ -48,7 +51,7 @@ class PtpPhcCore(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'CommandMask',
-            description = 'Supported command kinds: one bit each for set, phase, rate, validity and PPS.',
+            description = 'AXI-submittable command kinds: one bit each for set, phase, rate, validity and PPS.',
             offset      = 0x008,
             bitOffset   = 0,
             bitSize     = 5,
@@ -87,6 +90,24 @@ class PtpPhcCore(pr.Device):
             description = 'Physical clock actuator control is present (always 0 in this core).',
             offset      = 0x008,
             bitOffset   = 11,
+            bitSize     = 1,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'ManualCommand',
+            description = 'Manual set/phase/rate/validity steering and its operands are present in this build.',
+            offset      = 0x008,
+            bitOffset   = 12,
+            bitSize     = 1,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'OwnerSelectable',
+            description = 'Owner is a runtime-selectable commit setting (SELECTABLE build); otherwise it is fixed.',
+            offset      = 0x008,
+            bitOffset   = 13,
             bitSize     = 1,
             mode        = 'RO',
         ))

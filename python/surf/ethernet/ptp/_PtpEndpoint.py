@@ -20,8 +20,9 @@ class PtpEndpoint(pr.Device):
 
     Endpoint control at 0x0000, ProtocolEngine at 0x2000, Servo at 0x3000 and
     the shared PhcCore (control 0x4000, Phc 0x5000). Configuration variables
-    here and in the children, including PhcCore.Owner (1 selects the servo),
-    are shadows. CommitConfig prepares immutable candidates, drains PHC
+    here and in the children, including ServoEnable and (in a SELECTABLE
+    build) PhcCore.Owner, are shadows. The servo steers only when it is both
+    enabled and the PHC owner. CommitConfig prepares immutable candidates, drains PHC
     commands, validates all banks, then applies all or none. Poll ConfigBusy
     and ConfigSequence and check ConfigError; submission success alone is not
     commit success. Snapshot captures all local status banks on one edge with
@@ -50,6 +51,15 @@ class PtpEndpoint(pr.Device):
             mode        = 'RW',
         ))
 
+        self.add(pr.RemoteVariable(
+            name        = 'ServoEnable',
+            description = 'Run the servo after CommitConfig. It steers only while PhcCore.ActiveOwner selects it; stopping it never grants AXI steering.',
+            offset      = 0x004,
+            bitOffset   = 1,
+            bitSize     = 1,
+            mode        = 'RW',
+        ))
+
         self.add(pr.RemoteCommand(
             name        = 'CommitConfig',
             description = 'Submit a coordinated commit; poll ConfigBusy/ConfigSequence, then check ConfigError. Busy submissions return SLVERR.',
@@ -72,6 +82,15 @@ class PtpEndpoint(pr.Device):
             description = 'Committed port enable.',
             offset      = 0x044,
             bitOffset   = 0,
+            bitSize     = 1,
+            mode        = 'RO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'ActiveServoEnable',
+            description = 'Committed servo run request.',
+            offset      = 0x044,
+            bitOffset   = 1,
             bitSize     = 1,
             mode        = 'RO',
         ))

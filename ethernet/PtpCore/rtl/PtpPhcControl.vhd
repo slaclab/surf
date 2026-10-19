@@ -3,14 +3,16 @@
 -------------------------------------------------------------------------------
 -- Description: PHC subsystem identity, owner selection and coordination.
 --
--- Owns the committed clock owner: the AXI bank (0) or the external command
--- client (1). The owner shadow freezes at prepare and activates at apply,
--- on the same edges as the PHC monotonic policy. Prepare also closes command
+-- Owns the clock owner: the AXI bank (0) or the external command client (1).
+-- CONTROL_MODE_G "AXI" and "EXTERNAL" fix it at elaboration and report it
+-- read-only; "SELECTABLE" commits it like other settings: the shadow freezes
+-- at prepare and activates at apply, on the same edges as the PHC monotonic
+-- policy. Prepare also closes command
 -- admission (busy); this participant reports configPrepared only after the
 -- PHC reports commandIdle, sampled from the second edge after prepare so a
 -- command admitted by an already published ready is drained first. An owner
--- change therefore happens only at a command boundary. Selecting an external
--- owner that was compiled out votes invalid.
+-- change therefore happens only at a command boundary. Every transaction
+-- drains, including in fixed modes, so the policy apply edge is idle.
 --
 -- With EXT_COORDINATION_G = false this block is also the coordinator: local
 -- CommitConfig and Snapshot drive localConfigControl/localSnapshotControl,
@@ -46,7 +48,7 @@ entity PtpPhcControl is
       RST_POLARITY_G     : sl      := '1';
       RST_ASYNC_G        : boolean := false;
       COMMON_CLK_G       : boolean := true;
-      EXT_COMMAND_EN_G   : boolean := true;
+      CONTROL_MODE_G     : string  := "SELECTABLE";  -- "AXI", "EXTERNAL" or "SELECTABLE"
       EXT_COORDINATION_G : boolean := false);
    port (
       -- PHC clock domain
@@ -94,17 +96,24 @@ architecture rtl of PtpPhcControl is
    constant IRQ_DISCONTINUITY_C : natural := 1;
    constant IRQ_COMMAND_ERROR_C : natural := 2;
 
-   -- Capability word: supported command kinds, then structural options.
-   constant COMMAND_MASK_C : slv(4 downto 0) := "11111";
+   constant SELECTABLE_C   : boolean := CONTROL_MODE_G = "SELECTABLE";
+   constant MANUAL_EN_C    : boolean := CONTROL_MODE_G /= "EXTERNAL";
+   constant EXTERNAL_EN_C  : boolean := CONTROL_MODE_G /= "AXI";
+   -- Owner at reset, and permanently in a fixed mode.
+   constant RESET_OWNER_C  : sl      := toSl(CONTROL_MODE_G = "EXTERNAL");
+   -- AXI-submittable command kinds: all five, or PPS alone without manual steering.
+   constant COMMAND_MASK_C : slv(4 downto 0) := ite(MANUAL_EN_C, slv'("11111"), slv'("10000"));
 
    function capabilities return slv is
       variable retVar : slv(31 downto 0) := (others => '0');
    begin
       retVar(4 downto 0) := COMMAND_MASK_C;
-      retVar(8)          := toSl(EXT_COMMAND_EN_G);
+      retVar(8)          := toSl(EXTERNAL_EN_C);
       retVar(9)          := toSl(EXT_COORDINATION_G);
       retVar(10)         := toSl(not COMMON_CLK_G);
       retVar(11)         := '0';  -- No physical actuator in this core.
+      retVar(12)         := toSl(MANUAL_EN_C);
+      retVar(13)         := toSl(SELECTABLE_C);
       return retVar;
    end function;
 
@@ -138,9 +147,9 @@ architecture rtl of PtpPhcControl is
    constant REG_INIT_C : RegType := (
       readSlave        => AXI_LITE_READ_SLAVE_INIT_C,
       writeSlave       => AXI_LITE_WRITE_SLAVE_INIT_C,
-      shadowOwner      => '0',
-      candidateOwner   => '0',
-      activeOwner      => '0',
+      shadowOwner      => RESET_OWNER_C,
+      candidateOwner   => RESET_OWNER_C,
+      activeOwner      => RESET_OWNER_C,
       drainArm         => '0',
       configPrepared   => '1',
       configValid      => '1',
@@ -193,7 +202,13 @@ begin
       end if;
 
       axiSlaveRegisterR(ep, x"000", 0, PTP_PHC_CORE_VERSION_C);
-      axiSlaveRegister(ep, x"004", 0, v.shadowOwner);
+      -- A fixed source is read-only; writes fall through to DECERR.
+      if SELECTABLE_C then
+         axiSlaveRegister(ep, x"004", 0, v.shadowOwner);
+      else
+         axiSlaveRegisterR(ep, x"004", 0, r.activeOwner);
+      end if;
+
       axiSlaveRegisterR(ep, x"008", 0, capabilities);
       axiSlaveRegister(ep, x"03C", 0, commitRequest);
       axiSlaveRegisterR(ep, x"040", 0, r.configError);
@@ -256,11 +271,8 @@ begin
          v.candidateOwner := r.shadowOwner;
          v.drainArm       := '1';
          v.configPrepared := '0';
+         -- Both owners exist whenever the owner is selectable.
          v.configValid    := '1';
-
-         if r.shadowOwner = '1' and not EXT_COMMAND_EN_G then
-            v.configValid := '0';
-         end if;
       end if;
 
       if configControl.apply = '1' then

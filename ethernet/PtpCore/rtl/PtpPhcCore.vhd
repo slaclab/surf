@@ -9,9 +9,12 @@
 -- one-client PtpSecondService normalizes manual PHASE commands; the core has
 -- no protocol engine, servo or variable divider.
 --
--- The committed owner selects either the AXI bank or the external command
--- client, and admission is gated at that owner (externalOwner reports it).
--- Owner changes happen only at a drained command boundary. Standalone, the
+-- CONTROL_MODE_G selects the command sources at elaboration: "AXI" (manual
+-- steering only), "EXTERNAL" (external client only; the manual operand path
+-- and private SECOND converter are omitted) or "SELECTABLE" (both, with a
+-- committed runtime owner that changes only at a drained command boundary).
+-- Admission is gated at the owner, which externalOwner reports. AXI PPS
+-- control remains available in every mode. Standalone, the
 -- control bank coordinates commits and snapshots; with EXT_COORDINATION_G an
 -- enclosing coordinator's records reach both participants on the same edges
 -- as its other banks, and this core returns its prepare/validity/snapshot
@@ -49,7 +52,10 @@ entity PtpPhcCore is
       AXIL_BASE_ADDR_G   : slv(31 downto 0) := (others => '0');
       CLK_FREQ_G         : positive         := 156250000;
       COMMON_CLK_G       : boolean          := true;
-      EXT_COMMAND_EN_G   : boolean          := true;
+      -- "AXI": fixed software steering, no external client. "EXTERNAL": fixed
+      -- external client, no manual SET/PHASE/RATE/VALID path or private SECOND
+      -- converter. "SELECTABLE": both, with a committed runtime owner.
+      CONTROL_MODE_G     : string           := "SELECTABLE";
       EXT_COORDINATION_G : boolean          := false);
    port (
       -- Management clock domain, used only when COMMON_CLK_G = false.
@@ -91,6 +97,9 @@ entity PtpPhcCore is
 end entity PtpPhcCore;
 
 architecture mapping of PtpPhcCore is
+
+   constant MANUAL_EN_C   : boolean := CONTROL_MODE_G /= "EXTERNAL";
+   constant EXTERNAL_EN_C : boolean := CONTROL_MODE_G /= "AXI";
 
    constant NUM_AXIL_MASTERS_C   : positive := 2;
    constant CONTROL_AXIL_INDEX_C : natural  := 0;
@@ -135,6 +144,8 @@ begin
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PtpPhcCore: AXI-Lite base address must be 8 KiB aligned" severity failure;
+   assert CONTROL_MODE_G = "AXI" or CONTROL_MODE_G = "EXTERNAL" or CONTROL_MODE_G = "SELECTABLE"
+      report "PtpPhcCore: CONTROL_MODE_G must be AXI, EXTERNAL or SELECTABLE" severity failure;
 
    -- AXI-only bus reset in clk: regRst, plus the management reset when the
    -- bus crosses from axilClk. RstSync asserts asynchronously and releases on
@@ -224,12 +235,12 @@ begin
    end generate GEN_EXT_COORDINATION;
 
    -- A compiled-out external client is tied idle and never admitted.
-   GEN_EXT_COMMAND : if EXT_COMMAND_EN_G generate
+   GEN_EXT_COMMAND : if EXTERNAL_EN_C generate
       externalMaster <= commandMaster;
       commandSlave   <= externalSlave;
    end generate GEN_EXT_COMMAND;
 
-   GEN_NO_EXT_COMMAND : if not EXT_COMMAND_EN_G generate
+   GEN_NO_EXT_COMMAND : if not EXTERNAL_EN_C generate
       externalMaster <= PTP_PHC_COMMAND_MASTER_INIT_C;
       commandSlave   <= PTP_PHC_COMMAND_SLAVE_INIT_C;
    end generate GEN_NO_EXT_COMMAND;
@@ -240,7 +251,7 @@ begin
          RST_POLARITY_G     => RST_POLARITY_G,
          RST_ASYNC_G        => RST_ASYNC_G,
          COMMON_CLK_G       => COMMON_CLK_G,
-         EXT_COMMAND_EN_G   => EXT_COMMAND_EN_G,
+         CONTROL_MODE_G     => CONTROL_MODE_G,
          EXT_COORDINATION_G => EXT_COORDINATION_G)
       port map (
          clk                  => clk,                                 -- [in]
@@ -269,7 +280,8 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => RST_POLARITY_G,
          RST_ASYNC_G    => RST_ASYNC_G,
-         CLK_FREQ_G     => CLK_FREQ_G)
+         CLK_FREQ_G     => CLK_FREQ_G,
+         MANUAL_EN_G    => MANUAL_EN_C)
       port map (
          clk               => clk,                             -- [in]
          rst               => rst,                             -- [in]
@@ -300,20 +312,31 @@ begin
          secondResult      => secondResults(0),                -- [in]
          secondResultReady => secondResultReady(0));           -- [out]
 
-   U_Second : entity surf.PtpSecondService
-      generic map (
-         TPD_G          => TPD_G,
-         RST_POLARITY_G => RST_POLARITY_G,
-         RST_ASYNC_G    => RST_ASYNC_G,
-         NUM_CLIENTS_G  => 1,
-         WIDTH_G        => 128)
-      port map (
-         clk         => clk,                 -- [in]
-         rst         => rst,                 -- [in]
-         cancel      => secondCancel,        -- [in]
-         requests    => secondRequests,      -- [in]
-         inputReady  => secondReady,         -- [out]
-         results     => secondResults,       -- [out]
-         resultReady => secondResultReady);  -- [in]
+   -- The private converter serves manual PHASE only; fixed external control
+   -- omits it and leaves the PHC's request path idle.
+   GEN_NO_SECOND : if not MANUAL_EN_C generate
+      secondReady   <= (others => '0');
+      secondResults <= (others => PTP_SECOND_RESULT_INIT_C);
+   end generate GEN_NO_SECOND;
+
+   GEN_SECOND : if MANUAL_EN_C generate
+
+      U_Second : entity surf.PtpSecondService
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            NUM_CLIENTS_G  => 1,
+            WIDTH_G        => 128)
+         port map (
+            clk         => clk,                 -- [in]
+            rst         => rst,                 -- [in]
+            cancel      => secondCancel,        -- [in]
+            requests    => secondRequests,      -- [in]
+            inputReady  => secondReady,         -- [out]
+            results     => secondResults,       -- [out]
+            resultReady => secondResultReady);  -- [in]
+
+   end generate GEN_SECOND;
 
 end architecture mapping;

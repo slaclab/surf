@@ -36,7 +36,8 @@ entity Sgmii88E1111LvdsUltraScalePtp is
       PACKET_LIFETIME_G : positive         := 125000000;
       FIFO_ADDR_WIDTH_G : positive         := 9;
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0'));
+      EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
+      CONTROL_MODE_G    : string           := "SELECTABLE");
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -128,7 +129,8 @@ begin
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G)
+         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+         CONTROL_MODE_G    => CONTROL_MODE_G)
       port map (
          axilClk           => axilClk,            -- [in]
          axilRst           => axilRst,            -- [in]

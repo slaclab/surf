@@ -20,12 +20,15 @@
 -- AxiStreamResize. Only system reset clears that TX stage, so port/register
 -- resets leave accepted frames free to drain toward physical transmission.
 --
--- The PHC core's committed owner selects AXI or the servo, its external
--- command client; servoEnable is that owner. Admission is gated at the owner
--- and owner changes wait for an idle command slot, so each response reaches
--- the correct requester. PPS remains available to AXI under either owner. A
--- disabled servo continues to drain measurements, and its expiry cannot
--- revoke PHC qualification.
+-- CONTROL_MODE_G selects the PHC command sources: "SELECTABLE" (default; a
+-- committed owner chooses AXI manual override or the servo), "EXTERNAL" (servo
+-- only; manual steering omitted) or "AXI" (manual only; the servo never
+-- steers). Admission is gated at the owner and owner changes wait for an idle
+-- command slot. The endpoint ServoEnable separately runs or stops the servo;
+-- the servo runs only while it is also the owner, and stopping it never grants
+-- software steering. Returning ownership to the servo restarts acquisition.
+-- PPS remains available to AXI in every mode. A stopped servo drains
+-- measurements, and its expiry cannot revoke PHC qualification.
 --
 -- Coordinates protocol restart, stale-work cancellation and clock validity
 -- without feeding a PHC command's own capture invalidation back into that
@@ -61,7 +64,8 @@ entity PtpEndpoint is
       PACKET_LIFETIME_G : positive            := 156250000;
       INGRESS_LATENCY_G : slv(63 downto 0)    := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)    := (others => '0');
-      TX_AXIS_CONFIG_G  : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C);
+      TX_AXIS_CONFIG_G  : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C;
+      CONTROL_MODE_G    : string              := "SELECTABLE");
    port (
       -- Shared endpoint clock domain and lifecycle controls.
       clk          : in  sl;
@@ -118,6 +122,9 @@ architecture rtl of PtpEndpoint is
    signal axiReset              : sl;
    signal enable                : sl;
    signal servoEnable           : sl;
+   signal servoRun              : sl;
+   signal servoOwner            : sl;
+   signal servoExpire           : sl;
    signal manualBusy            : sl;
    signal restart               : sl;
    signal sharedConfig          : PtpSharedConfigType;
@@ -196,6 +203,12 @@ begin
 
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PTP AXI-Lite base address must be 32 KiB aligned" severity failure;
+   -- The servo runs only while committed to run and owning the PHC. Its
+   -- expiry reaches the PHC only while it runs, so a stopped or faulted
+   -- servo cannot revoke qualification.
+   servoEnable <= servoRun and servoOwner;
+   clearValid  <= servoExpire and servoEnable;
+
    -- Structural forwarding preserves each child's registered boundary.
    phcTime      <= timeValue;
    phcStatus    <= status;
@@ -260,6 +273,7 @@ begin
          restart               => restart,                             -- [out]
          rxFlush               => rxFlush,                             -- [out]
          enable                => enable,                              -- [out]
+         servoEnable           => servoRun,                            -- [out]
          irq                   => irq,                                 -- [out]
          configControl         => configControl,                       -- [out]
          snapshotControl       => snapshotControl);                    -- [out]
@@ -272,7 +286,7 @@ begin
          AXIL_BASE_ADDR_G   => AXIL_CONFIG_C(PHC_AXIL_INDEX_C).baseAddr,
          CLK_FREQ_G         => CLK_FREQ_G,
          COMMON_CLK_G       => true,
-         EXT_COMMAND_EN_G   => true,
+         CONTROL_MODE_G     => CONTROL_MODE_G,
          EXT_COORDINATION_G => true)
       port map (
          axiReadMaster    => readMasters(PHC_AXIL_INDEX_C),   -- [in]
@@ -287,7 +301,7 @@ begin
          commandMaster    => commandMaster,                   -- [in]
          commandSlave     => commandSlave,                    -- [out]
          clearValid       => clearValid,                      -- [in]
-         externalOwner    => servoEnable,                     -- [out]
+         externalOwner    => servoOwner,                      -- [out]
          configControl    => configControl,                   -- [in]
          snapshotControl  => snapshotControl,                 -- [in]
          configPrepared   => phcConfigPrepared,               -- [out]
@@ -401,7 +415,7 @@ begin
          measurementSlave  => measurementSlave,                    -- [out]
          restart           => restart,                             -- [in]
          phcStatus         => status,                              -- [in]
-         expireTime        => clearValid,                          -- [out]
+         expireTime        => servoExpire,                         -- [out]
          commandMaster     => commandMaster,                       -- [out]
          commandSlave      => commandSlave,                        -- [in]
          status            => servoStatus,                         -- [out]

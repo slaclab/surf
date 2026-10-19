@@ -122,7 +122,7 @@ class Bench:
         await self.write(0x3050, 3)
         await self.write(0x3004, 4 if self.allow_step else 0)
         await self.write(0x5004, 8)
-        await self.write(0x004, 1)
+        await self.write(0x004, 3)   # Port enable and servo run.
         await self.write(0x4004, 1)  # PhcCore.Owner: the servo steers the PHC.
         await self.commit()
 

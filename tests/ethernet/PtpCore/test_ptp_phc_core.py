@@ -9,11 +9,15 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: 125 MHz with a nonzero 8 KiB base on a common clock, 156.25 MHz
-#   behind an independent management clock, and external support compiled out.
+# - Sweep: CONTROL_MODE_G "SELECTABLE" at 125 MHz with a nonzero 8 KiB base on
+#   a common clock and at 156.25 MHz behind an independent management clock;
+#   fixed "AXI" at 156.25 MHz (common clock, nonzero base); fixed "EXTERNAL" at
+#   125 MHz behind an independent management clock. Scenarios that need an
+#   absent command path are skipped explicitly in that mode.
 # - Stimulus: The real PtpPhcCore through AXI-Lite and its external command
-#   port: identity/capabilities, manual SET/PHASE/RATE/VALID/PPS, non-owner
-#   offers from both paths, owner commits swept against a continuously offering
+#   port: identity/capabilities per mode, manual SET/PHASE/RATE/VALID/PPS,
+#   non-owner offers from both paths, the absent manual path and fixed-owner
+#   write rejection, owner commits swept against a continuously offering
 #   client, cancellation/restart/abort/stale vetoes, AXI reset during PHASE
 #   normalization and owner transition, management reset swept across an
 #   in-flight read (independent clock), snapshot/commit collisions,
@@ -46,6 +50,12 @@ from tests.ethernet.PtpCore.ptp_reference import NS, Q16, Q32, PhcCommand, PhcMo
 KINDS = {"set": 0, "phase": 1, "rate": 2, "valid": 3, "pps": 4}
 SECOND_Q32 = NS*Q32
 VERSION = 0x00010000
+MODE = os.environ.get("CONTROL_MODE", "SELECTABLE")
+COMMON = os.environ.get("COMMON_CLK", "1") == "1"
+MANUAL = MODE != "EXTERNAL"
+EXTERNAL = MODE != "AXI"
+SELECTABLE = MODE == "SELECTABLE"
+FIXED_OWNER = int(MODE == "EXTERNAL")  # Reset owner, and permanent when fixed.
 
 
 @dataclass
@@ -60,8 +70,8 @@ class Bench:
         self.d = d
         self.frequency = int(os.environ["FREQUENCY"])
         self.base = int(os.environ["AXIL_BASE"])
-        self.common = os.environ["COMMON_CLK"] == "1"
-        self.has_external = os.environ["EXTERNAL"] == "1"
+        self.common = COMMON
+        self.has_external = EXTERNAL
         self.period_ps = round(1e12/self.frequency)
         for name in ("rst", "regRst", "restart", "commandAbort", "commandValid", "commandCancel",
                      "commandStale", "commandKind", "commandGeneration", "commandSeconds",
@@ -215,12 +225,14 @@ class Bench:
     # ------------------------------------------------------------------
     # AXI-Lite helpers
     # ------------------------------------------------------------------
+    # A bus access that never answers is a failure, not an indefinite wait.
     async def write(self, offset, value, resp=AxiResp.OKAY):
-        result = await self.axil.write(self.base+offset, (value & 0xFFFFFFFF).to_bytes(4, "little"))
+        result = await with_timeout(self.axil.write(self.base+offset, (value & 0xFFFFFFFF).to_bytes(4, "little")),
+                                    50, "us")
         assert result.resp == resp, (hex(offset), result.resp, resp)
 
     async def read(self, offset, resp=AxiResp.OKAY):
-        result = await self.axil.read(self.base+offset, 4)
+        result = await with_timeout(self.axil.read(self.base+offset, 4), 50, "us")
         assert result.resp == resp, (hex(offset), result.resp, resp)
         return int.from_bytes(result.data, "little")
 
@@ -248,7 +260,9 @@ class Bench:
         assert False, "commit did not complete"
 
     async def manual(self, kind, value, resp=AxiResp.OKAY):
-        if kind == "set":
+        if not MANUAL:
+            pass  # No operand words exist; the submission itself is checked.
+        elif kind == "set":
             whole_ns, fraction = divmod(value, Q32)
             seconds, nanoseconds = divmod(whole_ns, NS)
             await self.write_wide(0x1028, seconds, 2)
@@ -360,7 +374,9 @@ async def setup(d):
 
 
 async def take_external(b):
-    assert await b.commit(owner=1) == 0
+    # Selectable builds commit the owner; a fixed external build only commits
+    # any pending policy shadows (for example Monotonic).
+    assert await b.commit(owner=1 if SELECTABLE else None) == 0
     assert await b.read(0x044) & 1
     assert int(b.d.externalOwner.value)
 
@@ -369,10 +385,21 @@ async def take_external(b):
 async def identity_and_map(d):
     b = await setup(d)
     assert await b.read(0x000) == VERSION
-    capabilities = 0x1F | (int(b.has_external) << 8) | (int(not b.common) << 10)
+    capabilities = ((0x1F if MANUAL else 0x10) | (int(EXTERNAL) << 8) | (int(not COMMON) << 10) |
+                    (int(MANUAL) << 12) | (int(SELECTABLE) << 13))
     assert await b.read(0x008) == capabilities
-    assert await b.read(0x004) == 0
-    assert await b.read(0x044) == 0x10  # AXI owner, command slot idle.
+    assert await b.read(0x004) == FIXED_OWNER
+    assert await b.read(0x044) == 0x10 | FIXED_OWNER  # Reset owner, command slot idle.
+    assert int(d.externalOwner.value) == FIXED_OWNER
+    if not SELECTABLE:
+        # A fixed source is read-only.
+        await b.write(0x004, 1-FIXED_OWNER, AxiResp.DECERR)
+        assert await b.read(0x004) == FIXED_OWNER
+    if not MANUAL:
+        # Manual operand words are absent, not merely unused.
+        for offset in (0x1028, 0x102C, 0x1030, 0x1034, 0x1038, 0x1044, 0x1048, 0x104C):
+            await b.read(offset, AxiResp.DECERR)
+            await b.write(offset, 0, AxiResp.DECERR)
     assert await b.read(0x1080) == b.frequency
     assert await b.read_wide(0x1050, 2) == b.model.nominal
     assert await b.read(0x1004) == 8  # Monotonic policy shadow resets enabled.
@@ -386,7 +413,7 @@ async def identity_and_map(d):
         assert result.resp == AxiResp.DECERR
 
 
-@cocotb.test()
+@cocotb.test(skip=not MANUAL)
 async def manual_commands(d):
     b = await setup(d)
     start = 7*SECOND_Q32 - 5000*b.model.nominal
@@ -412,7 +439,7 @@ async def manual_commands(d):
     assert int(d.externalOwner.value) == 0
 
 
-@cocotb.test()
+@cocotb.test(skip=not MANUAL)
 async def non_owner_requests_have_no_effect(d):
     b = await setup(d)
     assert await b.manual("valid", 1) == 0
@@ -437,15 +464,37 @@ async def non_owner_requests_have_no_effect(d):
     assert not [ack for ack in b.acks if ack[0].source == "external"]
 
 
-@cocotb.test()
+@cocotb.test(skip=MANUAL)
+async def absent_manual_path_has_no_effect(d):
+    b = await setup(d)
+    assert await b.external("valid", 1) == 0
+    generation = int(d.timeGeneration.value)
+    # Every steering submission is refused; nothing is admitted or inhibited.
+    for kind in ("set", "phase", "rate", "valid"):
+        abort_seen = []
+
+        async def watch():
+            while True:
+                await RisingEdge(d.clk)
+                abort_seen.append(int(d.captureAbort.value))
+
+        watcher = cocotb.start_soon(watch())
+        await b.manual(kind, 0, AxiResp.SLVERR)
+        await b.cycles(4)
+        watcher.cancel()
+        assert not any(abort_seen), kind
+    assert int(d.timeGeneration.value) == generation
+    assert int(d.timeValid.value) == 1
+    assert not [ack for ack in b.acks if ack[0].source == "axi"]
+    # AXI PPS remains the explicit exception, completing on the AXI bank only.
+    assert await b.manual("pps", 1) == 0
+    assert await b.manual("pps", 0) == 0
+    assert await b.external("rate", 4321) == 0
+
+
+@cocotb.test(skip=not EXTERNAL)
 async def external_owner_commands(d):
     b = await setup(d)
-    if not b.has_external:
-        assert await b.commit(owner=1) == 1
-        assert await b.read(0x044) & 1 == 0
-        assert await b.read(0x040) & 1
-        assert await b.manual("set", 2*SECOND_Q32) == 0
-        return
     await take_external(b)
     # AXI steering is refused before operands freeze; PPS stays available.
     for kind in ("set", "phase", "rate", "valid"):
@@ -487,11 +536,9 @@ async def external_owner_commands(d):
     assert int(d.timeGeneration.value) == generation
 
 
-@cocotb.test()
+@cocotb.test(skip=not SELECTABLE)
 async def owner_transition_drains(d):
     b = await setup(d)
-    if not b.has_external:
-        return
     race_seen = False
     for delay in range(10):
         await take_external(b)
@@ -545,21 +592,30 @@ async def owner_transition_drains(d):
 @cocotb.test()
 async def axi_reset_preserves_work(d):
     b = await setup(d)
-    # Start a wide PHASE and reset the bus while it normalizes.
-    await b.write_wide(0x1038, (3*NS+77)*Q16, 4)
-    b.inflight = Inflight("phase", (3*NS+77)*Q16, "axi")
-    await b.write(0x1020, 0x81)
-    assert await b.read(0x1024) & 1, "normalization finished before the reset"
-    d.regRst.value = 1
-    await b.cycles(3)
-    d.regRst.value = 0
-    await b.settle()
-    for _ in range(100):
-        state = await b.read(0x1024)
-        if state & 2:
-            break
-    assert state == 2, state
-    assert any(ack[0].kind == "phase" and not ack[1] for ack in b.acks)
+    if MANUAL:
+        # Start a wide PHASE and reset the bus while it normalizes.
+        await b.write_wide(0x1038, (3*NS+77)*Q16, 4)
+        b.inflight = Inflight("phase", (3*NS+77)*Q16, "axi")
+        await b.write(0x1020, 0x81)
+        assert await b.read(0x1024) & 1, "normalization finished before the reset"
+        d.regRst.value = 1
+        await b.cycles(3)
+        d.regRst.value = 0
+        await b.settle()
+        for _ in range(100):
+            state = await b.read(0x1024)
+            if state & 2:
+                break
+        assert state == 2, state
+        assert any(ack[0].kind == "phase" and not ack[1] for ack in b.acks)
+    else:
+        # Reset the bus on the edge an external SET is admitted; it commits.
+        assert await b.offer("set", 6*SECOND_Q32 + 99)
+        d.regRst.value = 1
+        assert await b.wait_ack() == 0
+        d.regRst.value = 0
+        await b.settle()
+        assert int(d.timeGeneration.value) == 1
     if not b.common:
         # The management reset alone leaves the clock and its owner running.
         d.axilRst.value = 1
@@ -567,7 +623,7 @@ async def axi_reset_preserves_work(d):
         d.axilRst.value = 0
         await b.settle()
         assert await b.read(0x000) == VERSION
-    if b.has_external:
+    if SELECTABLE:
         # Reset the bus right after an owner commit is accepted.
         await b.write(0x004, 1)
         await b.write(0x03C, 1)
@@ -581,20 +637,22 @@ async def axi_reset_preserves_work(d):
         assert await b.external("rate", 5) == 0
 
 
-@cocotb.test()
+@cocotb.test(skip=COMMON)
 async def management_reset_mid_transaction(d):
     b = await setup(d)
-    if b.common:
-        return
     # Sweep the management reset across every phase of an in-flight read:
     # crossing, crossbar, bank and response. Later reads must complete, the
     # PHC must keep running and accepted clock work must survive.
-    await b.write_wide(0x1038, (NS+11)*Q16, 4)
+    if MANUAL:
+        await b.write_wide(0x1038, (NS+11)*Q16, 4)
     for delay in range(0, 40, 2):
-        if delay == 10:
+        if delay == 10 and MANUAL:
             b.inflight = Inflight("phase", (NS+11)*Q16, "axi")
             await b.write(0x1020, 0x81)
             assert await b.read(0x1024) & 1
+        elif delay == 10:
+            # Without manual steering, the accepted work is external.
+            assert await b.offer("phase", (NS+11)*Q16)
         abandoned = cocotb.start_soon(b.axil.read(b.base+0x1060, 4))
         for _ in range(delay):
             await RisingEdge(d.axilClk)
@@ -609,7 +667,8 @@ async def management_reset_mid_transaction(d):
             await with_timeout(read, 20, "us")
         assert await b.read(0x000) == VERSION
     assert any(ack[0].kind == "phase" and not ack[1] for ack in b.acks)
-    assert await b.read(0x1024) == 2
+    if MANUAL:
+        assert await b.read(0x1024) == 2
 
 
 @cocotb.test()
@@ -617,8 +676,12 @@ async def snapshot_commit_collisions(d):
     b = await setup(d)
     rng = random.Random(1588)
     for delay in range(8):
-        owner = int(b.has_external) & (delay & 1 ^ 1)
-        await b.write(0x004, owner)
+        if SELECTABLE:
+            owner = (delay & 1) ^ 1
+            await b.write(0x004, owner)
+        else:
+            owner = FIXED_OWNER
+            await b.write(0x1004, 8*(delay & 1))  # Give the commit a policy change.
         snapshot_sequence = await b.read(0x104)
         config_sequence = await b.read(0x048)
         prepared_low = []
@@ -650,11 +713,9 @@ async def snapshot_commit_collisions(d):
         assert ticks not in prepared_low
 
 
-@cocotb.test()
+@cocotb.test(skip=not EXTERNAL)
 async def pps_rollover_edges(d):
     b = await setup(d)
-    if not b.has_external:
-        return
     # Re-arming each second uses SET on qualified time, so commit the
     # monotonic policy off together with external ownership.
     await b.write(0x1004, 0)
@@ -719,35 +780,39 @@ async def pps_rollover_edges(d):
 @cocotb.test()
 async def system_reset_recovery(d):
     b = await setup(d)
-    if b.has_external:
+    if EXTERNAL:
         await take_external(b)
         assert await b.external("set", 4*SECOND_Q32) == 0
     else:
         assert await b.manual("set", 4*SECOND_Q32) == 0
     await b.system_reset()
     await b.cycles(2)
-    assert int(d.externalOwner.value) == 0
+    assert int(d.externalOwner.value) == FIXED_OWNER
     assert int(d.timeGeneration.value) == 0
     assert int(d.timeValid.value) == 0
     assert b.live_time() == int(d.timeTicks.value)*b.model.nominal
-    assert await b.read(0x004) == 0
-    assert await b.read(0x044) == 0x10
-    assert await b.manual("set", 2*SECOND_Q32) == 0
+    assert await b.read(0x004) == FIXED_OWNER
+    assert await b.read(0x044) == 0x10 | FIXED_OWNER
+    if MANUAL:
+        assert await b.manual("set", 2*SECOND_Q32) == 0
+    else:
+        assert await b.external("set", 2*SECOND_Q32) == 0
 
 
 CASES = [
-    pytest.param(125000000, 0x00016000, True, True, id="125MHz-common-base"),
-    pytest.param(156250000, 0x00002000, False, True, id="156MHz-async"),
-    pytest.param(125000000, 0x00000000, True, False, id="125MHz-no-external"),
+    pytest.param("SELECTABLE", 125000000, 0x00016000, True, id="selectable-125MHz-common-base"),
+    pytest.param("SELECTABLE", 156250000, 0x00002000, False, id="selectable-156MHz-async"),
+    pytest.param("AXI", 156250000, 0x00004000, True, id="axi-156MHz-common-base"),
+    pytest.param("EXTERNAL", 125000000, 0x00000000, False, id="external-125MHz-async"),
 ]
 
 
-@pytest.mark.parametrize("frequency,base,common,external", CASES)
-def test_ptp_phc_core(frequency, base, common, external):
+@pytest.mark.parametrize("mode,frequency,base,common", CASES)
+def test_ptp_phc_core(mode, frequency, base, common):
     run_surf_vhdl_test(
         test_file=__file__, toplevel="surf.ptpphccorewrapper",
         extra_vhdl_sources={"surf": ["ethernet/PtpCore/wrappers/PtpPhcCoreWrapper.vhd"]},
         parameters={"CLK_FREQ_G": frequency, "AXIL_BASE_ADDR_G": f"{base:032b}",
-                    "COMMON_CLK_G": common, "EXT_COMMAND_EN_G": external},
+                    "COMMON_CLK_G": common, "CONTROL_MODE_G": mode},
         extra_env={"FREQUENCY": frequency, "AXIL_BASE": base,
-                   "COMMON_CLK": int(common), "EXTERNAL": int(external)})
+                   "COMMON_CLK": int(common), "CONTROL_MODE": mode})

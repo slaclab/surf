@@ -32,7 +32,7 @@ entity PtpPhcCoreWrapper is
       AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
       CLK_FREQ_G       : positive         := 125000000;
       COMMON_CLK_G     : boolean          := true;
-      EXT_COMMAND_EN_G : boolean          := true);
+      CONTROL_MODE_G   : string           := "SELECTABLE");
    port (
       -- Management clock domain (unused when COMMON_CLK_G = true)
       axilClk      : in  sl;
@@ -202,7 +202,7 @@ begin
          AXIL_BASE_ADDR_G => AXIL_BASE_ADDR_G,
          CLK_FREQ_G       => CLK_FREQ_G,
          COMMON_CLK_G     => COMMON_CLK_G,
-         EXT_COMMAND_EN_G => EXT_COMMAND_EN_G)
+         CONTROL_MODE_G   => CONTROL_MODE_G)
       port map (
          axilClk          => axilClk,         -- [in]
          axilRst          => axilRst,         -- [in]

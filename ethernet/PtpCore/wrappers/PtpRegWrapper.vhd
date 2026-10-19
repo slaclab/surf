@@ -35,7 +35,8 @@ use surf.PtpRegisterPkg.all;
 
 entity PtpRegWrapper is
    generic (
-      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0'));
+      AXIL_BASE_ADDR_G : slv(31 downto 0) := (others => '0');
+      CONTROL_MODE_G   : string           := "SELECTABLE");
    port (
       -- All fixture controls and interfaces share clk.
       clk                 : in  sl;
@@ -108,6 +109,9 @@ architecture rtl of PtpRegWrapper is
    signal snapshotAbort         : sl;
    signal enable                : sl;
    signal servoEnable           : sl;
+   signal servoRun              : sl;
+   signal servoOwner            : sl;
+   signal servoExpire           : sl;
    signal manualBusy            : sl;
    signal restart               : sl;
    signal sharedConfig          : PtpSharedConfigType;
@@ -212,6 +216,9 @@ begin
    end process comb;
    resetN          <= not rst;
    activeEnable    <= enable;
+   -- Same servo run/owner gating as PtpEndpoint.
+   servoEnable     <= servoRun and servoOwner;
+   clearValid      <= servoExpire and servoEnable;
    activeServo     <= servoEnable;
    configApply     <= configControl.apply;
    configRestart   <= restart;
@@ -316,6 +323,7 @@ begin
          restart               => restart,                             -- [out]
          rxFlush               => open,                                -- [out]
          enable                => enable,                              -- [out]
+         servoEnable           => servoRun,                            -- [out]
          irq                   => irq,                                 -- [out]
          configControl         => configControl,                       -- [out]
          snapshotControl       => snapshotControl);                    -- [out]
@@ -328,7 +336,7 @@ begin
          AXIL_BASE_ADDR_G   => AXIL_CONFIG_C(PHC_AXIL_INDEX_C).baseAddr,
          CLK_FREQ_G         => CLK_FREQ_C,
          COMMON_CLK_G       => true,
-         EXT_COMMAND_EN_G   => true,
+         CONTROL_MODE_G     => CONTROL_MODE_G,
          EXT_COORDINATION_G => true)
       port map (
          axiReadMaster    => readMasters(PHC_AXIL_INDEX_C),   -- [in]
@@ -343,7 +351,7 @@ begin
          commandMaster    => commandMaster,                   -- [in]
          commandSlave     => commandSlave,                    -- [out]
          clearValid       => clearValid,                      -- [in]
-         externalOwner    => servoEnable,                     -- [out]
+         externalOwner    => servoOwner,                      -- [out]
          configControl    => bankConfigControl,               -- [in]
          snapshotControl  => snapshotControl,                 -- [in]
          configPrepared   => phcConfigPrepared,               -- [out]
@@ -431,7 +439,7 @@ begin
          measurementSlave  => measurementSlave,                  -- [out]
          restart           => restart,                           -- [in]
          phcStatus         => status,                            -- [in]
-         expireTime        => clearValid,                        -- [out]
+         expireTime        => servoExpire,                       -- [out]
          commandMaster     => commandMaster,                     -- [out]
          commandSlave      => commandSlave,                      -- [in]
          status            => servoStatus,                       -- [out]

@@ -54,7 +54,8 @@ entity EthMacPtpEndpoint is
       PACKET_LIFETIME_G : positive             := 156250000;
       FIFO_ADDR_WIDTH_G : positive             := 9;
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
-      EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0'));
+      EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
+      CONTROL_MODE_G    : string               := "SELECTABLE");
    port (
       -- Common Ethernet/PHC clock domain.
       clk       : in  sl;
@@ -290,7 +291,8 @@ begin
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-         TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C)
+         TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
+         CONTROL_MODE_G    => CONTROL_MODE_G)
       port map (
          clk             => clk,                    -- [in]
          rst             => rst,                    -- [in]
