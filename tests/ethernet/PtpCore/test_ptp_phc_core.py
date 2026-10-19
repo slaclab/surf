@@ -15,7 +15,8 @@
 #   port: identity/capabilities, manual SET/PHASE/RATE/VALID/PPS, non-owner
 #   offers from both paths, owner commits swept against a continuously offering
 #   client, cancellation/restart/abort/stale vetoes, AXI reset during PHASE
-#   normalization and owner transition, snapshot/commit collisions,
+#   normalization and owner transition, management reset swept across an
+#   in-flight read (independent clock), snapshot/commit collisions,
 #   VALID/clearValid/PPS commands landing on the second-rollover edge, and
 #   system reset recovery.
 # - Checks: A lockstep checker compares every PHC cycle with the independent
@@ -36,7 +37,7 @@ from dataclasses import dataclass
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge, Timer
+from cocotb.triggers import FallingEdge, RisingEdge, Timer, with_timeout
 from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import run_surf_vhdl_test
@@ -578,6 +579,37 @@ async def axi_reset_preserves_work(d):
         assert int(d.externalOwner.value) == 1
         assert await b.read(0x044) & 1
         assert await b.external("rate", 5) == 0
+
+
+@cocotb.test()
+async def management_reset_mid_transaction(d):
+    b = await setup(d)
+    if b.common:
+        return
+    # Sweep the management reset across every phase of an in-flight read:
+    # crossing, crossbar, bank and response. Later reads must complete, the
+    # PHC must keep running and accepted clock work must survive.
+    await b.write_wide(0x1038, (NS+11)*Q16, 4)
+    for delay in range(0, 40, 2):
+        if delay == 10:
+            b.inflight = Inflight("phase", (NS+11)*Q16, "axi")
+            await b.write(0x1020, 0x81)
+            assert await b.read(0x1024) & 1
+        abandoned = cocotb.start_soon(b.axil.read(b.base+0x1060, 4))
+        for _ in range(delay):
+            await RisingEdge(d.axilClk)
+        d.axilRst.value = 1
+        for _ in range(3):
+            await RisingEdge(d.axilClk)
+        d.axilRst.value = 0
+        abandoned.cancel()
+        await b.settle()
+        for offset in (0x000, 0x1060, 0x044):
+            read = cocotb.start_soon(b.read(offset))
+            await with_timeout(read, 20, "us")
+        assert await b.read(0x000) == VERSION
+    assert any(ack[0].kind == "phase" and not ack[1] for ack in b.acks)
+    assert await b.read(0x1024) == 2
 
 
 @cocotb.test()

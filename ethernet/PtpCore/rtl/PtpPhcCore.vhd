@@ -19,7 +19,9 @@
 --
 -- The live phcTime/phcStatus/captureAbort tuple, commands and coordination
 -- records stay in clk; only AXI-Lite crosses domains. regRst and axilRst cancel
--- bus state only. restart and commandAbort cancel external work only. System
+-- bus state only: with a crossing, axilRst is synchronized into clk and resets
+-- the crossbar and bank responses with regRst, so a transaction abandoned by
+-- the crossing cannot leave downstream bus state waiting. restart and commandAbort cancel external work only. System
 -- reset clears the clock and must also reset its capture/transport consumers.
 -- Contract and register map: ethernet/PtpCore/phc.md.
 -------------------------------------------------------------------------------
@@ -99,6 +101,7 @@ architecture mapping of PtpPhcCore is
       genAxiLiteConfig(NUM_AXIL_MASTERS_C, AXIL_BASE_ADDR_G, AXIL_APERTURE_BITS_C, AXIL_BANK_BITS_C);
 
    signal axiReset        : sl;
+   signal busRst          : sl;
    signal syncReadMaster  : AxiLiteReadMasterType;
    signal syncReadSlave   : AxiLiteReadSlaveType;
    signal syncWriteMaster : AxiLiteWriteMasterType;
@@ -133,9 +136,35 @@ begin
    assert AXIL_BASE_ADDR_G(AXIL_APERTURE_BITS_C-1 downto 0) = toSlv(0, AXIL_APERTURE_BITS_C)
       report "PtpPhcCore: AXI-Lite base address must be 8 KiB aligned" severity failure;
 
+   -- AXI-only bus reset in clk: regRst, plus the management reset when the
+   -- bus crosses from axilClk. RstSync asserts asynchronously and releases on
+   -- clk, so a management reset always reaches the crossbar and both banks.
+   -- It clears bus state only; time, owner and accepted commands continue.
+   GEN_COMMON_BUS_RST : if COMMON_CLK_G generate
+      busRst <= regRst;
+   end generate GEN_COMMON_BUS_RST;
+
+   GEN_ASYNC_BUS_RST : if not COMMON_CLK_G generate
+      signal axilRstSync : sl;
+   begin
+
+      U_AxilRstSync : entity surf.RstSync
+         generic map (
+            TPD_G          => TPD_G,
+            IN_POLARITY_G  => '1',
+            OUT_POLARITY_G => '1')
+         port map (
+            clk      => clk,           -- [in]
+            asyncRst => axilRst,       -- [in]
+            syncRst  => axilRstSync);  -- [out]
+
+      busRst <= regRst or axilRstSync;
+
+   end generate GEN_ASYNC_BUS_RST;
+
    -- Bus reset is combinational, as in the endpoint coordinator: system or
    -- AXI-only reset clears bus state without touching the clock.
-   axiReset <= toSl(rst = RST_POLARITY_G) or regRst;
+   axiReset <= toSl(rst = RST_POLARITY_G) or busRst;
 
    -- Structural forwarding preserves each child's registered boundary.
    phcTime          <= timeValue;
@@ -216,7 +245,7 @@ begin
       port map (
          clk                  => clk,                                 -- [in]
          rst                  => rst,                                 -- [in]
-         regRst               => regRst,                              -- [in]
+         regRst               => busRst,                              -- [in]
          axiReadMaster        => readMasters(CONTROL_AXIL_INDEX_C),   -- [in]
          axiReadSlave         => readSlaves(CONTROL_AXIL_INDEX_C),    -- [out]
          axiWriteMaster       => writeMasters(CONTROL_AXIL_INDEX_C),  -- [in]
@@ -244,7 +273,7 @@ begin
       port map (
          clk               => clk,                             -- [in]
          rst               => rst,                             -- [in]
-         regRst            => regRst,                          -- [in]
+         regRst            => busRst,                          -- [in]
          axiReadMaster     => readMasters(PHC_AXIL_INDEX_C),   -- [in]
          axiReadSlave      => readSlaves(PHC_AXIL_INDEX_C),    -- [out]
          axiWriteMaster    => writeMasters(PHC_AXIL_INDEX_C),  -- [in]

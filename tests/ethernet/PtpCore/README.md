@@ -396,7 +396,8 @@ an observable completion condition.
   commands, non-owner offers with no slot/inhibition/validity effect, external
   vetoes (cancel, restart, held abort, stale generation), owner commits swept
   against a continuously offering client (including admission on the prepare
-  edge), AXI/management reset during normalization and transition,
+  edge), AXI/management reset during normalization and transition, a
+  management reset swept across an in-flight read (later reads must complete),
   snapshot/commit collisions, VALID/clearValid/PPS on the rollover edge and
   system-reset recovery. Mutations of owner-gated ready, owner-gated
   `clearValid`, the PHASE result handshake and the drain wait each fail it.

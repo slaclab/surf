@@ -157,7 +157,7 @@ epoch validity are not represented by `timeValid`.
 | Event | Effect |
 | --- | --- |
 | `rst` (system) | Clears time, rate, generation, owner (AXI), policy, transactions, normalization and IRQ state. Every capture/transport consumer of the tuple must also reset. |
-| `regRst`, `axilRst` | Cancel bus responses and crossbar/crossing state only. Time, active owner/configuration, shadows, accepted manual work, normalization, transactions and snapshot sessions continue. Software recovers completion through status. With a management crossing, `AxiLiteAsync` answers SLVERR locally until the reset has resynchronized in both domains. |
+| `regRst`, `axilRst` | Cancel bus responses and crossbar/crossing state only. Time, active owner/configuration, shadows, accepted manual work, normalization, transactions and snapshot sessions continue. Software recovers completion through status. With a management crossing, `axilRst` is synchronized into `clk` (asynchronous assertion, `clk` release) and resets the crossbar and bank responses as `regRst` does, so a transaction the crossing abandons cannot leave downstream state waiting. `AxiLiteAsync` answers SLVERR locally until the reset has resynchronized in both domains. |
 | `restart` | Vetoes accepted external work inside its pre-commit window; preserves manual work, time, rate and qualification. |
 | `commandAbort` held | Vetoes once per assertion, so later holdover commands proceed. |
 | PHC step | Advances generation and inhibits captures on the affected edges. It does not release TX ownership in a timing port; an outstanding request still completes through its terminal disposition with `captureValid = 0`. |
