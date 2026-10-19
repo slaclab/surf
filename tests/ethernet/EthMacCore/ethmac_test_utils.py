@@ -56,6 +56,25 @@ class EmacBeat:
     udperr: int = 0
 
 
+class EmacStallChecker:
+    """Check every sampled edge, including the edge accepting a stalled beat.
+
+    Reset cancels the pending transfer. The caller supplies a fresh snapshot
+    so data, keep, last and all exposed sidebands are checked together.
+    """
+
+    def __init__(self):
+        self.pending: EmacBeat | None = None
+
+    def sample(self, *, valid: int, ready: int, beat: EmacBeat | None, reset: bool = False) -> None:
+        if reset:
+            self.pending = None
+            return
+        if self.pending is not None:
+            assert valid and beat == self.pending, f"stalled EMAC beat changed: {self.pending} -> valid={valid} {beat}"
+        self.pending = beat if valid and not ready else None
+
+
 class FlatEmacEndpoint:
     def __init__(self, dut, *, prefix: str):
         self.dut = dut
