@@ -3,9 +3,19 @@
 -------------------------------------------------------------------------------
 -- Description: Block to resize AXI. Re-sizing is always little endian.
 --
+-- When upsizing reads (slave data width narrower than master data width) the
+-- slice bounds of every accepted read request are queued so the response
+-- slicer returns exactly ARLEN+1 slave beats and places RLAST on the final
+-- one. Responses are matched to requests in acceptance order, so read data
+-- must return in request order across IDs. The queue holds 2**RD_QUEUE_AWIDTH_G
+-- requests and the slave ARREADY is held off while it is full.
+--
 -- Disclaimer: This module doesn't support the following:
 --             Narrow write transfers
---             Unaligned transfers
+--             Unaligned transfers (the read upsizing path accepts a start
+--             address aligned to the slave data width; every other path
+--             requires alignment to the wider data width)
+--             Read response reordering across IDs when upsizing reads
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -32,7 +42,9 @@ entity AxiResize is
       TPD_G               : time := 1 ns;
       -- AXI Stream Port Configurations
       SLAVE_AXI_CONFIG_G  : AxiConfigType;
-      MASTER_AXI_CONFIG_G : AxiConfigType);
+      MASTER_AXI_CONFIG_G : AxiConfigType;
+      -- Outstanding read request queue depth (read upsizing only)
+      RD_QUEUE_AWIDTH_G   : positive range 4 to 48 := 4);
    port (
       -- Clock and reset
       axiClk          : in  sl;
@@ -57,28 +69,46 @@ architecture rtl of AxiResize is
    constant COUNT_C     : integer := ite(SLV_BYTES_C > MST_BYTES_C, SLV_BYTES_C / MST_BYTES_C, MST_BYTES_C / SLV_BYTES_C);
    constant BIT_CNT_C   : integer := bitSize(COUNT_C);
    constant SHIFT_C     : integer := log2(COUNT_C);
+   constant SLV_SHIFT_C : integer := log2(SLV_BYTES_C);
+
+   -- Read request queue entry: first slave slice of the burst (from ARADDR)
+   -- in the low half, last slave slice of the final master beat in the high half
+   constant RD_QUEUE_WIDTH_C : integer := maximum(2*SHIFT_C, 1);
 
    type RegType is record
-      rdCount  : slv(BIT_CNT_C-1 downto 0);
-      rdHold   : AxiReadSlaveType;
-      rdMaster : AxiReadMasterType;
-      rdSlave  : AxiReadSlaveType;
-      wrCount  : slv(BIT_CNT_C-1 downto 0);
-      wrMaster : AxiWriteMasterType;
-      wrSlave  : AxiWriteSlaveType;
+      rdCount   : slv(BIT_CNT_C-1 downto 0);
+      rdInBurst : sl;
+      rdQueueWr : sl;
+      rdQueueRd : sl;
+      rdHold    : AxiReadSlaveType;
+      rdMaster  : AxiReadMasterType;
+      rdSlave   : AxiReadSlaveType;
+      wrCount   : slv(BIT_CNT_C-1 downto 0);
+      wrMaster  : AxiWriteMasterType;
+      wrSlave   : AxiWriteSlaveType;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
-      rdCount  => (others => '0'),
-      rdHold   => AXI_READ_SLAVE_INIT_C,
-      rdMaster => axiReadMasterInit(MASTER_AXI_CONFIG_G),
-      rdSlave  => AXI_READ_SLAVE_INIT_C,
-      wrCount  => (others => '0'),
-      wrMaster => axiWriteMasterInit(MASTER_AXI_CONFIG_G),
-      wrSlave  => AXI_WRITE_SLAVE_INIT_C);
+      rdCount   => (others => '0'),
+      rdInBurst => '0',
+      rdQueueWr => '0',
+      rdQueueRd => '0',
+      rdHold    => AXI_READ_SLAVE_INIT_C,
+      rdMaster  => axiReadMasterInit(MASTER_AXI_CONFIG_G),
+      rdSlave   => AXI_READ_SLAVE_INIT_C,
+      wrCount   => (others => '0'),
+      wrMaster  => axiWriteMasterInit(MASTER_AXI_CONFIG_G),
+      wrSlave   => AXI_WRITE_SLAVE_INIT_C);
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal rdQueueWr    : sl;
+   signal rdQueueRd    : sl;
+   signal rdQueueDin   : slv(RD_QUEUE_WIDTH_C-1 downto 0);
+   signal rdQueueDout  : slv(RD_QUEUE_WIDTH_C-1 downto 0);
+   signal rdQueueValid : sl;
+   signal rdQueueFull  : sl;
 
 begin
 
@@ -89,19 +119,23 @@ begin
 
    GEN_RESIZE : if (SLV_BYTES_C /= MST_BYTES_C) generate
 
-      comb : process (axiRst, mAxiReadSlave, mAxiWriteSlave, r, sAxiReadMaster,
+      comb : process (axiRst, mAxiReadSlave, mAxiWriteSlave, r, rdQueueDout,
+                      rdQueueFull, rdQueueValid, sAxiReadMaster,
                       sAxiWriteMaster) is
          variable v         : RegType;
          variable ibRdM     : AxiReadSlaveType;
          variable ibWrM     : AxiWriteMasterType;
          variable rdIdx     : integer;  -- index version of counter
          variable wrIdx     : integer;  -- index version of counter
-         variable rdByteCnt : integer;  -- Number of valid bytes in incoming bus
+         variable rdFirst   : integer;  -- first slave slice of a read burst
+         variable rdTotal   : integer;  -- rdFirst plus ARLEN
+         variable rdStart   : integer;  -- first slice of the accepted master beat
+         variable rdLast    : integer;  -- last slice of the current master beat
          variable wrByteCnt : integer;  -- Number of valid bytes in incoming bus
-         variable rdBytes   : integer;  -- byte version of counter
          variable wrBytes   : integer;  -- byte version of counter
          variable arlen     : slv(7 downto 0);
          variable awlen     : slv(7 downto 0);
+         variable queueDin  : slv(RD_QUEUE_WIDTH_C-1 downto 0);
       begin
          -- Latch the current value
          v := r;
@@ -113,14 +147,10 @@ begin
          -- Update the indexes
          rdIdx := conv_integer(r.rdCount);
 
-         -- Update the number of bytes
-         rdBytes := (rdIdx+1) * SLV_BYTES_C;
-
-         -- Update the byte counter pointer
-         rdByteCnt := MST_BYTES_C;
-
-         -- Initialize the ready signal
+         -- Initialize the ready and queue strobes
          v.rdMaster.rready := '0';
+         v.rdQueueWr       := '0';
+         v.rdQueueRd       := '0';
 
          -- Valid/Ready Handshaking for the data channel
          if (sAxiReadMaster.rready = '1') then
@@ -164,52 +194,115 @@ begin
 
                v.rdSlave := AXI_READ_SLAVE_INIT_C;
 
-               -- Buffer the accepted wide master beat so later narrow slave
-               -- slices do not depend on the live master-side bus after the
-               -- current handshake completes.
+               -- The queue head describes the burst being returned: its first
+               -- slave slice (from ARADDR) and the last slave slice of its
+               -- final master beat (from ARADDR plus ARLEN). Hold off the
+               -- master beat until the entry is visible.
                if (r.rdHold.rvalid = '0') then
-                  v.rdMaster.rready := '1';
 
-                  if (ibRdM.rvalid = '1') then
+                  if (rdQueueValid = '1') then
+                     v.rdMaster.rready := '1';
+                  end if;
+
+                  if (ibRdM.rvalid = '1') and (rdQueueValid = '1') then
+
+                     -- The first master beat of a burst starts at the ARADDR
+                     -- slice, later master beats start at slice 0
+                     rdStart := 0;
+                     if (r.rdInBurst = '0') then
+                        rdStart := conv_integer(rdQueueDout(SHIFT_C-1 downto 0));
+                     end if;
+
+                     -- The final master beat of a burst stops at the ARLEN
+                     -- slice, earlier master beats deliver every slice
+                     rdLast := COUNT_C-1;
+                     if (ibRdM.rlast = '1') then
+                        rdLast := conv_integer(rdQueueDout((2*SHIFT_C)-1 downto SHIFT_C));
+                     end if;
+
+                     -- Buffer the accepted wide master beat so later narrow
+                     -- slave slices do not depend on the live master-side bus
+                     -- after the current handshake completes.
                      v.rdHold                                   := AXI_READ_SLAVE_INIT_C;
                      v.rdHold.rdata((MST_BYTES_C*8)-1 downto 0) := ibRdM.rdata((MST_BYTES_C*8)-1 downto 0);
                      v.rdHold.rid                               := ibRdM.rid;
                      v.rdHold.rresp                             := ibRdM.rresp;
                      v.rdHold.rlast                             := ibRdM.rlast;
                      v.rdHold.rvalid                            := '1';
+                     v.rdInBurst                                := '1';
 
-                     -- Queue slice 0 immediately while retaining the full
-                     -- beat so the remaining narrow slices can drain from
+                     -- Queue the first slice immediately while retaining the
+                     -- full beat so the remaining narrow slices can drain from
                      -- rdHold without an extra bubble.
-                     v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := ibRdM.rdata((SLV_BYTES_C*8)-1 downto 0);
+                     v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := ibRdM.rdata((SLV_BYTES_C*8*rdStart)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdStart));
                      v.rdSlave.rid                               := ibRdM.rid;
                      v.rdSlave.rresp                             := ibRdM.rresp;
                      v.rdSlave.rvalid                            := '1';
-                     v.rdSlave.rlast                             := '0';
-                     v.rdCount                                   := toSlv(1, v.rdCount'length);
+
+                     if (rdStart = rdLast) then
+                        -- This master beat contributes a single slice
+                        v.rdHold.rvalid := '0';
+                        v.rdSlave.rlast := ibRdM.rlast;
+                        v.rdCount       := (others => '0');
+                        if (ibRdM.rlast = '1') then
+                           v.rdQueueRd := '1';
+                           v.rdInBurst := '0';
+                        end if;
+                     else
+                        v.rdSlave.rlast := '0';
+                        v.rdCount       := toSlv(rdStart+1, v.rdCount'length);
+                     end if;
+
                   end if;
+
                else
+
+                  rdLast := COUNT_C-1;
+                  if (r.rdHold.rlast = '1') then
+                     rdLast := conv_integer(rdQueueDout((2*SHIFT_C)-1 downto SHIFT_C));
+                  end if;
+
                   v.rdSlave.rdata((SLV_BYTES_C*8)-1 downto 0) := r.rdHold.rdata((SLV_BYTES_C*8*rdIdx)+((SLV_BYTES_C*8)-1) downto (SLV_BYTES_C*8*rdIdx));
                   v.rdSlave.rid                               := r.rdHold.rid;
                   v.rdSlave.rresp                             := r.rdHold.rresp;
                   v.rdSlave.rvalid                            := '1';
 
-                  if (r.rdCount = (COUNT_C-1)) then
+                  if (rdIdx = rdLast) then
                      v.rdCount       := (others => '0');
                      v.rdHold.rvalid := '0';
                      v.rdSlave.rlast := r.rdHold.rlast;
+                     if (r.rdHold.rlast = '1') then
+                        v.rdQueueRd := '1';
+                        v.rdInBurst := '0';
+                     end if;
                   else
                      v.rdCount       := r.rdCount + 1;
                      v.rdSlave.rlast := '0';
                   end if;
+
                end if;
 
             end if;
          end if;
 
+         -- Pass the read request through while the queue has room for its
+         -- slice bounds (rdQueueFull is tied low unless upsizing reads)
+         v.rdMaster.arvalid := sAxiReadMaster.arvalid and not rdQueueFull;
+         v.rdSlave.arready  := mAxiReadSlave.arready and not rdQueueFull;
+         v.rdQueueWr        := v.rdMaster.arvalid and v.rdSlave.arready;
+
+         rdFirst  := 0;
+         rdTotal  := 0;
+         queueDin := (others => '0');
          if MST_BYTES_C > SLV_BYTES_C then
-            arlen(7 downto 7-SHIFT_C+1) := (others => '0');
-            arlen(7-SHIFT_C downto 0)   := sAxiReadMaster.arlen(7 downto SHIFT_C);
+            -- Count the burst in slave slices from the start of its first
+            -- master beat: ARADDR selects the first slice and ARLEN more
+            -- slices follow, which sets both the master ARLEN and the slice
+            -- bounds queued for the response path
+            rdFirst  := conv_integer(sAxiReadMaster.araddr(SHIFT_C+SLV_SHIFT_C-1 downto SLV_SHIFT_C));
+            rdTotal  := rdFirst + conv_integer(sAxiReadMaster.arlen);
+            arlen    := toSlv(rdTotal/COUNT_C, 8);
+            queueDin := toSlv(rdTotal mod COUNT_C, SHIFT_C) & toSlv(rdFirst, SHIFT_C);
          else
             arlen(7 downto SHIFT_C)   := sAxiReadMaster.arlen(7-SHIFT_C downto 0);
             arlen(SHIFT_C-1 downto 0) := (others => '1');
@@ -219,7 +312,7 @@ begin
          -- mAxiReadMaster's Outputs
          ---------------------------
          -- Read Address channel
-         mAxiReadMaster.arvalid  <= sAxiReadMaster.arvalid;
+         mAxiReadMaster.arvalid  <= v.rdMaster.arvalid;
          mAxiReadMaster.araddr   <= sAxiReadMaster.araddr;
          mAxiReadMaster.arid     <= sAxiReadMaster.arid;
          mAxiReadMaster.arlen    <= arlen;
@@ -237,13 +330,20 @@ begin
          -- sAxiReadSlave's Outputs
          --------------------------
          -- Read Address channel
-         sAxiReadSlave.arready <= mAxiReadSlave.arready;
+         sAxiReadSlave.arready <= v.rdSlave.arready;
          -- Read data channel
          sAxiReadSlave.rdata   <= r.rdSlave.rdata;
          sAxiReadSlave.rlast   <= r.rdSlave.rlast;
          sAxiReadSlave.rvalid  <= r.rdSlave.rvalid;
          sAxiReadSlave.rid     <= r.rdSlave.rid;
          sAxiReadSlave.rresp   <= r.rdSlave.rresp;
+
+         ---------------------
+         -- Read request queue
+         ---------------------
+         rdQueueWr  <= v.rdQueueWr;
+         rdQueueRd  <= v.rdQueueRd;
+         rdQueueDin <= queueDin;
 
          ----------------------------------------------------------------------
          --                AXI Write Resizing Logic                          --
@@ -388,6 +488,34 @@ begin
             r <= rin after TPD_G;
          end if;
       end process seq;
+
+      GEN_RD_QUEUE : if (MST_BYTES_C > SLV_BYTES_C) generate
+         U_RdQueue : entity surf.Fifo
+            generic map (
+               TPD_G           => TPD_G,
+               GEN_SYNC_FIFO_G => true,
+               FWFT_EN_G       => true,
+               SYNTH_MODE_G    => "inferred",
+               MEMORY_TYPE_G   => "distributed",
+               DATA_WIDTH_G    => RD_QUEUE_WIDTH_C,
+               ADDR_WIDTH_G    => RD_QUEUE_AWIDTH_G)
+            port map (
+               rst    => axiRst,
+               wr_clk => axiClk,
+               wr_en  => rdQueueWr,
+               din    => rdQueueDin,
+               full   => rdQueueFull,
+               rd_clk => axiClk,
+               rd_en  => rdQueueRd,
+               dout   => rdQueueDout,
+               valid  => rdQueueValid);
+      end generate;
+
+      BYP_RD_QUEUE : if (MST_BYTES_C < SLV_BYTES_C) generate
+         rdQueueFull  <= '0';
+         rdQueueValid <= '1';
+         rdQueueDout  <= (others => '0');
+      end generate;
 
    end generate;
 
