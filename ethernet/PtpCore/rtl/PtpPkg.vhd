@@ -806,6 +806,14 @@ package PtpPkg is
    constant PTP_MAC_PORT_PHY_GMII_C  : slv(3 downto 0) := x"1";
    constant PTP_MAC_PORT_PHY_XGMII_C : slv(3 downto 0) := x"2";
 
+   -- Autonomous-backend RX table depths (timing-port.md section 11.1): the
+   -- minimum-length PTP frames at the minimum IFG that arrive while a
+   -- maximum frame drains through the RX adapter, measured loss-free, and
+   -- the largest depth whose maximum-frame RX FIFO (97 words per entry)
+   -- fits 512 (GMII) or 2048 (XGMII) words.
+   constant PTP_MAC_PORT_RX_DEPTH_GMII_C  : positive := 5;
+   constant PTP_MAC_PORT_RX_DEPTH_XGMII_C : positive := 21;
+
    -- Software cookie carried with a TX request and returned unchanged in its
    -- completion. The port's internal MAC token is narrower and never exposed.
    constant PTP_MAC_PORT_COOKIE_BITS_C : positive := 32;

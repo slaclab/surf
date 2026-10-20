@@ -6,9 +6,12 @@
 -- RX half of PtpMacPort (ethernet/PtpCore/timing-port.md, sections 2.3 and
 -- 3). The registered nextToken offers the lowest free table entry (index
 -- plus one) to the import leaf, or EMAC_TOKEN_NONE_C while admission is
--- closed or the table is full. The leaf's start allocates that entry; its
--- capture is evaluated from the registered PHC copy while start is visible,
--- with the leaf's start lane (section 2.4). done records the frame length,
+-- closed or the table is full. The leaf samples the offer on its sampling
+-- edge and echoes it in start one cycle later, by which time a release may
+-- have lowered the offer; start is checked against the offer it sampled and
+-- allocates that entry. Its capture is evaluated from the registered PHC
+-- copy while start is visible, with the leaf's start lane (section 2.4).
+-- done records the frame length,
 -- rejects wire errors and frames outside 60..1518 bytes, and flags a PHC generation
 -- change since the capture. MAC-stage retires release entries (rxDropped;
 -- the import leaf's own retire counts as rxLost). Done with token zero is a
@@ -20,6 +23,16 @@
 -- (forced abort step two) a partially delivered frame is ended with one
 -- tLast+EOFE beat and every later MAC beat is discarded without release
 -- until releaseAll frees the whole table.
+--
+-- Storage: each entry's wide payload (capture and transport generation) is
+-- written once, at start, into a LUT RAM indexed by token and read
+-- asynchronously once, at the output SOF; an entry cannot be reused before
+-- release, so the two never address the same entry in one cycle. Only narrow
+-- control state (state, length, rejected, stale) stays in registers with the
+-- same-cycle update order. A PHC generation change marks every allocated
+-- entry stale, which done then reports as capture.error; generations only
+-- advance, so this equals comparing the generation at done with the
+-- captured one.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -89,19 +102,22 @@ architecture rtl of PtpMacPortRx is
    constant DONE_C  : slv(1 downto 0) := "10";
 
    type EntryType is record
-      state      : slv(1 downto 0);
-      capture    : PtpRxCaptureType;
-      generation : slv(15 downto 0);
-      length     : slv(15 downto 0);
-      rejected   : sl;
+      state    : slv(1 downto 0);
+      length   : slv(15 downto 0);
+      rejected : sl;
+      -- The PHC generation changed while the entry was allocated.
+      stale    : sl;
    end record EntryType;
 
    constant ENTRY_INIT_C : EntryType := (
-      state      => FREE_C,
-      capture    => PTP_RX_CAPTURE_INIT_C,
-      generation => (others => '0'),
-      length     => (others => '0'),
-      rejected   => '0');
+      state    => FREE_C,
+      length   => (others => '0'),
+      rejected => '0',
+      stale    => '0');
+
+   -- Payload RAM word: capture, then transport generation in the low bits.
+   constant RAM_ADDR_BITS_C : positive := maximum(1, bitSize(TABLE_DEPTH_G-1));
+   constant RAM_DATA_BITS_C : positive := PTP_RX_CAPTURE_BITS_C+16;
 
    type EntryArray is array (0 to TABLE_DEPTH_G-1) of EntryType;
 
@@ -122,6 +138,8 @@ architecture rtl of PtpMacPortRx is
       slotFinal     : sl;
       consumeOwned  : sl;
       nextToken     : EthMacTokenType;
+      offered       : EthMacTokenType;
+      generation    : slv(31 downto 0);
       rxMaster      : PtpMacPortRxMasterType;
       cancelDone    : sl;
       idle          : sl;
@@ -138,6 +156,8 @@ architecture rtl of PtpMacPortRx is
       slotFinal     => '0',
       consumeOwned  => '0',
       nextToken     => EMAC_TOKEN_NONE_C,
+      offered       => EMAC_TOKEN_NONE_C,
+      generation    => (others => '0'),
       rxMaster      => PTP_MAC_PORT_RX_MASTER_INIT_C,
       cancelDone    => '0',
       idle          => '1',
@@ -148,6 +168,12 @@ architecture rtl of PtpMacPortRx is
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
+
+   signal ramWrite     : sl;
+   signal ramWriteAddr : slv(RAM_ADDR_BITS_C-1 downto 0);
+   signal ramWriteData : slv(RAM_DATA_BITS_C-1 downto 0);
+   signal ramReadAddr  : slv(RAM_ADDR_BITS_C-1 downto 0);
+   signal ramReadData  : slv(RAM_DATA_BITS_C-1 downto 0);
 
    function tokenIndex (token : EthMacTokenType) return integer is
       variable value : natural;
@@ -161,8 +187,37 @@ architecture rtl of PtpMacPortRx is
 
 begin
 
+   -- The output stage reads the payload of the token on the MAC beat.
+   readAddr : process (macRxMaster) is
+      variable index : integer range -1 to TABLE_DEPTH_G-1;
+   begin
+      index := tokenIndex(macRxMaster.tId(EMAC_TOKEN_BITS_C-1 downto 0));
+      if index < 0 then
+         index := 0;
+      end if;
+      ramReadAddr <= slv(to_unsigned(index, RAM_ADDR_BITS_C));
+   end process readAddr;
+
+   U_Payload : entity surf.LutRam
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         REG_EN_G       => false,
+         DATA_WIDTH_G   => RAM_DATA_BITS_C,
+         ADDR_WIDTH_G   => RAM_ADDR_BITS_C,
+         NUM_PORTS_G    => 2)
+      port map (
+         clka  => clk,           -- [in]
+         wea   => ramWrite,      -- [in]
+         addra => ramWriteAddr,  -- [in]
+         dina  => ramWriteData,  -- [in]
+         douta => open,          -- [out]
+         clkb  => clk,           -- [in]
+         addrb => ramReadAddr,   -- [in]
+         doutb => ramReadData);  -- [out]
+
    comb : process (cancel, captureAbort, generation, macRxMaster, offer, phcStatus, phcTime,
-                   r, releaseAll, rst, rxFrameEvent, rxReady, rxRetire) is
+                   r, ramReadData, releaseAll, rst, rxFrameEvent, rxReady, rxRetire) is
       variable v       : RegType;
       variable slave   : AxiStreamSlaveType;
       variable beat    : AxiStreamMasterType;
@@ -171,12 +226,18 @@ begin
       variable capture : PtpRxCaptureType;
       variable meta    : PtpMacPortRxMetaType;
       variable anyBusy : sl;
+      variable write   : sl;
+      variable wrIndex : natural range 0 to TABLE_DEPTH_G-1;
+      variable ramCap  : slv(PTP_RX_CAPTURE_BITS_C-1 downto 0);
    begin
       -- Latch the current value
       v := r;
 
       -- Reset the pulses
       slave           := AXI_STREAM_SLAVE_INIT_C;
+      write           := '0';
+      wrIndex         := 0;
+      capture         := PTP_RX_CAPTURE_INIT_C;
       v.protocolFault := '0';
       v.incDelivered  := (others => '0');
       v.incDropped    := (others => '0');
@@ -195,20 +256,37 @@ begin
       end if;
 
       -------------------------------------------------------------------------
+      -- PHC generation change: invalidates every capture taken before it
+      -------------------------------------------------------------------------
+      -- Marked before this cycle's start, whose capture already uses the new
+      -- generation, and before done, which then reports it.
+      v.generation := phcStatus.generation;
+      if (phcStatus.generation /= r.generation) then
+         for i in 0 to TABLE_DEPTH_G-1 loop
+            if (v.entry(i).state = ALLOC_C) then
+               v.entry(i).stale := '1';
+            end if;
+         end loop;
+      end if;
+
+      -------------------------------------------------------------------------
       -- Wire events
       -------------------------------------------------------------------------
-      -- start allocates the offered entry; the capture uses the leaf's lane
+      -- start allocates the entry offered on the leaf's sampling edge; the
+      -- capture uses the leaf's lane
+      v.offered := r.nextToken;
       if (rxFrameEvent.start = '1') and (rxFrameEvent.startToken /= EMAC_TOKEN_NONE_C) then
          index := tokenIndex(rxFrameEvent.startToken);
-         if (index >= 0) and (r.entry(index).state = FREE_C) and (rxFrameEvent.startToken = r.nextToken) then
+         if (index >= 0) and (r.entry(index).state = FREE_C) and (rxFrameEvent.startToken = r.offered) then
             capture                   := ptpRxCapture(phcTime, phcStatus.increment,
                                                       to_integer(unsigned(rxFrameEvent.startLane)), phcStatus.ticks,
                                                       phcStatus.generation, phcStatus.timeValid, INGRESS_LATENCY_G);
-            capture.error             := capture.error or captureAbort;
-            v.entry(index)            := ENTRY_INIT_C;
-            v.entry(index).state      := ALLOC_C;
-            v.entry(index).capture    := capture;
-            v.entry(index).generation := generation;
+            capture.error        := capture.error or captureAbort;
+            v.entry(index)       := ENTRY_INIT_C;
+            v.entry(index).state := ALLOC_C;
+            -- The payload is written once here and read at the output SOF.
+            write                := '1';
+            wrIndex              := index;
          else
             v.protocolFault := '1';
          end if;
@@ -231,9 +309,7 @@ begin
                   (unsigned(rxFrameEvent.doneLength) > MAX_LENGTH_C) then
                   v.entry(index).rejected := '1';
                end if;
-               if (phcStatus.generation /= v.entry(index).capture.generation) then
-                  v.entry(index).capture.error := '1';
-               end if;
+               -- A generation change since start marked the entry stale.
             else
                v.protocolFault := '1';
             end if;
@@ -292,9 +368,11 @@ begin
                   end if;
                else
                   v.outIndex                           := index;
-                  meta.capture                         := v.entry(index).capture;
+                  ramCap                               := ramReadData(RAM_DATA_BITS_C-1 downto 16);
+                  meta.capture                         := toPtpRxCapture(ramCap);
+                  meta.capture.error                   := meta.capture.error or v.entry(index).stale;
                   meta.frameLength                     := v.entry(index).length;
-                  meta.transportGeneration             := v.entry(index).generation;
+                  meta.transportGeneration             := ramReadData(15 downto 0);
                   v.rxMaster.meta                      := meta;
                   v.rxMaster.frame                     := beat;
                   v.rxMaster.frame.tId                 := (others => '0');
@@ -387,8 +465,11 @@ begin
       end loop;
       v.idle := not anyBusy;
 
-      -- Combinatorial outputs before the reset
-      macRxSlave <= slave;
+      -- Combinatorial outputs before the reset; reset excludes the RAM write.
+      macRxSlave   <= slave;
+      ramWrite     <= write and toSl(rst /= RST_POLARITY_G);
+      ramWriteAddr <= slv(to_unsigned(wrIndex, RAM_ADDR_BITS_C));
+      ramWriteData <= toSlv(capture) & generation;
 
       -- Reset
       if (rst = RST_POLARITY_G) then

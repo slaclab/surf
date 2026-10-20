@@ -37,6 +37,11 @@ adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
 (`PtpMacPortTx`, `PtpMacPortRx`) over a timing-mode `EthMacTop`, with the PHC
 supplied externally (for example by a standalone `PtpPhcCore`); see the
 [timing-port contract](timing-port.md#10-phase-1-implementation-map).
+`PtpMacPortEndpoint` is the autonomous endpoint on that MAC:
+`PtpMacPortRxAdapter` and `PtpMacPortTxAdapter` give the same `PtpEndpoint`
+the records the passive taps produce. `GigEthPtp`'s `MAC_MODE_G` selects
+`"TAPPED"` (`EthMacPtpEndpoint`, default) or `"TIMING_PORT"` (PTP-only); see
+[timing-port §11](timing-port.md#11-autonomous-rtl-backend-on-the-timing-port).
 
 `wrappers/` contains thin simulation adapters; stimulus lives in the test tree.
 The family directories below contain PHY compositions. Reusable PHY-only

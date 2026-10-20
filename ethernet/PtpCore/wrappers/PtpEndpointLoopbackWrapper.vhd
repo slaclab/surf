@@ -4,9 +4,10 @@
 -- Description: Physical and AXI-Lite verification fixture for the PTP
 -- endpoint.
 --
--- With MAC_ENABLE_G set, instantiates EthMacPtpEndpoint and exposes
--- GMII/XGMII, primary application traffic, pause control and flattened
--- AXI-Lite channels. Tests can observe PHC time/status, PPS and servo state
+-- With MAC_ENABLE_G set, instantiates EthMacPtpEndpoint (MAC_MODE_G
+-- "TAPPED") or PtpMacPortEndpoint ("TIMING_PORT", without the application
+-- stream) and exposes GMII/XGMII, primary application traffic, pause control
+-- and flattened AXI-Lite channels. Tests can observe PHC time/status, PPS and servo state
 -- while an independent Python master drives packet traffic. System, port and
 -- register resets remain separately controllable.
 --
@@ -48,6 +49,9 @@ entity PtpEndpointLoopbackWrapper is
       TPD_PS_G          : natural          := 1000;
       AXIL_BASE_ADDR_G  : slv(31 downto 0) := (others => '0');
       MAC_ENABLE_G      : boolean          := true;
+      -- Real-MAC build: "TAPPED" (EthMacPtpEndpoint) or "TIMING_PORT"
+      -- (PtpMacPortEndpoint, PTP-only: no application stream).
+      MAC_MODE_G        : string           := "TAPPED";
       PHY_TYPE_G        : string           := "XGMII";
       CLK_FREQ_G        : positive         := 156250000;
       PACKET_LIFETIME_G : positive         := 10000);
@@ -213,7 +217,7 @@ begin
    mAxisTDest    <= mMaster.tDest(7 downto 0);
    mAxisSof      <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mMaster, EMAC_SOF_BIT_C, 0);
    mAxisEofe     <= axiStreamGetUserBit(EMAC_AXIS_CONFIG_C, mMaster, EMAC_EOFE_BIT_C);
-   GEN_MAC : if MAC_ENABLE_G generate
+   GEN_MAC : if MAC_ENABLE_G and MAC_MODE_G = "TAPPED" generate
 
       U_DUT : entity surf.EthMacPtpEndpoint
          generic map (
@@ -262,6 +266,57 @@ begin
       modelTxLast  <= '0';
       modelTxSof   <= '0';
    end generate GEN_MAC;
+
+   GEN_PORT_MAC : if MAC_ENABLE_G and MAC_MODE_G = "TIMING_PORT" generate
+
+      U_DUT : entity surf.PtpMacPortEndpoint
+         generic map (
+            TPD_G             => TPD_PS_G*1 ps,
+            AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
+            PHY_TYPE_G        => PHY_TYPE_G,
+            CLK_FREQ_G        => CLK_FREQ_G,
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G)
+         port map (
+            clk            => clk,          -- [in]
+            rst            => rst,          -- [in]
+            portRst        => portRst,      -- [in]
+            regRst         => regRst,       -- [in]
+            phyReady       => phyReady,     -- [in]
+            ethConfig      => config,       -- [in]
+            ethStatus      => open,         -- [out]
+            axiReadMaster  => readMaster,   -- [in]
+            axiReadSlave   => readSlave,    -- [out]
+            axiWriteMaster => writeMaster,  -- [in]
+            axiWriteSlave  => writeSlave,   -- [out]
+            xgmiiRxd       => xgmiiRxd,     -- [in]
+            xgmiiRxc       => xgmiiRxc,     -- [in]
+            xgmiiTxd       => xgmiiTxd,     -- [out]
+            xgmiiTxc       => xgmiiTxc,     -- [out]
+            gmiiRxd        => gmiiRxd,      -- [in]
+            gmiiRxDv       => gmiiRxDv,     -- [in]
+            gmiiRxEr       => gmiiRxEr,     -- [in]
+            gmiiTxd        => gmiiTxd,      -- [out]
+            gmiiTxEn       => gmiiTxEn,     -- [out]
+            gmiiTxEr       => gmiiTxEr,     -- [out]
+            phcTime        => timeValue,    -- [out]
+            phcStatus      => status,       -- [out]
+            pps            => pps,          -- [out]
+            irq            => irq,          -- [out]
+            portActive     => portActive,   -- [out]
+            servoState     => servoState,   -- [out]
+            portStatus     => open,         -- [out]
+            portCounters   => open);        -- [out]
+
+      -- PTP-only: the application stream is absent in this build.
+      sSlave         <= AXI_STREAM_SLAVE_FORCE_C;
+      mMaster        <= AXI_STREAM_MASTER_INIT_C;
+      primaryDropped <= (others => '0');
+      modelTxValid   <= '0';
+      modelTxData    <= (others => '0');
+      modelTxKeep    <= (others => '0');
+      modelTxLast    <= '0';
+      modelTxSof     <= '0';
+   end generate GEN_PORT_MAC;
    -- The fast fixture replaces only the MAC with an independent Python wire
    -- encoder. PHC, RX validation, TX observation, port, arithmetic and servo are
    -- the same production entities. Separate runs select the real MAC above.

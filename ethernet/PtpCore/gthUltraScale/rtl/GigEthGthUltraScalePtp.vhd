@@ -36,6 +36,7 @@ entity GigEthGthUltraScalePtp is
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
       CONTROL_MODE_G    : string               := "SELECTABLE";
+      MAC_MODE_G        : string               := "TAPPED";
       -- Select dedicated gtRefClk instead of the legacy sysClk125 reference.
       USE_GTREFCLK_G    : boolean              := false;
       -- Dedicated channel input gtRefClk arrives on: 0 for GTREFCLK0, 1 for
@@ -107,7 +108,8 @@ begin
          MAX_FRAME_G       => MAX_FRAME_G,
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-         CONTROL_MODE_G    => CONTROL_MODE_G)
+         CONTROL_MODE_G    => CONTROL_MODE_G,
+         MAC_MODE_G        => MAC_MODE_G)
       port map (
          axilClk           => axilClk,            -- [in]
          axilRst           => axilRst,            -- [in]

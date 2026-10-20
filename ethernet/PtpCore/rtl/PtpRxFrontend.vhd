@@ -15,6 +15,10 @@
 -- consumers cancel pending work when they sample that event on the next edge.
 -- Flush, generation changes and system reset also invalidate pending work.
 -- TX observation retains physical completion identity across PHC generations.
+-- FCS_PRESENT_G = false accepts MAC-validated frames without their FCS (the
+-- timing-port build): it skips the FCS-residue check and moves the absent
+-- four FCS bytes into the length-check constants, so every check keeps its
+-- with-FCS meaning without an adder on the EOF decision.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -46,14 +50,17 @@ entity PtpRxFrontend is
       -- it. IEEE 1588-2019 14.1 expects a receiver to skip well-formed
       -- unsupported TLVs, so a build that disables this narrows conformance.
       TLV_EN_G    : boolean                   := true;
-      MAX_FRAME_G : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C);
+      MAX_FRAME_G : PtpFrameCapacityType      := PTP_ETH_MAX_FRAME_C;
+      -- false: input ends before the FCS, which the MAC has already checked.
+      FCS_PRESENT_G : boolean := true);
    port (
       clk        : in  sl;
       rst        : in  sl;
       rxFlush    : in  sl;
       generation : in  slv(31 downto 0);
-      -- Always-consumed normalized bytes: destination MAC through FCS, with
-      -- contiguous low-byte TKEEP. The capture sidecar is sampled only at SOF.
+      -- Always-consumed normalized bytes: destination MAC through FCS (or
+      -- through the last data byte without FCS), with contiguous low-byte
+      -- TKEEP. The capture sidecar is sampled only at SOF.
       rxMaster  : in  AxiStreamMasterType;
       rxCapture : in  PtpRxCaptureType;
       -- Transfer requires messageMaster.valid AND messageReady AND NOT rxAbort.
@@ -63,6 +70,10 @@ entity PtpRxFrontend is
       messageMaster : out PtpRxMessageMasterType;
       messageReady  : in  sl;
       queueOverflow : out sl;
+      -- Registered: the queue holds the completions of the frame now ending
+      -- and of one more. A store-and-forward source that starts a frame only
+      -- while it is high never overflows the queue; a wire source ignores it.
+      frameReady    : out sl;
       rxAbort       : out sl;
       rxEpoch       : out slv(31 downto 0);
       -- Saturating diagnostics: records enqueued, completed frames rejected
@@ -88,6 +99,11 @@ architecture rtl of PtpRxFrontend is
    -- The portable FIFO has a minimum address width of four and reserves one
    -- RAM slot. Logical occupancy below includes every stage, not just RAM.
    constant FIFO_ADDR_BITS_C : positive := maximum(4, log2(FIFO_DEPTH_G+1));
+   -- Received bytes per frame excluding an absent FCS: the with-FCS limits
+   -- are compared against the count less the FCS bytes that never arrive.
+   constant FCS_COUNT_C : natural  := ite(FCS_PRESENT_G, PTP_ETH_FCS_BYTES_C, 0);
+   constant MIN_COUNT_C : positive := PTP_ETH_MIN_FRAME_C-PTP_ETH_FCS_BYTES_C+FCS_COUNT_C;
+   constant MAX_COUNT_C : positive := MAX_FRAME_G-PTP_ETH_FCS_BYTES_C+FCS_COUNT_C;
    -- Good Ethernet FCS residue in CrcPkg's register convention.
    constant ETH_CRC_RESIDUE_C : slv(31 downto 0) := x"C704DD7B";
    -- One physical frame owns the current capture bank. Fixed fields stream
@@ -133,6 +149,7 @@ architecture rtl of PtpRxFrontend is
    type RegType is record
       -- Registered queue boundary and invalidation events.
       queueOverflow : sl;
+      frameReady    : sl;
       abortNow      : sl;
       -- Registered FIFO write/reset and recomputed FWFT read acknowledgement.
       fifoWrite     : sl;
@@ -165,6 +182,7 @@ architecture rtl of PtpRxFrontend is
 
    constant REG_INIT_C : RegType := (
       queueOverflow      => '0',
+      frameReady         => toSl(FIFO_DEPTH_G >= 2),
       abortNow           => '0',
       fifoWrite          => '0',
       fifoWriteData      => (others => '0'),
@@ -615,9 +633,9 @@ begin
                frameComplete := true;
                if v.frame.bad /= '0' then
                   frameComplete := false;
-               elsif v.frame.count < PTP_ETH_MIN_FRAME_C or v.frame.count > MAX_FRAME_G then
+               elsif v.frame.count < MIN_COUNT_C or v.frame.count > MAX_COUNT_C then
                   frameComplete := false;
-               elsif v.frame.crc /= ETH_CRC_RESIDUE_C then
+               elsif FCS_PRESENT_G and v.frame.crc /= ETH_CRC_RESIDUE_C then
                   frameComplete := false;
                -- IEEE 1588-2019 19.2 accepts every minor version when the
                -- major version matches. Preserve the minor value in the record.
@@ -628,7 +646,7 @@ begin
                -- Require the fixed body and complete TLVs before the FCS.
                elsif base = 0 then
                   frameComplete := false;
-               elsif v.frame.count < PTP_ETH_FCS_BYTES_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
+               elsif v.frame.count < FCS_COUNT_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
                   frameComplete := false;
                end if;
                if not frameComplete then
@@ -695,6 +713,8 @@ begin
          v.captureWrite        := '0';
       end if;
 
+      v.frameReady := toSl(v.fill+2 <= FIFO_DEPTH_G);
+
       -- Shared system reset excludes transfers. Unlike a logical flush,
       -- it resets epoch/counters; the owner must coordinate reset with consumers
       -- before reusing that epoch space. Async state reset occurs in seq.
@@ -714,6 +734,7 @@ begin
       fifoRst       <= r.fifoRst;
       fifoRead      <= v.fifoRead;
       queueOverflow <= r.queueOverflow;
+      frameReady    <= r.frameReady;
       messageMaster <= r.messageMaster;
       rxAbort       <= r.abortNow;
       rxEpoch       <= slv(r.epoch);

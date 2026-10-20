@@ -38,7 +38,11 @@ entity GigEthPtp is
       MAX_FRAME_G       : PtpFrameCapacityType := PTP_ETH_MAX_FRAME_C;
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
-      CONTROL_MODE_G    : string               := "SELECTABLE");
+      CONTROL_MODE_G    : string               := "SELECTABLE";
+      -- "TAPPED": EthMacPtpEndpoint (bypass MAC, passive taps, application
+      -- stream). "TIMING_PORT": PtpMacPortEndpoint (timing-port MAC, PTP-only;
+      -- application TX is accepted and discarded, no RX is presented).
+      MAC_MODE_G        : string               := "TAPPED");
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -193,49 +197,105 @@ begin
          config         => config,                     -- [out]
          status         => status);                    -- [in]
 
-   U_Endpoint : entity surf.EthMacPtpEndpoint
-      generic map (
-         TPD_G             => TPD_G,
-         AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(ENDPOINT_INDEX_C).baseAddr,
-         PHY_TYPE_G        => "GMII",
-         CLK_FREQ_G        => 125000000,
-         PACKET_LIFETIME_G => PACKET_LIFETIME_G,
-         FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
-         TLV_EN_G          => TLV_EN_G,
-         MAX_FRAME_G       => MAX_FRAME_G,
-         INGRESS_LATENCY_G => INGRESS_LATENCY_G,
-         EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-         CONTROL_MODE_G    => CONTROL_MODE_G)
-      port map (
-         clk            => sysClk125,                       -- [in]
-         rst            => sysRst125,                       -- [in]
-         portRst        => phyReset,                        -- [in]
-         phyReady       => status.phyReady,                 -- [in]
-         ethConfig      => config.macConfig,                -- [in]
-         ethStatus      => status.macStatus,                -- [out]
-         sAxisMaster    => sAxisMaster,                     -- [in]
-         sAxisSlave     => sAxisSlave,                      -- [out]
-         mAxisMaster    => mAxisMaster,                     -- [out]
-         mAxisSlave     => mAxisSlave,                      -- [in]
-         axiReadMaster  => readMasters(ENDPOINT_INDEX_C),   -- [in]
-         axiReadSlave   => readSlaves(ENDPOINT_INDEX_C),    -- [out]
-         axiWriteMaster => writeMasters(ENDPOINT_INDEX_C),  -- [in]
-         axiWriteSlave  => writeSlaves(ENDPOINT_INDEX_C),   -- [out]
-         xgmiiTxd       => open,                            -- [out]
-         xgmiiTxc       => open,                            -- [out]
-         gmiiRxd        => gmiiRxd,                         -- [in]
-         gmiiRxDv       => gmiiRxDv,                        -- [in]
-         gmiiRxEr       => gmiiRxEr,                        -- [in]
-         gmiiTxd        => gmiiTxd,                         -- [out]
-         gmiiTxEn       => gmiiTxEn,                        -- [out]
-         gmiiTxEr       => gmiiTxEr,                        -- [out]
-         phcTime        => phcTime,                         -- [out]
-         phcStatus      => phcStatus,                       -- [out]
-         pps            => pps,                             -- [out]
-         irq            => irq,                             -- [out]
-         portActive     => portActive,                      -- [out]
-         servoState     => servoState,                      -- [out]
-         primaryDropped => primaryDropped);                 -- [out]
+   assert MAC_MODE_G = "TAPPED" or MAC_MODE_G = "TIMING_PORT"
+      report "GigEthPtp: MAC_MODE_G must be TAPPED or TIMING_PORT" severity failure;
+
+   GEN_TAPPED : if MAC_MODE_G = "TAPPED" generate
+
+      U_Endpoint : entity surf.EthMacPtpEndpoint
+         generic map (
+            TPD_G             => TPD_G,
+            AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(ENDPOINT_INDEX_C).baseAddr,
+            PHY_TYPE_G        => "GMII",
+            CLK_FREQ_G        => 125000000,
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G,
+            FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,
+            TLV_EN_G          => TLV_EN_G,
+            MAX_FRAME_G       => MAX_FRAME_G,
+            INGRESS_LATENCY_G => INGRESS_LATENCY_G,
+            EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+            CONTROL_MODE_G    => CONTROL_MODE_G)
+         port map (
+            clk            => sysClk125,                       -- [in]
+            rst            => sysRst125,                       -- [in]
+            portRst        => phyReset,                        -- [in]
+            phyReady       => status.phyReady,                 -- [in]
+            ethConfig      => config.macConfig,                -- [in]
+            ethStatus      => status.macStatus,                -- [out]
+            sAxisMaster    => sAxisMaster,                     -- [in]
+            sAxisSlave     => sAxisSlave,                      -- [out]
+            mAxisMaster    => mAxisMaster,                     -- [out]
+            mAxisSlave     => mAxisSlave,                      -- [in]
+            axiReadMaster  => readMasters(ENDPOINT_INDEX_C),   -- [in]
+            axiReadSlave   => readSlaves(ENDPOINT_INDEX_C),    -- [out]
+            axiWriteMaster => writeMasters(ENDPOINT_INDEX_C),  -- [in]
+            axiWriteSlave  => writeSlaves(ENDPOINT_INDEX_C),   -- [out]
+            xgmiiTxd       => open,                            -- [out]
+            xgmiiTxc       => open,                            -- [out]
+            gmiiRxd        => gmiiRxd,                         -- [in]
+            gmiiRxDv       => gmiiRxDv,                        -- [in]
+            gmiiRxEr       => gmiiRxEr,                        -- [in]
+            gmiiTxd        => gmiiTxd,                         -- [out]
+            gmiiTxEn       => gmiiTxEn,                        -- [out]
+            gmiiTxEr       => gmiiTxEr,                        -- [out]
+            phcTime        => phcTime,                         -- [out]
+            phcStatus      => phcStatus,                       -- [out]
+            pps            => pps,                             -- [out]
+            irq            => irq,                             -- [out]
+            portActive     => portActive,                      -- [out]
+            servoState     => servoState,                      -- [out]
+            primaryDropped => primaryDropped);                 -- [out]
+
+   end generate GEN_TAPPED;
+
+   GEN_TIMING_PORT : if MAC_MODE_G = "TIMING_PORT" generate
+
+      -- PTP-only port: discard application TX, present no application RX.
+      sAxisSlave     <= AXI_STREAM_SLAVE_FORCE_C;
+      mAxisMaster    <= AXI_STREAM_MASTER_INIT_C;
+      primaryDropped <= (others => '0');
+
+      U_Endpoint : entity surf.PtpMacPortEndpoint
+         generic map (
+            TPD_G             => TPD_G,
+            AXIL_BASE_ADDR_G  => AXIL_CONFIG_C(ENDPOINT_INDEX_C).baseAddr,
+            PHY_TYPE_G        => "GMII",
+            CLK_FREQ_G        => 125000000,
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G,
+            TLV_EN_G          => TLV_EN_G,
+            MAX_FRAME_G       => MAX_FRAME_G,
+            INGRESS_LATENCY_G => INGRESS_LATENCY_G,
+            EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
+            CONTROL_MODE_G    => CONTROL_MODE_G)
+         port map (
+            clk            => sysClk125,                       -- [in]
+            rst            => sysRst125,                       -- [in]
+            portRst        => phyReset,                        -- [in]
+            phyReady       => status.phyReady,                 -- [in]
+            ethConfig      => config.macConfig,                -- [in]
+            ethStatus      => status.macStatus,                -- [out]
+            axiReadMaster  => readMasters(ENDPOINT_INDEX_C),   -- [in]
+            axiReadSlave   => readSlaves(ENDPOINT_INDEX_C),    -- [out]
+            axiWriteMaster => writeMasters(ENDPOINT_INDEX_C),  -- [in]
+            axiWriteSlave  => writeSlaves(ENDPOINT_INDEX_C),   -- [out]
+            xgmiiTxd       => open,                            -- [out]
+            xgmiiTxc       => open,                            -- [out]
+            gmiiRxd        => gmiiRxd,                         -- [in]
+            gmiiRxDv       => gmiiRxDv,                        -- [in]
+            gmiiRxEr       => gmiiRxEr,                        -- [in]
+            gmiiTxd        => gmiiTxd,                         -- [out]
+            gmiiTxEn       => gmiiTxEn,                        -- [out]
+            gmiiTxEr       => gmiiTxEr,                        -- [out]
+            phcTime        => phcTime,                         -- [out]
+            phcStatus      => phcStatus,                       -- [out]
+            pps            => pps,                             -- [out]
+            irq            => irq,                             -- [out]
+            portActive     => portActive,                      -- [out]
+            servoState     => servoState,                      -- [out]
+            portStatus     => open,                            -- [out]
+            portCounters   => open);                           -- [out]
+
+   end generate GEN_TIMING_PORT;
 
    -- These are structural connections, not additional registered boundaries.
    coreRst           <= phyReset;

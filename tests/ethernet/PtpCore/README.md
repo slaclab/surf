@@ -154,6 +154,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Protocol rejection counting or interval decoding | `test_ptp_protocol_ram.py` concurrent-rejection scenario; `test_ptp_intervals.py` for receipt deadlines, caps and invalid/unspecified encodings. | Add `test_ptp_exchange.py` response-association and direct protocol cases for accepted-response metadata or cancellation changes. |
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
+| Timing-port RTL backend (`PtpMacPortRxAdapter`, `PtpMacPortTxAdapter`, `PtpMacPortEndpoint`, `PtpRxFrontend` no-FCS mode, `MAC_MODE_G`) | `test_ptp_mac_port_adapters.py` (both PHYs); `test_ptp_endpoint_mac.py` `TIMING_PORT` cases. | Tapped `test_ptp_endpoint_mac.py` and `test_ptp_rx_rtl.py` when shared frontend or composition code changes. |
 | Timing port (`PtpMacPort*`, `PtpMacPortEthMac`) or MAC timing mode | `test_ptp_mac_port.py` for the affected PHY; the matching `tests/ethernet/EthMacCore/test_EthMacTiming*.py` for leaf, retire or abort changes. | Run both PHY cases when capture timing, lanes or serialization change. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
 
@@ -410,6 +411,25 @@ an observable completion condition.
   captures without changing the SENT outcome, every request completes once
   after wire done, and unqualified captures are usable. Removing SET/PHASE
   admission inhibition fails it.
+- `test_ptp_mac_port_adapters.py`: `PtpMacPortEthMac` with both RTL-backend
+  adapters against `PtpRxTimestampTap`/`PtpTxTimestampTap` on the same pins
+  (GMII and XGMII, nonzero calibration). With a steady PHC the adapter RX and
+  TX record streams equal the taps' bit for bit, including capture increment
+  and error, across message types, TLVs, length limits, non-PTP, bad-CRC, runt
+  and lane-4 frames. Under scheduled RATE/SET/PHASE/abort commits the only
+  differences are the documented ones (store-and-forward staleness, preamble
+  steps, invalidated TX captures). Table backpressure never loses a record,
+  and frames that never reach the wire yield none and free their slot. At the
+  default RX depths, minimum-length frames at the minimum IFG behind maximum
+  frames are all delivered, and a wire start sampled on the edge a release
+  lowers the offered token is admitted; every frame is accounted for in the
+  port counters. Mutations of the capture alignment, the SENT-only record
+  rule, the invalid capture error, the no-FCS length compensation, the
+  sampled-token check, the frontend `frameReady` gate and its hold on an
+  offered beat each fail it.
+- `test_ptp_endpoint_mac.py`: both MAC builds. The timing-port lifecycle repeats
+  the tapped pause, queued-request restart, stale-response retirement and
+  recovery checks without application traffic.
 - `test_ptp_reg.py`: all five endpoint register banks (including the PHC core
   control bank) at zero and nonzero bases, SURF
   field-strobe/address-alias/error behavior, immutable commit candidates, cross-bank

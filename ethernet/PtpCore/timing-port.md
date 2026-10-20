@@ -260,7 +260,7 @@ capture for the same frame.
 | Transport generation | `meta.transportGeneration` is the live generation when the frame's wire `start` was admitted (§6.1). A consumer discards frames whose generation it has not observed. |
 | Dropped frames | Never appear. `rxDropped` counts tokened frames consumed by a MAC stage, by the port's length/token-zero stages, or released by forced abort; `rxLost` counts abandoned and unqualified starts (§2.4). Loss is counted, never re-associated. |
 | Counting rule | Every token increments exactly one `PtpMacPortCountersType` field, at its **release** event: a CRC-bad RX frame counts in `rxDropped` when a MAC drop retires it or the port consumes its last buffered beat, never at `done`. Counters saturate. `PtpRxCountersType` is the legacy frontend's unrelated diagnostic record and is not mapped onto these. |
-| Token allocation | The port holds a registered `nextToken` (or `EMAC_TOKEN_NONE_C` when the table is full) that the import leaf samples on the pin edge of the first destination-MAC octet, stamps on every beat and echoes in `start`. The echoed value is the allocation; the port's table entry is created on the `start` edge. |
+| Token allocation | The port holds a registered `nextToken` (or `EMAC_TOKEN_NONE_C` when the table is full) that the import leaf samples on the pin edge of the first destination-MAC octet, stamps on every beat and echoes in `start`. The echoed value is the allocation; the port's table entry is created on the `start` edge. A release on the sampling edge can lower the offer before `start` is visible, so the port checks `startToken` against the offer the leaf sampled, not its current one. |
 | Admission under pressure | If `nextToken` was `EMAC_TOKEN_NONE_C` at start, the timing-capable importer emits **no beats** for the frame: it drains to the terminator and publishes `start`/`done` with token zero, which the port counts in `rxDropped`. No untokened frame enters packet storage, so the RX FIFO holds at most *table depth* frames and is sized for `tableDepth × maxFrameWords + tableDepth` words (one synthetic terminator per frame); overflow is then impossible, the inbound-overflow retire is a fault indication, and the §6 lockup-monitor argument holds. Dropping at the FIFO output instead would let unbounded token-zero traffic queue behind one stalled tokened frame. The wire cannot be backpressured. PTP frames have no reserved priority in the initial port; coexistence policy belongs to the composition. |
 | Wire verdict and length | At `done`, `doneError = '1'` or `doneLength` below 60 or above 1518 marks the entry *rejected*. The wire verdict is independent of EOFE because the legacy checksum stage can overwrite it. The bytes are already buffered, so the token stays owned; the port's RX output stage consumes the rejected frame through `tLast` and releases the entry at that beat (`rxDropped`). `EthMacRxCsum` admits up to 1520 and nothing checks runts, so this is a port stage. |
 | Sidebands at the port boundary | Delivered frames carry SSI SOF on the first beat; EOFE is never set (the FIFO error drop and port wire-verdict check enforce this, except for the explicit abort terminator in §6); `FRAG`, `IPERR`, `TCPERR`, `UDPERR` are forwarded as the MAC set them and are informational. `tId` is cleared to zero and `tDest` is zero at the port output; the token is never exposed to the controller. |
@@ -807,3 +807,104 @@ Refinements made while implementing, within the contract's rules:
 - **RX capture storage** is a register array per table entry (16 × capture,
   length and generation by default); a RAM-backed table is an area
   optimization for later.
+
+## 11. Autonomous RTL backend on the timing port
+
+The autonomous endpoint builds with either MAC. `GigEthPtp` selects one with
+`MAC_MODE_G`: `"TAPPED"` (default) instantiates `EthMacPtpEndpoint`, and
+`"TIMING_PORT"` instantiates `PtpMacPortEndpoint`. Other values fail
+elaboration. `PtpEndpoint` (protocol engine, servo, `PtpPhcCore`) is the same
+in both builds and sees the same frontend interface: validated RX records,
+observed Delay_Req completion records, their ready/abort/overflow/counter
+signals, `macResetDone`, `linkReady` and its own restart/flush outputs. The
+endpoint register map is identical.
+
+| Item | Tapped build | Timing-port build |
+| --- | --- | --- |
+| MAC | Default-mode `EthMacTop` with PTP bypass and `PtpPrimaryGuard` | `PtpMacPortEthMac` (timing mode, no bypass) |
+| RX records | `PtpRxTimestampTap` on the RX pins | `PtpMacPortRxAdapter`: port RX → 16-to-8-byte resize → `PtpRxFrontend` with `FCS_PRESENT_G = false`; capture from the frame's RX metadata |
+| TX completions | `PtpTxTimestampTap` on the TX pins | `PtpMacPortTxAdapter`: Delay_Req stream → port TX request; port completion → the same record |
+| Application stream | Primary stream | None. `GigEthPtp` accepts and discards application TX and never presents RX; `primaryDropped` reads zero. |
+
+### 11.1 RX adapter
+
+The port delivers only frames the timing-mode MAC accepted, FCS stripped.
+`PtpRxFrontend` with `FCS_PRESENT_G = false` skips the FCS-residue check and
+compares its byte count against limits less the absent `PTP_ETH_FCS_BYTES_C`,
+so its minimum (64 with FCS = the port's 60 without), maximum (`MAX_FRAME_G`,
+FCS included) and "message ends before FCS" checks keep their tapped meaning.
+The capture is registered from `meta.capture` on the port's SOF transfer and
+held for the frontend's SOF; `AxiStreamResize` holds each port beat until both
+halves are emitted, so the next frame's SOF cannot overtake.
+
+The frontend never backpressures, and its record decoder needs about two
+cycles more than a record's stored 8-byte groups: it keeps up with frames
+spaced by the wire's preamble and IFG, not with the port draining stored
+frames back to back. The frontend therefore publishes a registered
+`frameReady` (room for the completions of the frame now ending and one
+more), and the adapter offers the port's SOF beat to the resize only while it
+is high; a beat already offered keeps `tValid` until it transfers. A backlog
+then waits in the port, never overflows the frontend queue, and is bounded by
+the RX table, which drops and counts a frame only when no entry is free.
+
+The RX table must hold every frame that arrives while a maximum frame drains.
+`PtpMacPortEndpoint`'s default depth (`RX_TABLE_DEPTH_G = 0`) selects
+`PTP_MAC_PORT_RX_DEPTH_GMII_C = 5` or `PTP_MAC_PORT_RX_DEPTH_XGMII_C = 21`.
+Minimum-length PTP frames at the minimum 12-byte IFG behind a 1514-byte frame
+(`rx_max_then_min_burst`) need 4 entries at GMII and 21 at XGMII to be
+loss-free; XGMII drops at 20. Five is the largest depth whose
+maximum-frame FIFO (97 words per entry) fits the minimum 512 words, and 21
+the largest that fits 2048, so XGMII has no margin beyond that measured
+burst. Deeper tables cost a 4096-word FIFO.
+
+Intentional differences, tested in both builds: the MAC (not the tap) owns
+RX admission, so a frame the MAC drops (bad CRC, filter, port table
+exhaustion) never reaches the frontend and is counted by the port, not in
+`rxCounters.dropped`. A PHC generation change mid-frame arrives as
+`capture.error = '1'` from the port; the frontend then drops the frame as a
+bad capture. Store-and-forward delivers a frame after its wire end, so a step
+between its capture and delivery makes the capture stale for the frontend,
+which drops it; the tap would already have queued it (and the step then
+flushes that queue). Conversely the tap abandons a frame whose preamble saw a
+generation change, while the port captures it at the pin in the new
+generation and delivers a usable record.
+
+### 11.2 TX adapter
+
+The engine's Delay_Req is a fixed 58-byte untagged frame (`PTP_ETH_HEADER_BYTES_C
++ PTP_TIMESTAMP_MSG_BYTES_C`). The adapter passes its beats to the port
+cut-through. On the SOF beat it allocates a free table slot, requests
+`timestamp = '1'`, `frameLength = 58`, the live `transportGeneration` and
+`cookie = slot`, and withholds ready while no slot is free. It records the
+domain (frame byte 18), sourcePortIdentity (bytes 34–43) and sequenceId
+(bytes 44–45) as the beats pass.
+
+On a completion it frees the slot and, for `SENT` only, emits the record the
+passive observer produces: `PTP_RX_MESSAGE_INIT_C` with `messageType =
+Delay_Req`, the recorded identity and the completion's capture, with
+`capture.error` set when `captureValid = '0'` (a PHC step or capture abort
+between start and done). `rxEpoch` is zero; the ledger does not read it. For
+`WIRE_ERR`, `DISCARDED` and `FLUSHED` it emits nothing, exactly as the tapped
+build emits nothing for a frame it never validly observes; the ledger keeps the
+key's unknown-fate quarantine. Completion ready waits for the record to be
+accepted, so completions are never lost. `txAbort` is idle: completions are
+discrete, and link loss is resolved inside the port.
+
+### 11.3 Lifecycle
+
+`macResetDone` rises one cycle after system reset, as in the tapped build:
+system reset clears the complete timing-mode MAC and port. The adapter holds
+`openAdmission = '1'` after reset and never drains or forces an abort, so the
+transport generation stays at its first open value; generation exhaustion
+cannot occur. `linkReady` follows `phyReady`. Endpoint restart, link loss and
+PHC steps do not reset the port; frames already accepted complete through the
+port's terminal outcomes. Port counters, status and faults are exposed as
+composition outputs until the port's AXI-Lite bank exists.
+
+### 11.4 Verification
+
+`test_ptp_mac_port_adapters.py` places both adapters and both passive taps on
+the same pins of one `PtpMacPortEthMac` and compares their record streams for
+GMII and XGMII; `test_ptp_endpoint_mac.py` runs the real-MAC endpoint lifecycle
+in both MAC builds. Results and limits are recorded in the PtpCore test guide.
+A Vivado build of each MAC mode on KCU105 is the resource and timing evidence.
