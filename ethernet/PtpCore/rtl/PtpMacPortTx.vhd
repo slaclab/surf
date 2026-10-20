@@ -61,6 +61,7 @@ entity PtpMacPortTx is
       flush            : in  sl;
       releaseAll       : in  sl;
       idle             : out sl;
+      occupancy        : out slv(7 downto 0);
       protocolFault    : out sl;
       -- Registered PHC copy: the values standing during the previous cycle
       phcTime          : in  PtpTimeType;
@@ -147,6 +148,7 @@ architecture rtl of PtpMacPortTx is
       fifoData      : slv(FIFO_WIDTH_C-1 downto 0);
       protocolFault : sl;
       idle          : sl;
+      occupancy     : natural range 0 to TABLE_DEPTH_G;
       countSent     : sl;
       countWireErr  : sl;
       countDiscard  : sl;
@@ -171,6 +173,7 @@ architecture rtl of PtpMacPortTx is
       fifoData      => (others => '0'),
       protocolFault => '0',
       idle          => '1',
+      occupancy     => 0,
       countSent     => '0',
       countWireErr  => '0',
       countDiscard  => '0',
@@ -500,11 +503,13 @@ begin
          end if;
       end if;
 
-      -- Idle when no entry is owned
-      anyBusy := '0';
+      -- Idle when no entry is owned; occupancy counts the owned entries
+      anyBusy     := '0';
+      v.occupancy := 0;
       for i in 0 to TABLE_DEPTH_G-1 loop
          if (v.entry(i).state /= FREE_C) then
-            anyBusy := '1';
+            anyBusy     := '1';
+            v.occupancy := v.occupancy+1;
          end if;
       end loop;
       v.idle := not anyBusy;
@@ -523,6 +528,7 @@ begin
 
       -- Registered outputs
       idle           <= r.idle;
+      occupancy      <= toSlv(r.occupancy, 8);
       protocolFault  <= r.protocolFault;
       countSent      <= r.countSent;
       countWireError <= r.countWireErr;

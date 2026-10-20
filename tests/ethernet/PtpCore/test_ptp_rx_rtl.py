@@ -32,7 +32,7 @@ from cocotb.triggers import Timer
 import pytest
 
 from tests.common.regression_utils import cocotb_filtered_env, cocotb_test_filter, run_surf_vhdl_test
-from tests.ethernet.PtpCore.ptp_rx_reference import RxFrontend, RxBeat, RxStamp
+from tests.ethernet.PtpCore.ptp_rx_reference import PipelinedRxFrontend, RxBeat, RxStamp
 from tests.ethernet.PtpCore.ptp_rx_test_utils import frame, beats, unpack_time, pack_record
 from tests.ethernet.PtpCore.ptp_wire_utils import xgmii_words, IDLE
 
@@ -50,7 +50,7 @@ class Bench:
         self.mode = os.environ["PHY_TYPE_G"]
         self.polarity = int(os.environ.get("POLARITY", "1"))
         self.latency = int(os.environ.get("LATENCY_Q16", "0"))
-        self.model = RxFrontend(depth=self.depth)
+        self.model = PipelinedRxFrontend(depth=self.depth)
         self.half_period = 4 if self.mode == "GMII" else 3.2
         self.cycle = 0
         self.received = []
@@ -84,7 +84,7 @@ class Bench:
         if not in_reset and not was_reset:
             assert published == tuple(integer(getattr(d, name)) for name in names), "RX boundary changed between edges"
         if in_reset:
-            self.model = RxFrontend(depth=self.depth)
+            self.model = PipelinedRxFrontend(depth=self.depth)
             self.available_at.clear()
             expected = None
         else:
@@ -279,6 +279,8 @@ async def rx_contract(dut):
     dut.messageReady.value = 0
     for i in range(bench.depth+1):
         await send(frame(marker=i+10))
+    # A frame is admitted two edges after its last beat (packer, completion).
+    await bench.wait(3)
     assert not bench.model.entries and integer(dut.overflowCount) == 1
     dut.messageReady.value = 1
     await send(frame(marker=20))
@@ -337,7 +339,8 @@ async def rx_contract(dut):
             await bench.wait(8*bench.depth+5)
             assert len(bench.received) == before+bench.depth
 
-        # Exact collision: full before the EOF edge even though ready is high.
+        # Exact collision: full before the completion edge even though ready
+        # is high. Eight-byte beats complete two edges after the last beat.
         dut.messageReady.value = 0
         for slot in range(bench.depth):
             await bench.direct(frame(marker=700+slot))
@@ -347,7 +350,9 @@ async def rx_contract(dut):
         for i, beat in enumerate(beats(frame(marker=710))):
             await bench.step(directValid=1, directData=int.from_bytes(beat.data, "little"),
                              directKeep=(1 << len(beat.data))-1, directSof=int(beat.sof),
-                             directLast=int(beat.eof), directError=0, messageReady=int(beat.eof))
+                             directLast=int(beat.eof), directError=0, messageReady=0)
+        await bench.step(messageReady=0)
+        await bench.step(messageReady=1)
         assert not bench.model.entries and bench.model.abort
         assert len(bench.received) == before+1, "old head must precede registered overflow"
         assert int.from_bytes(bench.received[-1].body[:10], "big") == 700

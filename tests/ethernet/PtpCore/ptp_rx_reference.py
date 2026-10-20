@@ -169,32 +169,42 @@ class RxFrontend:
             self.abort = True
             return None
 
-        candidate = None
-        if beat is not None:
-            if len(beat.data) > 8 or (beat.sof and (beat.stamp is None or not beat.data)):
-                raise ValueError("invalid normalized physical beat")
-            if beat.sof:
-                # A nested SOF is an error, not a chance to attach a new time to
-                # bytes left from the old frame. A subsequent SOF can recover.
-                nested = self.stamp is not None
-                self._idle()
-                if not nested and beat.stamp.generation == self.generation:
-                    self.stamp = beat.stamp
-            if self.stamp is not None:
-                self.bad |= beat.error
-                for byte in beat.data:
-                    self.count = min(self.count + 1, self.max_frame + 1)
-                    if self.count > self.max_frame:
-                        self.bad = True
-                        continue
-                    self.crc = crc_octet(self.crc, byte)
-                    self.tail.append(byte)
-                    if len(self.tail) > 4:
-                        self._body_byte(self.tail.popleft(), self.count - 5)
-                if beat.eof:
-                    candidate = self._finish()
-                    self._idle()
+        candidate = self._frame_beat(beat) if beat is not None else None
+        return self._admit(candidate, ready)
 
+    def _frame_beat(self, beat, started=False):
+        """Parse one beat; return the record its EOF completes, if any.
+
+        started marks a SOF already admitted upstream (nested and stale
+        generation starts filtered), as the pipelined model's packer does.
+        """
+        candidate = None
+        if len(beat.data) > 8 or (beat.sof and (beat.stamp is None or not (beat.data or started))):
+            raise ValueError("invalid normalized physical beat")
+        if beat.sof:
+            # A nested SOF is an error, not a chance to attach a new time to
+            # bytes left from the old frame. A subsequent SOF can recover.
+            nested = self.stamp is not None and not started
+            self._idle()
+            if started or (not nested and beat.stamp.generation == self.generation):
+                self.stamp = beat.stamp
+        if self.stamp is not None:
+            self.bad |= beat.error
+            for byte in beat.data:
+                self.count = min(self.count + 1, self.max_frame + 1)
+                if self.count > self.max_frame:
+                    self.bad = True
+                    continue
+                self.crc = crc_octet(self.crc, byte)
+                self.tail.append(byte)
+                if len(self.tail) > 4:
+                    self._body_byte(self.tail.popleft(), self.count - 5)
+            if beat.eof:
+                candidate = self._finish()
+                self._idle()
+        return candidate
+
+    def _admit(self, candidate, ready):
         # Full means full before the edge. No dependence on consumer readiness
         # in physical admission, and no silent replacement of the visible head.
         if candidate is not None and len(self.entries) == self.depth:
@@ -208,3 +218,107 @@ class RxFrontend:
             self.entries.append(candidate)
             self.counters["accepted"] += 1
         return result
+
+
+class PipelinedRxFrontend(RxFrontend):
+    """PtpRxFrontend's cycle timing over the same logical contract.
+
+    The RTL packs input into registered beats of eight frame bytes (only a
+    frame's last beat is short), parses one packed beat per edge, and admits
+    a parsed frame on the following edge. Start filtering (nested SOF, stale
+    generation) happens as input enters the packer. A frame ending past an
+    eight-byte boundary emits its last bytes one edge later, and an input beat
+    arriving while that output slot is busy waits a beat. Restart discards
+    every stage. Results equal RxFrontend's, later.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._pipeline_idle()
+
+    def _pipeline_idle(self):
+        self.packed = None
+        self.done = None
+        self.active = False
+        self.sof_held = False
+        self.emitted = False
+        self.res = b""
+        self.res_last = False
+        self.res_bad = False
+        self.res_tail = None
+        self.tail_bad = False
+        self.capture = None
+
+    def edge(self, beat=None, ready=False, restart=False, generation=None):
+        self.abort = False
+        next_generation = self.generation if generation is None else generation
+        if restart or next_generation != self.generation:
+            self.generation = next_generation
+            self.rx_epoch += 1
+            self.entries.clear()
+            self._idle()
+            self._pipeline_idle()
+            self.abort = True
+            return None
+        if beat is not None and len(beat.data) > 8:
+            raise ValueError("invalid normalized physical beat")
+
+        candidate, self.done = self.done, None
+        abort, packed = self.packed if self.packed is not None else (False, None)
+        if abort:
+            self._idle()
+        if packed is not None:
+            self.done = self._frame_beat(packed, started=True)
+        self.packed = self._pack(beat)
+        return self._admit(candidate, ready)
+
+    def _pack(self, beat):
+        out = None
+        busy = False
+        if self.res_tail is not None:
+            out = RxBeat(self.res_tail, False, True, self.tail_bad, None)
+            self.res_tail = None
+            busy = True
+        elif self.res_last:
+            out = RxBeat(self.res, self.sof_held, True, self.res_bad, self.capture if self.sof_held else None)
+            self.res, self.res_last, self.sof_held = b"", False, False
+            busy = True
+
+        abort = False
+        take = False
+        if beat is not None and beat.sof:
+            if self.active:
+                self.active, self.sof_held, self.res = False, False, b""
+                abort, self.emitted = self.emitted, False
+            elif beat.stamp is not None and beat.stamp.generation == self.generation:
+                self.active, self.sof_held, self.emitted, self.res_bad = True, True, False, False
+                self.capture = beat.stamp
+                take = True
+        elif self.active:
+            take = True
+
+        if take:
+            data = bytes(beat.data) if beat is not None else b""
+            last = beat is not None and beat.eof
+            self.res_bad |= beat is not None and beat.error
+            joined = self.res + data
+            if busy:
+                self.res = joined
+                if last:
+                    self.active, self.res_last = False, True
+            elif len(joined) >= 8 or last:
+                sof, self.sof_held, self.emitted = self.sof_held, False, True
+                stamp = self.capture if sof else None
+                if last:
+                    self.active, self.emitted, self.res = False, False, b""
+                    if len(joined) > 8:
+                        self.res_tail, self.tail_bad = joined[8:], self.res_bad
+                        out = RxBeat(joined[:8], sof, False, False, stamp)
+                    else:
+                        out = RxBeat(joined, sof, True, self.res_bad, stamp)
+                else:
+                    self.res = joined[8:]
+                    out = RxBeat(joined[:8], sof, False, False, stamp)
+            else:
+                self.res = joined
+        return (abort, out) if (abort or out is not None) else None

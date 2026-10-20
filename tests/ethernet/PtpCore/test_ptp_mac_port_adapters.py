@@ -39,7 +39,8 @@ import random
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import RisingEdge, Timer
+from cocotb.triggers import RisingEdge, Timer, with_timeout
+from cocotbext.axi import AxiLiteBus, AxiLiteMaster, AxiResp
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import ETHMAC_RTL_SOURCES
@@ -108,6 +109,7 @@ class Bench:
         cocotb.start_soon(Clock(d.clk, self.period, unit="ns").start())
         d.rst.setimmediatevalue(1)
         d.phyReady.setimmediatevalue(1)
+        self.axil = AxiLiteMaster(AxiLiteBus.from_prefix(d, "axil"), d.clk, d.rst)
         for name in ("rxFlush", "sAxisTValid", "sAxisTData", "sAxisTKeep", "sAxisTLast", "sAxisSof",
                      "injGmiiRxd", "injGmiiRxDv", "injGmiiRxEr"):
             getattr(d, name).setimmediatevalue(0)
@@ -197,6 +199,15 @@ class Bench:
             await self.edge()
         d.injXgmiiRxd.value = 0x0707070707070707
         d.injXgmiiRxc.value = 0xFF
+
+    async def read(self, offset):
+        result = await with_timeout(self.axil.read(offset, 4), 50, "us")
+        assert result.resp == AxiResp.OKAY, (hex(offset), result.resp)
+        return int.from_bytes(result.data, "little")
+
+    async def write(self, offset, value):
+        result = await with_timeout(self.axil.write(offset, value.to_bytes(4, "little")), 50, "us")
+        return result.resp
 
     async def send(self, raw: bytes, timeout=20000):
         d = self.d
@@ -482,6 +493,56 @@ async def rx_start_meets_release(d):
     assert (delivered, dropped, lost) == (2*len(gaps), 0, 0), (delivered, dropped, lost)
     assert coincident, "no start coincided with a release"
     same_streams(b.rx["port"], b.rx["tap"])
+
+
+@cocotb.test(timeout_time=8, timeout_unit="ms")
+async def port_bank_reports_port_state(d):
+    """The AXI-Lite bank mirrors capability, status, occupancy and counters."""
+    b = await bench_for(d)
+    phy = 1 if PHY == "GMII" else 2
+    assert await b.read(0x000) == 0x01 | phy << 8 | 1 << 12 | 1 << 16 | 8 << 24
+    assert await b.read(0x004) == TABLE_DEPTH | RX_TABLE_DEPTH << 8 | 1518 << 16
+    assert await b.read(0x008) == 32
+    status = await b.read(0x010)
+    assert status & 0x1 and status >> 16 != 0, hex(status)
+    assert await b.read(0x014) == 0
+    assert await b.read(0x018) == 0x1
+    assert await b.read(0x020) == 0
+
+    # A maximum frame and minimum frames behind it occupy several RX entries.
+    frames = [ptp_message(0, 300).ljust(1514, b"\x00")]
+    frames += [ptp_message((0, 8)[i % 2], 301+i) for i in range(6)]
+    await b.inject_back_to_back(frames)
+    await b.inject(ptp_message(8, 400), corrupt=True)
+    await b.edge(400)
+    occupancy = await b.read(0x020)
+    tx_now, tx_peak, rx_now, rx_peak = (occupancy >> 8*i & 0xFF for i in range(4))
+    assert tx_now == tx_peak == rx_now == 0, hex(occupancy)
+    assert 2 <= rx_peak <= RX_TABLE_DEPTH, hex(occupancy)
+    assert await b.write(0x024, 1) == AxiResp.OKAY
+    assert await b.read(0x020) == 0
+
+    # The adapter holds one record; the port holds the later completions,
+    # whose entries stay owned until accepted.
+    d.txReady.value = 0
+    for sequence in range(3):
+        await b.send(delay_req(sequence, 0, 0x1122))
+    await b.edge(600)
+    assert (await b.read(0x020)) & 0xFF == 2
+    d.txReady.value = 1
+    await b.edge(40)
+    occupancy = await b.read(0x020)
+    assert occupancy & 0xFF == 0 and 2 <= occupancy >> 8 & 0xFF <= TABLE_DEPTH, hex(occupancy)
+
+    counters = int(d.counters.value)
+    for index in range(8):
+        assert await b.read(0x040 + 4*index) == counters >> 32*index & 0xFFFFFFFF, index
+    assert counters & 0xFFFFFFFF == len(frames) and counters >> 32 & 0xFFFFFFFF == 1
+    assert counters >> 96 & 0xFFFFFFFF == 3
+
+    # Unmapped offsets and read-only registers refuse writes.
+    assert (await with_timeout(b.axil.read(0x100, 4), 50, "us")).resp != AxiResp.OKAY
+    assert await b.write(0x040, 0) != AxiResp.OKAY
 
 
 PARAMETER_SWEEP = [

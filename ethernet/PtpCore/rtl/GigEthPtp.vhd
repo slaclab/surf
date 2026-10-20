@@ -31,6 +31,8 @@ entity GigEthPtp is
       -- Relative offsets allow a board to retain an existing register map.
       ETH_OFFSET_G      : slv(31 downto 0)     := x"00000000";
       PTP_OFFSET_G      : slv(31 downto 0)     := x"00008000";
+      -- Timing-port bank (MAC_MODE_G = "TIMING_PORT" only; 4 KiB).
+      PORT_OFFSET_G     : slv(31 downto 0)     := x"00001000";
       COMMON_CLK_G      : boolean              := false;
       PACKET_LIFETIME_G : positive             := 125000000;
       FIFO_ADDR_WIDTH_G : positive             := 9;
@@ -84,26 +86,36 @@ end entity GigEthPtp;
 
 architecture rtl of GigEthPtp is
 
-   constant NUM_AXIL_MASTERS_C : positive := 2;
+   constant TIMING_PORT_C : boolean := MAC_MODE_G = "TIMING_PORT";
+
+   constant NUM_AXIL_MASTERS_C : positive := ite(TIMING_PORT_C, 3, 2);
 
    constant PHY_INDEX_C      : natural := 0;
    constant ENDPOINT_INDEX_C : natural := 1;
+   constant PORT_INDEX_C     : natural := 2;
 
-   -- Default aperture: Ethernet 4 KiB at +0, endpoint 32 KiB at +0x8000.
-   -- Parent allocation must enclose both banks if the offsets are overridden.
+   -- Default aperture: Ethernet 4 KiB at +0, timing-port bank 4 KiB at
+   -- +0x1000 (timing-port build only), endpoint 32 KiB at +0x8000. Parent
+   -- allocation must enclose every bank if the offsets are overridden.
    constant ETH_BASE_C : slv(31 downto 0) :=
       slv(unsigned(AXIL_BASE_ADDR_G) + unsigned(ETH_OFFSET_G));
    constant PTP_BASE_C : slv(31 downto 0) :=
       slv(unsigned(AXIL_BASE_ADDR_G) + unsigned(PTP_OFFSET_G));
-   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := (
-      PHY_INDEX_C => (
-         baseAddr     => ETH_BASE_C,
-         addrBits     => 12,
-         connectivity => x"0001"),
-      ENDPOINT_INDEX_C => (
-         baseAddr     => PTP_BASE_C,
-         addrBits     => 15,
-         connectivity => x"0001"));
+   constant PORT_BASE_C : slv(31 downto 0) :=
+      slv(unsigned(AXIL_BASE_ADDR_G) + unsigned(PORT_OFFSET_G));
+
+   function axilConfig return AxiLiteCrossbarMasterConfigArray is
+      variable retVar : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0);
+   begin
+      retVar(PHY_INDEX_C)      := (baseAddr => ETH_BASE_C, addrBits => 12, connectivity => x"0001");
+      retVar(ENDPOINT_INDEX_C) := (baseAddr => PTP_BASE_C, addrBits => 15, connectivity => x"0001");
+      if TIMING_PORT_C then
+         retVar(PORT_INDEX_C) := (baseAddr => PORT_BASE_C, addrBits => 12, connectivity => x"0001");
+      end if;
+      return retVar;
+   end function axilConfig;
+
+   constant AXIL_CONFIG_C : AxiLiteCrossbarMasterConfigArray(NUM_AXIL_MASTERS_C-1 downto 0) := axilConfig;
 
    signal localReadMaster  : AxiLiteReadMasterType;
    signal localReadSlave   : AxiLiteReadSlaveType;
@@ -129,6 +141,12 @@ begin
       report "GigEthPtp requires 4 KiB Ethernet and 32 KiB PTP alignment" severity failure;
    assert ETH_BASE_C(31 downto 15) /= PTP_BASE_C(31 downto 15)
       report "GigEthPtp register banks overlap" severity failure;
+   assert not TIMING_PORT_C or
+          (unsigned(AXIL_BASE_ADDR_G) <= unsigned(not PORT_OFFSET_G) and
+           PORT_BASE_C(11 downto 0) = (11 downto 0 => '0') and
+           PORT_BASE_C(31 downto 12) /= ETH_BASE_C(31 downto 12) and
+           PORT_BASE_C(31 downto 15) /= PTP_BASE_C(31 downto 15))
+      report "GigEthPtp timing-port bank must be 4 KiB aligned and clear of the other banks" severity failure;
 
    -- Cross complete transactions into the PHC domain before selecting a bank.
    U_Async : entity surf.AxiLiteAsync
@@ -278,6 +296,10 @@ begin
             axiReadSlave   => readSlaves(ENDPOINT_INDEX_C),    -- [out]
             axiWriteMaster => writeMasters(ENDPOINT_INDEX_C),  -- [in]
             axiWriteSlave  => writeSlaves(ENDPOINT_INDEX_C),   -- [out]
+            portAxiReadMaster  => readMasters(PORT_INDEX_C),   -- [in]
+            portAxiReadSlave   => readSlaves(PORT_INDEX_C),    -- [out]
+            portAxiWriteMaster => writeMasters(PORT_INDEX_C),  -- [in]
+            portAxiWriteSlave  => writeSlaves(PORT_INDEX_C),   -- [out]
             xgmiiTxd       => open,                            -- [out]
             xgmiiTxc       => open,                            -- [out]
             gmiiRxd        => gmiiRxd,                         -- [in]

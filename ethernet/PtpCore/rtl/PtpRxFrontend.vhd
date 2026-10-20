@@ -6,6 +6,14 @@
 -- Consumes normalized destination-MAC-through-FCS bytes every clk cycle with
 -- rxMaster.tValid; this physical input has no backpressure. Binds the capture
 -- at SOF, streams the CRC and TLV checks, then queues a complete decoded record.
+-- Three registered stages keep the per-beat logic shallow. A packer turns any
+-- contiguous input beats (one GMII byte, partial XGMII words, full port
+-- beats) into beats of eight frame bytes, only each frame's last shorter, so
+-- the parser finds every header byte at a fixed beat and lane and stages its
+-- dependent checks across beats. The parsed frame is validated and admitted
+-- on the following edge, from registers only; a frame starting on that edge
+-- takes the bank after it. A frame is admitted two edges after its last
+-- input beat, three when that beat leaves bytes past an eight-byte boundary.
 -- A synchronous FWFT FIFO carries validated frame descriptors; the decoder
 -- streams compact RAM fields into one held public head. Logical capacity
 -- includes the descriptor pipeline, decoder and head.
@@ -125,6 +133,14 @@ architecture rtl of PtpRxFrontend is
       tlvBytes     : natural range 0 to PTP_TLV_HEADER_BYTES_C-1;
       tlvLength    : slv(15 downto 0);
       tlvRemaining : natural range 0 to MAX_FRAME_G;
+      -- Packed-beat position: beat k holds frame bytes 8k..8k+7, so a byte
+      -- offset is beat & lane. The counter saturates past the header.
+      beat         : natural range 0 to 15;
+      storeBase    : natural range 0 to BANKS_C*STORE_GROUPS_C-1;
+      -- Distances from this beat's first byte to messageEnd and to the TLV
+      -- region start, zero once reached; set from messageLength.
+      endLeft      : natural range 0 to MAX_FRAME_G;
+      startLeft    : natural range 0 to MAX_FRAME_G;
    end record;
 
    constant FRAME_INIT_C : FrameType := (
@@ -140,7 +156,35 @@ architecture rtl of PtpRxFrontend is
       messageEnd   => 0,
       tlvBytes     => 0,
       tlvLength    => (others => '0'),
-      tlvRemaining => 0);
+      tlvRemaining => 0,
+      beat         => 0,
+      storeBase    => 0,
+      endLeft      => 0,
+      startLeft    => 0);
+
+   -- One registered packed beat: eight bytes, except a frame's last beat
+   -- (zero to eight). The first beat carries the frame's capture; abort
+   -- discards a frame cut short by a nested SOF.
+   type PackType is record
+      valid   : sl;
+      abort   : sl;
+      sof     : sl;
+      last    : sl;
+      bad     : sl;
+      bytes   : natural range 0 to 8;
+      data    : slv(63 downto 0);
+      capture : PtpRxCaptureType;
+   end record;
+
+   constant PACK_INIT_C : PackType := (
+      valid   => '0',
+      abort   => '0',
+      sof     => '0',
+      last    => '0',
+      bad     => '0',
+      bytes   => 0,
+      data    => (others => '0'),
+      capture => PTP_RX_CAPTURE_INIT_C);
 
    -- Frame/capture stores and the descriptor queue retain coherent records.
    -- No separately lossy packet/timestamp streams remain to be joined by key.
@@ -178,6 +222,26 @@ architecture rtl of PtpRxFrontend is
       returnGroup        : natural range 0 to STORE_GROUPS_C-1;
       generation         : slv(31 downto 0);
       epoch              : unsigned(31 downto 0);
+      -- Input packer. The input frame is accepted (inActive) from its SOF to
+      -- its EOF; residual bytes wait for a full beat. A frame ending past a
+      -- beat boundary leaves its last bytes in tail, or in the residual
+      -- marked resLast when the output slot was busy; either goes out next.
+      inActive           : sl;
+      sofHeld            : sl;
+      emitted            : sl;
+      resData            : slv(63 downto 0);
+      resBytes           : natural range 0 to 8;
+      resLast            : sl;
+      resBad             : sl;
+      tailValid          : sl;
+      tailData           : slv(63 downto 0);
+      tailBytes          : natural range 0 to 8;
+      tailBad            : sl;
+      capture            : PtpRxCaptureType;
+      pack               : PackType;
+      -- Completion stage: the parsed frame, validated and admitted next edge.
+      doneValid          : sl;
+      done               : FrameType;
    end record;
 
    constant REG_INIT_C : RegType := (
@@ -209,7 +273,22 @@ architecture rtl of PtpRxFrontend is
       returnValid        => '0',
       returnGroup        => 0,
       generation         => (others => '0'),
-      epoch              => (others => '0'));
+      epoch              => (others => '0'),
+      inActive           => '0',
+      sofHeld            => '0',
+      emitted            => '0',
+      resData            => (others => '0'),
+      resBytes           => 0,
+      resLast            => '0',
+      resBad             => '0',
+      tailValid          => '0',
+      tailData           => (others => '0'),
+      tailBytes          => 0,
+      tailBad            => '0',
+      capture            => PTP_RX_CAPTURE_INIT_C,
+      pack               => PACK_INIT_C,
+      doneValid          => '0',
+      done               => FRAME_INIT_C);
 
    signal r               : RegType := REG_INIT_C;
    signal rin             : RegType;
@@ -382,11 +461,9 @@ begin
       variable octet           : slv(7 downto 0);
       variable base            : natural range 0 to PTP_ANNOUNCE_BYTES_C;
       variable length          : natural range 0 to 65535;
-      variable offset          : natural range 0 to MAX_FRAME_G+9;
-      variable first           : natural range 0 to MAX_FRAME_G+1;
-      variable last            : natural range 0 to MAX_FRAME_G+9;
-      variable tlvFirst        : natural range 0 to MAX_FRAME_G+9;
-      variable tlvLast         : natural range 0 to MAX_FRAME_G+9;
+      variable offset          : natural range 0 to 127;
+      variable firstLane       : natural range 0 to 7;
+      variable endLane         : natural range 0 to 8;
       variable storeGroup      : natural range 0 to STORE_GROUPS_C-1;
       variable captureIndex    : natural;
       variable descriptorBank  : natural range 0 to BANKS_C-1;
@@ -395,14 +472,23 @@ begin
       variable frameComplete : boolean;
       variable byteCount     : natural range 0 to 8;
       variable crcData       : slv(63 downto 0);
+      variable inBytes       : natural range 0 to 8;
+      variable inBad         : sl;
+      variable inLast        : boolean;
+      variable busy          : boolean;
+      variable take          : boolean;
+      variable joined        : slv(127 downto 0);
+      variable joinedBytes   : natural range 0 to 16;
    begin
       v               := r;
       octet           := (others => '0');
       base            := 0;
       length          := 0;
       offset          := 0;
-      first           := 0;
-      last            := 0;
+      firstLane       := 0;
+      endLane         := 0;
+      joined          := (others => '0');
+      joinedBytes     := 0;
       storeGroup      := 0;
       captureIndex    := 0;
       descriptorBank  := 0;
@@ -474,188 +560,45 @@ begin
          v.fifoRead           := '1';
       end if;
 
-      if rxMaster.tValid = '1' then
-         if ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, rxMaster) = '1' then
-            -- Start with fresh parser state and bind this frame's capture.
-            -- A nested SOF discards both the partial frame and the new candidate;
-            -- stale-generation starts are also ignored. Neither can attach a
-            -- new timestamp to leftover bytes. PHC timeValid alone is not an
-            -- admission requirement: acquisition needs unsynchronized captures.
-            v.frame := FRAME_INIT_C;
-            if r.frame.active = '0' and (TX_OBSERVE_G or rxCapture.generation = r.generation) then
-               v.frame.active   := '1';
-               v.captureWrite   := '1';
-               v.captureAddress := toSlv(r.tail, BANK_BITS_C);
-               v.captureData    := rxCapture.timestamp & rxCapture.ticks & rxCapture.tickPhase &
-                  rxCapture.generation & rxCapture.increment & rxCapture.timeValid & rxCapture.error & slv(r.epoch);
-               if not TX_OBSERVE_G then
-                  v.frame.bad := rxCapture.error;
-               end if;
-               -- TX always reports a structurally valid wire completion. Its
-               -- capture.error may prohibit measurement, but must not hide that
-               -- a previously queued request has finally left the MAC.
-            end if;
+      -------------------------------------------------------------------------
+      -- Completion: validate the frame parsed by the previous edge, then
+      -- admit it. Only registered state feeds this decision, and it precedes
+      -- the parser so a frame starting on this edge takes the updated tail.
+      -------------------------------------------------------------------------
+      if r.doneValid = '1' then
+         -- 18 = 14 Ethernet header bytes + 4 FCS bytes: the length check
+         -- proves that the fixed body and TLVs fit before FCS. Thus no
+         -- separate trailing-FCS buffer is needed even though prefix may
+         -- contain padding/FCS after a short message's meaningful bytes.
+         -- Header positions below are Ethernet-frame byte offsets:
+         -- EtherType 12..13, type 14, version 15, messageLength 16..17.
+         base := r.done.base;
+         -- Validate framing/FCS, protocol identity, then bounded body/TLV
+         -- lengths. Keep the rejection order explicit for first-time readers.
+         frameComplete := true;
+         if r.done.bad /= '0' then
+            frameComplete := false;
+         elsif r.done.count < MIN_COUNT_C or r.done.count > MAX_COUNT_C then
+            frameComplete := false;
+         elsif FCS_PRESENT_G and r.done.crc /= ETH_CRC_RESIDUE_C then
+            frameComplete := false;
+         -- IEEE 1588-2019 19.2 accepts every minor version when the
+         -- major version matches. Preserve the minor value in the record.
+         elsif r.done.etherType /= PTP_ETH_TYPE_C then
+            frameComplete := false;
+         elsif r.done.version /= PTP_MAJOR_VERSION_C then
+            frameComplete := false;
+         -- Require the fixed body and complete TLVs before the FCS.
+         elsif base = 0 then
+            frameComplete := false;
+         elsif r.done.count < FCS_COUNT_C+r.done.messageEnd or r.done.tlvBytes /= 0 or r.done.tlvRemaining /= 0 then
+            frameComplete := false;
          end if;
-         if v.frame.active = '1' then
-            -- Keep errors until EOF, even if a later beat has clean sidebands.
-            v.frame.bad := v.frame.bad or ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, rxMaster);
-            case rxMaster.tKeep(7 downto 0) is
-               when x"00" => byteCount := 0;
-               when x"01" => byteCount := 1;
-               when x"03" => byteCount := 2;
-               when x"07" => byteCount := 3;
-               when x"0F" => byteCount := 4;
-               when x"1F" => byteCount := 5;
-               when x"3F" => byteCount := 6;
-               when x"7F" => byteCount := 7;
-               when x"FF" => byteCount := 8;
-               when others =>
-                  -- A sparse mask is consumed but can never publish a frame.
-                  v.frame.bad := '1';
-            end case;
-            for i in 0 to 7 loop
-               if rxMaster.tKeep(i) = '1' then
-                  octet := rxMaster.tData(8*i+7 downto 8*i);
-                  -- CrcPkg expects the first byte at the high end and reversed
-                  -- bit order within each octet. Ethernet arrives low AXI byte
-                  -- first; this transpose is separate from networkField decode.
-                  for b in 0 to 7 loop
-                     crcData(63-8*i-b) := octet(b);
-                  end loop;
-               end if;
-            end loop;
-            first := v.frame.count;
-            last  := first+byteCount;
-            for i in 0 to 7 loop
-               if i < byteCount then
-                  offset := first+i;
-                  octet  := rxMaster.tData(8*i+7 downto 8*i);
-
-                  case offset is
-                     when 12 =>
-                        v.frame.etherType(15 downto 8) := octet;
-                     when 13 =>
-                        v.frame.etherType(7 downto 0) := octet;
-                     when 14 =>
-                        v.frame.kind := octet(3 downto 0);
-                     when 15 =>
-                        v.frame.version := octet(3 downto 0);
-                     when 16 =>
-                        v.frame.length(15 downto 8) := octet;
-                     when 17 =>
-                        v.frame.length(7 downto 0) := octet;
-                        v.frame.base := baseLength(v.frame.kind);
-                        length       := to_integer(unsigned(v.frame.length));
-                        -- With TLVs enabled a longer message carries a suffix
-                        -- the parser walks. With them disabled the declared
-                        -- length must equal the fixed body exactly, which
-                        -- rejects every suffix here instead.
-                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C or
-                           (not TLV_EN_G and length /= v.frame.base) then
-                           v.frame.bad := '1';
-                        else
-                           v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
-                        end if;
-                     when others =>
-                        null;
-                  end case;
-
-                  if (offset <= 5 or (offset >= 14 and offset <= 18) or
-                      (offset >= 20 and offset <= 29) or (offset >= 34 and offset < STORE_BYTES_C+8)) and
-                     (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+v.frame.base) then
-                     storeGroup := 0;
-                     if offset >= 14 then
-                        storeGroup := offset/8-1;
-                     end if;
-                     v.storeWrite(offset mod 8) := '1';
-                     v.storeAddress(offset mod 8) := toSlv(r.tail*STORE_GROUPS_C+storeGroup, STORE_ADDR_BITS_C);
-                     v.storeData(offset mod 8) := octet;
-                  end if;
-               end if;
-            end loop;
-            if last > MAX_FRAME_G then
-               v.frame.count := MAX_FRAME_G+1;
-               v.frame.bad   := '1';
-            else
-               v.frame.count := last;
-            end if;
-            -- Intersect this beat with the declared TLV region. Header
-            -- lookahead bounds the feedback to two length completions. Run
-            -- independently of the sticky bad flag; errors only join at EOF,
-            -- avoiding a sideband/header-error path through the TLV arithmetic.
-            -- With TLVs disabled the admitted length already equals the fixed
-            -- body, so there is no suffix region to walk and the parser is
-            -- elaborated away. Rejection moves to the length test above.
-            if TLV_EN_G and first < r.frame.messageEnd and
-               last > PTP_ETH_HEADER_BYTES_C+r.frame.base then
-               tlvFirst := maximum(first, PTP_ETH_HEADER_BYTES_C+r.frame.base);
-               tlvLast  := minimum(last, r.frame.messageEnd);
-               ptpTlvBeat(rxMaster.tData(63 downto 0), tlvFirst-first,
-                  tlvLast-first, r.frame.messageEnd-tlvFirst,
-                  v.frame.tlvBytes, v.frame.tlvLength, v.frame.tlvRemaining, v.frame.bad);
-            end if;
-            -- One parallel CRC update per physical group. SURF uses the
-            -- unreversed register convention; good Ethernet residue is below.
-            -- CRC covers the entire frame including padding and FCS. A zero-
-            -- byte termination leaves the remainder from the prior beat intact.
-            case byteCount is
-               when 1 =>
-                  v.frame.crc := crc32Parallel1Byte(v.frame.crc, crcData(63 downto 56));
-               when 2 =>
-                  v.frame.crc := crc32Parallel2Byte(v.frame.crc, crcData(63 downto 48));
-               when 3 =>
-                  v.frame.crc := crc32Parallel3Byte(v.frame.crc, crcData(63 downto 40));
-               when 4 =>
-                  v.frame.crc := crc32Parallel4Byte(v.frame.crc, crcData(63 downto 32));
-               when 5 =>
-                  v.frame.crc := crc32Parallel5Byte(v.frame.crc, crcData(63 downto 24));
-               when 6 =>
-                  v.frame.crc := crc32Parallel6Byte(v.frame.crc, crcData(63 downto 16));
-               when 7 =>
-                  v.frame.crc := crc32Parallel7Byte(v.frame.crc, crcData(63 downto 8));
-               when 8 =>
-                  v.frame.crc := crc32Parallel8Byte(v.frame.crc, crcData);
-               when others =>
-                  null;
-            end case;
-
-            if rxMaster.tLast = '1' then
-               -- Decide only after incorporating this beat's bytes and errors.
-               -- 18 = 14 Ethernet header bytes + 4 FCS bytes: the length check
-               -- proves that the fixed body and TLVs fit before FCS. Thus no
-               -- separate trailing-FCS buffer is needed even though prefix may
-               -- contain padding/FCS after a short message's meaningful bytes.
-               -- Header positions below are Ethernet-frame byte offsets:
-               -- EtherType 12..13, type 14, version 15, messageLength 16..17.
-               base := v.frame.base;
-               -- Validate framing/FCS, protocol identity, then bounded body/TLV
-               -- lengths. Keep the rejection order explicit for first-time readers.
-               frameComplete := true;
-               if v.frame.bad /= '0' then
-                  frameComplete := false;
-               elsif v.frame.count < MIN_COUNT_C or v.frame.count > MAX_COUNT_C then
-                  frameComplete := false;
-               elsif FCS_PRESENT_G and v.frame.crc /= ETH_CRC_RESIDUE_C then
-                  frameComplete := false;
-               -- IEEE 1588-2019 19.2 accepts every minor version when the
-               -- major version matches. Preserve the minor value in the record.
-               elsif v.frame.etherType /= PTP_ETH_TYPE_C then
-                  frameComplete := false;
-               elsif v.frame.version /= PTP_MAJOR_VERSION_C then
-                  frameComplete := false;
-               -- Require the fixed body and complete TLVs before the FCS.
-               elsif base = 0 then
-                  frameComplete := false;
-               elsif v.frame.count < FCS_COUNT_C+v.frame.messageEnd or v.frame.tlvBytes /= 0 or v.frame.tlvRemaining /= 0 then
-                  frameComplete := false;
-               end if;
-               if not frameComplete then
-                  v.counters.dropped := ptpSatInc(r.counters.dropped);
-               end if;
-               v.frame := FRAME_INIT_C;
-            end if;
+         if not frameComplete then
+            v.counters.dropped := ptpSatInc(r.counters.dropped);
          end if;
       end if;
+      v.doneValid := '0';
 
       -- Admission deliberately tests pre-edge occupancy. A full queue cannot
       -- rescue this completion through simultaneous ready: discard the candidate
@@ -686,6 +629,295 @@ begin
          v.counters.accepted := ptpSatInc(r.counters.accepted);
       end if;
 
+      -------------------------------------------------------------------------
+      -- Input packer: contiguous low-byte input beats become registered beats
+      -- of eight frame bytes, except each frame's last. The parser then finds
+      -- every header byte at a fixed beat and lane.
+      -------------------------------------------------------------------------
+      inBytes := 0;
+      inBad   := '0';
+      inLast  := false;
+      if rxMaster.tValid = '1' then
+         case rxMaster.tKeep(7 downto 0) is
+            when x"00" => inBytes := 0;
+            when x"01" => inBytes := 1;
+            when x"03" => inBytes := 2;
+            when x"07" => inBytes := 3;
+            when x"0F" => inBytes := 4;
+            when x"1F" => inBytes := 5;
+            when x"3F" => inBytes := 6;
+            when x"7F" => inBytes := 7;
+            when x"FF" => inBytes := 8;
+            when others =>
+               -- A sparse mask is consumed but can never publish a frame.
+               inBad := '1';
+         end case;
+         inBad  := inBad or ssiGetUserEofe(PTP_RX_AXIS_CONFIG_C, rxMaster);
+         inLast := rxMaster.tLast = '1';
+      end if;
+
+      -- The output slot first carries an ended frame's remaining bytes. Then
+      -- the residual is empty, so this edge's input waits there whole.
+      v.pack := PACK_INIT_C;
+      busy   := false;
+      if r.tailValid = '1' then
+         v.pack.valid := '1';
+         v.pack.last  := '1';
+         v.pack.bad   := r.tailBad;
+         v.pack.bytes := r.tailBytes;
+         v.pack.data  := r.tailData;
+         v.tailValid  := '0';
+         busy         := true;
+      elsif r.resLast = '1' then
+         v.pack.valid   := '1';
+         v.pack.last    := '1';
+         v.pack.sof     := r.sofHeld;
+         v.pack.capture := r.capture;
+         v.pack.bad     := r.resBad;
+         v.pack.bytes   := r.resBytes;
+         v.pack.data    := r.resData;
+         v.resLast      := '0';
+         v.resBytes     := 0;
+         v.sofHeld      := '0';
+         busy           := true;
+      end if;
+
+      take := false;
+      if rxMaster.tValid = '1' and ssiGetUserSof(PTP_RX_AXIS_CONFIG_C, rxMaster) = '1' then
+         -- Start with fresh parser state and bind this frame's capture.
+         -- A nested SOF discards both the partial frame and the new candidate;
+         -- stale-generation starts are also ignored. Neither can attach a
+         -- new timestamp to leftover bytes. PHC timeValid alone is not an
+         -- admission requirement: acquisition needs unsynchronized captures.
+         if r.inActive = '1' then
+            v.inActive := '0';
+            v.sofHeld  := '0';
+            v.resBytes := 0;
+            -- Beats already packed out are discarded by the parser.
+            v.pack.abort := r.emitted;
+            v.emitted    := '0';
+         elsif TX_OBSERVE_G or rxCapture.generation = r.generation then
+            v.inActive := '1';
+            v.sofHeld  := '1';
+            v.emitted  := '0';
+            v.resBad   := '0';
+            v.capture  := rxCapture;
+            take       := true;
+         end if;
+      elsif r.inActive = '1' then
+         -- An idle edge still releases a full residual.
+         take := true;
+      end if;
+
+      if take then
+         -- Keep errors until EOF, even if a later beat has clean sidebands.
+         v.resBad := v.resBad or inBad;
+         -- Append the input bytes after the residual; lanes past the byte
+         -- count are don't-care.
+         joined(63 downto 0) := r.resData;
+         joined(127 downto 64) := (others => '0');
+         for j in 0 to 8 loop
+            if v.resBytes = j then
+               joined(8*j+63 downto 8*j) := rxMaster.tData(63 downto 0);
+            end if;
+         end loop;
+         joinedBytes := v.resBytes+inBytes;
+
+         if busy then
+            v.resData  := joined(63 downto 0);
+            v.resBytes := joinedBytes;
+            if inLast then
+               v.inActive := '0';
+               v.resLast  := '1';
+            end if;
+         elsif joinedBytes >= 8 or inLast then
+            v.pack.valid   := '1';
+            v.pack.sof     := v.sofHeld;
+            v.pack.capture := v.capture;
+            v.pack.data    := joined(63 downto 0);
+            v.pack.bytes   := minimum(joinedBytes, 8);
+            v.sofHeld      := '0';
+            v.emitted      := '1';
+            v.resData      := joined(127 downto 64);
+            if inLast then
+               v.inActive := '0';
+               v.emitted  := '0';
+               v.resBytes := 0;
+               if joinedBytes > 8 then
+                  v.tailValid := '1';
+                  v.tailData  := joined(127 downto 64);
+                  v.tailBytes := joinedBytes-8;
+                  v.tailBad   := v.resBad;
+               else
+                  v.pack.last := '1';
+                  v.pack.bad  := v.resBad;
+               end if;
+            else
+               v.resBytes := joinedBytes-8;
+            end if;
+         else
+            v.resData  := joined(63 downto 0);
+            v.resBytes := joinedBytes;
+         end if;
+      end if;
+
+      -------------------------------------------------------------------------
+      -- Parser: one registered packed beat per edge.
+      -------------------------------------------------------------------------
+      if r.pack.abort = '1' then
+         v.frame := FRAME_INIT_C;
+      end if;
+
+      if r.pack.valid = '1' then
+         if r.pack.sof = '1' then
+            -- The completion above already moved the tail past an admitted
+            -- predecessor, so this frame's bank is never one still queued.
+            v.frame          := FRAME_INIT_C;
+            v.frame.active   := '1';
+            v.frame.storeBase := v.tail*STORE_GROUPS_C;
+            v.captureWrite   := '1';
+            v.captureAddress := toSlv(v.tail, BANK_BITS_C);
+            v.captureData    := r.pack.capture.timestamp & r.pack.capture.ticks & r.pack.capture.tickPhase &
+               r.pack.capture.generation & r.pack.capture.increment & r.pack.capture.timeValid &
+               r.pack.capture.error & slv(v.epoch);
+            if not TX_OBSERVE_G then
+               v.frame.bad := r.pack.capture.error;
+            end if;
+            -- TX always reports a structurally valid wire completion. Its
+            -- capture.error may prohibit measurement, but must not hide that
+            -- a previously queued request has finally left the MAC.
+         end if;
+         if v.frame.active = '1' then
+            byteCount := r.pack.bytes;
+            for i in 0 to 7 loop
+               octet := r.pack.data(8*i+7 downto 8*i);
+               -- CrcPkg expects the first byte at the high end and reversed
+               -- bit order within each octet. Ethernet arrives low AXI byte
+               -- first; this transpose is separate from networkField decode.
+               for b in 0 to 7 loop
+                  crcData(63-8*i-b) := octet(b);
+               end loop;
+            end loop;
+            for i in 0 to 7 loop
+               if i < byteCount then
+                  -- A packed beat starts on an eight-byte boundary.
+                  offset := 8*v.frame.beat+i;
+                  octet  := r.pack.data(8*i+7 downto 8*i);
+
+                  case offset is
+                     when 12 =>
+                        v.frame.etherType(15 downto 8) := octet;
+                     when 13 =>
+                        v.frame.etherType(7 downto 0) := octet;
+                     when 14 =>
+                        v.frame.kind := octet(3 downto 0);
+                     when 15 =>
+                        v.frame.version := octet(3 downto 0);
+                     when 16 =>
+                        v.frame.length(15 downto 8) := octet;
+                     when 17 =>
+                        -- The type byte arrived in the previous beat.
+                        v.frame.length(7 downto 0) := octet;
+                        v.frame.base := baseLength(r.frame.kind);
+                        length       := to_integer(unsigned(v.frame.length));
+                        -- With TLVs enabled a longer message carries a suffix
+                        -- the parser walks. With them disabled the declared
+                        -- length must equal the fixed body exactly, which
+                        -- rejects every suffix here instead.
+                        if v.frame.base = 0 or length < v.frame.base or length > MAX_FRAME_G-PTP_ETH_OVERHEAD_BYTES_C or
+                           (not TLV_EN_G and length /= v.frame.base) then
+                           v.frame.bad := '1';
+                        else
+                           v.frame.messageEnd := PTP_ETH_HEADER_BYTES_C+length;
+                           -- Distances from the next beat, at offset 24.
+                           v.frame.endLeft    := PTP_ETH_HEADER_BYTES_C+length-24;
+                           v.frame.startLeft  := PTP_ETH_HEADER_BYTES_C+v.frame.base-24;
+                        end if;
+                     when others =>
+                        null;
+                  end case;
+
+                  if (offset <= 5 or (offset >= 14 and offset <= 18) or
+                      (offset >= 20 and offset <= 29) or (offset >= 34 and offset < STORE_BYTES_C+8)) and
+                     (offset < 48 or offset < PTP_ETH_HEADER_BYTES_C+r.frame.base) then
+                     storeGroup := 0;
+                     if offset >= 14 then
+                        storeGroup := offset/8-1;
+                     end if;
+                     v.storeWrite(i)   := '1';
+                     v.storeAddress(i) := toSlv(v.frame.storeBase+storeGroup, STORE_ADDR_BITS_C);
+                     v.storeData(i)    := octet;
+                  end if;
+               end if;
+            end loop;
+            if v.frame.count+byteCount > MAX_FRAME_G then
+               v.frame.count := MAX_FRAME_G+1;
+               v.frame.bad   := '1';
+            else
+               v.frame.count := v.frame.count+byteCount;
+            end if;
+            -- Intersect this beat with the declared TLV region, from the
+            -- registered distances to its start and to messageEnd. Run
+            -- independently of the sticky bad flag; errors only join at EOF.
+            -- With TLVs disabled the admitted length already equals the fixed
+            -- body, so there is no suffix region to walk and the parser is
+            -- elaborated away. Rejection moves to the length test above.
+            if TLV_EN_G and r.frame.endLeft > 0 and byteCount > r.frame.startLeft then
+               firstLane := minimum(r.frame.startLeft, 7);
+               endLane   := minimum(byteCount, r.frame.endLeft);
+               ptpTlvBeat(r.pack.data, firstLane, endLane, r.frame.endLeft-firstLane,
+                  v.frame.tlvBytes, v.frame.tlvLength, v.frame.tlvRemaining, v.frame.bad);
+            end if;
+            -- One parallel CRC update per packed beat. SURF uses the
+            -- unreversed register convention; good Ethernet residue is below.
+            -- CRC covers the entire frame including padding and FCS. A zero-
+            -- byte termination leaves the remainder from the prior beat intact.
+            case byteCount is
+               when 1 =>
+                  v.frame.crc := crc32Parallel1Byte(v.frame.crc, crcData(63 downto 56));
+               when 2 =>
+                  v.frame.crc := crc32Parallel2Byte(v.frame.crc, crcData(63 downto 48));
+               when 3 =>
+                  v.frame.crc := crc32Parallel3Byte(v.frame.crc, crcData(63 downto 40));
+               when 4 =>
+                  v.frame.crc := crc32Parallel4Byte(v.frame.crc, crcData(63 downto 32));
+               when 5 =>
+                  v.frame.crc := crc32Parallel5Byte(v.frame.crc, crcData(63 downto 24));
+               when 6 =>
+                  v.frame.crc := crc32Parallel6Byte(v.frame.crc, crcData(63 downto 16));
+               when 7 =>
+                  v.frame.crc := crc32Parallel7Byte(v.frame.crc, crcData(63 downto 8));
+               when 8 =>
+                  v.frame.crc := crc32Parallel8Byte(v.frame.crc, crcData);
+               when others =>
+                  null;
+            end case;
+
+            if r.pack.last = '1' then
+               -- Decide on the next edge, from this beat's final state.
+               v.frame.bad := v.frame.bad or r.pack.bad;
+               v.doneValid := '1';
+               v.done      := v.frame;
+               v.frame     := FRAME_INIT_C;
+            else
+               -- Advance to the next eight-byte beat.
+               if v.frame.beat < 15 then
+                  v.frame.beat := v.frame.beat+1;
+               end if;
+               if r.frame.endLeft > 8 then
+                  v.frame.endLeft := r.frame.endLeft-8;
+               elsif r.frame.endLeft > 0 then
+                  v.frame.endLeft := 0;
+               end if;
+               if r.frame.startLeft > 8 then
+                  v.frame.startLeft := r.frame.startLeft-8;
+               elsif r.frame.startLeft > 0 then
+                  v.frame.startLeft := 0;
+               end if;
+            end if;
+         end if;
+      end if;
+
       -- Logical invalidation overrides parsing, admission, consumption, and
       -- diagnostic increments above. Hold flush as long as necessary; each
       -- asserted edge advances epoch. No old queue entry or partial frame is
@@ -711,6 +943,14 @@ begin
          v.returnValid         := '0';
          v.storeWrite          := (others => '0');
          v.captureWrite        := '0';
+         v.inActive            := '0';
+         v.sofHeld             := '0';
+         v.emitted             := '0';
+         v.resBytes            := 0;
+         v.resLast             := '0';
+         v.tailValid           := '0';
+         v.pack                := PACK_INIT_C;
+         v.doneValid           := '0';
       end if;
 
       v.frameReady := toSl(v.fill+2 <= FIFO_DEPTH_G);

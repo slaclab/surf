@@ -17,7 +17,8 @@
 -- one cycle after system reset, which clears the complete MAC and port.
 -- Endpoint restart, link loss and PHC steps leave the port running; accepted
 -- frames finish through its terminal outcomes. Port status and counters are
--- composition outputs until the port has a register bank. Contract:
+-- composition outputs and are readable on the port's own AXI-Lite bank,
+-- beside the endpoint aperture. Contract:
 -- ethernet/PtpCore/timing-port.md section 11.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
@@ -71,6 +72,12 @@ entity PtpMacPortEndpoint is
       axiReadSlave   : out AxiLiteReadSlaveType;
       axiWriteMaster : in  AxiLiteWriteMasterType;
       axiWriteSlave  : out AxiLiteWriteSlaveType;
+
+      -- Timing-port bank (PtpMacPortReg), also cancelled by regRst
+      portAxiReadMaster  : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      portAxiReadSlave   : out AxiLiteReadSlaveType;
+      portAxiWriteMaster : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      portAxiWriteSlave  : out AxiLiteWriteSlaveType;
 
       -- Selected physical interface, synchronous to clk
       xgmiiRxd : in  slv(63 downto 0) := (others => '0');
@@ -200,6 +207,11 @@ begin
          completionReady  => completionReady,  -- [in]
          rxMaster         => portRxMaster,     -- [out]
          rxReady          => portRxReady,      -- [in]
+         regRst           => regRst,              -- [in]
+         axiReadMaster    => portAxiReadMaster,   -- [in]
+         axiReadSlave     => portAxiReadSlave,    -- [out]
+         axiWriteMaster   => portAxiWriteMaster,  -- [in]
+         axiWriteSlave    => portAxiWriteSlave,   -- [out]
          xgmiiRxd         => xgmiiRxd,         -- [in]
          xgmiiRxc         => xgmiiRxc,         -- [in]
          xgmiiTxd         => xgmiiTxd,         -- [out]

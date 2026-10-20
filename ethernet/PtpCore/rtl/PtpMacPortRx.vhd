@@ -70,6 +70,7 @@ entity PtpMacPortRx is
       releaseAll    : in  sl;
       cancelDone    : out sl;
       idle          : out sl;
+      occupancy     : out slv(7 downto 0);
       protocolFault : out sl;
       -- Registered PHC copy: the values standing during the previous cycle
       phcTime       : in  PtpTimeType;
@@ -143,6 +144,7 @@ architecture rtl of PtpMacPortRx is
       rxMaster      : PtpMacPortRxMasterType;
       cancelDone    : sl;
       idle          : sl;
+      occupancy     : natural range 0 to TABLE_DEPTH_G;
       protocolFault : sl;
       incDelivered  : unsigned(0 downto 0);
       incDropped    : unsigned(8 downto 0);
@@ -161,6 +163,7 @@ architecture rtl of PtpMacPortRx is
       rxMaster      => PTP_MAC_PORT_RX_MASTER_INIT_C,
       cancelDone    => '0',
       idle          => '1',
+      occupancy     => 0,
       protocolFault => '0',
       incDelivered  => (others => '0'),
       incDropped    => (others => '0'),
@@ -457,10 +460,12 @@ begin
          v.nextToken := slv(to_unsigned(free+1, EMAC_TOKEN_BITS_C));
       end if;
 
-      anyBusy := '0';
+      anyBusy     := '0';
+      v.occupancy := 0;
       for i in 0 to TABLE_DEPTH_G-1 loop
          if (v.entry(i).state /= FREE_C) then
-            anyBusy := '1';
+            anyBusy     := '1';
+            v.occupancy := v.occupancy+1;
          end if;
       end loop;
       v.idle := not anyBusy;
@@ -484,6 +489,7 @@ begin
       rxMaster      <= r.rxMaster;
       cancelDone    <= r.cancelDone;
       idle          <= r.idle;
+      occupancy     <= toSlv(r.occupancy, 8);
       protocolFault <= r.protocolFault;
       incDelivered  <= slv(r.incDelivered);
       incDropped    <= slv(r.incDropped);

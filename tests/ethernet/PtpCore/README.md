@@ -40,7 +40,9 @@ separates simulated behavior from remaining device and interoperability work.
   checks, atomic message/capture delivery, and same-edge overflow/reset abort.
   The physical GMII/XGMII adapter and protocol policy are outside this model.
 - `test_ptp_rx_rtl.py` compares the actual validator against the model each
-  cycle, through direct, GMII, and XGMII inputs. It additionally checks whole
+  cycle, through direct, GMII, and XGMII inputs. It uses the model's
+  `PipelinedRxFrontend`, which adds the RTL's input packer and one-edge
+  completion stage to the same logical results. It additionally checks whole
   frame acceptance and independent capture timing, signed calibration, reset,
   abort priority, byte phase, and minimum-gap throughput.
   The registered-boundary follow-up also checks output stability between edges.
@@ -423,7 +425,9 @@ an observable completion condition.
   default RX depths, minimum-length frames at the minimum IFG behind maximum
   frames are all delivered, and a wire start sampled on the edge a release
   lowers the offered token is admitted; every frame is accounted for in the
-  port counters. Mutations of the capture alignment, the SENT-only record
+  port counters. The port bank reports capability, status, controller levels,
+  TX/RX occupancy with high-water marks and clear, and counters equal to the
+  port's, and refuses unmapped and read-only writes. Mutations of the capture alignment, the SENT-only record
   rule, the invalid capture error, the no-FCS length compensation, the
   sampled-token check, the frontend `frameReady` gate and its hold on an
   offered beat each fail it.

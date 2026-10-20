@@ -35,8 +35,10 @@ primary-stream guard and passive RX/TX taps. The RX tap composes the timestamp
 adapter and RX frontend; TX uses the same adapter with `PtpDelayReqObserver`.
 `PtpMacPortEthMac` is the separate timing-port composition: `PtpMacPort`
 (`PtpMacPortTx`, `PtpMacPortRx`) over a timing-mode `EthMacTop`, with the PHC
-supplied externally (for example by a standalone `PtpPhcCore`); see the
-[timing-port contract](timing-port.md#10-phase-1-implementation-map).
+supplied externally (for example by a standalone `PtpPhcCore`), and
+`PtpMacPortReg`, its read-only status, occupancy and counter bank; see the
+[timing-port contract](timing-port.md#10-phase-1-implementation-map) and
+[register map](register-map.md#ptpmacport-fields).
 `PtpMacPortEndpoint` is the autonomous endpoint on that MAC:
 `PtpMacPortRxAdapter` and `PtpMacPortTxAdapter` give the same `PtpEndpoint`
 the records the passive taps produce. `GigEthPtp`'s `MAC_MODE_G` selects

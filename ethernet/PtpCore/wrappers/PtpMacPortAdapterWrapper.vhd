@@ -25,6 +25,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
@@ -91,6 +92,25 @@ entity PtpMacPortAdapterWrapper is
       admissionOpen : out sl;
       counters      : out slv(8*32-1 downto 0);
 
+      -- Port AXI-Lite bank in clk
+      axil_awaddr  : in  slv(31 downto 0);
+      axil_awvalid : in  sl;
+      axil_awready : out sl;
+      axil_wdata   : in  slv(31 downto 0);
+      axil_wstrb   : in  slv(3 downto 0);
+      axil_wvalid  : in  sl;
+      axil_wready  : out sl;
+      axil_bresp   : out slv(1 downto 0);
+      axil_bvalid  : out sl;
+      axil_bready  : in  sl;
+      axil_araddr  : in  slv(31 downto 0);
+      axil_arvalid : in  sl;
+      axil_arready : out sl;
+      axil_rdata   : out slv(31 downto 0);
+      axil_rresp   : out slv(1 downto 0);
+      axil_rvalid  : out sl;
+      axil_rready  : in  sl;
+
       -- Wire
       rxInject    : in  sl;
       injXgmiiRxd : in  slv(63 downto 0);
@@ -117,6 +137,11 @@ architecture mapping of PtpMacPortAdapterWrapper is
    signal phcTime        : PtpTimeType      := PTP_TIME_INIT_C;
    signal phcStatus      : PtpPhcStatusType := PTP_PHC_STATUS_INIT_C;
    signal control        : PtpMacPortControlType := PTP_MAC_PORT_CONTROL_INIT_C;
+   signal rstN           : sl;
+   signal axiReadMaster  : AxiLiteReadMasterType;
+   signal axiReadSlave   : AxiLiteReadSlaveType;
+   signal axiWriteMaster : AxiLiteWriteMasterType;
+   signal axiWriteSlave  : AxiLiteWriteSlaveType;
    signal status         : PtpMacPortStatusType;
    signal portCounter    : PtpMacPortCountersType;
    signal ethConfig      : EthMacConfigType := ETH_MAC_CONFIG_INIT_C;
@@ -208,6 +233,43 @@ begin
    gmiiTxEn <= gTxEn;
    gmiiTxEr <= gTxEr;
 
+   rstN <= not rst;
+
+   U_Axi : entity surf.SlaveAxiLiteIpIntegrator
+      generic map (
+         ADDR_WIDTH    => 32,
+         EN_ERROR_RESP => true,
+         HAS_WSTRB     => 1,
+         FREQ_HZ       => ite(PHY_TYPE_G = "GMII", 125000000, 156250000))
+      port map (
+         S_AXI_ACLK      => clk,             -- [in]
+         S_AXI_ARESETN   => rstN,            -- [in]
+         S_AXI_AWADDR    => axil_awaddr,     -- [in]
+         S_AXI_AWPROT    => "000",           -- [in]
+         S_AXI_AWVALID   => axil_awvalid,    -- [in]
+         S_AXI_AWREADY   => axil_awready,    -- [out]
+         S_AXI_WDATA     => axil_wdata,      -- [in]
+         S_AXI_WSTRB     => axil_wstrb,      -- [in]
+         S_AXI_WVALID    => axil_wvalid,     -- [in]
+         S_AXI_WREADY    => axil_wready,     -- [out]
+         S_AXI_BRESP     => axil_bresp,      -- [out]
+         S_AXI_BVALID    => axil_bvalid,     -- [out]
+         S_AXI_BREADY    => axil_bready,     -- [in]
+         S_AXI_ARADDR    => axil_araddr,     -- [in]
+         S_AXI_ARPROT    => "000",           -- [in]
+         S_AXI_ARVALID   => axil_arvalid,    -- [in]
+         S_AXI_ARREADY   => axil_arready,    -- [out]
+         S_AXI_RDATA     => axil_rdata,      -- [out]
+         S_AXI_RRESP     => axil_rresp,      -- [out]
+         S_AXI_RVALID    => axil_rvalid,     -- [out]
+         S_AXI_RREADY    => axil_rready,     -- [in]
+         axilClk         => open,            -- [out]
+         axilRst         => open,            -- [out]
+         axilReadMaster  => axiReadMaster,   -- [out]
+         axilReadSlave   => axiReadSlave,    -- [in]
+         axilWriteMaster => axiWriteMaster,  -- [out]
+         axilWriteSlave  => axiWriteSlave);  -- [in]
+
    U_Port : entity surf.PtpMacPortEthMac
       generic map (
          TPD_G                => TPD_G,
@@ -235,6 +297,10 @@ begin
          completionReady  => completionRdy,  -- [in]
          rxMaster         => portRxMaster,   -- [out]
          rxReady          => portRxReady,    -- [in]
+         axiReadMaster    => axiReadMaster,  -- [in]
+         axiReadSlave     => axiReadSlave,   -- [out]
+         axiWriteMaster   => axiWriteMaster, -- [in]
+         axiWriteSlave    => axiWriteSlave,  -- [out]
          xgmiiRxd         => rxd,            -- [in]
          xgmiiRxc         => rxc,            -- [in]
          xgmiiTxd         => txd,            -- [out]

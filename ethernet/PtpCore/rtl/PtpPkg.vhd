@@ -976,6 +976,9 @@ package PtpPkg is
       faultGeneration     : sl;
       faultClockEnable    : sl;
       faultTokenProtocol  : sl;
+      -- Owned TX and RX table entries, one cycle behind the tables.
+      txOccupancy         : slv(7 downto 0);
+      rxOccupancy         : slv(7 downto 0);
    end record;
 
    constant PTP_MAC_PORT_STATUS_INIT_C : PtpMacPortStatusType := (
@@ -986,7 +989,9 @@ package PtpPkg is
       transportGeneration => PTP_MAC_PORT_GENERATION_RESET_C,
       faultGeneration     => '0',
       faultClockEnable    => '0',
-      faultTokenProtocol  => '0');
+      faultTokenProtocol  => '0',
+      txOccupancy         => (others => '0'),
+      rxOccupancy         => (others => '0'));
 
    -- Registered port diagnostics in clk; no handshake. Saturating counters.
    -- rxDropped counts tokened RX frames consumed by a MAC stage or released

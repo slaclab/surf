@@ -22,8 +22,8 @@ byte cap, completion capacity, stale-request generation and the aggregate
 owner-abort acknowledgement. These are the interfaces for the subsequent
 independent-PHC and backend work. The legacy `EthMacPtpEndpoint` composition
 and passive taps remain usable; their contracts are in [interfaces.md](interfaces.md).
-No AXI-Lite port bank, timing-port area/routing qualification or hardware
-result is implied. The [composable PTP plan](../../../../../docs/plans/composable-ptp/README.md)
+No hardware result is implied; the read-only port bank and the first KCU105
+timing-port build are recorded in §11 and the plan. The [composable PTP plan](../../../../../docs/plans/composable-ptp/README.md)
 owns phase status; §10 maps this contract to the implementation.
 
 ## 1. Scope and modes
@@ -395,7 +395,7 @@ Both protections survive either choice.
 | Checksum offload | RX checking and TX insertion may stay enabled; TX `DROP_ERR_PKT_G` drops are completed `DISCARDED`. |
 | Pause | Supported in both directions; generated pause frames carry token zero and produce no completion. |
 | Filter | `FILT_EN_G` supported; filtered frames are counted in `rxDropped`. |
-| Capability word | A read-only register publishes `PTP_MAC_PORT_ABI_VERSION_C`, `PTP_MAC_PORT_PHY_*`, timing-mode present, `EMAC_TOKEN_BITS_C`, `PTP_MAC_PORT_COOKIE_BITS_C`, TX/RX table depths, byte limit, one-step absent and `PTP_MAC_PORT_PLANE_MAC_DMAC_C`; these constants are declared in `PtpPkg` so RTL, PyRogue and the Linux adapter share them. `PtpMacPortStatusType` carries the live generation, `admissionOpen`/`drainIdle`/`cancelRequest`/`abortDone`, and the sticky faults (generation exhaustion, `ethClkEn` observed low, token protocol fault); `PtpMacPortControlType` carries `openAdmission`/`drainRequest`/`abortRequest`/`cancelAck`. An RTL controller connects the records directly; a software controller sees them through the port's AXI-Lite bank. Offsets are assigned when that bank is defined; [register-map.md](register-map.md) is updated at that time. |
+| Capability word | A read-only register publishes `PTP_MAC_PORT_ABI_VERSION_C`, `PTP_MAC_PORT_PHY_*`, timing-mode present, `EMAC_TOKEN_BITS_C`, `PTP_MAC_PORT_COOKIE_BITS_C`, TX/RX table depths, byte limit, one-step absent and `PTP_MAC_PORT_PLANE_MAC_DMAC_C`; these constants are declared in `PtpPkg` so RTL, PyRogue and the Linux adapter share them. `PtpMacPortStatusType` carries the live generation, `admissionOpen`/`drainIdle`/`cancelRequest`/`abortDone`, and the sticky faults (generation exhaustion, `ethClkEn` observed low, token protocol fault); `PtpMacPortControlType` carries `openAdmission`/`drainRequest`/`abortRequest`/`cancelAck`. An RTL controller connects the records directly; software reads them, the table occupancy with high-water marks and the counters through `PtpMacPortReg` in `PtpMacPortEthMac` ([register-map.md](register-map.md#ptpmacport-fields)). That bank is read-only: writable control for a software controller is added with the Linux adapter. |
 
 Unsupported combinations (`ROCEV2_EN_G`, `JUMBO_G`, `BYP_EN_G`, XLGMII,
 `PRIM_COMMON_CLK_G = false`, `DROP_ERR_PKT_G = false`, a MAC-internal
@@ -768,10 +768,11 @@ Phase 1 acceptance, per slice in the composable plan:
 | RTL backend reuse | §4.1 names the frontend and ledger mismatches; planning default keeps the passive RX path for the RTL backend and moves TX completion onto the port. |
 
 Resolved in Phase 1: the GMII and XGMII leaves are pin-coincident (§2.4,
-§8) and the §8 benches pass in simulation. Still open: the port's AXI-Lite
-bank (capability, control/status, counters and faults) with its PyRogue
-model and `register-map.md` entry; synthesis, area and timing of the port,
-its tables and the wider FIFO word; and hardware. The third contract review
+§8) and the §8 benches pass in simulation. The read-only port bank
+(capability, status, faults, occupancy and counters) with its PyRogue model
+exists; writable software control remains with the Linux adapter. The GMII
+port builds and closes timing on KCU105 inside the timing-port endpoint
+(§11); hardware remains open. The third contract review
 is addressed by the October 18 fixes/clarifications above. The default-MAC
 suite retains the `EthMacTxCsum` oversize reproducer; fixing that baseline
 defect is separate work. The retained lifecycle bench verifies generation
@@ -898,8 +899,9 @@ system reset clears the complete timing-mode MAC and port. The adapter holds
 transport generation stays at its first open value; generation exhaustion
 cannot occur. `linkReady` follows `phyReady`. Endpoint restart, link loss and
 PHC steps do not reset the port; frames already accepted complete through the
-port's terminal outcomes. Port counters, status and faults are exposed as
-composition outputs until the port's AXI-Lite bank exists.
+port's terminal outcomes. Port counters, status, faults and occupancy are
+composition outputs and readable on the port bank, which `GigEthPtp` places
+at `PORT_OFFSET_G` beside the endpoint aperture.
 
 ### 11.4 Verification
 

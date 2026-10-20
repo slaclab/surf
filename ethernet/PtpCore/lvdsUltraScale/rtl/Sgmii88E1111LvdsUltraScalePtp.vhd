@@ -31,6 +31,7 @@ entity Sgmii88E1111LvdsUltraScalePtp is
       -- Relative offsets allow a board to retain an existing register map.
       ETH_OFFSET_G      : slv(31 downto 0) := x"00000000";
       PTP_OFFSET_G      : slv(31 downto 0) := x"00008000";
+      PORT_OFFSET_G     : slv(31 downto 0) := x"00001000";
       STABLE_CLK_FREQ_G : real             := 156.25E6;
       PHY_G             : natural range 0 to 31 := 7;
       PACKET_LIFETIME_G : positive         := 125000000;
@@ -126,6 +127,7 @@ begin
          AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
          ETH_OFFSET_G      => ETH_OFFSET_G,
          PTP_OFFSET_G      => PTP_OFFSET_G,
+         PORT_OFFSET_G     => PORT_OFFSET_G,
          COMMON_CLK_G      => false,
          PACKET_LIFETIME_G => PACKET_LIFETIME_G,
          FIFO_ADDR_WIDTH_G => FIFO_ADDR_WIDTH_G,

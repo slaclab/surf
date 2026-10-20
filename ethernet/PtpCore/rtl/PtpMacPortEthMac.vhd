@@ -8,8 +8,9 @@
 -- tuple supplied from outside (normally a PtpPhcCore, or a fixture). The
 -- controller owns untagged 0x88F7 in both directions: there is no bypass
 -- path, primary guard or drain. This is a build-time alternative to
--- EthMacPtpEndpoint, which is unchanged. Contract and limits:
--- ethernet/PtpCore/timing-port.md.
+-- EthMacPtpEndpoint, which is unchanged. PtpMacPortReg publishes the port's
+-- capability, status, occupancy and counters on an optional AXI-Lite bank.
+-- Contract and limits: ethernet/PtpCore/timing-port.md.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -25,6 +26,7 @@ use ieee.std_logic_1164.all;
 
 library surf;
 use surf.StdRtlPkg.all;
+use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
 use surf.EthMacPkg.all;
 use surf.PtpPkg.all;
@@ -64,6 +66,12 @@ entity PtpMacPortEthMac is
       completionReady  : in  sl;
       rxMaster         : out PtpMacPortRxMasterType;
       rxReady          : in  sl;
+      -- Port AXI-Lite bank in clk; regRst cancels its responses only
+      regRst           : in  sl                     := '0';
+      axiReadMaster    : in  AxiLiteReadMasterType  := AXI_LITE_READ_MASTER_INIT_C;
+      axiReadSlave     : out AxiLiteReadSlaveType;
+      axiWriteMaster   : in  AxiLiteWriteMasterType := AXI_LITE_WRITE_MASTER_INIT_C;
+      axiWriteSlave    : out AxiLiteWriteSlaveType;
       -- Selected physical interface, synchronous to clk
       xgmiiRxd         : in  slv(63 downto 0) := (others => '0');
       xgmiiRxc         : in  slv(7 downto 0)  := (others => '1');
@@ -96,6 +104,8 @@ architecture mapping of PtpMacPortEthMac is
    signal txRetire     : EthMacTokenRetireArray(EMAC_TX_RETIRE_SOURCES_C-1 downto 0);
    signal macAbortReq  : EthMacAbortRequestType;
    signal macAbortAck  : EthMacAbortAckType;
+   signal portStatus   : PtpMacPortStatusType;
+   signal portCounters : PtpMacPortCountersType;
 
 begin
 
@@ -126,8 +136,8 @@ begin
          phcStatus        => phcStatus,
          captureAbort     => captureAbort,
          control          => control,
-         status           => status,
-         counters         => counters,
+         status           => portStatus,
+         counters         => portCounters,
          txMaster         => txMaster,
          txSlave          => txSlave,
          completionMaster => completionMaster,
@@ -145,6 +155,28 @@ begin
          txRetire         => txRetire,
          macAbortReq      => macAbortReq,
          macAbortAck      => macAbortAck);
+
+   status   <= portStatus;
+   counters <= portCounters;
+
+   U_Reg : entity surf.PtpMacPortReg
+      generic map (
+         TPD_G            => TPD_G,
+         RST_POLARITY_G   => RST_POLARITY_G,
+         PHY_TYPE_G       => PHY_TYPE_G,
+         TX_TABLE_DEPTH_G => TX_TABLE_DEPTH_G,
+         RX_TABLE_DEPTH_G => RX_TABLE_DEPTH_G)
+      port map (
+         clk            => clk,             -- [in]
+         rst            => rst,             -- [in]
+         regRst         => regRst,          -- [in]
+         control        => control,         -- [in]
+         status         => portStatus,      -- [in]
+         counters       => portCounters,    -- [in]
+         axiReadMaster  => axiReadMaster,   -- [in]
+         axiReadSlave   => axiReadSlave,    -- [out]
+         axiWriteMaster => axiWriteMaster,  -- [in]
+         axiWriteSlave  => axiWriteSlave);  -- [out]
 
    U_Mac : entity surf.EthMacTop
       generic map (

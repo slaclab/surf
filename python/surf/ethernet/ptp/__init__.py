@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 from surf.ethernet.ptp._PtpEndpoint import *
+from surf.ethernet.ptp._PtpMacPort import *
 from surf.ethernet.ptp._PtpPhc import *
 from surf.ethernet.ptp._PtpPhcCore import *
 from surf.ethernet.ptp._PtpProtocolEngine import *

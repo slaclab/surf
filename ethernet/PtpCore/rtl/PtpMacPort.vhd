@@ -128,6 +128,8 @@ architecture rtl of PtpMacPort is
    signal admit          : sl;
    signal txIdle         : sl;
    signal rxIdle         : sl;
+   signal txOccupancy    : slv(7 downto 0);
+   signal rxOccupancy    : slv(7 downto 0);
    signal rxCancelDone   : sl;
    signal txFault        : sl;
    signal rxFault        : sl;
@@ -156,7 +158,7 @@ begin
    comb : process (captureAbort, control, ethClkEn, countDiscarded, countFlushed,
                    countRejected, countSent, countWireError, incDelivered, incDropped,
                    incLost, macAbortAck, phcStatus, phcTime, r, rst, rxCancelDone,
-                   rxFault, rxIdle, txFault, txIdle) is
+                   rxFault, rxIdle, rxOccupancy, txFault, txIdle, txOccupancy) is
       variable v : RegType;
    begin
       -- Latch the current value
@@ -238,6 +240,8 @@ begin
          v.status.abortDone := '1';
       end if;
       v.status.transportGeneration := v.generation;
+      v.status.txOccupancy         := txOccupancy;
+      v.status.rxOccupancy         := rxOccupancy;
 
       -- Saturating counters
       v.counters.rxDelivered := bump(r.counters.rxDelivered, to_integer(unsigned(incDelivered)));
@@ -299,6 +303,7 @@ begin
          flush            => r.txFlush,
          releaseAll       => r.releaseAll,
          idle             => txIdle,
+         occupancy        => txOccupancy,
          protocolFault    => txFault,
          phcTime          => r.phcTime,
          phcStatus        => r.phcStatus,
@@ -332,6 +337,7 @@ begin
          releaseAll    => r.releaseAll,
          cancelDone    => rxCancelDone,
          idle          => rxIdle,
+         occupancy     => rxOccupancy,
          protocolFault => rxFault,
          phcTime       => r.phcTime,
          phcStatus     => r.phcStatus,

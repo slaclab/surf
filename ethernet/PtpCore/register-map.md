@@ -338,6 +338,57 @@ counters on that edge. Offsets, access modes and reset values are unchanged.
 | `0x3200` | `ServoRejected` | 31:0 | RO | Saturating diagnostic counter snapshot; reset by system reset. |
 | `0x33FC` | `SnapshotSequence` | 31:0 | RO | Sequence captured with this bank; matches the endpoint sequence after completion. |
 
+## PtpMacPort fields
+
+The timing-port bank (`PtpMacPortReg` in `PtpMacPortEthMac`; PyRogue
+`PtpMacPort`) is a 4 KiB bank outside the endpoint aperture. `GigEthPtp`
+generates it only for `MAC_MODE_G = "TIMING_PORT"`, at `PORT_OFFSET_G`
+(default `0x1000`); tapped builds return DECERR there. Offsets are bank-local.
+It is read-only apart from `OccupancyClear`: an RTL controller owns the
+control levels, so `SoftwareControl` reads 0 and writes to other offsets
+return DECERR. The bus shares `clk` with the port; its reset cancels responses
+only. Counters are the port's saturating `PtpMacPortCountersType` and clear
+only at system reset ([counting rule](timing-port.md#3-receive-transaction)).
+
+| Bank offset | Field | Bits | Access | Meaning |
+| --- | --- | --- | --- | --- |
+| `0x000` | `AbiVersion` | 7:0 | RO | Timing-port record ABI version (PTP_MAC_PORT_ABI_VERSION_C). |
+| `0x000` | `PhyType` | 11:8 | RO | MAC interface: 1 GMII, 2 XGMII. |
+| `0x000` | `Plane` | 15:12 | RO | Capture plane: 1 MAC/DMAC pins. |
+| `0x000` | `TimingMode` | 16 | RO | Timing-mode MAC present. |
+| `0x000` | `OneStep` | 17 | RO | One-step TX supported. |
+| `0x000` | `SoftwareControl` | 18 | RO | Control levels are writable here; 0 when an RTL controller owns the port. |
+| `0x000` | `TokenBits` | 31:24 | RO | Internal MAC token width. |
+| `0x004` | `TxTableDepth` | 7:0 | RO | TX table entries. |
+| `0x004` | `RxTableDepth` | 15:8 | RO | RX table entries. |
+| `0x004` | `MaxFrameBytes` | 31:16 | RO | Ethernet byte limit, FCS excluded. |
+| `0x008` | `CookieBits` | 7:0 | RO | TX request cookie width. |
+| `0x010` | `AdmissionOpen` | 0 | RO | New TX requests and RX starts are admitted. |
+| `0x010` | `DrainIdle` | 1 | RO | Every table entry is released. |
+| `0x010` | `CancelRequest` | 2 | RO | Forced-abort cancel step is requested. |
+| `0x010` | `AbortDone` | 3 | RO | Forced abort has completed. |
+| `0x010` | `TransportGeneration` | 31:16 | RO | Live transport generation; 0 never admits traffic. |
+| `0x014` | `FaultGeneration` | 0 | RO | Sticky: transport generation exhausted; admission closed until system reset. |
+| `0x014` | `FaultClockEnable` | 1 | RO | Sticky: ethClkEn was observed low. |
+| `0x014` | `FaultTokenProtocol` | 2 | RO | Sticky: a MAC event named an unexpected token; the frame was discarded uncounted. |
+| `0x018` | `OpenAdmission` | 0 | RO | Controller level: open admission. |
+| `0x018` | `DrainRequest` | 1 | RO | Controller level: graceful drain. |
+| `0x018` | `AbortRequest` | 2 | RO | Controller level: forced abort. |
+| `0x018` | `CancelAck` | 3 | RO | Controller level: cancel acknowledged. |
+| `0x020` | `TxOccupancy` | 7:0 | RO | Owned TX table entries. |
+| `0x020` | `TxOccupancyMax` | 15:8 | RO | Largest TX occupancy since system reset or OccupancyClear. |
+| `0x020` | `RxOccupancy` | 23:16 | RO | Owned RX table entries. |
+| `0x020` | `RxOccupancyMax` | 31:24 | RO | Largest RX occupancy since system reset or OccupancyClear; RxTableDepth means a start may have been refused. |
+| `0x024` | `OccupancyClear` | 0 | WO | Restart TxOccupancyMax and RxOccupancyMax from the current occupancy. |
+| `0x040` | `RxDelivered` | 31:0 | RO | Saturating: RX frames delivered to the controller. |
+| `0x044` | `RxDropped` | 31:0 | RO | Saturating: tokened RX frames dropped by a MAC stage, length check or abort, plus starts refused for want of a table entry. |
+| `0x048` | `RxLost` | 31:0 | RO | Saturating: RX starts the import leaf abandoned before emitting any beat. |
+| `0x04C` | `TxSent` | 31:0 | RO | Saturating: TX completions SENT. |
+| `0x050` | `TxWireError` | 31:0 | RO | Saturating: TX completions WIRE_ERR. |
+| `0x054` | `TxDiscarded` | 31:0 | RO | Saturating: TX completions DISCARDED. |
+| `0x058` | `TxFlushed` | 31:0 | RO | Saturating: TX completions FLUSHED. |
+| `0x05C` | `TxRejected` | 31:0 | RO | Saturating: TX stream frames consumed without admission (no SOF or request context); they receive no completion. |
+
 See [historical register checks](../../docs/plans/ethernet-ptp/history/verification.md#early-endpoint-and-ownership-milestones)
 and [current acceptance](../../docs/plans/ethernet-ptp/acceptance.md#outstanding-acceptance). Cycle-level
 broadcast contracts and record ownership are in the [timing guide](interfaces.md).

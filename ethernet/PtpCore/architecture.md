@@ -418,6 +418,19 @@ implement TLV semantics or White Rabbit. Selection evidence is in the
 
 ## RX queue storage
 
+The frontend never decodes a byte from a runtime byte position. Its input
+packer re-forms any contiguous input into registered eight-byte beats, only a
+frame's last shorter; a frame ending past a beat boundary emits its last bytes
+on the next edge, and input arriving while that slot is busy waits a beat.
+Each header byte is then beat-and-lane addressed, the message type is
+registered before the length check that uses it, and the TLV walk uses
+registered distances to the TLV region and message end. Validation and queue
+admission run on the edge after the parsed last beat, from registers only, so
+a frame starting on that edge takes the bank after an admitted predecessor.
+These stages replaced a single-cycle EOF chain of about 23 logic levels from
+the input keep through header decode, length checks and admission to the
+counters; admission now follows the last input beat by two or three edges.
+
 `PtpRxFrontend` writes 65 useful fixed-field bytes in a sparse 70-byte layout
 through eight independent byte lanes. The eight-byte Ethernet source/EtherType
 gap is removed without changing stored bytes' modulo-eight lanes; remaining
