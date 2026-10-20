@@ -157,6 +157,7 @@ change warrants it. Keep unrun acceptance work explicit.
 | Sync history or pairing storage/arbitration | Affected scenarios/settings in `test_ptp_protocol_ram.py`; `test_ptp_port_samples.py` for correction, collision and capacity semantics. | Select exchange consumers and a PHY/MAC case when backpressure or publication timing changes. |
 | RX parsing, capture or PHY adapter | Relevant reference cases and `test_ptp_rx_rtl.py` configurations. | Add `test_ptp_rx_mac.py` or `test_ptp_mac_association.py` for MAC association, queues or reset interactions. |
 | Timing-port RTL backend (`PtpMacPortRxAdapter`, `PtpMacPortTxAdapter`, `PtpMacPortEndpoint`, `PtpRxFrontend` no-FCS mode, `MAC_MODE_G`) | `test_ptp_mac_port_adapters.py` (both PHYs); `test_ptp_endpoint_mac.py` `TIMING_PORT` cases. | Tapped `test_ptp_endpoint_mac.py` and `test_ptp_rx_rtl.py` when shared frontend or composition code changes. |
+| Telemetry (`PtpTelemetry`, record format) | `test_ptp_telemetry.py`. | Endpoint/composition cases when the observed signals or `TELEMETRY_EN_G` plumbing change. |
 | Timing port (`PtpMacPort*`, `PtpMacPortEthMac`) or MAC timing mode | `test_ptp_mac_port.py` for the affected PHY; the matching `tests/ethernet/EthMacCore/test_EthMacTiming*.py` for leaf, retire or abort changes. | Run both PHY cases when capture timing, lanes or serialization change. |
 | Endpoint control, shared bench, TX/MAC lifecycle | Smallest consuming fixture that exercises the changed path: port, closed-loop endpoint or real-MAC endpoint. | Cover additional PHY/mode configurations when their timing, clocking or branches are affected. |
 
@@ -413,6 +414,14 @@ an observable completion condition.
   captures without changing the SENT outcome, every request completes once
   after wire done, and unqualified captures are usable. Removing SET/PHASE
   admission inhibition fails it.
+- `test_ptp_telemetry.py`: `PtpTelemetry` through a flat-port wrapper. A
+  model logs every cycle and assigns sequence numbers in trigger order; each
+  emitted PHC, measurement and servo record must equal the words it builds
+  (servo status two cycles after a command), frames are whole, a state change
+  during a command capture joins that record, and under held or random
+  backpressure the missing sequence numbers equal the dropped count.
+  Mutations of the servo capture edge, the drop sequence gap and the busy
+  check each fail it.
 - `test_ptp_mac_port_adapters.py`: `PtpMacPortEthMac` with both RTL-backend
   adapters against `PtpRxTimestampTap`/`PtpTxTimestampTap` on the same pins
   (GMII and XGMII, nonzero calibration). With a steady PHC the adapter RX and

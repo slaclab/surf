@@ -35,7 +35,9 @@ entity GigEthGtyUltraScalePlusPtp is
       INGRESS_LATENCY_G : slv(63 downto 0) := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0) := (others => '0');
       CONTROL_MODE_G    : string           := "SELECTABLE";
-      MAC_MODE_G        : string           := "TAPPED");
+      MAC_MODE_G        : string           := "TAPPED";
+      TELEMETRY_EN_G    : boolean          := false;
+      TELEMETRY_ID_G    : natural          := 0);
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -63,6 +65,9 @@ entity GigEthGtyUltraScalePlusPtp is
       phyReady       : out sl;
       servoState     : out slv(2 downto 0);
       primaryDropped : out slv(31 downto 0);
+      -- Telemetry records in PTP_TELEMETRY_AXIS_CONFIG_C, axilClk domain
+      telemetryMaster : out AxiStreamMasterType;
+      telemetrySlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
 
       -- Physical controls and serial interface.
       sigDet       : in  sl := '1';
@@ -101,7 +106,9 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          CONTROL_MODE_G    => CONTROL_MODE_G,
-         MAC_MODE_G        => MAC_MODE_G)
+         MAC_MODE_G        => MAC_MODE_G,
+         TELEMETRY_EN_G    => TELEMETRY_EN_G,
+         TELEMETRY_ID_G    => TELEMETRY_ID_G)
       port map (
          axilClk           => axilClk,            -- [in]
          axilRst           => axilRst,            -- [in]
@@ -125,6 +132,8 @@ begin
          phyReady          => phyReady,           -- [out]
          servoState        => servoState,         -- [out]
          primaryDropped    => primaryDropped,     -- [out]
+         telemetryMaster   => telemetryMaster,    -- [out]
+         telemetrySlave    => telemetrySlave,     -- [in]
          coreRst           => coreRst,            -- [out]
          coreConfig        => coreConfig,         -- [out]
          coreStatus        => coreStatus,         -- [in]

@@ -56,7 +56,10 @@ entity PtpMacPortEndpoint is
       -- PHY's loss-free RX depth. The RX FIFO depth follows the RX table:
       -- one maximum frame per entry.
       TX_TABLE_DEPTH_G  : positive range 1 to 16 := 4;
-      RX_TABLE_DEPTH_G  : natural range 0 to 32  := 0);
+      RX_TABLE_DEPTH_G  : natural range 0 to 32  := 0;
+      -- Endpoint telemetry records (ethernet/PtpCore/telemetry.md)
+      TELEMETRY_EN_G    : boolean                := false;
+      TELEMETRY_ID_G    : natural                := 0);
    port (
       -- Common Ethernet/PHC clock domain
       clk       : in  sl;
@@ -99,7 +102,10 @@ entity PtpMacPortEndpoint is
       portActive   : out sl;
       servoState   : out slv(2 downto 0);
       portStatus   : out PtpMacPortStatusType;
-      portCounters : out PtpMacPortCountersType);
+      portCounters : out PtpMacPortCountersType;
+      -- Telemetry records in PTP_TELEMETRY_AXIS_CONFIG_C, clk domain
+      telemetryMaster : out AxiStreamMasterType;
+      telemetrySlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C);
 end entity PtpMacPortEndpoint;
 
 architecture rtl of PtpMacPortEndpoint is
@@ -271,7 +277,9 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         CONTROL_MODE_G    => CONTROL_MODE_G)
+         CONTROL_MODE_G    => CONTROL_MODE_G,
+         TELEMETRY_EN_G    => TELEMETRY_EN_G,
+         TELEMETRY_ID_G    => TELEMETRY_ID_G)
       port map (
          clk             => clk,                   -- [in]
          rst             => rst,                   -- [in]
@@ -301,7 +309,9 @@ begin
          pps             => pps,                   -- [out]
          irq             => irq,                   -- [out]
          portActive      => portActive,            -- [out]
-         servoState      => servoState);           -- [out]
+         servoState      => servoState,            -- [out]
+         telemetryMaster => telemetryMaster,       -- [out]
+         telemetrySlave  => telemetrySlave);       -- [in]
 
    phcTime    <= timeValue;
    phcStatus  <= status;

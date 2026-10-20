@@ -140,6 +140,19 @@ package PtpPkg is
    -- AXI lanes. SOF and the capture sidecar must share one pipeline; there is
    -- no independent timestamp queue or ready signal at this physical boundary.
    constant PTP_RX_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(2**PTP_TICK_PHASE_BITS_C);
+
+   -- Telemetry records (ethernet/PtpCore/telemetry.md): one SSI frame of
+   -- 64-bit words per record, in the RSSI application stream format.
+   constant PTP_TELEMETRY_AXIS_CONFIG_C : AxiStreamConfigType := ssiAxiStreamConfig(
+      dataBytes => 8,
+      tKeepMode => TKEEP_COMP_C,
+      tUserMode => TUSER_FIRST_LAST_C,
+      tDestBits => 0,
+      tUserBits => 2);
+   constant PTP_TELEMETRY_VERSION_C     : slv(7 downto 0) := x"01";
+   constant PTP_TELEMETRY_PHC_C         : slv(7 downto 0) := x"01";
+   constant PTP_TELEMETRY_MEASUREMENT_C : slv(7 downto 0) := x"02";
+   constant PTP_TELEMETRY_SERVO_C       : slv(7 downto 0) := x"03";
    -- Canonical PHC input: nanoseconds < 1e9 and fraction in units of 2^-32 ns.
    -- The adapter receives the value corresponding to lane zero of the sampled
    -- physical word, before its own registered output delay.

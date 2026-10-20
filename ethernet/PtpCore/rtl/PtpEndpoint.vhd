@@ -34,7 +34,9 @@
 -- without feeding a PHC command's own capture invalidation back into that
 -- command's commit. Port and register resets preserve the PHC; system reset
 -- clears the complete subsystem. AXI-Lite status, snapshots, PPS and IRQ
--- expose the resulting time and endpoint state.
+-- expose the resulting time and endpoint state. With TELEMETRY_EN_G,
+-- PtpTelemetry observes the PHC, measurements, exchanges and servo and streams
+-- records (ethernet/PtpCore/telemetry.md) without back-pressuring any of them.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -65,7 +67,9 @@ entity PtpEndpoint is
       INGRESS_LATENCY_G : slv(63 downto 0)    := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)    := (others => '0');
       TX_AXIS_CONFIG_G  : AxiStreamConfigType := PTP_RX_AXIS_CONFIG_C;
-      CONTROL_MODE_G    : string              := "SELECTABLE");
+      CONTROL_MODE_G    : string              := "SELECTABLE";
+      TELEMETRY_EN_G    : boolean             := false;
+      TELEMETRY_ID_G    : natural             := 0);
    port (
       -- Shared endpoint clock domain and lifecycle controls.
       clk          : in  sl;
@@ -101,7 +105,10 @@ entity PtpEndpoint is
       pps          : out sl;
       irq          : out sl;
       portActive   : out sl;
-      servoState   : out slv(2 downto 0));
+      servoState   : out slv(2 downto 0);
+      -- Telemetry records in PTP_TELEMETRY_AXIS_CONFIG_C, clk domain.
+      telemetryMaster : out AxiStreamMasterType;
+      telemetrySlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C);
 end entity PtpEndpoint;
 
 architecture rtl of PtpEndpoint is
@@ -424,5 +431,35 @@ begin
          secondCancel      => secondCancel(0),                     -- [out]
          secondResult      => secondResults(0),                    -- [in]
          secondResultReady => secondResultReady(0));               -- [out]
+
+   GEN_TELEMETRY : if TELEMETRY_EN_G generate
+
+      U_Telemetry : entity surf.PtpTelemetry
+         generic map (
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            TELEMETRY_ID_G => TELEMETRY_ID_G)
+         port map (
+            clk               => clk,                  -- [in]
+            rst               => rst,                  -- [in]
+            phcTime           => timeValue,            -- [in]
+            phcStatus         => status,               -- [in]
+            portActive        => portStatus.active,    -- [in]
+            linkReady         => linkReady,            -- [in]
+            measurementMaster => measurementMaster,    -- [in]
+            measurementSlave  => measurementSlave,     -- [in]
+            exchange          => portStatus.exchange,  -- [in]
+            commandMaster     => commandMaster,        -- [in]
+            commandSlave      => commandSlave,         -- [in]
+            servoStatus       => servoStatus,          -- [in]
+            telemetryMaster   => telemetryMaster,      -- [out]
+            telemetrySlave    => telemetrySlave,       -- [in]
+            dropped           => open);                -- [out]
+
+   end generate GEN_TELEMETRY;
+
+   GEN_NO_TELEMETRY : if not TELEMETRY_EN_G generate
+      telemetryMaster <= AXI_STREAM_MASTER_INIT_C;
+   end generate GEN_NO_TELEMETRY;
 
 end architecture rtl;

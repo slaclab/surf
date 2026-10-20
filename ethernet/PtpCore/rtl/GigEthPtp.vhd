@@ -44,7 +44,10 @@ entity GigEthPtp is
       -- "TAPPED": EthMacPtpEndpoint (bypass MAC, passive taps, application
       -- stream). "TIMING_PORT": PtpMacPortEndpoint (timing-port MAC, PTP-only;
       -- application TX is accepted and discarded, no RX is presented).
-      MAC_MODE_G        : string               := "TAPPED");
+      MAC_MODE_G        : string               := "TAPPED";
+      -- Endpoint telemetry records, crossed to axilClk (telemetry.md).
+      TELEMETRY_EN_G    : boolean              := false;
+      TELEMETRY_ID_G    : natural              := 0);
    port (
       -- Host management clock domain. Cross once before local bank decode.
       axilClk        : in  sl;
@@ -71,6 +74,10 @@ entity GigEthPtp is
       phyReady       : out sl;
       servoState     : out slv(2 downto 0);
       primaryDropped : out slv(31 downto 0);
+
+      -- Telemetry records in PTP_TELEMETRY_AXIS_CONFIG_C, axilClk domain.
+      telemetryMaster : out AxiStreamMasterType;
+      telemetrySlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C;
 
       -- PHY adapter: GMII is synchronous to sysClk125. No MAC-side CDC here.
       coreRst    : out sl;
@@ -130,6 +137,9 @@ architecture rtl of GigEthPtp is
    signal status   : GigEthStatusType;
    signal phyReset : sl;
    signal pcsReset : sl;
+
+   signal localTelemetryMaster : AxiStreamMasterType;
+   signal localTelemetrySlave  : AxiStreamSlaveType;
 
 begin
 
@@ -232,7 +242,9 @@ begin
             MAX_FRAME_G       => MAX_FRAME_G,
             INGRESS_LATENCY_G => INGRESS_LATENCY_G,
             EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-            CONTROL_MODE_G    => CONTROL_MODE_G)
+            CONTROL_MODE_G    => CONTROL_MODE_G,
+            TELEMETRY_EN_G    => TELEMETRY_EN_G,
+            TELEMETRY_ID_G    => TELEMETRY_ID_G)
          port map (
             clk            => sysClk125,                       -- [in]
             rst            => sysRst125,                       -- [in]
@@ -262,7 +274,9 @@ begin
             irq            => irq,                             -- [out]
             portActive     => portActive,                      -- [out]
             servoState     => servoState,                      -- [out]
-            primaryDropped => primaryDropped);                 -- [out]
+            primaryDropped => primaryDropped,                  -- [out]
+            telemetryMaster => localTelemetryMaster,           -- [out]
+            telemetrySlave  => localTelemetrySlave);           -- [in]
 
    end generate GEN_TAPPED;
 
@@ -284,7 +298,9 @@ begin
             MAX_FRAME_G       => MAX_FRAME_G,
             INGRESS_LATENCY_G => INGRESS_LATENCY_G,
             EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
-            CONTROL_MODE_G    => CONTROL_MODE_G)
+            CONTROL_MODE_G    => CONTROL_MODE_G,
+            TELEMETRY_EN_G    => TELEMETRY_EN_G,
+            TELEMETRY_ID_G    => TELEMETRY_ID_G)
          port map (
             clk            => sysClk125,                       -- [in]
             rst            => sysRst125,                       -- [in]
@@ -315,9 +331,38 @@ begin
             portActive     => portActive,                      -- [out]
             servoState     => servoState,                      -- [out]
             portStatus     => open,                            -- [out]
-            portCounters   => open);                           -- [out]
+            portCounters   => open,                            -- [out]
+            telemetryMaster => localTelemetryMaster,           -- [out]
+            telemetrySlave  => localTelemetrySlave);           -- [in]
 
    end generate GEN_TIMING_PORT;
+
+   -- Records cross once to the management clock. The endpoint drops whole
+   -- records when this FIFO backs up; nothing waits on it.
+   GEN_TELEMETRY : if TELEMETRY_EN_G generate
+      U_TelemetryFifo : entity surf.AxiStreamFifoV2
+         generic map (
+            TPD_G               => TPD_G,
+            GEN_SYNC_FIFO_G     => COMMON_CLK_G,
+            FIFO_ADDR_WIDTH_G   => 7,
+            MEMORY_TYPE_G       => "distributed",
+            SLAVE_AXI_CONFIG_G  => PTP_TELEMETRY_AXIS_CONFIG_C,
+            MASTER_AXI_CONFIG_G => PTP_TELEMETRY_AXIS_CONFIG_C)
+         port map (
+            sAxisClk    => sysClk125,             -- [in]
+            sAxisRst    => sysRst125,             -- [in]
+            sAxisMaster => localTelemetryMaster,  -- [in]
+            sAxisSlave  => localTelemetrySlave,   -- [out]
+            mAxisClk    => axilClk,               -- [in]
+            mAxisRst    => axilRst,               -- [in]
+            mAxisMaster => telemetryMaster,       -- [out]
+            mAxisSlave  => telemetrySlave);       -- [in]
+   end generate GEN_TELEMETRY;
+
+   GEN_NO_TELEMETRY : if not TELEMETRY_EN_G generate
+      localTelemetrySlave <= AXI_STREAM_SLAVE_FORCE_C;
+      telemetryMaster     <= AXI_STREAM_MASTER_INIT_C;
+   end generate GEN_NO_TELEMETRY;
 
    -- These are structural connections, not additional registered boundaries.
    coreRst           <= phyReset;

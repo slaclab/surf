@@ -55,7 +55,10 @@ entity EthMacPtpEndpoint is
       FIFO_ADDR_WIDTH_G : positive             := 9;
       INGRESS_LATENCY_G : slv(63 downto 0)     := (others => '0');
       EGRESS_LATENCY_G  : slv(63 downto 0)     := (others => '0');
-      CONTROL_MODE_G    : string               := "SELECTABLE");
+      CONTROL_MODE_G    : string               := "SELECTABLE";
+      -- Endpoint telemetry records (ethernet/PtpCore/telemetry.md)
+      TELEMETRY_EN_G    : boolean              := false;
+      TELEMETRY_ID_G    : natural              := 0);
    port (
       -- Common Ethernet/PHC clock domain.
       clk       : in  sl;
@@ -97,7 +100,10 @@ entity EthMacPtpEndpoint is
       irq            : out sl;
       portActive     : out sl;
       servoState     : out slv(2 downto 0);
-      primaryDropped : out slv(31 downto 0));
+      primaryDropped : out slv(31 downto 0);
+      -- Telemetry records in PTP_TELEMETRY_AXIS_CONFIG_C, clk domain
+      telemetryMaster : out AxiStreamMasterType;
+      telemetrySlave  : in  AxiStreamSlaveType := AXI_STREAM_SLAVE_FORCE_C);
 end entity EthMacPtpEndpoint;
 
 architecture rtl of EthMacPtpEndpoint is
@@ -292,7 +298,9 @@ begin
          INGRESS_LATENCY_G => INGRESS_LATENCY_G,
          EGRESS_LATENCY_G  => EGRESS_LATENCY_G,
          TX_AXIS_CONFIG_G  => EMAC_AXIS_CONFIG_C,
-         CONTROL_MODE_G    => CONTROL_MODE_G)
+         CONTROL_MODE_G    => CONTROL_MODE_G,
+         TELEMETRY_EN_G    => TELEMETRY_EN_G,
+         TELEMETRY_ID_G    => TELEMETRY_ID_G)
       port map (
          clk             => clk,                    -- [in]
          rst             => rst,                    -- [in]
@@ -322,7 +330,9 @@ begin
          pps             => pps,                    -- [out]
          irq             => irq,                    -- [out]
          portActive      => portActive,             -- [out]
-         servoState      => servoState);            -- [out]
+         servoState      => servoState,             -- [out]
+         telemetryMaster => telemetryMaster,        -- [out]
+         telemetrySlave  => telemetrySlave);        -- [in]
 
    xgmiiTxd  <= txData;
    xgmiiTxc  <= txControl;

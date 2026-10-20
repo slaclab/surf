@@ -15,7 +15,8 @@ hardware qualification remain open.
 | AXI transactions, offsets, defaults and PyRogue ownership | [Register map](register-map.md) |
 | Shared PHC subsystem: owner-gated admission, coordination, resets and qualification | [PHC subsystem contract](phc.md) |
 | Future waveform/oscillator/epoch integration | [Physical-clock requirements](physical-clock.md) |
-| Timing-capable MAC port for a replaceable controller: records, token carrier, `PtpMacPort` and the DMA envelope | [Timing-port contract](timing-port.md); simulation-verified Phase 1 implementation, no register bank or hardware result yet |
+| Timing-capable MAC port for a replaceable controller: records, token carrier, `PtpMacPort` and the DMA envelope | [Timing-port contract](timing-port.md); simulation-verified, with a read-only status bank; no hardware result yet |
+| Telemetry records: PHC, measurement and servo streams for observation | [Telemetry record format](telemetry.md) |
 | Current results and unfinished acceptance | [Workstream](../../docs/plans/ethernet-ptp/README.md) |
 | Fixtures, independent oracles and focused test selection | [PTP tests](../../tests/ethernet/PtpCore/README.md) |
 
