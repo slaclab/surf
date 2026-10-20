@@ -414,14 +414,19 @@ an observable completion condition.
   captures without changing the SENT outcome, every request completes once
   after wire done, and unqualified captures are usable. Removing SET/PHASE
   admission inhibition fails it.
-- `test_ptp_telemetry.py`: `PtpTelemetry` through a flat-port wrapper. A
-  model logs every cycle and assigns sequence numbers in trigger order; each
-  emitted PHC, measurement and servo record must equal the words it builds
-  (servo status two cycles after a command), frames are whole, a state change
-  during a command capture joins that record, and under held or random
-  backpressure the missing sequence numbers equal the dropped count.
-  Mutations of the servo capture edge, the drop sequence gap and the busy
-  check each fail it.
+- `test_ptp_telemetry.py`: `PtpTelemetry` through a flat-port wrapper against
+  a cycle model of its buffers, sequence numbers, drops, event coalescing and
+  serializer: every output word, SOF, last and the dropped count must match on
+  every cycle. Scenarios cover spaced traffic, a state change during a command
+  capture, PHC and state events coalescing behind a busy buffer, and held and
+  random backpressure. Mutations of the servo capture edge, the drop sequence
+  gap, the busy check, PHC deferral and state deferral each fail it.
+- `test_ptp_endpoint.py` also enables telemetry and checks the real servo's
+  records: each RATE record's status rate converts to its own command, and its
+  PHC header already carries that rate (capture two edges after acceptance;
+  capturing on the acceptance edge fails), path-delay records' forward values
+  equal t2 - (t1 + cSync) of their exchange, and sequence numbers are whole
+  with no drops.
 - `test_ptp_mac_port_adapters.py`: `PtpMacPortEthMac` with both RTL-backend
   adapters against `PtpRxTimestampTap`/`PtpTxTimestampTap` on the same pins
   (GMII and XGMII, nonzero calibration). With a steady PHC the adapter RX and

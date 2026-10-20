@@ -206,6 +206,8 @@ class PtpTelemetryReceiver(pr.DataReceiver):
 
     Connect the telemetry stream to this receiver; records from other
     endpoint IDs are ignored, so several receivers may share one stream.
+    SequenceGaps counts sequence numbers not yet received: a record that
+    arrives after a later one (send priority) clears its own gap.
     Latest values, protocol cross-checks and fixed-length histories are
     published for display. History arrays hold the last historyDepth points
     in time order with a matching time axis: seconds of unsteered local clock
@@ -228,6 +230,8 @@ class PtpTelemetryReceiver(pr.DataReceiver):
         self._nominalNs = 1e9 / clockFrequency
         self._firstTicks = None
         self._lastSequence = None
+        self._missing = set()
+        self._lostGaps = 0
         self._lastPhc = None
         self._hist = {}
 
@@ -248,7 +252,7 @@ class PtpTelemetryReceiver(pr.DataReceiver):
         var('ServoRecords',       0, 'Servo records decoded.')
         var('FormatErrors',       0, 'Frames that failed to decode (version, type or length).')
         var('Dropped',            0, 'Firmware dropped-record count in the latest header.')
-        var('SequenceGaps',       0, 'Record sequence numbers missing between received records.')
+        var('SequenceGaps',       0, 'Record sequence numbers not received; a late record removes its gap.')
         var('LastSequence',       0, 'Record sequence number of the latest record.')
 
         var('PhcTime',       0.0, 'PHC time of the latest record, seconds.', '{:.9f}', 's')
@@ -316,13 +320,24 @@ class PtpTelemetryReceiver(pr.DataReceiver):
     def handle(self, rec):
         """Apply one decoded record; also usable directly for offline replay."""
         self._bump('Records')
+        # Records may arrive slightly out of sequence order (priority and a
+        # servo record's status capture); a late one fills its gap.
         seq = rec['sequence']
-        if self._lastSequence is not None:
-            gap = (seq - self._lastSequence - 1) & 0xFFFFFFFF
-            if gap and gap < 0x80000000:
-                self.SequenceGaps.set(self.SequenceGaps.value() + gap)
-        self._lastSequence = seq
-        self.LastSequence.set(seq)
+        if self._lastSequence is None:
+            self._lastSequence = seq
+        else:
+            ahead = (seq - self._lastSequence) & 0xFFFFFFFF
+            if 0 < ahead < 0x80000000:
+                for missing in range(1, ahead):
+                    self._missing.add((self._lastSequence + missing) & 0xFFFFFFFF)
+                self._lastSequence = seq
+            else:
+                self._missing.discard(seq)
+            while len(self._missing) > 4096:
+                self._missing.remove(min(self._missing))
+                self._lostGaps += 1
+        self.SequenceGaps.set(self._lostGaps + len(self._missing))
+        self.LastSequence.set(self._lastSequence)
         self.Dropped.set(rec['dropped'])
         self.PhcTime.set(rec['phcTime'])
         self.PhcGeneration.set(rec['phcGeneration'])

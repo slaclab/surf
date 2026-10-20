@@ -7,12 +7,17 @@
 -- 64-bit words each (ethernet/PtpCore/telemetry.md). It drives no ready or
 -- command: a slow consumer loses records, never delays the endpoint.
 --
--- Each record type has one capture buffer, filled on its trigger edge with a
--- coherent PHC sample. A trigger that finds its buffer occupied is dropped and
--- counted; every trigger takes the next record sequence number, so drops show
--- as gaps. A servo command arms its buffer: the command is captured on its
--- acceptance edge and the PHC sample and servo status two edges later, after
--- the servo's status update. Waiting buffers are sent PHC, measurement, servo.
+-- Each record type has one capture buffer (measurements two, sent oldest
+-- first), filled on its trigger edge with a coherent PHC sample. A measurement or servo command that finds its buffer
+-- occupied is dropped and counted, and still takes the next record sequence
+-- number, so drops show as gaps. PHC events and servo state changes are state,
+-- not samples: while their buffer is busy they coalesce into one record that
+-- carries every cause and samples when the buffer frees. A SET, PHASE or RATE
+-- servo command arms its buffer: the command is captured on its acceptance
+-- edge and the PHC sample and servo status two edges later, after the servo's
+-- status update and the command's commit. A VALID command takes no record;
+-- the PHC record's timeValid cause reports it. Waiting buffers are sent PHC,
+-- measurement, servo.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -122,6 +127,10 @@ architecture rtl of PtpTelemetry is
       command     => NO_COMMAND_C,
       servo       => PTP_SERVO_STATUS_INIT_C);
 
+   -- Two measurement buffers: the protocol can publish two measurements a few
+   -- edges apart. They are sent oldest first.
+   type BufferArray is array (natural range <>) of BufferType;
+
    type StateType is (
       IDLE_S,
       PHC_S,
@@ -142,8 +151,13 @@ architecture rtl of PtpTelemetry is
       recordSeq       : slv(31 downto 0);
       dropped        : slv(31 downto 0);
       servoArm       : slv(1 downto 0);
+      -- Events waiting for a busy buffer: PHC causes and a servo state change
+      phcDefer       : slv(7 downto 0);
+      stateDefer     : sl;
       phc            : BufferType;
-      meas           : BufferType;
+      meas           : BufferArray(0 to 1);
+      measNext       : natural range 0 to 1;
+      measSlot       : natural range 0 to 1;
       servo          : BufferType;
       -- Serializer
       state          : StateType;
@@ -163,8 +177,12 @@ architecture rtl of PtpTelemetry is
       recordSeq       => (others => '0'),
       dropped        => (others => '0'),
       servoArm       => (others => '0'),
+      phcDefer       => (others => '0'),
+      stateDefer     => '0',
       phc            => BUFFER_INIT_C,
-      meas           => BUFFER_INIT_C,
+      meas           => (others => BUFFER_INIT_C),
+      measNext       => 0,
+      measSlot       => 0,
       servo          => BUFFER_INIT_C,
       state          => IDLE_S,
       word           => 0,
@@ -339,6 +357,7 @@ begin
 
       variable busy  : boolean;
       variable taken : boolean;
+      variable slot  : natural range 0 to 1;
    begin
       -- Latch the current value
       v := r;
@@ -367,8 +386,9 @@ begin
             -- Start the first waiting buffer
             if r.phc.pending = '1' then
                v.state := PHC_S;
-            elsif r.meas.pending = '1' then
-               v.state := MEAS_S;
+            elsif r.meas(r.measNext).pending = '1' then
+               v.state    := MEAS_S;
+               v.measSlot := r.measNext;
             elsif r.servo.pending = '1' and r.servoArm = "00" then
                v.state := SERVO_S;
             end if;
@@ -381,7 +401,7 @@ begin
                   data := phcWord(r.phc, r.dropped, v.word);
                   last := v.word = PHC_WORDS_C-1;
                when MEAS_S =>
-                  data := measWord(r.meas, r.dropped, v.word);
+                  data := measWord(r.meas(v.measSlot), r.dropped, v.word);
                   last := v.word = MEAS_WORDS_C-1;
                when others =>
                   data := servoWord(r.servo, r.dropped, v.word);
@@ -397,7 +417,9 @@ begin
                v.master.tLast := '1';
                case v.state is
                   when PHC_S  => v.phc.pending := '0';
-                  when MEAS_S => v.meas.pending := '0';
+                  when MEAS_S =>
+                     v.meas(v.measSlot).pending := '0';
+                     v.measNext                 := 1-v.measSlot;
                   when others => v.servo.pending := '0';
                end case;
                v.state := IDLE_S;
@@ -422,28 +444,42 @@ begin
          phcCause(4) := toSl(portActive /= r.lastPort or linkReady /= r.lastLink);
          phcCause(5) := phcStatus.fault and not r.lastFault;
       end if;
+      -- PHC events coalesce while the buffer is busy: one record, every cause,
+      -- sampled once the buffer frees. They are state, not samples to lose.
+      phcCause := phcCause or r.phcDefer;
       if phcCause /= x"00" then
-         busy := r.phc.pending = '1';
-         claim(busy, taken);
-         if taken then
-            v.phc.pending  := '1';
+         if r.phc.pending = '1' then
+            v.phcDefer := phcCause;
+         else
+            busy := false;
+            claim(busy, taken);
+            v.phcDefer      := (others => '0');
+            v.phc.pending   := '1';
             v.phc.recordSeq := v.recordSeq;
-            v.phc.cause    := phcCause;
-            v.phc.sample   := sample;
+            v.phc.cause     := phcCause;
+            v.phc.sample    := sample;
          end if;
       end if;
 
       -- Measurement: each transfer into the servo
       if measurementMaster.valid = '1' and measurementSlave.ready = '1' and measurementMaster.abort = '0' then
-         busy := r.meas.pending = '1';
+         busy := r.meas(0).pending = '1' and r.meas(1).pending = '1';
          claim(busy, taken);
          if taken then
-            v.meas.pending     := '1';
-            v.meas.recordSeq    := v.recordSeq;
-            v.meas.cause       := (0 => measurementMaster.data.isDelay, others => '0');
-            v.meas.sample      := sample;
-            v.meas.measurement := measurementMaster.data;
-            v.meas.exchange    := exchange;
+            -- The free buffer; with none waiting it is also the next to send.
+            slot := 0;
+            if r.meas(0).pending = '1' then
+               slot := 1;
+            end if;
+            if r.meas(1-slot).pending = '0' then
+               v.measNext := slot;
+            end if;
+            v.meas(slot).pending     := '1';
+            v.meas(slot).recordSeq   := v.recordSeq;
+            v.meas(slot).cause       := (0 => measurementMaster.data.isDelay, others => '0');
+            v.meas(slot).sample      := sample;
+            v.meas(slot).measurement := measurementMaster.data;
+            v.meas(slot).exchange    := exchange;
          end if;
       end if;
 
@@ -453,7 +489,9 @@ begin
          v.servo.sample := sample;
          v.servo.servo  := servoStatus;
       end if;
-      if commandMaster.valid = '1' and commandSlave.ready = '1' then
+      -- A VALID command follows a step or first rate within a few edges; its
+      -- effect is the PHC record's timeValid cause, so it takes no record.
+      if commandMaster.valid = '1' and commandSlave.ready = '1' and commandMaster.data.kind /= PTP_CMD_VALID_C then
          busy := r.servo.pending = '1';
          claim(busy, taken);
          if taken then
@@ -464,21 +502,24 @@ begin
             v.servoArm       := "10";
          end if;
       end if;
-      if r.started = '1' and servoStatus.state /= r.lastServoState then
+      -- State changes also coalesce: an armed command record reports the new
+      -- state; otherwise one state record follows once the buffer frees.
+      if (r.started = '1' and servoStatus.state /= r.lastServoState) or r.stateDefer = '1' then
          if r.servoArm /= "00" or v.servoArm /= "00" then
-            -- Still capturing: the armed record reports the new state.
             v.servo.cause(1) := '1';
+            v.stateDefer     := '0';
+         elsif r.servo.pending = '1' then
+            v.stateDefer := '1';
          else
-            busy := r.servo.pending = '1';
+            busy := false;
             claim(busy, taken);
-            if taken then
-               v.servo.pending  := '1';
-               v.servo.recordSeq := v.recordSeq;
-               v.servo.cause    := (1 => '1', others => '0');
-               v.servo.sample   := sample;
-               v.servo.command  := NO_COMMAND_C;
-               v.servo.servo    := servoStatus;
-            end if;
+            v.stateDefer      := '0';
+            v.servo.pending   := '1';
+            v.servo.recordSeq := v.recordSeq;
+            v.servo.cause     := (1 => '1', others => '0');
+            v.servo.sample    := sample;
+            v.servo.command   := NO_COMMAND_C;
+            v.servo.servo     := servoStatus;
          end if;
       end if;
 

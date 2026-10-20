@@ -13,7 +13,13 @@
 # - Stimulus: AXI-Lite configuration/commands, independent one-/two-step master,
 #   oscillator error, Delay_Req responses, loss and restart.
 # - Checks: PHC commands/snapshots, timestamp provenance, acquisition, lock/holdover,
-#   valid command sequencing and reacquisition with oscillator error.
+#   valid command sequencing and reacquisition with oscillator error. Telemetry
+#   records from the real servo: every RATE servo record's status rate converts
+#   to its own command (status sampled after the servo's update) and its PHC
+#   header already carries that rate (sampled after the command commits);
+#   path-delay records' forward values equal t2 - (t1 + cSync) from their
+#   own exchange;
+#   sequences are gap-free with no drops.
 # - Timing: The master's clock is simulation time, independent of the DUT PHC.
 #   Wire timestamps include XGMII lane phase; every wait has a cycle bound.
 #   Accelerated request/holdover settings retain continuous clocks, the 800-tick
@@ -32,10 +38,90 @@ from tests.ethernet.PtpCore.ptp_reference import NS, Q16, Q32
 
 from tests.ethernet.PtpCore.ptp_endpoint_test_utils import Bench
 
+TELEMETRY_WORDS = {1: 8, 2: 27, 3: 19}
+
+
+def _signed(value, bits):
+    return value - (1 << bits) if value >> (bits - 1) else value
+
+
+def _wide(words, index, bits):
+    value = sum(words[index + i] << (64 * i) for i in range((bits + 63) // 64))
+    return value & ((1 << bits) - 1)
+
+
+def _local_q16(t):
+    return ((t >> 48) * NS + ((t >> 16) & 0xFFFFFFFF)) * Q16 + (t & 0xFFFF)
+
+
+def _wire_q16(t):
+    return _local_q16(t << 16)
+
+
+async def collect_telemetry(d, frames):
+    """Whole records, sampled on the transfer edge, from the first SOF."""
+    words = None
+    while True:
+        await RisingEdge(d.clk)
+        if str(d.telemetryValid.value) == "1" and str(d.telemetryReady.value) == "1":
+            sof = int(d.telemetrySof.value)
+            if words is None and not sof:
+                continue
+            assert bool(sof) == (not words)
+            words = words or []
+            words.append(int(d.telemetryData.value))
+            if int(d.telemetryLast.value):
+                frames.append(words)
+                words = []
+
+
+def check_telemetry(d, frames, clk_freq):
+    nominal = ((NS << 32) + clk_freq // 2) // clk_freq
+    counts = {1: 0, 2: 0, 3: 0}
+    rate_checks = forward_checks = state_records = 0
+    for w in frames:
+        kind = (w[0] >> 8) & 0xFF
+        assert len(w) == TELEMETRY_WORDS[kind], (kind, len(w))
+        counts[kind] += 1
+        seq = w[0] >> 32
+        # Events coalesce and measurements/commands are far apart: no drops.
+        assert w[1] & 0xFFFFFFFF == 0, 'a record was dropped with the consumer always ready'
+        cause = (w[0] >> 24) & 0xFF
+        if kind == 3 and cause & 1 and w[7] & 7 == 2:
+            # RATE: the status rate (Q16 ppb) is the one this command came from,
+            # and the PHC already applies it two edges after acceptance.
+            command, ppb = _signed(w[8], 64), _signed(w[17], 64)
+            product = ppb * nominal
+            expected = (abs(product) + NS * Q16 // 2) // (NS * Q16) * (1 if product >= 0 else -1)
+            assert abs(command - expected) <= 1, (seq, command, expected)
+            assert _signed(w[5], 64) == command, (seq, _signed(w[5], 64), command)
+            rate_checks += 1
+        if kind == 3 and cause & 2:
+            state_records += 1
+        # A path-delay measurement carries its own exchange and that exchange's
+        # forward value.
+        if (kind == 2 and w[7] & 1 and (w[26] >> 16) & 0xFFFF == (w[7] >> 32) & 0xFFFF and
+                (w[26] >> 32) == w[8] & 0xFFFFFFFF):
+            forward = _signed(_wide(w, 10, 128), 128)
+            recomputed = _local_q16(_wide(w, 17, 96)) - _wire_q16(_wide(w, 15, 80)) - _signed(_wide(w, 23, 128), 128)
+            assert forward == recomputed, (seq, forward, recomputed)
+            forward_checks += 1
+    # Records are sent by priority, so a servo record waiting for its status
+    # can follow a later PHC record; the sequence numbers must still be whole.
+    seqs = sorted(w[0] >> 32 for w in frames)
+    assert seqs == list(range(seqs[0], seqs[0] + len(seqs))), 'a record sequence number is missing'
+    d._log.info("Telemetry records %s: %d RATE, %d forward, %d state checks", counts, rate_checks,
+                forward_checks, state_records)
+    assert rate_checks >= 5 and forward_checks >= 3 and state_records >= 2 and counts[1] >= 1
+
+
 @cocotb.test()
 async def autonomous_endpoint(d):
     b = Bench(d)
+    telemetry = []
+    collector = cocotb.start_soon(collect_telemetry(d, telemetry))
     await b.start()
+    b.tasks.append(collector)
     assert await b.read(0) == 0x30001
     assert (await b.axil.read(0x3F0, 4)).resp == AxiResp.DECERR
     await b.write(0x5028, 5, 8)
@@ -124,6 +210,8 @@ async def autonomous_endpoint(d):
     assert int(d.servoState.value) == 3
     await check_absolute_phase()
     d._log.info('Completed endpoint lifecycle at raw tick %d', int(d.timeTicks.value))
+    await b.wait(100)
+    check_telemetry(d, telemetry, b.frequency)
     b.stop()
 
 @pytest.mark.parametrize("mode,real_mac", [("XGMII", False), ("GMII", False)])
@@ -131,7 +219,7 @@ async def autonomous_endpoint(d):
 def test_ptp_endpoint(mode, real_mac, two_step):
     run_surf_vhdl_test(test_file=__file__, toplevel="surf.ptpendpointloopbackwrapper",
                       parameters={"PHY_TYPE_G": mode, "CLK_FREQ_G": 125000000 if mode == "GMII" else 156250000,
-                                  "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": real_mac},
+                                  "PACKET_LIFETIME_G": 5000, "MAC_ENABLE_G": real_mac, "TELEMETRY_EN_G": True},
                       extra_env={"TWO_STEP": int(two_step), "SYNC_CORRECTION": 10*Q16+3, "ORIGIN_BIAS_NS": 3,
                                  "MODE": mode, "REAL_MAC": int(real_mac), "OSCILLATOR_PPM": 100 if mode == "XGMII" else -100, "ALLOW_STEP": int(mode == "XGMII"), "ABSOLUTE_PHASE_CHECK": 1},
                       extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES + ["ethernet/PtpCore/wrappers/PtpEndpointLoopbackWrapper.vhd"]})

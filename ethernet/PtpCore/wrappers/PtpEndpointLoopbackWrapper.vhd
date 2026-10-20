@@ -39,6 +39,7 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.AxiStreamPkg.all;
+use surf.SsiPkg.all;
 use surf.EthMacPkg.all;
 use surf.PtpPkg.all;
 
@@ -54,7 +55,9 @@ entity PtpEndpointLoopbackWrapper is
       MAC_MODE_G        : string           := "TAPPED";
       PHY_TYPE_G        : string           := "XGMII";
       CLK_FREQ_G        : positive         := 156250000;
-      PACKET_LIFETIME_G : positive         := 10000);
+      PACKET_LIFETIME_G : positive         := 10000;
+      -- Endpoint telemetry records on the telemetry* ports.
+      TELEMETRY_EN_G    : boolean          := false);
    port (
       clk               : in  sl;
       rst               : in  sl;
@@ -129,7 +132,13 @@ entity PtpEndpointLoopbackWrapper is
       modelTxKeep       : out slv(7 downto 0);
       modelTxLast       : out sl;
       modelTxSof        : out sl;
-      primaryDropped    : out slv(31 downto 0));
+      primaryDropped    : out slv(31 downto 0);
+      -- Telemetry records (PTP_TELEMETRY_AXIS_CONFIG_C), clk domain
+      telemetryValid    : out sl;
+      telemetryData     : out slv(63 downto 0);
+      telemetryLast     : out sl;
+      telemetrySof      : out sl;
+      telemetryReady    : in  sl                := '1');
 end entity PtpEndpointLoopbackWrapper;
 
 architecture rtl of PtpEndpointLoopbackWrapper is
@@ -149,8 +158,16 @@ architecture rtl of PtpEndpointLoopbackWrapper is
 
    signal rxMessageMaster    : PtpRxMessageMasterType;
    signal txCompletionMaster : PtpRxMessageMasterType;
+   signal telemetryMaster    : AxiStreamMasterType;
+   signal telemetrySlave     : AxiStreamSlaveType;
 
 begin
+
+   telemetrySlave.tReady <= telemetryReady;
+   telemetryValid        <= telemetryMaster.tValid;
+   telemetryData         <= telemetryMaster.tData(63 downto 0);
+   telemetryLast         <= telemetryMaster.tLast;
+   telemetrySof          <= ssiGetUserSof(PTP_TELEMETRY_AXIS_CONFIG_C, telemetryMaster);
 
    resetN             <= not rst;
    config.macAddress  <= localMac;
@@ -225,7 +242,8 @@ begin
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             PHY_TYPE_G        => PHY_TYPE_G,
             CLK_FREQ_G        => CLK_FREQ_G,
-            PACKET_LIFETIME_G => PACKET_LIFETIME_G)
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G,
+            TELEMETRY_EN_G    => TELEMETRY_EN_G)
          port map (
             clk            => clk,              -- [in]
             rst            => rst,              -- [in]
@@ -258,7 +276,9 @@ begin
             irq            => irq,              -- [out]
             portActive     => portActive,       -- [out]
             servoState     => servoState,       -- [out]
-            primaryDropped => primaryDropped);  -- [out]
+            primaryDropped => primaryDropped,   -- [out]
+            telemetryMaster => telemetryMaster, -- [out]
+            telemetrySlave  => telemetrySlave); -- [in]
 
       modelTxValid <= '0';
       modelTxData  <= (others => '0');
@@ -275,7 +295,8 @@ begin
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             PHY_TYPE_G        => PHY_TYPE_G,
             CLK_FREQ_G        => CLK_FREQ_G,
-            PACKET_LIFETIME_G => PACKET_LIFETIME_G)
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G,
+            TELEMETRY_EN_G    => TELEMETRY_EN_G)
          port map (
             clk            => clk,          -- [in]
             rst            => rst,          -- [in]
@@ -305,7 +326,9 @@ begin
             portActive     => portActive,   -- [out]
             servoState     => servoState,   -- [out]
             portStatus     => open,         -- [out]
-            portCounters   => open);        -- [out]
+            portCounters   => open,         -- [out]
+            telemetryMaster => telemetryMaster,  -- [out]
+            telemetrySlave  => telemetrySlave);  -- [in]
 
       -- PTP-only: the application stream is absent in this build.
       sSlave         <= AXI_STREAM_SLAVE_FORCE_C;
@@ -415,7 +438,8 @@ begin
             TPD_G             => TPD_PS_G*1 ps,
             AXIL_BASE_ADDR_G  => AXIL_BASE_ADDR_G,
             CLK_FREQ_G        => CLK_FREQ_G,
-            PACKET_LIFETIME_G => PACKET_LIFETIME_G)
+            PACKET_LIFETIME_G => PACKET_LIFETIME_G,
+            TELEMETRY_EN_G    => TELEMETRY_EN_G)
          port map (
             clk             => clk,                 -- [in]
             rst             => rst,                 -- [in]
@@ -445,7 +469,9 @@ begin
             pps             => pps,                 -- [out]
             irq             => irq,                 -- [out]
             portActive      => portActive,          -- [out]
-            servoState      => servoState);         -- [out]
+            servoState      => servoState,          -- [out]
+            telemetryMaster => telemetryMaster,     -- [out]
+            telemetrySlave  => telemetrySlave);     -- [in]
 
    end generate GEN_MODEL;
    timeSeconds       <= timeValue.seconds;

@@ -15,12 +15,18 @@ several endpoints' streams; the endpoint ID in each header separates them.
 ## Capture and loss
 
 Each record type has one capture buffer. A trigger captures the record's
-fields, including a coherent PHC sample, on its own edge. A trigger finding
-its type's buffer still occupied (waiting or being sent) is a dropped record:
-the dropped count increases and no partial record is ever emitted. Every
-trigger, sent or dropped, takes the next record sequence number, so a gap in
-the sequence shows exactly where records were lost. Buffers are sent in the
-order PHC, measurement, servo when several wait.
+fields, including a coherent PHC sample, on its own edge. Measurements and
+servo commands are samples: one finding its buffer still occupied (waiting or
+being sent) is a dropped record. The dropped count increases, no partial
+record is ever emitted, and the trigger still takes the next record sequence
+number, so a gap in the sequence shows exactly where records were lost. PHC
+events and servo state changes are state: while their buffer is occupied they
+coalesce, and one record carrying every cause seen is captured, with the
+sample of that edge, as soon as the buffer frees. Coalesced events take one
+sequence number between them and are not counted as dropped. Buffers are sent
+in the order PHC, measurement, servo when several wait, and a servo command
+record is held until its status capture, so records can arrive out of
+sequence order; sort by sequence number before looking for gaps.
 
 ## Common header (words 0-6)
 
@@ -91,8 +97,10 @@ are zero.
 
 ## Servo record (type 3, 19 words)
 
-Emitted when the PHC accepts a servo command (cause bit 0) and when the servo
-state changes (cause bit 1). For a command, the command fields are captured
+Emitted when the PHC accepts a servo SET, PHASE or RATE command (cause bit 0)
+and when the servo state changes (cause bit 1). A VALID command, which follows
+a step or the first rate within a few edges, takes no record; the PHC record's
+timeValid cause reports its effect. For a command, the command fields are captured
 on its acceptance edge and the servo status and header two edges later, after
 the servo's status update; otherwise the command fields are zero.
 
