@@ -14,3 +14,4 @@ from surf.ethernet.ptp._PtpPhc import *
 from surf.ethernet.ptp._PtpPhcCore import *
 from surf.ethernet.ptp._PtpProtocolEngine import *
 from surf.ethernet.ptp._PtpServo import *
+from surf.ethernet.ptp._PtpTelemetry import *
