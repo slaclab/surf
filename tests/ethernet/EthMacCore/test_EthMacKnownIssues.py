@@ -15,8 +15,8 @@
 #   with its separate RTL fix. Default recovery scenarios cover reports whose
 #   proposed stricter policy is not an established interface requirement.
 # - Stimulus / expected failures:
-#   #3: TX oversize followed by three distinct UDP frames loses the first and
-#       assigns earlier transaction lengths/checksums to subsequent frames.
+#   #3 fixed: TX oversize followed by three distinct UDP frames must preserve
+#       frame/transaction alignment and all recovery lengths/checksums.
 #   #5: XGMII RX link loss continues unterminated beats; the full MAC then
 #       swallows the first recovery frame while the checksum stage blows off.
 #   #4 fixed: XGMII TX link loss must drain the interrupted frame and deliver
@@ -273,8 +273,8 @@ def top_status(status: StatusPulseCounter) -> str:
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=200, timeout_unit="us")
-async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def tx_csum_oversize_recovery_test(dut):
     # Start the clock, enable IPv4/UDP insertion and release reset.
     bench = await setup_flat_emac_testbench(
         dut,
@@ -303,8 +303,11 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
         repaired.append(build_ipv4_udp_frame(**fields))
         inputs.append(build_ipv4_udp_frame(**fields, ip_checksum_override=0, udp_checksum_override=0))
 
+    # A 64-cycle gap keeps the loopback RxCsum checker clear of report #11
+    # (adjacent frames flag a false IPv4 error); the pre-fix TX RTL still
+    # misaligns transactions at this spacing.
     frames = [frame_beats_from_bytes(oversize)] + [frame_beats_from_bytes(frame) for frame in inputs]
-    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=4)
+    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=64)
     await wait_until(lambda: len(collector.frames) >= len(repaired), clk=bench.clk, cycles=2000)
     await cycle(bench.clk, 200)
 
@@ -316,9 +319,7 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
         f"{frame.describe()} looks like {describe_header(frame.payload, names)}" for frame in collector.frames
     ) or "none"
     assert delivered == repaired and all(frame.eofe == 0 for frame in collector.frames), (
-        "Known defect (EthMacTxCsum oversize branch): the oversize frame leaves a "
-        "tLast-less beat in Fifo_Cache, the next frame is dropped with it and Fifo_Trans "
-        "stays misaligned, so later frames get the previous frame's length/checksums. "
+        "Report #3: oversize TX must not consume a recovery frame or its checksum metadata. "
         f"seed={SEED:#x}; expected good0, good1, good2 intact; delivered {observed}"
     )
 
@@ -753,13 +754,6 @@ async def rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test(dut):
 
 KNOWN_ISSUE_CASES = [
     pytest.param(
-        "surf.ethmactxcsumloopbackwrapper",
-        TXCSUM_WRAPPER,
-        {"JUMBO_G": "false"},
-        ("tx_csum_oversize_frame_misaligns_transactions_known_issue_test",),
-        id="txcsum_oversize",
-    ),
-    pytest.param(
         "surf.ethmacimportexportwrapper",
         IMPORT_EXPORT_WRAPPER,
         {"PHY_TYPE_G": "XGMII"},
@@ -806,6 +800,13 @@ def test_EthMacKnownIssues(toplevel, wrapper, parameters, entrypoints):
 
 
 FIXED_ISSUE_CASES = [
+    pytest.param(
+        "surf.ethmactxcsumloopbackwrapper",
+        TXCSUM_WRAPPER,
+        {"JUMBO_G": "false"},
+        ("tx_csum_oversize_recovery_test",),
+        id="txcsum_oversize",
+    ),
     pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
                  ("tx_xgmii_link_loss_recovery_test",), id="xgmii_tx_link_loss"),
 ]

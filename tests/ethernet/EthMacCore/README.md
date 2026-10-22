@@ -31,7 +31,7 @@ change crosses stages. All commands run from the repository root after
 | `EthMacTxExport*` (GMII/XGMII exporters) | `test_EthMacTxExportLine.py` (all PHY cases), `test_EthMacTxExport.py` |
 | `EthMacRxImport*` (GMII/XGMII importers) | `test_EthMacRxImportLine.py`, `test_EthMacRxImport.py` |
 | `EthMacTxCsum` | `test_EthMacTxCsumDepth.py`, `test_EthMacTxCsum.py` |
-| `EthMacRxCsum`, `getEthMacCsum` in `EthMacPkg` | `test_EthMacRxCsumDepth.py`, `test_EthMacRxCsum.py` |
+| `EthMacRxCsum`, `getEthMacCsum` in `EthMacPkg` | `test_EthMacRxCsumDepth.py`, `test_EthMacRxCsum.py`, `test_EthMacRxChecksumIntegration.py` |
 | `EthMacRxFifo`, `SsiFifo`/`SsiObFrameFilter`/`SsiIbFrameFilter` in the MAC configuration | `test_EthMacRxFifoFlow.py`, `test_EthMacRxFifo.py` |
 | `EthMacTxPause`, `EthMacRxPause`, `EthMacFlowCtrl` | `test_EthMacTxPauseTiming.py`, `test_EthMacTxPause.py`, `test_EthMacRxPause.py`, `test_EthMacFlowCtrl.py`, `test_EthMacTopPause.py` |
 | `EthMacRxFilter` | `test_EthMacRxFilterPolicy.py`, `test_EthMacRxFilter.py` |
@@ -114,13 +114,14 @@ supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
 in subsequent fix PRs; `Old` preserves the initial PR review numbering.
+Reports #1 through #4 are fixed and covered by default regressions; their IDs are retained below.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
 | --- | --- | --- | --- |
-| 1 | 10 | High; runtime defaults | RX checksum stage clears inbound/earlier EOFE. Leaf: `test_EthMacRxCsumDepth.py::rx_eofe_overwrite_known_issue_test`. PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_known_issue_test` demonstrates bad-FCS UDP escaping error dropping. |
-| 2 | 11 | High; length/error dependent | One-byte final beat aliases IPERR/SOF and FRAG/EOFE. `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test`. |
-| 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
+| 1 | 10 | Fixed; previously High, runtime defaults | RX checksum stage preserves inbound, oversize and earlier checksum EOFE. Default leaf: `test_EthMacRxCsumDepth.py::rx_eofe_preservation_test` checks all runtime enable combinations and clean recovery. Default PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_test` checks bad-FCS UDP dropping/forwarding. |
+| 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
+| 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
 | 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
 | 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
@@ -138,15 +139,14 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
-its three policy/recovery nodes and its fixed-issue regression node run by
+its three policy/recovery nodes and its fixed-issue regression nodes run by
 default and are expected to pass.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
-confirmed defects: `phyReady` changes only while the line is idle, TX frames stay
-within the checksum stage's size limit, EOFE TX frames are sent only where
-`DROP_ERR_PKT_G` drops them, `RX_ER` frames carry no `0xD5` after the error, and
-the gated-clock GMII scoreboard case is TX-only.
+confirmed defects: `phyReady` changes only while the line is idle, EOFE TX
+frames are sent only where `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry
+no `0xD5` after the error, and the gated-clock GMII scoreboard case is TX-only.
 
 ## Current behaviour pinned by the default run
 
