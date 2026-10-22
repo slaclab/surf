@@ -202,6 +202,8 @@ begin
                end if;
                if (macMaster.tValid = '1') then
                   if (macMaster.tlast = '1') then
+                     -- Carry the input frame error through padding and FCS.
+                     v.gmiiTxEr := axiStreamGetUserBit(AXI_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
                      if (v.txCount = x"3C") then
                         v.state := TX_CRC_S;
                      else

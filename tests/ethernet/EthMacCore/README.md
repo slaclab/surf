@@ -94,9 +94,10 @@ is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-The unresolved defect reproducers below assert the intended behavior, fail on
-the current RTL for the documented reason, and run only with
-`RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
+Reproducers for the unresolved reports below assert the intended behavior, fail
+on the current RTL for the documented reason, and run only with
+`RUN_KNOWN_ISSUE_TESTS=1`. Regressions for fixed reports run by default. The
+two policy candidates have default recovery tests
 that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
 to the default run together with its fix. With cocotb 2.1, a `skip=True`
 entrypoint still runs whenever a `COCOTB_TEST_FILTER` matches it, including an
@@ -124,7 +125,6 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
 | 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
-| 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
 | 10 | 15 | Medium; threshold boundary | `pauseThresh >= depth-1` is unreachable after writes stop at depth-2; default 562 is affected with a 512-entry FIFO. `test_EthMacRxFifoFlow.py::rx_fifo_pause_threshold_clamp_known_issue_test`. |
@@ -148,12 +148,15 @@ Fixed reports leave the table above and keep their IDs here.
 | # | Old | Fix and regression |
 | --- | --- | --- |
 | 6 | 9 | GMII 10/100 RX: retain `delRxDv` until the next enabled clock. Default `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_test`, `rx_clk_en_1_in_100_test` and `rx_clk_en_recovery_test` require exact delivery, bad-FCS marking/status and recovery at full rate. |
+| 7 | 7 | GMII/XGMII TX: propagate EOFE as GMII TX_ER or invalid XGMII FCS, including final beats at/above the padding boundary. Default `tx_eofe_frame_is_rejected_test` checks both PHYs across frame lengths and requires intact clean frames after every error. |
 
 
 The integration and leaf benches keep their default-run stimulus clear of
-confirmed defects: `phyReady` changes only while the line is idle, EOFE TX
-frames are sent only where `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry
-no `0xD5` after the error, and the gated-clock GMII scoreboard case is TX-only.
+confirmed defects: `phyReady` changes only while the line is idle, `RX_ER`
+frames carry no `0xD5` after the error, and the gated-clock GMII scoreboard case
+is TX-only. Outside `tx_eofe_frame_is_rejected_test`, which forwards EOFE TX
+frames to the line by default, EOFE TX frames are still sent only where
+`DROP_ERR_PKT_G` drops them.
 
 ## Current behaviour pinned by the default run
 
