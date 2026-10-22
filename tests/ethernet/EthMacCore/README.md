@@ -31,7 +31,7 @@ change crosses stages. All commands run from the repository root after
 | `EthMacTxExport*` (GMII/XGMII exporters) | `test_EthMacTxExportLine.py` (all PHY cases), `test_EthMacTxExport.py` |
 | `EthMacRxImport*` (GMII/XGMII importers) | `test_EthMacRxImportLine.py`, `test_EthMacRxImport.py` |
 | `EthMacTxCsum` | `test_EthMacTxCsumDepth.py`, `test_EthMacTxCsum.py` |
-| `EthMacRxCsum`, `getEthMacCsum` in `EthMacPkg` | `test_EthMacRxCsumDepth.py`, `test_EthMacRxCsum.py` |
+| `EthMacRxCsum`, `getEthMacCsum` in `EthMacPkg` | `test_EthMacRxCsumDepth.py`, `test_EthMacRxCsum.py`, `test_EthMacRxChecksumIntegration.py` |
 | `EthMacRxFifo`, `SsiFifo`/`SsiObFrameFilter`/`SsiIbFrameFilter` in the MAC configuration | `test_EthMacRxFifoFlow.py`, `test_EthMacRxFifo.py` |
 | `EthMacTxPause`, `EthMacRxPause`, `EthMacFlowCtrl` | `test_EthMacTxPauseTiming.py`, `test_EthMacTxPause.py`, `test_EthMacRxPause.py`, `test_EthMacFlowCtrl.py`, `test_EthMacTopPause.py` |
 | `EthMacRxFilter` | `test_EthMacRxFilterPolicy.py`, `test_EthMacRxFilter.py` |
@@ -120,10 +120,10 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
 | --- | --- | --- | --- |
-| 1 | 10 | High; runtime defaults | RX checksum stage clears inbound/earlier EOFE. Leaf: `test_EthMacRxCsumDepth.py::rx_eofe_overwrite_known_issue_test`. PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_known_issue_test` demonstrates bad-FCS UDP escaping error dropping. |
-| 2 | 11 | High; length/error dependent | One-byte final beat aliases IPERR/SOF and FRAG/EOFE. `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test`. |
-| 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
-| 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
+| 1 | 10 | Fixed; previously High, runtime defaults | RX checksum stage preserves inbound, oversize and earlier checksum EOFE. Default leaf: `test_EthMacRxCsumDepth.py::rx_eofe_preservation_test` checks all runtime enable combinations and clean recovery. Default PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_test` checks bad-FCS UDP dropping/forwarding. |
+| 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
+| 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
+| 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
 | 5 | 2 | Fixed; previously High, XGMII link loss | Terminate active RX with EOFE, stop outage beats and preserve recovery. Default `rx_xgmii_import_link_loss_recovery_test`, `rx_xgmii_link_loss_boundaries_test` and `rx_xgmii_top_link_loss_recovery_test` cover both start lanes, early/short outages and the full checksum/FIFO path. |
 | 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
 | 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
@@ -140,14 +140,14 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
-its three policy/recovery nodes run by default and are expected to pass.
+its three policy/recovery nodes and its fixed-issue regression nodes run by
+default and are expected to pass.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
-confirmed defects: `phyReady` changes only while the line is idle, TX frames stay
-within the checksum stage's size limit, EOFE TX frames are sent only where
-`DROP_ERR_PKT_G` drops them, `RX_ER` frames carry no `0xD5` after the error, and
-the gated-clock GMII scoreboard case is TX-only.
+confirmed defects: `phyReady` changes only while the line is idle, EOFE TX
+frames are sent only where `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry
+no `0xD5` after the error, and the gated-clock GMII scoreboard case is TX-only.
 
 ## Current behaviour pinned by the default run
 
@@ -161,8 +161,10 @@ corresponding characterization in its fix PR. Notable cases:
 - The XGMII exporter's back-to-back gap is 28–35 octets, never the 12-octet
   minimum. On underrun it ends the open frame without `/T/` and resumes the
   remainder as a new frame with an inverted CRC; `txUnderRun` is a level on
-  every starved clock. With `phyReady` low it holds a frame (GMII drops it) and
-  `txLinkNotReady` stays asserted on every waiting clock.
+  every starved clock. With `phyReady` low it holds a frame that has not
+  started (GMII drops it) and `txLinkNotReady` stays asserted on every waiting
+  clock. A frame interrupted by link loss also ends without `/T/`; its
+  remainder is drained, and `txLinkNotReady` pulses once for it.
 - Both importers deliver good-FCS runts. The GMII importer's outcome for
   `RX_ER` depends on the data octet it hits (silent drop for octets 0–4, a
   truncated EOFE frame later). The XGMII importer does not check preamble or SFD
