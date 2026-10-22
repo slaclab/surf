@@ -114,13 +114,13 @@ supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
 in subsequent fix PRs; `Old` preserves the initial PR review numbering.
-Report #1 is fixed and covered by default regressions; its ID is retained below.
+Reports #1 and #2 are fixed and covered by default regressions; their IDs are retained below.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
 | --- | --- | --- | --- |
-| 1 | 10 | Fixed; previously High, runtime defaults | RX checksum stage preserves inbound, oversize and earlier checksum EOFE. Default leaf: `test_EthMacRxCsumDepth.py::rx_eofe_preservation_test` checks all runtime enable combinations and clean recovery. Default PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_test` checks bad-FCS UDP dropping/forwarding. The separate one-byte-final-beat alias in #2 remains unresolved. |
-| 2 | 11 | High; length/error dependent | One-byte final beat aliases IPERR/SOF and FRAG/EOFE. `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_known_issue_test`. |
+| 1 | 10 | Fixed; previously High, runtime defaults | RX checksum stage preserves inbound, oversize and earlier checksum EOFE. Default leaf: `test_EthMacRxCsumDepth.py::rx_eofe_preservation_test` checks all runtime enable combinations and clean recovery. Default PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_test` checks bad-FCS UDP dropping/forwarding. |
+| 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
 | 3 | 1 | High; oversize input | TX checksum cache loses frame/transaction alignment, dropping the next frame and applying prior metadata to later frames. `test_EthMacKnownIssues.py::tx_csum_oversize_frame_misaligns_transactions_known_issue_test`. |
 | 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |

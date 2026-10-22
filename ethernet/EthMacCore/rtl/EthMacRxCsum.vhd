@@ -148,6 +148,12 @@ begin
          v.roce         := r.roce(EMAC_CSUM_PIPELINE_C downto 0) & r.roce(0);
       end if;
 
+      -- Interpret SOF before checksum flags can alias it on a one-byte last beat
+      if (axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
+         -- Set the fragmentation flag
+         axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
+      end if;
+
       -- Check for tLast in pipeline
       if (v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tLast = '1') then
          -- Stop flushing the pipeline when last word exits
@@ -352,12 +358,6 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-
-      -- Check for first TUSER on the output AXIS stream
-      if (axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
-         -- Set the fragmentation flag
-         axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
-      end if;
 
       -- Outputs
       mAxisMaster          <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);
