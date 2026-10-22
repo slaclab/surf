@@ -56,6 +56,12 @@ class Si570(pr.Device):
     ``Frequency`` does this automatically the first time. A calibration
     more than 3000 ppm from nominal raises ``ValueError`` instead of
     programming a wrong output frequency.
+
+    RECALL returns the output to the factory frequency until the new
+    configuration is applied, so the first ``Frequency`` write stops and
+    restarts the output twice rather than once. Downstream logic that is
+    sensitive to clock interruptions, such as MGT reference clocks, should
+    expect this on the first write after start-up.
     """
 
     def __init__(self, factory_freq: float, **kwargs: Any) -> None:
@@ -260,7 +266,8 @@ class Si570(pr.Device):
             description = """
             Write NVM bits into RAM.
             Effectively resets the chip without interrupting I2C.
-            Restores the factory output frequency and calibrates fxtal""",
+            Restores the factory output frequency and calibrates fxtal.
+            The output runs at the factory frequency until Frequency is written again""",
             offset      = 135 * ADDR_SIZE,
             bitOffset   = 0,
             bitSize     = 1,
