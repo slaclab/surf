@@ -113,8 +113,9 @@ the review. **High** denotes data integrity or sustained loss in an affected
 supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
-in subsequent fix PRs; `Old` preserves the initial PR review numbering.
-Reports #1 through #4 are fixed and covered by default regressions; their IDs are retained below.
+in subsequent fix PRs; `Old` preserves the initial PR review numbering. A fixed
+report keeps its row, marked `Fixed`, and names the default tests that replaced
+its gated reproducer.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
@@ -123,7 +124,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
 | 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
 | 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
-| 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
+| 5 | 2 | Fixed; previously High, XGMII link loss | Terminate active RX with EOFE, stop outage beats and preserve recovery. Default `rx_xgmii_import_link_loss_recovery_test`, `rx_xgmii_link_loss_boundaries_test` and `rx_xgmii_top_link_loss_recovery_test` cover both start lanes, early/short outages and the full checksum/FIFO path. |
 | 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |

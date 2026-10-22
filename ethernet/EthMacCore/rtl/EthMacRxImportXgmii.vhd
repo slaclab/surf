@@ -263,6 +263,12 @@ begin
                axiStreamSetUserBit(AXI_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, not crcGood);
             end if;
 
+            -- Close the active frame once before stopping output on link loss.
+            if phyReady = '0' then
+               varMaster.tLast := intAdvance;
+               axiStreamSetUserBit(AXI_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, '1');
+            end if;
+
          end if;
       end if;
 
@@ -271,8 +277,8 @@ begin
    end process;
 
    -- Errors and counter
-   rxCrcError <= intAdvance and intLastLine and (not crcGood);
-   rxCountEn  <= intAdvance and intLastLine and crcGood;
+   rxCrcError <= intAdvance and ((intLastLine and (not crcGood)) or (not phyReady));
+   rxCountEn  <= intAdvance and intLastLine and crcGood and phyReady;
 
    -- Logic to determine CRC width and valid clear timing.
    process (crcDataValid, crcDataWidth, phyRxc, phyRxcDly, rxdAlign)
@@ -504,7 +510,12 @@ begin
             macData <= crcFifoOut after TPD_G;
 
             -- Determine when data is output
-            if frameShift4 = '1' and frameShift5 = '0' then
+            -- The AXI conversion closes this beat with EOFE on link loss.
+            -- Keep draining the CRC pipeline so its FIFO stays aligned.
+            if phyReady = '0' then
+               intAdvance   <= '0' after TPD_G;
+               intFirstLine <= '0' after TPD_G;
+            elsif frameShift4 = '1' and frameShift5 = '0' then
                intAdvance   <= '1' after TPD_G;
                intFirstLine <= '1' after TPD_G;
             elsif intLastLine = '1' then
