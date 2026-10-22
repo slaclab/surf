@@ -113,7 +113,9 @@ the review. **High** denotes data integrity or sustained loss in an affected
 supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
-in subsequent fix PRs; `Old` preserves the initial PR review numbering.
+in subsequent fix PRs; `Old` preserves the initial PR review numbering. A fixed
+report keeps its row, marked `Fixed`, and names the default tests that replaced
+its gated reproducer.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
