@@ -232,7 +232,8 @@ def tx_expectation(frame: bytes, *, frag: int, eofe: int, enables: dict[str, int
         eofe = 1
     eofe_out = 1 if tx_short_ipv4(frame) else eofe
     if drop and eofe_out:
-        # EthMacTxCsum.vhd:437-440 suppresses every beat of an EOFE frame.
+        # The output stage's DROP_ERR_PKT_G and eofeDet check suppresses every beat
+        # of an EOFE frame.
         return FrameExpectation(payload=None, note=note)
     assert not tx_short_ipv4(frame), "short IPv4 output bytes depend on stale header state"
     return FrameExpectation(payload=tx_model_frame(frame, frag=frag, **enables), eofe=eofe_out, frag=frag, note=note)
@@ -534,8 +535,8 @@ async def tx_fragments(dut):
     assert results["udp_later_fragment"][34:] == later_udp[34:]
     assert results["tcp_first_fragment"][34:] == first_tcp[34:]
     # Current baseline behaviour: the TX checksum stage keys on the FRAG
-    # sideband, not the IPv4 MF/offset field (EthMacTxCsum.vhd:250, :468,
-    # :494). A header-only fragment still gets a UDP checksum over this
+    # sideband, not the IPv4 MF/offset field (EthMacTxCsum.vhd:250, :470,
+    # :496). A header-only fragment still gets a UDP checksum over this
     # fragment's bytes, and a sideband-only FRAG suppresses insertion.
     assert get16(results["header_mf_no_sideband"], 40) == get16(tx_model_frame(header_only_mf, frag=0, ip=1, udp=1, tcp=1), 40)
     assert get16(results["header_mf_no_sideband"], 40) != 0x0BAD

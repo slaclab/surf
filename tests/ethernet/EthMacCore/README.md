@@ -138,14 +138,14 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
-its three policy/recovery nodes run by default and are expected to pass.
+its three policy/recovery nodes and the fixed-issue node run by default and
+are expected to pass.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
-confirmed defects: `phyReady` changes only while the line is idle, TX frames stay
-within the checksum stage's size limit, EOFE TX frames are sent only where
-`DROP_ERR_PKT_G` drops them, `RX_ER` frames carry no `0xD5` after the error, and
-the gated-clock GMII scoreboard case is TX-only.
+confirmed defects: `phyReady` changes only while the line is idle, EOFE TX
+frames are sent only where `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry
+no `0xD5` after the error, and the gated-clock GMII scoreboard case is TX-only.
 
 ## Current behaviour pinned by the default run
 
