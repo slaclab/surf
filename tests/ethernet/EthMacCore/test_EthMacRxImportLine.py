@@ -645,12 +645,13 @@ async def rx_clk_en_recovery_test(dut):
     await bench.close()
 
 
-# Report #6: retain the SFD pulse until the next enabled clock shifts it
-# into delRxDvSr, so WAIT_DATA_S reaches GET_DATA_S at 10/100 Mb/s.
-
-
 async def run_clk_en(dut, period: int, lengths: list[int]) -> None:
-    """GMII with ethClkEn high one clock in ``period``: exact frames and counts."""
+    """GMII with ethClkEn high one clock in ``period``: exact frames and counts.
+
+    Regression for report #6: the RTL must retain the SFD pulse until the next
+    enabled clock shifts it into delRxDvSr, so WAIT_DATA_S reaches GET_DATA_S
+    at 10/100 Mb/s.
+    """
     bench = RxLineBench(dut)
     assert bench.gmii, "clock-enable scenarios apply to GMII only"
     await bench.start(clk_en_period=period)
