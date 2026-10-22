@@ -94,9 +94,10 @@ is gated separately from unresolved RTL defects.
 
 ## Known issues
 
-The unresolved defect reproducers below assert the intended behavior, fail on
-the current RTL for the documented reason, and run only with
-`RUN_KNOWN_ISSUE_TESTS=1`. The two policy candidates have default recovery tests
+Reproducers for the unresolved reports below assert the intended behavior, fail
+on the current RTL for the documented reason, and run only with
+`RUN_KNOWN_ISSUE_TESTS=1`. Regressions for fixed reports run by default. The
+two policy candidates have default recovery tests
 that are expected to pass; their proposed stricter requirements remain undecided. Promote a case
 to the default run together with its fix. With cocotb 2.1, a `skip=True`
 entrypoint still runs whenever a `COCOTB_TEST_FILTER` matches it, including an
@@ -151,9 +152,11 @@ Fixed reports leave the table above and keep their IDs here.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
-confirmed defects: `phyReady` changes only while the line is idle, EOFE TX
-frames are sent only where `DROP_ERR_PKT_G` drops them, `RX_ER` frames carry
-no `0xD5` after the error, and the gated-clock GMII scoreboard case is TX-only.
+confirmed defects: `phyReady` changes only while the line is idle, `RX_ER`
+frames carry no `0xD5` after the error, and the gated-clock GMII scoreboard case
+is TX-only. Outside `tx_eofe_frame_is_rejected_test`, which forwards EOFE TX
+frames to the line by default, EOFE TX frames are still sent only where
+`DROP_ERR_PKT_G` drops them.
 
 ## Current behaviour pinned by the default run
 
