@@ -187,7 +187,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if (ethRst = RST_POLARITY_G) or (phyReady = '0') then
+         if (ethRst = RST_POLARITY_G) then
             crcInit       <= '1'             after TPD_G;
             curState      <= ST_IDLE_C       after TPD_G;
             intError      <= '0'             after TPD_G;
@@ -269,9 +269,9 @@ begin
                if phyReady = '1' then
                   nxtState <= ST_READ_C;
 
-               -- Phy is not ready dump data
+               -- Hold a frame that has not started until the PHY is ready
                else
-                  nxtState       <= ST_DUMP_C;
+                  nxtState       <= ST_IDLE_C;
                   txLinkNotReady <= '1';
                end if;
             else
@@ -288,8 +288,22 @@ begin
             intAdvance    <= '1';
             nxtState      <= curState;
 
+            -- Drain an interrupted frame through its accepted last beat.
+            -- Returning to IDLE here would transmit its tail as a new frame.
+            if phyReady = '0' then
+               intAdvance     <= '0';
+               intDump        <= '1';
+               nxtError       <= '1';
+               txLinkNotReady <= '1';
+               if macMaster.tValid = '1' and macMaster.tLast = '1' then
+                  nxtState      <= ST_WAIT_C;
+                  stateCountRst <= '1';
+               else
+                  nxtState <= ST_DUMP_C;
+               end if;
+
             -- Read until we get last
-            if macMaster.tLast = '1' and (exportWordCnt < 7) then
+            elsif macMaster.tLast = '1' and (exportWordCnt < 7) then
                nxtState  <= ST_PAD_C;
                txCountEn <= '1';
                nxtError  <= intError or axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
@@ -315,21 +329,19 @@ begin
          -- Reading from PIC, Dumping data
          when ST_DUMP_C =>
             intAdvance    <= '0';
+            intDump       <= '1';
+            intLastLine   <= '0';
             stateCountRst <= '0';
             wordCountRst  <= '0';
             intPad        <= '0';
 
             -- Read until we get last
-            if macMaster.tLast = '1' then
-               intDump       <= '0';
-               intLastLine   <= '1';
+            if macMaster.tValid = '1' and macMaster.tLast = '1' then
                nxtState      <= ST_WAIT_C;
                stateCountRst <= '1';
 
             -- Keep reading
             else
-               intDump     <= macMaster.tValid;
-               intLastLine <= '0';
                nxtState    <= curState;
             end if;
 

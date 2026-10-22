@@ -34,8 +34,8 @@
 #   GMII) before the registered `TPD_G` update, so gaps are measured in line
 #   octets; XGMII gaps count /T/ as the first IPG octet. Every wait is bounded
 #   by a cycle limit scaled to the PHY rate and enable period.
-# - Not covered (known-issue set, owned elsewhere): txPhyReady loss while a
-#   frame is on the line, for either PHY.
+# - Mid-frame link loss is covered separately by test_EthMacKnownIssues.py
+#   (default recovery scenarios for both PHYs).
 
 from __future__ import annotations
 
@@ -443,9 +443,8 @@ async def tx_phy_not_ready_idle(dut):
         assert after == {"txCountEn": 1, "txUnderRun": 0, "txLinkNotReady": 1}, f"GMII status {after}"
     else:
         # Current baseline behaviour: the XGMII exporter holds the frame rather
-        # than dropping it. phyReady=0 forces ST_IDLE_C every clock
-        # (EthMacTxExportXgmii.vhd:190-192), so txLinkNotReady is asserted on
-        # every clock the frame waits (:265-276), and the held frame is sent
+        # than dropping it. IDLE waits for phyReady, so txLinkNotReady is
+        # asserted on every clock the frame waits, and the held frame is sent
         # when the link returns, ahead of the recovery frame.
         assert down["txCountEn"] == 0 and down["txUnderRun"] == 0, f"XGMII link-down status {down}"
         assert contiguous(not_ready_cycles), "XGMII txLinkNotReady clocks not contiguous"

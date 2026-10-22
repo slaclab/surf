@@ -114,7 +114,7 @@ supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
 in subsequent fix PRs; `Old` preserves the initial PR review numbering.
-Reports #1 through #3 are fixed and covered by default regressions; their IDs are retained below.
+Reports #1 through #4 are fixed and covered by default regressions; their IDs are retained below.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
@@ -122,7 +122,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 1 | 10 | Fixed; previously High, runtime defaults | RX checksum stage preserves inbound, oversize and earlier checksum EOFE. Default leaf: `test_EthMacRxCsumDepth.py::rx_eofe_preservation_test` checks all runtime enable combinations and clean recovery. Default PHY: `test_EthMacRxChecksumIntegration.py::rx_bad_fcs_preserves_error_test` checks bad-FCS UDP dropping/forwarding. |
 | 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
 | 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
-| 4 | 4 | High; XGMII link loss | TX remainder becomes a new frame with valid FCS. `tx_xgmii_link_loss_sends_valid_fragment_known_issue_test`. |
+| 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
 | 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
 | 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
 | 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
@@ -139,8 +139,8 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
-its three policy/recovery nodes and the fixed-issue node run by default and
-are expected to pass.
+its three policy/recovery nodes and its fixed-issue regression nodes run by
+default and are expected to pass.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
@@ -160,8 +160,10 @@ corresponding characterization in its fix PR. Notable cases:
 - The XGMII exporter's back-to-back gap is 28–35 octets, never the 12-octet
   minimum. On underrun it ends the open frame without `/T/` and resumes the
   remainder as a new frame with an inverted CRC; `txUnderRun` is a level on
-  every starved clock. With `phyReady` low it holds a frame (GMII drops it) and
-  `txLinkNotReady` stays asserted on every waiting clock.
+  every starved clock. With `phyReady` low it holds a frame that has not
+  started (GMII drops it) and `txLinkNotReady` stays asserted on every waiting
+  clock. A frame interrupted by link loss also ends without `/T/`; its
+  remainder is drained, and `txLinkNotReady` pulses once for it.
 - Both importers deliver good-FCS runts. The GMII importer's outcome for
   `RX_ER` depends on the data octet it hits (silent drop for octets 0–4, a
   truncated EOFE frame later). The XGMII importer does not check preamble or SFD

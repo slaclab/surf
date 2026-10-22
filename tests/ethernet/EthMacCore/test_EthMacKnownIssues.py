@@ -19,7 +19,8 @@
 #       frame/transaction alignment and all recovery lengths/checksums.
 #   #5: XGMII RX link loss continues unterminated beats; the full MAC then
 #       swallows the first recovery frame while the checksum stage blows off.
-#   #4: XGMII TX link loss sends the remaining bytes as a new valid-FCS frame.
+#   #4 fixed: XGMII TX link loss must drain the interrupted frame and deliver
+#       intact recovery without fabricating a valid-FCS tail frame.
 #   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
 #        lockup-reset event is not independently reproduced.
 #   #7: EOFE TX frames leave with valid FCS (all GMII lengths, XGMII >=57).
@@ -489,51 +490,54 @@ async def rx_xgmii_top_nested_start_recovery_test(dut):
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=200, timeout_unit="us")
-async def tx_xgmii_link_loss_sends_valid_fragment_known_issue_test(dut):
+async def send_link_loss_frame(source, beats, *, clk, pause_tail):
+    """Optionally hold back the source tail until after the short outage."""
+    if pause_tail:
+        await send_frame_burst(source, [beats[:4]], clk=clk)
+        await cycle(clk, 64)
+        await send_frame_burst(source, [beats[4:]], clk=clk)
+    else:
+        await send_frame_burst(source, [beats], clk=clk)
+
+
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def tx_xgmii_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     monitor = XgmiiMonitor(dut, clk=bench.clk)
     rng = random.Random(SEED + 3)
-    interrupted = random_frame(rng, 512)
-    recovery = random_frame(rng, 100, src_mac=0x660000000005)
 
-    # Queue the long frame and wait for its /S/ on the line.
-    send_task = cocotb.start_soon(
-        send_frame_burst(bench.source, [frame_beats_from_bytes(interrupted)], clk=bench.clk)
-    )
-    started = await wait_until(
-        lambda: (resolved_int(dut.xgmiiTxc) & 1) == 1 and (resolved_int(dut.xgmiiTxd) & 0xFF) == 0xFB,
-        clk=bench.clk,
-        cycles=200,
-    )
-    assert started, "Bench: the exporter never started the long frame"
+    # Short and long outages at the beginning, middle and tail of a frame.
+    # In the short-outage cases the source tail is drained after link return.
+    cases = ((128, 0, 1, False), (512, 10, 50, False), (512, 58, 1, False), (512, 1, 1, True))
+    for index, (length, offset, outage, pause_tail) in enumerate(cases):
+        interrupted = random_frame(rng, length)
+        recovery = random_frame(rng, 100, src_mac=0x660000000005 + index)
+        first = len(monitor.frames)
+        send_task = cocotb.start_soon(
+            send_link_loss_frame(bench.source, frame_beats_from_bytes(interrupted), clk=bench.clk, pause_tail=pause_tail)
+        )
+        started = await wait_until(
+            lambda: (resolved_int(dut.xgmiiTxc) & 1) == 1 and (resolved_int(dut.xgmiiTxd) & 0xFF) == 0xFB,
+            clk=bench.clk, cycles=200,
+        )
+        assert started, "exporter never started the interrupted frame"
+        await cycle(bench.clk, offset)
+        await FallingEdge(bench.clk)
+        dut.txPhyReady.value = 0
+        await cycle(bench.clk, outage)
+        await FallingEdge(bench.clk)
+        dut.txPhyReady.value = 1
+        await send_task
 
-    # Ten words into the frame, take the link down for 50 clocks.
-    await cycle(bench.clk, 10)
-    dut.txPhyReady.value = 0
-    await cycle(bench.clk, 50)
-    dut.txPhyReady.value = 1
-    await send_task
-
-    # A recovery frame after the link returns.
-    await send_frame_burst(bench.source, [frame_beats_from_bytes(recovery)], clk=bench.clk)
-    await cycle(bench.clk, 300)
-
-    # Expected: nothing with a valid FCS appears on the line except complete
-    # submitted frames, and the recovery frame is transmitted intact.
-    names = {"interrupted": interrupted, "recovery": recovery}
-    valid = [frame for frame in monitor.frames if frame.fcs_ok and frame.preamble_ok and frame.terminated and not frame.error]
-    fragments = [frame for frame in valid if frame.frame not in (interrupted, recovery)]
-    recovered = [frame for frame in valid if frame.frame == recovery]
-    line = "; ".join(
-        f"{describe_bytes(frame.frame, names)} fcs_ok={frame.fcs_ok} terminated={frame.terminated} error={frame.error}"
-        for frame in monitor.frames
-    )
-    assert not fragments and len(recovered) == 1, (
-        "Known defect (EthMacTxExportXgmii phyReady loss): the remainder of the frame "
-        "interrupted by link loss is sent after the link returns as a fresh frame with a "
-        f"correct FCS. seed={SEED + 3:#x}; line frames: [{line}]"
-    )
+        await send_frame_burst(bench.source, [frame_beats_from_bytes(recovery)], clk=bench.clk)
+        await cycle(bench.clk, 300)
+        observed = monitor.frames[first:]
+        valid = [frame for frame in observed if frame.fcs_ok and frame.preamble_ok and frame.terminated and not frame.error]
+        assert all(frame.frame in (interrupted, recovery) for frame in valid), (
+            f"report #4: fabricated valid frame; seed={SEED + 3:#x} offset={offset} outage={outage}; {observed}"
+        )
+        assert sum(frame.frame == recovery for frame in valid) == 1, (index, observed)
+        assert not monitor.frame_pending, (index, observed)
 
 
 ###############################################################################
@@ -755,7 +759,6 @@ KNOWN_ISSUE_CASES = [
         {"PHY_TYPE_G": "XGMII"},
         (
             "rx_xgmii_import_link_loss_emits_beats_known_issue_test",
-            "tx_xgmii_link_loss_sends_valid_fragment_known_issue_test",
             "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
         ),
         id="xgmii_import_export",
@@ -804,6 +807,8 @@ FIXED_ISSUE_CASES = [
         ("tx_csum_oversize_recovery_test",),
         id="txcsum_oversize",
     ),
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
+                 ("tx_xgmii_link_loss_recovery_test",), id="xgmii_tx_link_loss"),
 ]
 
 
