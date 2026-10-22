@@ -19,6 +19,7 @@ import time
 from typing import Any
 
 import pyrogue as pr
+import rogue
 
 # Datasheet nominal internal crystal frequency (MHz), used for readback only
 # until fxtal is calibrated. Actual parts vary by up to +/-2000 ppm.
@@ -168,7 +169,7 @@ class Si570(pr.Device):
 
         # RST_REG, NewFreq, FreezeM and RECALL share register 135, so every
         # write of that register replays the cached value of all four bits
-        def pulse(cmd: pr.RemoteCommand) -> None:
+        def pulse(cmd: pr.RemoteCommand, i2c_reset: bool = False) -> None:
             try:
                 # Never replay a cached self-clearing bit with this pulse
                 for bit in (self.RST_REG, self.NewFreq, self.RECALL):
@@ -179,7 +180,17 @@ class Si570(pr.Device):
                 # The device clears the bit on completion, and the readback
                 # also refreshes the cached copy of register 135
                 deadline = time.monotonic() + _POLL_TIMEOUT
-                while cmd.get(read=True):
+                while True:
+                    try:
+                        busy = cmd.get(read=True)
+                    except rogue.GeneralError:
+                        # RST_REG interrupts the I2C state machine, so reads
+                        # fail until the internal reset completes
+                        if not i2c_reset or time.monotonic() > deadline:
+                            raise
+                        busy = True
+                    if not busy:
+                        break
                     if time.monotonic() > deadline:
                         raise TimeoutError(f'{cmd.path} did not self-clear within {_POLL_TIMEOUT} s')
                     time.sleep(_POLL_PERIOD)
@@ -187,6 +198,9 @@ class Si570(pr.Device):
                 # Keep a later bulk write from replaying an incomplete pulse
                 if cmd.value():
                     cmd.set(0, write=False)
+
+        def reset_reg() -> None:
+            pulse(self.RST_REG, i2c_reset=True)
 
         self.add(pr.RemoteCommand(
             name        = 'RST_REG',
@@ -198,7 +212,7 @@ class Si570(pr.Device):
             bitOffset   = 7,
             bitSize     = 1,
             hidden      = True,
-            function    = pulse))
+            function    = reset_reg))
 
         self.add(pr.RemoteCommand(
             name        = 'NewFreq',

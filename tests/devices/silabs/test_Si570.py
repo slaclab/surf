@@ -12,16 +12,20 @@
 # - Sweep: Frequency programming on parts with different internal crystal
 #   frequencies, repeated programming, supported and unsupported output
 #   frequencies, N1/HS_DIV/RFREQ field packing, deferred writes, self-clearing
-#   command bits followed by forced bulk writes, and a stuck self-clearing bit.
+#   command bits followed by forced bulk writes, a stuck self-clearing bit, and
+#   RST_REG with transient or persistent I2C failures during the reset.
 # - Stimulus: Real Rogue writes and reads against a simulated Si570 register
 #   window behind a 32-bit FPGA I2C bridge. The model reloads NVM on RECALL,
-#   self-clears RST_REG/NewFreq/RECALL after a read, and preserves the reserved
-#   bits of register 137. Starting values follow the Skyworks Si570 datasheet
+#   self-clears RST_REG/NewFreq/RECALL after a read, fails reads while RST_REG
+#   holds the I2C state machine in reset, and preserves the reserved bits of
+#   register 137. Starting values follow the Skyworks Si570 datasheet
 #   rev 1.6, section 3.2 (156.25 MHz, RFREQ 0x2BC011EB8, HS_DIV 4, N1 8).
 # - Checks: Programmed registers match the datasheet example; the generated
 #   output matches the request for each part's own fxtal; the freeze, write,
 #   unfreeze and NewFreq order; no configuration write while the DCO runs;
-#   reserved bits survive; cached command bits are never replayed.
+#   reserved bits survive; cached command bits are never replayed; RST_REG
+#   rides through failed reads during the reset and still raises when the I2C
+#   failure persists.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
@@ -73,6 +77,10 @@ class Si570Memory(rim.Slave):
         self.reg137 = RESERVED_137
         self.pending = 0
         self.stuck = 0
+        # Reads that fail after RST_REG while the I2C state machine resets
+        self.resetNacks = 1
+        self.nackedReads = 0
+        self.i2cResetReads = 0
         self.recalls = 0
         self.newFreqs = []
         self.unfrozenConfigWrites = []
@@ -105,6 +113,8 @@ class Si570Memory(rim.Slave):
                     if value & (RST_REG | RECALL):
                         self.recalls += 1
                         self.config = list(self.nvm)
+                    if value & RST_REG:
+                        self.i2cResetReads = self.resetNacks
                     if value & NEW_FREQ:
                         self.newFreqs.append(bool(self.reg137 & FREEZE_DCO))
                 elif reg == 137:
@@ -114,6 +124,11 @@ class Si570Memory(rim.Slave):
                         self.unfrozenConfigWrites.append(reg)
                     self.config[reg - 7] = value
             else:
+                if self.i2cResetReads:
+                    self.i2cResetReads -= 1
+                    self.nackedReads += 1
+                    transaction.error('Si570 I2C state machine in reset')
+                    return
                 if reg == 135:
                     value = self.reg135 | self.pending
                     # Operations complete after one observed busy read
@@ -218,6 +233,35 @@ def test_stuck_self_clearing_bit_times_out_without_replay(si570_root, monkeypatc
 
     assert memory.writes == [(135, FREEZE_M)]
     assert memory.recalls == 1
+
+
+def test_rst_reg_rides_through_i2c_interruption(si570_root):
+    _, si570, memory = si570_root
+    memory.resetNacks = 3
+
+    si570.RST_REG()
+
+    assert memory.recalls == 1
+    assert memory.nackedReads == 3
+    assert si570.RST_REG.value() == 0
+
+    memory.writes.clear()
+    si570.FreezeM.set(1)
+    assert memory.writes == [(135, FREEZE_M)]
+
+
+def test_rst_reg_persistent_i2c_failure_raises_without_replay(si570_root, monkeypatch):
+    _, si570, memory = si570_root
+    monkeypatch.setattr(si570_module, '_POLL_TIMEOUT', 0.05)
+    memory.resetNacks = 10**6
+
+    with pytest.raises(rogue.GeneralError, match='I2C state machine in reset'):
+        si570.RST_REG()
+
+    memory.i2cResetReads = 0
+    memory.writes.clear()
+    si570.FreezeM.set(1)
+    assert memory.writes == [(135, FREEZE_M)]
 
 
 def test_rfreq_and_n1_share_register_8(si570_root):
