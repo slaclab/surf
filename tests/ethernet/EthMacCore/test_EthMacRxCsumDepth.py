@@ -730,6 +730,9 @@ async def rx_one_byte_last_beat_eofe_test(dut):
     await bench.start()
     stimuli = one_byte_last_beat_stimuli()[:4]
     stimuli.append(RxStimulus(pad(udp_frame(b"clean-after-one-byte-errors")), note="recovery"))
+    # bench.run() scoreboards each frame with check_rx_frame() first. On a
+    # one-byte final beat FRAG aliases EOFE, so a regression of this fix
+    # fails there as "FRAG on beat N" before the EOFE assertion below.
     results = {s.note: beats for _, s, beats, _ in await bench.run(stimuli)}
     for stimulus in stimuli[:-1]:
         assert results[stimulus.note][-1].eofe == 1, (stimulus.note, last_status(results[stimulus.note]))
