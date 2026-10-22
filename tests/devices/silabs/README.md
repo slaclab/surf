@@ -11,8 +11,11 @@ bulk writes. The suite does not require an FPGA or an HDL simulator.
 The driver calibrates fxtal by executing `RECALL`, which reloads the factory
 configuration, so `factory_freq` must be the part's start-up frequency. The
 first `Frequency` write does this automatically; later writes reuse the
-calibration. Until then, `Frequency` readback uses the nominal 114.285 MHz
-fxtal and can be off by up to +/-2000 ppm.
+calibration. A calibration more than 3000 ppm from the nominal 114.285 MHz
+(the datasheet allows +/-2000 ppm) raises `ValueError` before any
+configuration write, which catches a wrong `factory_freq` or a 7 ppm part.
+Until calibrated, `Frequency` readback uses the nominal fxtal and can be off by
+up to +/-2000 ppm.
 
 Reference:
 

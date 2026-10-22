@@ -10,7 +10,8 @@
 
 # Test methodology:
 # - Sweep: Frequency programming on parts with different internal crystal
-#   frequencies, repeated programming, supported and unsupported output
+#   frequencies, a factory_freq that does not match the part, repeated
+#   programming, supported and unsupported output
 #   frequencies, N1/HS_DIV/RFREQ field packing, deferred writes, self-clearing
 #   command bits followed by forced bulk writes, a stuck self-clearing bit, and
 #   RST_REG with transient or persistent I2C failures during the reset.
@@ -21,7 +22,9 @@
 #   register 137. Starting values follow the Skyworks Si570 datasheet
 #   rev 1.6, section 3.2 (156.25 MHz, RFREQ 0x2BC011EB8, HS_DIV 4, N1 8).
 # - Checks: Programmed registers match the datasheet example; the generated
-#   output matches the request for each part's own fxtal; the freeze, write,
+#   output matches the request for each part's own fxtal; an fxtal calibration
+#   outside the datasheet tolerance is rejected before any configuration write;
+#   the freeze, write,
 #   unfreeze and NewFreq order; no configuration write while the DCO runs;
 #   reserved bits survive; cached command bits are never replayed; RST_REG
 #   rides through failed reads during the reset and still raises when the I2C
@@ -141,10 +144,10 @@ class Si570Memory(rim.Slave):
             transaction.done()
 
 
-def makeRoot(nvm=DATASHEET_NVM):
+def makeRoot(nvm=DATASHEET_NVM, factoryFreq=FACTORY_FREQ):
     memory = Si570Memory(nvm)
     root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=1.0)
-    root.add(Si570(name='Si570', factory_freq=FACTORY_FREQ, memBase=memory))
+    root.add(Si570(name='Si570', factory_freq=factoryFreq, memBase=memory))
     return root, memory
 
 
@@ -200,6 +203,26 @@ def test_output_uses_each_parts_own_fxtal(ppm):
         # fxtal is calibrated once; later changes do not reload the factory state
         assert memory.recalls == 1
         assert len(memory.newFreqs) == 3
+
+
+@pytest.mark.parametrize('factoryFreq', [100.0, FACTORY_FREQ * (1 - 0.004), FACTORY_FREQ * (1 + 0.0031)])
+def test_mismatched_factory_freq_is_rejected_before_any_config_write(factoryFreq):
+    root, memory = makeRoot(factoryFreq=factoryFreq)
+    with root:
+        with pytest.raises(ValueError, match='fxtal'):
+            root.Si570.Frequency.set(161.132812)
+
+        assert root.Si570.fxtal.get() == 0.0
+        assert memory.recalls == 1
+        assert {reg for reg, _ in memory.writes} == {135}
+        assert memory.config == DATASHEET_NVM
+
+
+def test_factory_freq_within_datasheet_tolerance_is_accepted():
+    root, memory = makeRoot(factoryFreq=FACTORY_FREQ * (1 + 0.002))
+    with root:
+        root.Si570.Frequency.set(161.132812)
+        assert root.Si570.fxtal.get() == pytest.approx(114.285 * 1.002, rel=1e-9)
 
 
 def test_self_clearing_bits_are_not_replayed(si570_root):

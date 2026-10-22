@@ -25,6 +25,11 @@ import rogue
 # until fxtal is calibrated. Actual parts vary by up to +/-2000 ppm.
 _FXTAL_NOMINAL = 114.285
 
+# Datasheet Table 11 bounds fxtal to +/-2000 ppm of nominal. A calibration
+# outside this wider margin means factory_freq is wrong or the part keeps its
+# configuration in registers 13-18 (7 ppm stability), not a real crystal
+_FXTAL_MAX_PPM = 3000
+
 # Self-clearing bits in register 135 are polled at this period until clear
 _POLL_PERIOD  = 0.001
 _POLL_TIMEOUT = 1.0
@@ -48,7 +53,9 @@ class Si570(pr.Device):
     The internal crystal frequency (fxtal) varies by up to +/-2000 ppm
     between parts and must be calibrated per device. Executing ``RECALL``
     reloads the factory configuration and calibrates ``fxtal``; setting
-    ``Frequency`` does this automatically the first time.
+    ``Frequency`` does this automatically the first time. A calibration
+    more than 3000 ppm from nominal raises ``ValueError`` instead of
+    programming a wrong output frequency.
     """
 
     def __init__(self, factory_freq: float, **kwargs: Any) -> None:
@@ -239,7 +246,14 @@ class Si570(pr.Device):
             rfreq = self.RFREQ.get(read=True)
             if rfreq == 0:
                 raise ValueError('Si570 RFREQ reads zero after RECALL; cannot calibrate fxtal')
-            self.fxtal.set(self.factory_freq * self.HS_DIV_INT.get(read=True) * self.N1.get(read=True) / rfreq)
+            fxtal = self.factory_freq * self.HS_DIV_INT.get(read=True) * self.N1.get(read=True) / rfreq
+            ppm = (fxtal / _FXTAL_NOMINAL - 1) * 1e6
+            if abs(ppm) > _FXTAL_MAX_PPM:
+                raise ValueError(
+                    f'Si570 calibrated fxtal {fxtal:.6f} MHz is {ppm:+.0f} ppm from nominal '
+                    f'{_FXTAL_NOMINAL} MHz (limit +/-{_FXTAL_MAX_PPM} ppm); check factory_freq '
+                    f'and that the part uses configuration registers 7-12')
+            self.fxtal.set(fxtal)
 
         self.add(pr.RemoteCommand(
             name        = 'RECALL',
