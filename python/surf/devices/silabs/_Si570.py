@@ -248,11 +248,17 @@ class Si570(pr.Device):
         def recall() -> None:
             pulse(self.RECALL)
 
-            # Registers now hold the factory configuration for factory_freq
-            rfreq = self.RFREQ.get(read=True)
+            # Registers now hold the factory configuration for factory_freq.
+            # Post the six register reads before waiting so the calibration
+            # costs one pass over the I2C bridge, not one wait per field
+            for i in range(7, 13):
+                self.readBlocks(recurse=False, variable=self.Config[i])
+            self.checkBlocks(recurse=False)
+
+            rfreq = self.RFREQ.get(read=False)
             if rfreq == 0:
                 raise ValueError('Si570 RFREQ reads zero after RECALL; cannot calibrate fxtal')
-            fxtal = self.factory_freq * self.HS_DIV_INT.get(read=True) * self.N1.get(read=True) / rfreq
+            fxtal = self.factory_freq * self.HS_DIV_INT.get(read=False) * self.N1.get(read=False) / rfreq
             ppm = (fxtal / _FXTAL_NOMINAL - 1) * 1e6
             if abs(ppm) > _FXTAL_MAX_PPM:
                 raise ValueError(
