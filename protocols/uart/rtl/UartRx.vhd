@@ -158,7 +158,7 @@ begin
             if (baudClkEn = '1') then
                v.rxState     := WAIT_FULL_S;
                v.waitState   := WAIT_STOP_S;
-               v.parityError := toSl(r.parity = rxSync);
+               v.parityError := toSl(r.parity /= rxSync);
             end if;
 
          -- Wait for the stop bit
