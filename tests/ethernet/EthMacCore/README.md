@@ -125,7 +125,6 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
 | 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
 | 5 | 2 | Fixed; previously High, XGMII link loss | Terminate active RX with EOFE, stop outage beats and preserve recovery. Default `rx_xgmii_import_link_loss_recovery_test`, `rx_xgmii_link_loss_boundaries_test` and `rx_xgmii_top_link_loss_recovery_test` cover both start lanes, early/short outages and the full checksum/FIFO path. |
-| 6 | 9 | High; GMII 10/100 only | Gated `ethClkEn` loses received frames because `delRxDv` disappears before the next enabled clock. `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_known_issue`, `rx_clk_en_1_in_100_known_issue`. |
 | 7 | 7 | High; error forwarding | EOFE TX reaches the line with valid FCS (GMII all lengths, XGMII >=57 bytes). Default error dropping normally protects this path. `tx_eofe_frame_leaves_with_valid_fcs_known_issue_test`. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
@@ -142,6 +141,14 @@ Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
 its three policy/recovery nodes and its fixed-issue regression nodes run by
 default and are expected to pass.
+
+### Fixed
+
+Fixed reports leave the table above and keep their IDs here.
+
+| # | Old | Fix and regression |
+| --- | --- | --- |
+| 6 | 9 | GMII 10/100 RX: retain `delRxDv` until the next enabled clock. Default `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_test`, `rx_clk_en_1_in_100_test` and `rx_clk_en_recovery_test` require exact delivery, bad-FCS marking/status and recovery at full rate. |
 
 
 The integration and leaf benches keep their default-run stimulus clear of
