@@ -138,7 +138,8 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
-its three policy/recovery nodes run by default and are expected to pass.
+its three policy/recovery nodes and its fixed-issue regression node run by
+default and are expected to pass.
 
 
 The integration and leaf benches keep their default-run stimulus clear of
@@ -159,8 +160,10 @@ corresponding characterization in its fix PR. Notable cases:
 - The XGMII exporter's back-to-back gap is 28–35 octets, never the 12-octet
   minimum. On underrun it ends the open frame without `/T/` and resumes the
   remainder as a new frame with an inverted CRC; `txUnderRun` is a level on
-  every starved clock. With `phyReady` low it holds a frame (GMII drops it) and
-  `txLinkNotReady` stays asserted on every waiting clock.
+  every starved clock. With `phyReady` low it holds a frame that has not
+  started (GMII drops it) and `txLinkNotReady` stays asserted on every waiting
+  clock. A frame interrupted by link loss also ends without `/T/`; its
+  remainder is drained, and `txLinkNotReady` pulses once for it.
 - Both importers deliver good-FCS runts. The GMII importer's outcome for
   `RX_ER` depends on the data octet it hits (silent drop for octets 0–4, a
   truncated EOFE frame later). The XGMII importer does not check preamble or SFD
