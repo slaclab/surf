@@ -302,8 +302,11 @@ async def tx_csum_oversize_recovery_test(dut):
         repaired.append(build_ipv4_udp_frame(**fields))
         inputs.append(build_ipv4_udp_frame(**fields, ip_checksum_override=0, udp_checksum_override=0))
 
+    # A 64-cycle gap keeps the loopback RxCsum checker clear of report #11
+    # (adjacent frames flag a false IPv4 error); the pre-fix TX RTL still
+    # misaligns transactions at this spacing.
     frames = [frame_beats_from_bytes(oversize)] + [frame_beats_from_bytes(frame) for frame in inputs]
-    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=4)
+    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=64)
     await wait_until(lambda: len(collector.frames) >= len(repaired), clk=bench.clk, cycles=2000)
     await cycle(bench.clk, 200)
 
