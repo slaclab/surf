@@ -367,6 +367,11 @@ jobs:
             tests/devices/micron/test_DdrSpd.py \
             tests/devices/micron/test_Tse2004av.py
 
+      - name: Si570 Rogue tests
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/devices/silabs/test_Si570.py
+
 # ----------------------------------------------------------------------------
 
   docs:
