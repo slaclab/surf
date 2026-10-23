@@ -4,9 +4,10 @@
 memory transactions against a simulated Si570 register window. It checks the
 datasheet frequency-programming example, per-part fxtal calibration, the
 freeze/write/unfreeze/NewFreq sequence, RFREQ and N1 packing in register 8,
-deferred field writes, divider and output-range limits, and that cached
-RST_REG/NewFreq/RECALL bits are never replayed by later register 135 or forced
-bulk writes. The suite does not require an FPGA or an HDL simulator.
+deferred field writes, divider and output-range limits including the
+`max_freq` speed-grade limit, recovery from a failed configuration write while
+the DCO is frozen, and that cached RST_REG/NewFreq/RECALL bits are never
+replayed by later register 135 or forced bulk writes. The suite does not require an FPGA or an HDL simulator.
 
 The driver calibrates fxtal by executing `RECALL`, which reloads the factory
 configuration, so `factory_freq` must be the part's start-up frequency. The

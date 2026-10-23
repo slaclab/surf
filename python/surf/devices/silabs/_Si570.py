@@ -45,6 +45,10 @@ class Si570(pr.Device):
     factory_freq : float
         Factory start-up (NVM) output frequency in MHz, from the part number.
         Used to calibrate the per-device internal crystal frequency.
+    max_freq : float, optional
+        Highest output frequency in MHz the part's speed grade supports
+        (1417.5 for grade A, 810 for grade B, 280 for grade C). ``Frequency``
+        requests above it raise ``ValueError``. Defaults to 1417.5.
     **kwargs : Any
         Additional arguments forwarded to ``pyrogue.Device``.
 
@@ -64,10 +68,11 @@ class Si570(pr.Device):
     expect this on the first write after start-up.
     """
 
-    def __init__(self, factory_freq: float, **kwargs: Any) -> None:
+    def __init__(self, factory_freq: float, max_freq: float = 1417.5, **kwargs: Any) -> None:
         """Create the Si570 model."""
         super().__init__(**kwargs)
         self.factory_freq = factory_freq
+        self.max_freq = max_freq
 
         ADDR_SIZE = 4
 
@@ -313,11 +318,16 @@ class Si570(pr.Device):
             raise ValueError(f'Si570 cannot generate {f1} MHz; supported ranges are 10-945, 970-1134 and 1212.5-1417.5 MHz')
 
         def set_freq(value: float, write: bool) -> None:
-            if write is False or self.enable.value() is not True:
+            if write is False:
+                return
+            if self.enable.value() is not True:
+                self._log.warning(f'{self.path} is disabled; Frequency={value} MHz not programmed')
                 return
 
             with self.root.updateGroup():
                 n1, hs_div = find_params(value)
+                if value > self.max_freq:
+                    raise ValueError(f'Si570 {value} MHz is above max_freq={self.max_freq} MHz for this part')
                 fdco = value * hs_div * n1
 
                 if self.fxtal.value() == 0.0:
@@ -329,10 +339,21 @@ class Si570(pr.Device):
                 self.FreezeDCO.set(1, write=True)
 
                 # Write new config
-                self.N1.set(n1, write=False)
-                self.HS_DIV_INT.set(hs_div, write=False)
-                self.RFREQ.set(rfreq, write=False)
-                self.writeAndVerifyBlocks()
+                try:
+                    self.N1.set(n1, write=False)
+                    self.HS_DIV_INT.set(hs_div, write=False)
+                    self.RFREQ.set(rfreq, write=False)
+                    self.writeAndVerifyBlocks()
+                except Exception:
+                    # A frozen DCO with new dividers outputs a wrong frequency that
+                    # nothing reports. Unfreeze and apply what the registers now hold
+                    # so the output matches them, then report the original error
+                    try:
+                        self.FreezeDCO.set(0, write=True)
+                        self.NewFreq()
+                    except Exception as e:
+                        self._log.error(f'{self.path}: recovery after a failed configuration write also failed: {e}')
+                    raise
 
                 # Unfreeze
                 self.FreezeDCO.set(0, write=True)

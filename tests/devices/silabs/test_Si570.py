@@ -13,8 +13,10 @@
 #   frequencies, a factory_freq that does not match the part, repeated
 #   programming, supported and unsupported output
 #   frequencies, N1/HS_DIV/RFREQ field packing, deferred writes, self-clearing
-#   command bits followed by forced bulk writes, a stuck self-clearing bit, and
-#   RST_REG with transient or persistent I2C failures during the reset.
+#   command bits followed by forced bulk writes, a stuck self-clearing bit,
+#   RST_REG with transient or persistent I2C failures during the reset, a
+#   register read failure while the DCO is frozen, a max_freq speed-grade
+#   limit, and a set while the device is disabled.
 # - Stimulus: Real Rogue writes and reads against a simulated Si570 register
 #   window behind a 32-bit FPGA I2C bridge. The model reloads NVM on RECALL,
 #   self-clears RST_REG/NewFreq/RECALL after a read, fails reads while RST_REG
@@ -28,7 +30,9 @@
 #   unfreeze and NewFreq order; no configuration write while the DCO runs;
 #   reserved bits survive; cached command bits are never replayed; RST_REG
 #   rides through failed reads during the reset and still raises when the I2C
-#   failure persists.
+#   failure persists; a failed configuration write still unfreezes the DCO
+#   and pulses NewFreq; requests above max_freq or on a disabled device write
+#   nothing.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
@@ -88,6 +92,8 @@ class Si570Memory(rim.Slave):
         self.newFreqs = []
         self.unfrozenConfigWrites = []
         self.writes = []
+        # Register reads (including verify) that fail once each, by register
+        self.failReads = {}
 
         # fxtal implied by the factory configuration
         hsDiv, n1, rfreq = decode(self.nvm)
@@ -127,6 +133,10 @@ class Si570Memory(rim.Slave):
                         self.unfrozenConfigWrites.append(reg)
                     self.config[reg - 7] = value
             else:
+                if self.failReads.get(reg, 0):
+                    self.failReads[reg] -= 1
+                    transaction.error(f'Si570 register {reg} read failed')
+                    return
                 if self.i2cResetReads:
                     self.i2cResetReads -= 1
                     self.nackedReads += 1
@@ -144,10 +154,10 @@ class Si570Memory(rim.Slave):
             transaction.done()
 
 
-def makeRoot(nvm=DATASHEET_NVM, factoryFreq=FACTORY_FREQ):
+def makeRoot(nvm=DATASHEET_NVM, factoryFreq=FACTORY_FREQ, **kwargs):
     memory = Si570Memory(nvm)
     root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=1.0)
-    root.add(Si570(name='Si570', factory_freq=factoryFreq, memBase=memory))
+    root.add(Si570(name='Si570', factory_freq=factoryFreq, memBase=memory, **kwargs))
     return root, memory
 
 
@@ -335,11 +345,49 @@ def test_unsupported_frequency_is_rejected_before_any_write(si570_root, freq):
     assert memory.writes == []
 
 
-def test_disabled_device_ignores_frequency_set(si570_root):
+def test_disabled_device_ignores_frequency_set(si570_root, caplog):
     _, si570, memory = si570_root
     si570.enable.set(False)
 
-    si570.Frequency.set(161.132812)
+    with caplog.at_level('WARNING'):
+        si570.Frequency.set(161.132812)
 
     assert memory.writes == []
     assert si570.fxtal.get() == 0.0
+    assert 'is disabled' in caplog.text
+
+
+def test_failed_config_write_unfreezes_and_applies(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+
+    # The verify read of register 12 fails after the DCO is frozen
+    memory.failReads = {12: 1}
+    memory.newFreqs.clear()
+    with pytest.raises(Exception):
+        si570.Frequency.set(200.0)
+
+    # The DCO must not stay frozen on dividers it was not retuned for
+    assert not memory.reg137 & FREEZE_DCO
+    assert memory.reg137 & RESERVED_137 == RESERVED_137
+    assert memory.newFreqs == [False]
+
+    # The next request programs normally
+    si570.Frequency.set(125.0)
+    assert memory.output() == pytest.approx(125.0, rel=1e-9)
+    assert not memory.reg137 & FREEZE_DCO
+
+
+@pytest.mark.parametrize('freq', [810.000001, 850.0, 1300.0])
+def test_max_freq_rejects_above_part_grade_before_any_write(freq):
+    root, memory = makeRoot(max_freq=810.0)
+    root.start()
+    try:
+        with pytest.raises(ValueError, match='max_freq'):
+            root.Si570.Frequency.set(freq)
+        assert memory.writes == []
+
+        root.Si570.Frequency.set(810.0)
+        assert memory.output() == pytest.approx(810.0, rel=1e-9)
+    finally:
+        root.stop()
