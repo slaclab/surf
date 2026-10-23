@@ -40,7 +40,9 @@
 #   skip an unchanged one and never write an invalid (unread) cache; NewFreq
 #   is queued before the unfreeze write completes; a configuration that
 #   reverts to factory after a late NewFreq is reapplied, and raises once the
-#   attempts run out.
+#   attempts run out; saved configurations hold Frequency, not registers 7-12,
+#   and LoadConfig programs Frequency with this part's fxtal even when the file
+#   carries registers from another part or holds only Frequency.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
@@ -531,21 +533,87 @@ def test_rfreq_is_rounded_to_nearest(si570_root, freq):
     assert si570.RFREQ_RAW.get(read=True) == expected
 
 
-def test_load_config_applies_changed_registers_with_sequence(si570_root):
+def saveConfig(si570):
+    return si570.getYaml(readFirst=True, modes=['RW', 'WO'], excGroups='NoConfig')
+
+
+def loadConfig(si570, yml):
+    si570.setYaml(yml, writeEach=False, modes=['RW', 'WO'], excGroups='NoConfig')
+
+
+def test_saved_config_holds_frequency_not_registers(si570_root):
+    _, si570, _ = si570_root
+    si570.Frequency.set(200.0)
+
+    yml = saveConfig(si570)
+
+    assert 'Frequency: 200.0' in yml
+    for name in ('Config[', 'N1', 'HS_DIV', 'RFREQ'):
+        assert name not in yml
+
+
+def test_load_config_applies_saved_frequency_with_sequence(si570_root):
     _, si570, memory = si570_root
     si570.Frequency.set(200.0)
-    yml = si570.getYaml(readFirst=True, modes=['RW', 'WO'], excGroups='NoConfig')
+    yml = saveConfig(si570)
     si570.Frequency.set(125.0)
     memory.writes.clear()
     memory.newFreqs.clear()
 
-    si570.setYaml(yml, writeEach=False, modes=['RW', 'WO'], excGroups='NoConfig')
+    loadConfig(si570, yml)
 
     assert memory.output() == pytest.approx(200.0, rel=1e-9)
     assert memory.unfrozenConfigWrites == []
     assert memory.newFreqs == [False]
     assert not memory.reg137 & FREEZE_DCO
     assert memory.reg137 & RESERVED_137 == RESERVED_137
+
+
+def test_load_config_with_unchanged_frequency_keeps_output_running(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(200.0)
+    yml = saveConfig(si570)
+    memory.newFreqs.clear()
+
+    loadConfig(si570, yml)
+
+    assert memory.newFreqs == []
+    assert memory.output() == pytest.approx(200.0, rel=1e-9)
+
+
+def test_load_config_from_another_part_uses_this_parts_fxtal():
+    # A file saved before Frequency became the stored setting carries raw
+    # registers computed for the other part's fxtal (+1000 ppm here)
+    other = 114.285 * (1 + 1000e-6)
+    rfreq = round(322.265625 * 4 * 4 / other * 2**28)
+    regs = [0x00, 0xC0 | (rfreq >> 32)] + list(rfreq.to_bytes(5, 'big')[1:])
+    yml = 'Si570:\n  enable: True\n'
+    yml += ''.join(f'  Config[{7 + i}]: {hex(r)}\n' for i, r in enumerate(regs))
+    yml += '  Frequency: 322.265625\n'
+
+    root, memory = makeRoot()
+    with root:
+        loadConfig(root.Si570, yml)
+        assert memory.output() == pytest.approx(322.265625, rel=1e-9)
+
+
+def test_load_config_with_only_frequency_programs_it():
+    root, memory = makeRoot(nvmWithFxtalOffset(-1500))
+    with root:
+        loadConfig(root.Si570, 'Si570:\n  enable: True\n  Frequency: 250.0\n')
+
+        assert memory.recalls == 1
+        assert memory.output() == pytest.approx(250.0, rel=1e-9)
+
+
+def test_load_config_rejects_unsupported_frequency_before_any_write(si570_root):
+    _, si570, memory = si570_root
+
+    with pytest.raises(Exception):
+        loadConfig(si570, 'Si570:\n  enable: True\n  Frequency: 950.0\n')
+
+    assert all(not 7 <= r <= 12 for r, _ in memory.writes)
+    assert memory.config == DATASHEET_NVM
 
 
 def test_write_all_with_unchanged_config_does_not_touch_the_dco(si570_root):

@@ -88,9 +88,16 @@ class Si570(pr.Device):
     NewFreq writes queued back to back, then read back registers 7-12 and
     reapply if the part reverted to its factory configuration.
 
+    Configuration files hold ``Frequency``, not registers 7-12: RFREQ depends
+    on each part's fxtal, so the registers and the fields decoded from them
+    (N1, HS_DIV, RFREQ) are in the ``NoConfig`` group. ``LoadConfig`` stages
+    ``Frequency`` and the bulk write programs it with this part's calibration.
+    A configuration saved before fxtal is calibrated records ``Frequency``
+    from the nominal fxtal, within the +/-2000 ppm crystal tolerance.
+
     Registers 7-12 are excluded from bulk register writes. A bulk write such
-    as ``WriteAll`` or ``LoadConfig`` that changes them is applied with the
-    full sequence instead of raw register writes; an invalid staged
+    as ``WriteAll`` after deferred (``write=False``) field changes is applied
+    with the full sequence instead of raw register writes; an invalid staged
     configuration (for example a cache that was never read) is not written.
     """
 
@@ -101,6 +108,8 @@ class Si570(pr.Device):
         self.max_freq = max_freq
         self._centerFdco = None
         self._applying = False
+        # Frequency set with write=False (LoadConfig), applied by the next bulk write
+        self._stagedFreq = None
 
         ADDR_SIZE = 4
 
@@ -113,7 +122,8 @@ class Si570(pr.Device):
                 bitSize     = 8,
                 hidden      = True,
                 overlapEn   = True,
-                bulkOpEn    = False))
+                bulkOpEn    = False,
+                groups      = ['NoConfig']))
 
         # Extract N1 register value
         def n1_raw_get(read: bool) -> int:
@@ -137,7 +147,8 @@ class Si570(pr.Device):
             dependencies = [self.Config[7], self.Config[8]],
             hidden       = True,
             linkedGet    = n1_raw_get,
-            linkedSet    = n1_raw_set))
+            linkedSet    = n1_raw_set,
+            groups       = ['NoConfig']))
 
         def n1_set(value: int, write: bool) -> None:
             if value != 1 and (value % 2 != 0 or not 2 <= value <= 128):
@@ -152,7 +163,8 @@ class Si570(pr.Device):
             Value will be formatted for register as described on datasheet page 23""",
             dependencies = [self.N1_RAW],
             linkedGet    = lambda read: self.N1_RAW.get(read=read) + 1,
-            linkedSet    = n1_set))
+            linkedSet    = n1_set,
+            groups       = ['NoConfig']))
 
         # Enum for HS_DIV
         self.add(pr.RemoteVariable(
@@ -163,6 +175,7 @@ class Si570(pr.Device):
             offset      = 7 * ADDR_SIZE,
             bitSize     = 3,
             bitOffset   = 5,
+            groups      = ['NoConfig'],
             enum        = {
                 0: '4',
                 1: '5',
@@ -178,7 +191,8 @@ class Si570(pr.Device):
             hidden       = True,
             dependencies = [self.HS_DIV],
             linkedGet    = lambda read: int(self.HS_DIV.getDisp(read=read)),
-            linkedSet    = lambda value, write: self.HS_DIV.setDisp(str(value), write=write)))
+            linkedSet    = lambda value, write: self.HS_DIV.setDisp(str(value), write=write),
+            groups       = ['NoConfig']))
 
         # Extract RFREQ[37:0] from registers
         def rfreq_raw_get(read: bool) -> int:
@@ -205,7 +219,8 @@ class Si570(pr.Device):
             hidden       = True,
             dependencies = [self.Config[x] for x in range(8,13)],
             linkedGet    = rfreq_raw_get,
-            linkedSet    = rfreq_raw_set))
+            linkedSet    = rfreq_raw_set,
+            groups       = ['NoConfig']))
 
 
         self.add(pr.LinkVariable(
@@ -213,7 +228,8 @@ class Si570(pr.Device):
             description  = 'Frequency control input to DCO, formatted from fixed point',
             dependencies = [self.RFREQ_RAW],
             linkedGet    = lambda read: self.RFREQ_RAW.get(read=read) / 2**28,
-            linkedSet    = lambda value, write: self.RFREQ_RAW.set(round(value*2**28), write=write)))
+            linkedSet    = lambda value, write: self.RFREQ_RAW.set(round(value*2**28), write=write),
+            groups       = ['NoConfig']))
 
         # RST_REG, NewFreq, FreezeM and RECALL share register 135, so every
         # write of that register replays the cached value of all four bits
@@ -335,17 +351,19 @@ class Si570(pr.Device):
             raise ValueError(f'Si570 cannot generate {f1} MHz; supported ranges are 10-945, 970-1134 and 1212.5-1417.5 MHz')
 
         def set_freq(value: float, write: bool) -> None:
+            n1, hs_div = find_params(value)
+            if value > self.max_freq:
+                raise ValueError(f'Si570 {value} MHz is above max_freq={self.max_freq} MHz for this part')
+
             if write is False:
+                self._stagedFreq = value
                 return
+            self._stagedFreq = None
             if self.enable.value() is not True:
                 self._log.warning(f'{self.path} is disabled; Frequency={value} MHz not programmed')
                 return
 
             with self.root.updateGroup():
-                n1, hs_div = find_params(value)
-                if value > self.max_freq:
-                    raise ValueError(f'Si570 {value} MHz is above max_freq={self.max_freq} MHz for this part')
-
                 if self.fxtal.value() == 0.0:
                     self.RECALL()
                 fxtal = self.fxtal.value()
@@ -379,6 +397,7 @@ class Si570(pr.Device):
             Set the frequency in MHz.
             Automatically calculates all register values and performs the frequency update procedure described in the datasheet.
             Changes within +/-3500 ppm of the last large change only retune RFREQ and do not stop the output.
+            A deferred set (write=False, as LoadConfig does) is programmed by the next bulk write.
             Readback uses the nominal fxtal (+/-2000 ppm) until fxtal is calibrated""",
             units        = 'MHz',
             dependencies = [self.N1, self.HS_DIV_INT, self.RFREQ, self.fxtal],
@@ -524,6 +543,11 @@ class Si570(pr.Device):
         """Apply a changed registers 7-12 configuration from a bulk write with the datasheet sequence."""
         super().writeBlocks(force=force, recurse=recurse, variable=variable, **kwargs)
         if variable is None and not self._applying and self.enable.value() is True:
+            # A staged Frequency is calibrated for this part, so it takes
+            # precedence over any staged raw registers
+            if self._stagedFreq is not None:
+                self.Frequency.set(self._stagedFreq)
+                return
             staged = [v.value() for v in self._configVars()]
             if staged == self._readHwConfig():
                 return
