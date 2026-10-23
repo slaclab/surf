@@ -372,6 +372,16 @@ jobs:
           PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
             tests/devices/silabs/test_Si570.py
 
+      - name: AxiLiteMasterProxy Rogue tests
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/axi/axi_lite/test_AxiLiteMasterProxyRogue.py
+
+      - name: QSFP Rogue tests
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/devices/transceivers/test_QsfpRogue.py
+
 # ----------------------------------------------------------------------------
 
   docs:
