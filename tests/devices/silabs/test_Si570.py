@@ -16,7 +16,9 @@
 #   command bits followed by forced bulk writes, a stuck self-clearing bit,
 #   RST_REG with transient or persistent I2C failures during the reset, a
 #   register read failure while the DCO is frozen, a max_freq speed-grade
-#   limit, and a set while the device is disabled.
+#   limit, a set while the device is disabled, small changes inside and
+#   outside the +/-3500 ppm window, RFREQ rounding, LoadConfig, WriteAll and
+#   ReadAll, and a device at a non-zero offset.
 # - Stimulus: Real Rogue writes and reads against a simulated Si570 register
 #   window behind a 32-bit FPGA I2C bridge. The model reloads NVM on RECALL,
 #   self-clears RST_REG/NewFreq/RECALL after a read, fails reads while RST_REG
@@ -32,7 +34,10 @@
 #   rides through failed reads during the reset and still raises when the I2C
 #   failure persists; a failed configuration write still unfreezes the DCO
 #   and pulses NewFreq; requests above max_freq or on a disabled device write
-#   nothing.
+#   nothing; small changes write only RFREQ under Freeze M without NewFreq
+#   and fall back to the full sequence if the part changed behind the
+#   driver; bulk writes apply a changed configuration with the full sequence,
+#   skip an unchanged one and never write an invalid (unread) cache.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
@@ -76,8 +81,9 @@ def decode(regs):
 class Si570Memory(rim.Slave):
     """Si570 registers at 4-byte strides in an FPGA I2C bridge window."""
 
-    def __init__(self, nvm):
+    def __init__(self, nvm, base=0):
         super().__init__(4, 4)
+        self.base = base
         self.nvm = list(nvm)
         self.config = list(nvm)
         self.reg135 = 0
@@ -91,6 +97,7 @@ class Si570Memory(rim.Slave):
         self.recalls = 0
         self.newFreqs = []
         self.unfrozenConfigWrites = []
+        self.freezeMConfigWrites = []
         self.writes = []
         # Register reads (including verify) that fail once each, by register
         self.failReads = {}
@@ -106,7 +113,7 @@ class Si570Memory(rim.Slave):
 
     def _doTransaction(self, transaction):
         with transaction.lock():
-            reg = transaction.address() // 4
+            reg = (transaction.address() - self.base) // 4
             if (reg not in (*range(7, 13), 135, 137) or transaction.address() % 4
                     or transaction.size() != 4):
                 transaction.error('Unexpected Si570 register access')
@@ -130,7 +137,10 @@ class Si570Memory(rim.Slave):
                     self.reg137 = value
                 else:
                     if not self.reg137 & FREEZE_DCO:
-                        self.unfrozenConfigWrites.append(reg)
+                        if self.reg135 & FREEZE_M:
+                            self.freezeMConfigWrites.append(reg)
+                        else:
+                            self.unfrozenConfigWrites.append(reg)
                     self.config[reg - 7] = value
             else:
                 if self.failReads.get(reg, 0):
@@ -154,10 +164,10 @@ class Si570Memory(rim.Slave):
             transaction.done()
 
 
-def makeRoot(nvm=DATASHEET_NVM, factoryFreq=FACTORY_FREQ, **kwargs):
-    memory = Si570Memory(nvm)
+def makeRoot(nvm=DATASHEET_NVM, factoryFreq=FACTORY_FREQ, offset=0, **kwargs):
+    memory = Si570Memory(nvm, base=offset)
     root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=1.0)
-    root.add(Si570(name='Si570', factory_freq=factoryFreq, memBase=memory, **kwargs))
+    root.add(Si570(name='Si570', factory_freq=factoryFreq, memBase=memory, offset=offset, **kwargs))
     return root, memory
 
 
@@ -389,5 +399,126 @@ def test_max_freq_rejects_above_part_grade_before_any_write(freq):
 
         root.Si570.Frequency.set(810.0)
         assert memory.output() == pytest.approx(810.0, rel=1e-9)
+    finally:
+        root.stop()
+
+
+def test_small_change_retunes_rfreq_without_stopping_output(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    memory.writes.clear()
+    memory.newFreqs.clear()
+
+    target = 161.132812 * (1 + 1000e-6)
+    si570.Frequency.set(target)
+
+    # Datasheet 3.1.1: RFREQ only, under Freeze M, no DCO freeze and no NewFreq
+    assert memory.newFreqs == []
+    assert all(r != 137 for r, _ in memory.writes)
+    assert memory.freezeMConfigWrites == [8, 9, 10, 11, 12]
+    assert memory.unfrozenConfigWrites == []
+    assert not memory.reg135 & FREEZE_M
+    assert memory.output() == pytest.approx(target, rel=1e-9)
+
+
+def test_small_change_window_is_relative_to_center(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    memory.newFreqs.clear()
+
+    # +2000 ppm is small; +4000 ppm from the same center is large and recenters
+    for step, newFreqs in ((2000, 0), (4000, 1), (6000, 1)):
+        target = 161.132812 * (1 + step * 1e-6)
+        si570.Frequency.set(target)
+        assert len(memory.newFreqs) == newFreqs
+        assert memory.output() == pytest.approx(target, rel=1e-9)
+
+
+def test_small_change_falls_back_when_part_changed_externally(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    memory.newFreqs.clear()
+
+    # Another process restored the factory configuration behind this driver
+    memory.config = list(memory.nvm)
+    target = 161.132812 * (1 + 1000e-6)
+    si570.Frequency.set(target)
+
+    assert memory.newFreqs == [False]
+    assert memory.output() == pytest.approx(target, rel=1e-9)
+
+
+@pytest.mark.parametrize('freq', [100.000000001, 156.2500003, 161.1328125, 322.265625])
+def test_rfreq_is_rounded_to_nearest(si570_root, freq):
+    _, si570, memory = si570_root
+    si570.Frequency.set(freq)
+    hsDiv, n1, _ = decode(memory.config)
+    expected = round(freq * hsDiv * n1 / si570.fxtal.get() * 2**28)
+    assert si570.RFREQ_RAW.get(read=True) == expected
+
+
+def test_load_config_applies_changed_registers_with_sequence(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(200.0)
+    yml = si570.getYaml(readFirst=True, modes=['RW', 'WO'], excGroups='NoConfig')
+    si570.Frequency.set(125.0)
+    memory.writes.clear()
+    memory.newFreqs.clear()
+
+    si570.setYaml(yml, writeEach=False, modes=['RW', 'WO'], excGroups='NoConfig')
+
+    assert memory.output() == pytest.approx(200.0, rel=1e-9)
+    assert memory.unfrozenConfigWrites == []
+    assert memory.newFreqs == [False]
+    assert not memory.reg137 & FREEZE_DCO
+    assert memory.reg137 & RESERVED_137 == RESERVED_137
+
+
+def test_write_all_with_unchanged_config_does_not_touch_the_dco(si570_root):
+    root, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    memory.writes.clear()
+    memory.newFreqs.clear()
+
+    root.WriteAll()
+
+    assert all(not 7 <= r <= 12 and r != 137 for r, _ in memory.writes)
+    assert memory.newFreqs == []
+
+
+def test_write_all_with_unread_cache_is_not_written(si570_root, caplog):
+    root, si570, memory = si570_root
+
+    # Registers 7-12 were never read, so the cache holds zeros
+    with caplog.at_level('WARNING'):
+        root.WriteAll()
+
+    assert memory.config == DATASHEET_NVM
+    assert all(not 7 <= r <= 12 and r != 137 for r, _ in memory.writes)
+    assert 'not a valid configuration' in caplog.text
+
+
+def test_read_all_reads_config_registers(si570_root):
+    root, si570, memory = si570_root
+
+    root.ReadAll()
+
+    assert [si570.Config[i].value() for i in range(7, 13)] == DATASHEET_NVM
+
+
+def test_bulk_config_paths_at_nonzero_offset():
+    # Raw readback of registers 7-12 must target the device window, not address 0
+    root, memory = makeRoot(offset=0x7A000)
+    root.start()
+    try:
+        si570 = root.Si570
+        si570.Frequency.set(161.132812)
+        memory.newFreqs.clear()
+        si570.Frequency.set(161.132812 * (1 + 1000e-6))
+        assert memory.newFreqs == []
+        assert memory.output() == pytest.approx(161.132812 * (1 + 1000e-6), rel=1e-9)
+        memory.writes.clear()
+        root.WriteAll()
+        assert all(not 7 <= r <= 12 for r, _ in memory.writes)
     finally:
         root.stop()

@@ -20,6 +20,7 @@ from typing import Any
 
 import pyrogue as pr
 import rogue
+import rogue.interfaces.memory as rim
 
 # Datasheet nominal internal crystal frequency (MHz), used for readback only
 # until fxtal is calibrated. Actual parts vary by up to +/-2000 ppm.
@@ -29,6 +30,14 @@ _FXTAL_NOMINAL = 114.285
 # outside this wider margin means factory_freq is wrong or the part keeps its
 # configuration in registers 13-18 (7 ppm stability), not a real crystal
 _FXTAL_MAX_PPM = 3000
+
+# DCO frequency range (MHz)
+_FDCO_MIN = 4850.0
+_FDCO_MAX = 5670.0
+
+# Changes within this window of the center frequency (the last NewFreq or
+# RECALL) only retune RFREQ, so the output does not stop (datasheet 3.1.1)
+_SMALL_CHANGE_PPM = 3500
 
 # Self-clearing bits in register 135 are polled at this period until clear
 _POLL_PERIOD  = 0.001
@@ -66,6 +75,16 @@ class Si570(pr.Device):
     restarts the output twice rather than once. Downstream logic that is
     sensitive to clock interruptions, such as MGT reference clocks, should
     expect this on the first write after start-up.
+
+    A request within +/-3500 ppm of the center frequency (the last NewFreq or
+    RECALL) that the current dividers can reach only retunes RFREQ under
+    Freeze M, so the output changes without stopping. Larger changes use the
+    full freeze, write, unfreeze and NewFreq sequence.
+
+    Registers 7-12 are excluded from bulk register writes. A bulk write such
+    as ``WriteAll`` or ``LoadConfig`` that changes them is applied with the
+    full sequence instead of raw register writes; an invalid staged
+    configuration (for example a cache that was never read) is not written.
     """
 
     def __init__(self, factory_freq: float, max_freq: float = 1417.5, **kwargs: Any) -> None:
@@ -73,6 +92,8 @@ class Si570(pr.Device):
         super().__init__(**kwargs)
         self.factory_freq = factory_freq
         self.max_freq = max_freq
+        self._centerFdco = None
+        self._applying = False
 
         ADDR_SIZE = 4
 
@@ -84,7 +105,8 @@ class Si570(pr.Device):
                 bitOffset   = 0,
                 bitSize     = 8,
                 hidden      = True,
-                overlapEn   = True))
+                overlapEn   = True,
+                bulkOpEn    = False))
 
         # Extract N1 register value
         def n1_raw_get(read: bool) -> int:
@@ -130,6 +152,7 @@ class Si570(pr.Device):
             name        = 'HS_DIV',
             description = 'Sets value for high speed divider that takes the DCO output fOSC as its clock input',
             overlapEn   = True,
+            bulkOpEn    = False,
             offset      = 7 * ADDR_SIZE,
             bitSize     = 3,
             bitOffset   = 5,
@@ -183,7 +206,7 @@ class Si570(pr.Device):
             description  = 'Frequency control input to DCO, formatted from fixed point',
             dependencies = [self.RFREQ_RAW],
             linkedGet    = lambda read: self.RFREQ_RAW.get(read=read) / 2**28,
-            linkedSet    = lambda value, write: self.RFREQ_RAW.set(int(value*2**28), write=write)))
+            linkedSet    = lambda value, write: self.RFREQ_RAW.set(round(value*2**28), write=write)))
 
         # RST_REG, NewFreq, FreezeM and RECALL share register 135, so every
         # write of that register replays the cached value of all four bits
@@ -219,6 +242,8 @@ class Si570(pr.Device):
 
         def reset_reg() -> None:
             pulse(self.RST_REG, i2c_reset=True)
+            # The part restarts from NVM; the cached center frequency no longer applies
+            self._centerFdco = None
 
         self.add(pr.RemoteCommand(
             name        = 'RST_REG',
@@ -271,6 +296,7 @@ class Si570(pr.Device):
                     f'{_FXTAL_NOMINAL} MHz (limit +/-{_FXTAL_MAX_PPM} ppm); check factory_freq '
                     f'and that the part uses configuration registers 7-12')
             self.fxtal.set(fxtal)
+            self._centerFdco = fxtal * rfreq
 
         self.add(pr.RemoteCommand(
             name        = 'RECALL',
@@ -292,7 +318,8 @@ class Si570(pr.Device):
             offset      = 137 * ADDR_SIZE,
             bitSize     = 1,
             bitOffset   = 4,
-            verify      = False))
+            verify      = False,
+            bulkOpEn    = False))
 
         self.add(pr.LocalVariable(
             name         = 'fxtal',
@@ -328,38 +355,24 @@ class Si570(pr.Device):
                 n1, hs_div = find_params(value)
                 if value > self.max_freq:
                     raise ValueError(f'Si570 {value} MHz is above max_freq={self.max_freq} MHz for this part')
-                fdco = value * hs_div * n1
 
                 if self.fxtal.value() == 0.0:
                     self.RECALL()
-                rfreq = fdco / self.fxtal.value()
+                fxtal = self.fxtal.value()
 
-                # Freeze, refreshing the cached reserved bits of register 137 first
-                self.FreezeDCO.get(read=True)
-                self.FreezeDCO.set(1, write=True)
+                # Small change: keep the dividers and retune RFREQ without stopping the
+                # output, only if the part still holds the configuration this driver applied
+                fdco = value * self.HS_DIV_INT.value() * self.N1.value()
+                if (self._centerFdco is not None and _FDCO_MIN <= fdco <= _FDCO_MAX
+                        and abs(fdco / self._centerFdco - 1) < _SMALL_CHANGE_PPM * 1e-6
+                        and self._readHwConfig() == [v.value() for v in self._configVars()]):
+                    self._smallChange(fdco / fxtal)
+                    return
 
-                # Write new config
-                try:
-                    self.N1.set(n1, write=False)
-                    self.HS_DIV_INT.set(hs_div, write=False)
-                    self.RFREQ.set(rfreq, write=False)
-                    self.writeAndVerifyBlocks()
-                except Exception:
-                    # A frozen DCO with new dividers outputs a wrong frequency that
-                    # nothing reports. Unfreeze and apply what the registers now hold
-                    # so the output matches them, then report the original error
-                    try:
-                        self.FreezeDCO.set(0, write=True)
-                        self.NewFreq()
-                    except Exception as e:
-                        self._log.error(f'{self.path}: recovery after a failed configuration write also failed: {e}')
-                    raise
-
-                # Unfreeze
-                self.FreezeDCO.set(0, write=True)
-
-                # NewFreq
-                self.NewFreq()
+                self.N1.set(n1, write=False)
+                self.HS_DIV_INT.set(hs_div, write=False)
+                self.RFREQ.set(value * hs_div * n1 / fxtal, write=False)
+                self._applyConfig()
 
         def get_freq(read: bool) -> float:
             n1 = self.N1.get(read=read)
@@ -375,8 +388,108 @@ class Si570(pr.Device):
             description  = """
             Set the frequency in MHz.
             Automatically calculates all register values and performs the frequency update procedure described in the datasheet.
+            Changes within +/-3500 ppm of the last large change only retune RFREQ and do not stop the output.
             Readback uses the nominal fxtal (+/-2000 ppm) until fxtal is calibrated""",
             units        = 'MHz',
             dependencies = [self.N1, self.HS_DIV_INT, self.RFREQ, self.fxtal],
             linkedGet    = get_freq,
             linkedSet    = set_freq))
+
+
+    def _configVars(self) -> list[pr.RemoteVariable]:
+        return [self.Config[i] for i in range(7, 13)]
+
+    def _readHwConfig(self) -> list[int]:
+        """Read registers 7-12 from the part without touching the variable cache."""
+        # Transactions this Hub starts itself do not get its offset added
+        regs = []
+        for i in range(7, 13):
+            data = bytearray(4)
+            tid = self._reqTransaction(self.offset + i * 4, data, 4, 0, rim.Read)
+            self._waitTransaction(tid)
+            err = self._getError()
+            if err:
+                raise pr.MemoryError(name=self.path, address=self.address + i * 4, msg=err)
+            regs.append(data[0])
+        return regs
+
+    def _validConfig(self, regs: list[int]) -> bool:
+        """True if registers 7-12 describe a configuration the DCO can run."""
+        if (regs[0] >> 5) not in (0, 1, 2, 3, 5, 7):
+            return False
+        n1 = (((regs[0] & 0x1f) << 2) | (regs[1] >> 6)) + 1
+        if n1 != 1 and n1 % 2 != 0:
+            return False
+        rfreq = int.from_bytes(bytes([regs[1] & 0x3f] + regs[2:]), 'big') / 2**28
+        fdco = (self.fxtal.value() or _FXTAL_NOMINAL) * rfreq
+        margin = _FXTAL_MAX_PPM * 1e-6
+        return _FDCO_MIN * (1 - margin) <= fdco <= _FDCO_MAX * (1 + margin)
+
+    def _writeConfigRegs(self, variables: list[pr.RemoteVariable]) -> None:
+        for v in variables:
+            pr.Device.writeBlocks(self, force=True, recurse=False, variable=v)
+        for v in variables:
+            self.verifyBlocks(recurse=False, variable=v)
+        self.waitBlocks(recurse=False)
+
+    def _applyConfig(self) -> None:
+        """Write the cached registers 7-12 with the datasheet large-change sequence."""
+        self._applying = True
+        try:
+            # Freeze, refreshing the cached reserved bits of register 137 first
+            self.FreezeDCO.get(read=True)
+            self.FreezeDCO.set(1, write=True)
+
+            # Write new config
+            try:
+                self._writeConfigRegs(self._configVars())
+            except Exception:
+                # A frozen DCO with new dividers outputs a wrong frequency that
+                # nothing reports. Unfreeze and apply what the registers now hold
+                # so the output matches them, then report the original error
+                try:
+                    self.FreezeDCO.set(0, write=True)
+                    self.NewFreq()
+                except Exception as e:
+                    self._log.error(f'{self.path}: recovery after a failed configuration write also failed: {e}')
+                raise
+
+            # Unfreeze
+            self.FreezeDCO.set(0, write=True)
+
+            # NewFreq
+            self.NewFreq()
+
+            if self.fxtal.value() != 0.0:
+                self._centerFdco = self.fxtal.value() * self.RFREQ.value()
+        finally:
+            self._applying = False
+
+    def _smallChange(self, rfreq: float) -> None:
+        """Retune RFREQ under Freeze M so the output does not stop (datasheet 3.1.1)."""
+        self.RFREQ.set(rfreq, write=False)
+        self.FreezeM.set(1, write=True)
+        try:
+            self._writeConfigRegs([self.Config[i] for i in range(8, 13)])
+        finally:
+            self.FreezeM.set(0, write=True)
+
+    def readBlocks(self, *, recurse: bool = True, variable: Any = None, **kwargs: Any) -> None:
+        """Bulk reads (ReadAll) also cover registers 7-12, which are excluded from bulk operations."""
+        super().readBlocks(recurse=recurse, variable=variable, **kwargs)
+        if variable is None:
+            for v in self._configVars():
+                super().readBlocks(recurse=False, variable=v, **kwargs)
+
+    def writeBlocks(self, *, force: bool = False, recurse: bool = True, variable: Any = None, **kwargs: Any) -> None:
+        """Apply a changed registers 7-12 configuration from a bulk write with the datasheet sequence."""
+        super().writeBlocks(force=force, recurse=recurse, variable=variable, **kwargs)
+        if variable is None and not self._applying and self.enable.value() is True:
+            staged = [v.value() for v in self._configVars()]
+            if staged == self._readHwConfig():
+                return
+            if not self._validConfig(staged):
+                self._log.warning(f'{self.path}: staged registers 7-12 {[hex(x) for x in staged]} are not a '
+                                  f'valid configuration; not written')
+                return
+            self._applyConfig()
