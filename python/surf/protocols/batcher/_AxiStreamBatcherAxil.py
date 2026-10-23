@@ -15,55 +15,69 @@ class AxiStreamBatcherAxil(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteVariable(
-            name        = 'SuperFrameByteThreshold',
-            description = 'Sets the number of max superframe byte threshold before terminating the superframe.  Set to zero to bypass this feature',
-            offset      = 0x00,
-            bitSize     = 32,
-            mode        = 'RW',
-            disp        = '{:d}',
+            name        =  'SuperFrameByteThreshold',
+            description =  'Sets the number of max superframe byte threshold before terminating the superframe.  Set to zero to bypass this feature',
+            offset      =  0x00,
+            bitSize     =  32,
+            mode        =  'RW',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'MaxSubFrames',
-            description = 'Sets the number of max subframes before terminating the superframe.  Set to zero to bypass this feature',
-            offset      = 0x04,
-            bitSize     = 16,
-            mode        = 'RW',
-            disp        = '{:d}',
+            name        =  'MaxSubFrames',
+            description =  'Sets the number of max subframes before terminating the superframe.  Set to zero to bypass this feature',
+            offset      =  0x04,
+            bitSize     =  16,
+            mode        =  'RW',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'MaxClkGap',
-            description = 'Sets the number of clock cycles between subframes before terminating the superframe.  Set to zero to bypass this feature',
-            offset      = 0x08,
-            bitSize     = 32,
-            mode        = 'RW',
-            disp        = '{:d}',
+            name        =  'MaxClkGap',
+            description =  'Sets the number of clock cycles between subframes before terminating the superframe.  Set to zero to bypass this feature',
+            offset      =  0x08,
+            bitSize     =  32,
+            mode        =  'RW',
+            disp        =  '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = "Idle",
-            description  = "Current state of the batcher if it is IDLE",
-            offset       =  0x0C,
-            bitSize      =  1,
-            mode         = "RO",
-            base         = pr.Bool,
-            pollInterval = 1,
+            name         =  "Idle",
+            description  =  "Current state of the batcher if it is IDLE",
+            offset       =   0x0C,
+            bitSize      =   1,
+            mode         =  "RO",
+            base         =  pr.Bool,
+            pollInterval =  1,
         ))
 
         self.add(pr.RemoteVariable(
-            name        = 'Blowoff',
-            description = 'Blows off the inbound AXIS stream (for debugging)',
-            offset      = 0xF8,
-            bitSize     = 1,
-            base        = pr.Bool,
-            mode        = 'RW',
+            name        =  "VERSION_G",
+            description =  "Batcher Protocol Version",
+            offset      =   0x0C,
+            bitSize     =   4,
+            bitOffset   =   24,
+            mode        =  "RO",
+            enum        =  {
+                0 : "Version1", # legacy support
+                1 : "Version1",
+                2 : "Version2",
+            },
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        =  'Blowoff',
+            description =  'Blows off the inbound AXIS stream (for debugging)',
+            offset      =  0xF8,
+            bitSize     =  1,
+            base        =  pr.Bool,
+            mode        =  'RW',
         ))
 
         self.add(pr.RemoteCommand(
-            name        = 'SoftRst',
-            description = 'Used to reset the batcher FSM',
-            offset      = 0xFC,
-            bitSize     = 1,
-            function    = pr.BaseCommand.toggle,
+            name        =  'SoftRst',
+            description =  'Used to reset the batcher FSM',
+            offset      =  0xFC,
+            bitSize     =  1,
+            function    =  pr.BaseCommand.toggle,
         ))

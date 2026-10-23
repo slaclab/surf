@@ -10,7 +10,9 @@
 --              - Synchronization of LMFC to SYSREF
 --              - Multi-lane operation (L_G: 1-32)
 --
---          Warning: Scrambling support has not been tested on the TX module yet.
+--          TX scrambling exercised end-to-end by
+--          tests/protocols/jesd204b/test_Jesd204bLoopback.py loopback bench
+--          (lfsr_scramble_tx golden cross-check, all parameter cases green).
 --
 --          Note: extSampleDataArray_i should be little endian and not byte swapped
 --                First sample in time:  sampleData_i(15 downto 0)
@@ -47,7 +49,17 @@ entity Jesd204bTx is
       -- Number of frames in a multi frame
       K_G          : positive               := 32;
       -- Number of TX lanes (1 to 32)
-      L_G          : positive range 1 to 32 := 2);
+      L_G          : positive range 1 to 32 := 2;
+      -- ILAS link-config generics (all defaulted -- existing instances unaffected)
+      DID_G        : slv(7 downto 0)        := x"00";     -- Device ID
+      BID_G        : slv(3 downto 0)        := x"0";      -- Bank ID
+      M_G          : slv(7 downto 0)        := x"00";     -- Converters per device - 1
+      N_G          : slv(4 downto 0)        := "00000";   -- Converter resolution - 1
+      NPRIME_G     : slv(4 downto 0)        := "00000";   -- Total bits/sample - 1
+      CS_G         : slv(1 downto 0)        := "00";      -- Control bits/sample
+      S_G          : slv(4 downto 0)        := "00000";   -- Samples/converter/frame - 1
+      HD_G         : sl                     := '0';       -- High-density format
+      CF_G         : slv(4 downto 0)        := "00000");  -- Control words/frame/lane
    port (
       -- AXI interface
       -- Clocks and Resets
@@ -327,22 +339,33 @@ begin
       -- JESD Transmitter modules (one module per Lane)
       U_JesdTxLane : entity surf.JesdTxLane
          generic map (
-            TPD_G => TPD_G,
-            F_G   => F_G,
-            K_G   => K_G)
+            TPD_G    => TPD_G,
+            F_G      => F_G,
+            K_G      => K_G,
+            L_G      => L_G,
+            DID_G    => DID_G,
+            BID_G    => BID_G,
+            M_G      => M_G,
+            N_G      => N_G,
+            NPRIME_G => NPRIME_G,
+            CS_G     => CS_G,
+            S_G      => S_G,
+            HD_G     => HD_G,
+            CF_G     => CF_G)
          port map (
             devClk_i     => devClk_i,
             devRst_i     => devRst_i,
-            subClass_i   => s_subClass,        -- From AXI lite
-            enable_i     => s_enableTx(i),     -- From AXI lite
-            replEnable_i => s_replEnable,      -- From AXI lite
-            scrEnable_i  => s_scrEnable,       -- From AXI lite
-            inv_i        => s_invertData(i),   -- From AXI lite
+            subClass_i   => s_subClass,                   -- From AXI lite
+            enable_i     => s_enableTx(i),                -- From AXI lite
+            replEnable_i => s_replEnable,                 -- From AXI lite
+            scrEnable_i  => s_scrEnable,                  -- From AXI lite
+            inv_i        => s_invertData(i),              -- From AXI lite
             lmfc_i       => s_lmfc(i),
             nSync_i      => s_nSyncSync(i),
             gtTxReady_i  => gtTxReady_i(i),
             sysRef_i     => s_sysrefRe(i),
-            status_o     => s_statusTxArr(i),  -- To AXI lite
+            lid_i        => conv_std_logic_vector(i, 5),  -- per-lane LID
+            status_o     => s_statusTxArr(i),             -- To AXI lite
             dacReady_o   => dacReady_o(i),
             sampleData_i => s_sampleDataArr(i),
             r_jesdGtTx   => s_jesdGtTxArr(i));

@@ -45,102 +45,102 @@ class Lmk04828(ti.Lmk048Base):
 
         for offset in reservedList:
             self.add(pr.RemoteVariable(
-                name         = f'LmkReg_0x{offset:04X}',
-                description  = 'RESERVED',
-                offset       = (offset << 2),
-                bitSize      = 8,
-                mode         = 'WO',
-                hidden       = True,
+                name        = f'LmkReg_0x{offset:04X}',
+                description = 'RESERVED',
+                offset      = (offset << 2),
+                bitSize     = 8,
+                mode        = 'WO',
+                hidden      = True,
             ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0145',
-            description  = 'Always program to 127 (0x7F)',
-            offset       = (0x0145 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0x7F,
+            name        = 'LmkReg_0x0145',
+            description = 'Always program to 127 (0x7F)',
+            offset      = (0x0145 << 2),
+            bitSize     = 8,
+            mode        = 'WO',
+            value       = 0x7F,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x016D',
-            description  = 'PLL2_LF_C4, PLL2_LF_C3',
-            offset       = (0x016D << 2),
-            bitSize      = 8,
-            mode         = 'RW',
+            name        = 'LmkReg_0x016D',
+            description = 'PLL2_LF_C4, PLL2_LF_C3',
+            offset      = (0x016D << 2),
+            bitSize     = 8,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x016E',
-            description  = 'PLL2_LD_MUX, PLL2_LD_TYPE',
-            offset       = (0x016E << 2),
-            bitSize      = 8,
-            mode         = 'RW',
+            name        = 'LmkReg_0x016E',
+            description = 'PLL2_LD_MUX, PLL2_LD_TYPE',
+            offset      = (0x016E << 2),
+            bitSize     = 8,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0171',
-            description  = 'Always program to 170 (0xAA)',
-            offset       = (0x0171 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0xAA,
+            name        = 'LmkReg_0x0171',
+            description = 'Always program to 170 (0xAA)',
+            offset      = (0x0171 << 2),
+            bitSize     = 8,
+            mode        = 'WO',
+            value       = 0xAA,
         ))
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0172',
-            description  = 'Always program to 2 (0x02)',
-            offset       = (0x0172 << 2),
-            bitSize      = 8,
-            mode         = 'WO',
-            value        = 0x02,
-        ))
-
-        self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x0174',
-            description  = 'VCO1_DIV (LMK04821 only)',
-            offset       = (0x0174 << 2),
-            bitSize      = 8,
-            mode         = 'RW',
+            name        = 'LmkReg_0x0172',
+            description = 'Always program to 2 (0x02)',
+            offset      = (0x0172 << 2),
+            bitSize     = 8,
+            mode        = 'WO',
+            value       = 0x02,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x017C',
-            description  = 'OPT_REG_1: 21: LMK04821, 24: LMK04826, 21: LMK04828',
-            offset       = (0x017C << 2),
-            bitSize      = 8,
-            mode         = 'RW',
+            name        = 'LmkReg_0x0174',
+            description = 'VCO1_DIV (LMK04821 only)',
+            offset      = (0x0174 << 2),
+            bitSize     = 8,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x017D',
-            description  = 'OPT_REG_2: 51: LMK04821, 119: LMK04826, 51: LMK04828',
-            offset       = (0x017D << 2),
-            bitSize      = 8,
-            mode         = 'RW',
+            name        = 'LmkReg_0x017C',
+            description = 'OPT_REG_1: 21: LMK04821, 24: LMK04826, 21: LMK04828',
+            offset      = (0x017C << 2),
+            bitSize     = 8,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x1FFD',
-            description  = 'SPI_LOCK[23:16]',
-            offset       = (0x1FFD << 2),
-            bitSize      = 8,
-            mode         = 'WO',
+            name        = 'LmkReg_0x017D',
+            description = 'OPT_REG_2: 51: LMK04821, 119: LMK04826, 51: LMK04828',
+            offset      = (0x017D << 2),
+            bitSize     = 8,
+            mode        = 'RW',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x1FFE',
-            description  = 'SPI_LOCK[15:8]',
-            offset       = (0x1FFE << 2),
-            bitSize      = 8,
-            mode         = 'WO',
+            name        = 'LmkReg_0x1FFD',
+            description = 'SPI_LOCK[23:16]',
+            offset      = (0x1FFD << 2),
+            bitSize     = 8,
+            mode        = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'LmkReg_0x1FFF',
-            description  = 'SPI_LOCK[7:0]',
-            offset       = (0x1FFF << 2),
-            bitSize      = 8,
-            mode         = 'WO',
+            name        = 'LmkReg_0x1FFE',
+            description = 'SPI_LOCK[15:8]',
+            offset      = (0x1FFE << 2),
+            bitSize     = 8,
+            mode        = 'WO',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'LmkReg_0x1FFF',
+            description = 'SPI_LOCK[7:0]',
+            offset      = (0x1FFF << 2),
+            bitSize     = 8,
+            mode        = 'WO',
         ))
 
         # Default to simple view

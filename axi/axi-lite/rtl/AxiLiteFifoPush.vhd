@@ -26,6 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteFifoPush is
    generic (
       TPD_G              : time                  := 1 ns;
+      RST_POLARITY_G     : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean               := false;
       PUSH_FIFO_COUNT_G  : positive              := 1;
       PUSH_SYNC_FIFO_G   : boolean               := false;
@@ -84,10 +85,10 @@ begin
       U_FIfo : entity surf.FifoCascade
          generic map (
             TPD_G              => TPD_G,
+            RST_POLARITY_G     => RST_POLARITY_G,
+            RST_ASYNC_G        => RST_ASYNC_G,
             CASCADE_SIZE_G     => 1,
             LAST_STAGE_ASYNC_G => true,
-            RST_POLARITY_G     => '1',
-            RST_ASYNC_G        => true,
             GEN_SYNC_FIFO_G    => PUSH_SYNC_FIFO_G,
             MEMORY_TYPE_G      => PUSH_MEMORY_TYPE_G,
             FWFT_EN_G          => true,
@@ -167,7 +168,7 @@ begin
       end if;
 
       -- Reset
-      if (RST_ASYNC_G = false and axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -184,7 +185,7 @@ begin
 
    seq : process (axiClk, axiClkRst) is
    begin
-      if (RST_ASYNC_G and axiClkRst = '1') then
+      if (RST_ASYNC_G and axiClkRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          r <= rin after TPD_G;

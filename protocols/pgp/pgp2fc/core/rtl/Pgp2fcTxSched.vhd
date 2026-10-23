@@ -88,7 +88,7 @@ architecture Pgp2fcTxSched of Pgp2fcTxSched is
    signal vcTimeout    : slv(3 downto 0)  := (others => '0');
    signal gateTxValid  : slv(3 downto 0);
 
-   -- Schedular state
+   -- Scheduler state
    constant ST_RST_C   : slv(2 downto 0) := "001";
    constant ST_ARB_C   : slv(2 downto 0) := "010";
    constant ST_CELL_C  : slv(2 downto 0) := "011";

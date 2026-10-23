@@ -48,7 +48,7 @@ class Sc18Is602(pr.Device):
             bitSize     = 2,
             bitOffset   = 0,
             mode        = 'WO',
-            enum      = {
+            enum        = {
                 0: "1843kHz",
                 1: "461kHz",
                 2: "115kHz",

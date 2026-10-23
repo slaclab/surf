@@ -1,4 +1,6 @@
 -------------------------------------------------------------------------------
+-- Company    : SLAC National Accelerator Laboratory
+-------------------------------------------------------------------------------
 -- Description:
 -- Generic register slave endpoint on AXI-Lite bus
 -- Supports a configurable number of write and read vectors.
@@ -17,7 +19,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -25,6 +26,7 @@ use surf.AxiLitePkg.all;
 entity AxiLiteRegs is
    generic (
       TPD_G           : time                  := 1 ns;
+      RST_POLARITY_G  : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G     : boolean               := false;
       NUM_WRITE_REG_G : integer range 1 to 32 := 1;
       INI_WRITE_REG_G : Slv32Array            := (0 => x"0000_0000");
@@ -102,7 +104,7 @@ begin
       axiSlaveDefault(regCon, v.axiWriteSlave, v.axiReadSlave, AXI_RESP_DECERR_C);
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axiClkRst = '1') then
+      if (RST_ASYNC_G = false and axiClkRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -118,7 +120,7 @@ begin
 
    seq : process (axiClk, axiClkRst) is
    begin
-      if (RST_ASYNC_G and axiClkRst = '1') then
+      if (RST_ASYNC_G and axiClkRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          r <= rin after TPD_G;

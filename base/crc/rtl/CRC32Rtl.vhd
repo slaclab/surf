@@ -30,9 +30,10 @@ use surf.StdRtlPkg.all;
 
 entity CRC32Rtl is
    generic (
-      TPD_G       : time             := 1 ns;
-      RST_ASYNC_G : boolean          := false;
-      CRC_INIT    : slv(31 downto 0) := x"FFFFFFFF");
+      TPD_G          : time             := 1 ns;
+      RST_POLARITY_G : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean          := false;
+      CRC_INIT       : slv(31 downto 0) := x"FFFFFFFF");
    port (
       CRCOUT       : out slv(31 downto 0);  -- CRC output
       CRCCLK       : in  sl;            -- system clock
@@ -108,10 +109,10 @@ begin
 
    CRCP : process (CRCCLK, CRCINIT, CRCRESET)
    begin
-      if (RST_ASYNC_G and CRCRESET = '1') then
+      if (RST_ASYNC_G and CRCRESET = RST_POLARITY_G) then
          crc <= CRCINIT after TPD_G;
       elsif rising_edge(CRCCLK) then
-         if (RST_ASYNC_G = false and CRCRESET = '1') then
+         if (RST_ASYNC_G = false and CRCRESET = RST_POLARITY_G) then
             crc <= CRCINIT after TPD_G;
          elsif (CRCDATAVALID_d = '1') and (CRCCLKEN = '1') then
             if (CRCDATAWIDTH_d = "000") then

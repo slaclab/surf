@@ -152,7 +152,7 @@ architecture rtl of JesdSyncFsmRx is
 begin
 
    s_kDetected <= detKcharFunc(dataRx_i, chariskRx_i, GT_WORD_SIZE_C);
-   -- Comma detected if detected in three consecutive clock cycles
+   -- Comma detected if detected in four consecutive clock cycles
    s_kStable   <= s_kDetected and r.kDetectRegD1 and r.kDetectRegD2 and r.kDetectRegD3;
 
    -- State machine
@@ -228,8 +228,6 @@ begin
             -- Next state condition
             if s_kDetected = '0' then
                v.state := HOLD_S;
-            -- v.readBuff   := '0'; -- TODO this signal has to be applied one c-c earlier for simulation
-            -- But in hardware that is not the case. This should be investigated.
             elsif enable_i = '0' then
                v.state := IDLE_S;
             end if;

@@ -26,6 +26,7 @@ use surf.EthMacPkg.all;
 entity EthMacTxCsum is
    generic (
       TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       DROP_ERR_PKT_G : boolean := true;
       JUMBO_G        : boolean := true;
       ROCEV2_EN_G    : boolean := false;
@@ -155,8 +156,9 @@ begin
 
    U_RxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PIPE_STAGES_G  => 0)
       port map (
          axisClk     => ethClk,
          axisRst     => ethRst,
@@ -385,6 +387,8 @@ begin
                   v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Check for overflow
                   if (rxMaster.tLast = '0') then
+                     -- Close the cached frame with its error transaction before draining the tail
+                     v.sMaster.tLast := '1';
                      -- Error detect
                      v.eofeDet(0) := '1';
                      -- Write the transaction data
@@ -522,7 +526,7 @@ begin
       mSlave   <= v.mSlave;
 
       -- Reset
-      if (ethRst = '1') then
+      if (ethRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -542,6 +546,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
@@ -570,6 +575,7 @@ begin
    Fifo_Trans : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
          GEN_SYNC_FIFO_G => true,
          SYNTH_MODE_G    => SYNTH_MODE_G,
          MEMORY_TYPE_G   => "distributed",
@@ -610,8 +616,9 @@ begin
 
    U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         PIPE_STAGES_G  => 1)
       port map (
          axisClk     => ethClk,
          axisRst     => ethRst,

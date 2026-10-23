@@ -199,12 +199,18 @@ rule:
   component_008:
     case: 'PascalCase'
     case_exceptions:
-      - 'mkCrcRawAxiStreamCustomSend'
-      - 'mkCrcRawAxiStreamCustomRecv'
       - 'mkAxiSTransportLayer'
+      - 'mkTransportLayer'
+      - 'mkQP'
+      - 'FIFO2'
+      - 'FIFO20'
+      - 'BRAM2'
+      - 'SizedFIFO'
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
       - 'i2c_master_byte_ctrl'
+      - 'Pgp2fcGthCore_refclk2x'
+      - 'Pgp2fcGtyCore_refclk2x'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/component_rules.html#component-012
   component_012:
@@ -620,6 +626,12 @@ rule:
   instantiation_009:
     case: 'PascalCase'
     case_exceptions:
+      - 'mkTransportLayer'
+      - 'mkQP'
+      - 'FIFO2'
+      - 'FIFO20'
+      - 'BRAM2'
+      - 'SizedFIFO'
       - 'xpm_fifo_async'
       - 'xpm_fifo_sync'
       - 'xpm_memory_tdpram'
@@ -697,11 +709,11 @@ rule:
       - 'DNA_PORT'
       - 'DNA_PORTE2'
       - 'DSP48E1'
-      - 'mkCrcRawAxiStreamCustomSend'
-      - 'mkCrcRawAxiStreamCustomRecv'
       - 'mkAxiSTransportLayer'
       - 'XauiGth7Core_block'
       - 'XauiGtx7Core_block'
+      - 'Pgp2fcGthCore_refclk2x'
+      - 'Pgp2fcGtyCore_refclk2x'
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-010
   instantiation_010:
@@ -733,6 +745,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/instantiation_rules.html#instantiation-034
   instantiation_034:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/instantiation_rules.html#instantiation-036
+  instantiation_036:
     disable: true
 
   ##############################################################################################################
@@ -1215,6 +1231,7 @@ rule:
       - 'numeric_std'
       - 'textio'
       - 'vcomponents'
+      - 'env'
 
   ##############################################################################################################
   # Variable Rules
@@ -1236,6 +1253,10 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/variable_rules.html#variable-011
   variable_011:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.33.0/variable_rules.html#variable-015
+  variable_015:
     disable: true
 
   ##############################################################################################################

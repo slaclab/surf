@@ -118,7 +118,7 @@ begin
          v.sclkCnt := r.sckHalfCycle;
 
       else
-         -- Decreament counter
+         -- Decrement counter
          v.sclkCnt := r.sclkCnt - 1;
       end if;
 
@@ -200,7 +200,7 @@ begin
             v.shiftReg := v.delayB & v.delayA;
          -------------------------------------------------
          when SEND_DATA_S =>
-            -- Check for SCLK fallling edge
+            -- Check for SCLK falling edge
             if (r.sclk = '1') and (v.sclk = '0') then
 
                -- Update the shift register

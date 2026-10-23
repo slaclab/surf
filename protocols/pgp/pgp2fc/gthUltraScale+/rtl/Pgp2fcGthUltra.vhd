@@ -32,6 +32,7 @@ entity Pgp2fcGthUltra is
       TPD_G               : time                 := 1 ns;
       SIMULATION_G        : boolean              := false;
       -- GT Settings
+      USE_2X_REFCLK_G     : boolean              := false;
       SEL_FABRIC_REFCLK_G : boolean              := false;
       -- PGP Settings
       FC_WORDS_G          : integer range 1 to 8 := 1;
@@ -192,6 +193,7 @@ begin
          TPD_G               => TPD_G,
          SIMULATION_G        => SIMULATION_G,
          SEL_FABRIC_REFCLK_G => SEL_FABRIC_REFCLK_G,
+         USE_2X_REFCLK_G     => USE_2X_REFCLK_G,
          AXI_CLK_FREQ_G      => AXI_CLK_FREQ_G,
          AXI_BASE_ADDR_G     => AXI_BASE_ADDR_G)
       port map (

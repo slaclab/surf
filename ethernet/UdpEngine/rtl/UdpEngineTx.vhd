@@ -27,8 +27,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineTx is
    generic (
-      -- Simulation Generics
       TPD_G          : time          := 1 ns;
+      RST_POLARITY_G : sl            := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean       := false;
       -- UDP General Generic
       SIZE_G         : positive      := 1;
       TX_FLOW_CTRL_G : boolean       := true;  -- True: Blow off the UDP TX data if link down, False: Backpressure until TX link is up
@@ -448,7 +449,7 @@ begin
       arpTabPos   <= v.arpTabPos;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -457,17 +458,21 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 1)
       port map (
          axisClk     => clk,
          axisRst     => rst,

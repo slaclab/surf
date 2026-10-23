@@ -41,7 +41,7 @@ entity GLinkGtx7RxRst is
       GTRXRESET              : out std_logic := '0';
       MMCM_RESET             : out std_logic := '1';
       PLL_RESET              : out std_logic := '0';        --Reset PLL
-      RX_FSM_RESET_DONE      : out std_logic;  --Reset-sequence has sucessfully been finished.
+      RX_FSM_RESET_DONE      : out std_logic;  --Reset-sequence has successfully been finished.
       RXUSERRDY              : out std_logic := '0';
       RUN_PHALIGNMENT        : out std_logic;
       PHALIGNMENT_DONE       : in  std_logic;  -- Drive high if phase alignment not needed

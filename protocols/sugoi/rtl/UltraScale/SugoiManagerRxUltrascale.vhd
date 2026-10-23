@@ -28,6 +28,7 @@ use unisim.vcomponents.all;
 entity SugoiManagerRxUltrascale is
    generic (
       TPD_G           : time    := 1 ns;
+      SIMULATION_G    : boolean := false;
       DIFF_PAIR_G     : boolean := true;
       DEVICE_FAMILY_G : string  := "ULTRASCALE";
       IODELAY_GROUP_G : string  := "DESER_GROUP";  -- IDELAYCTRL not used in COUNT mode
@@ -71,29 +72,36 @@ begin
             O => rxIn);
    end generate;
 
-   U_DELAY : entity surf.Idelaye3Wrapper
-      generic map (
-         DELAY_FORMAT     => "COUNT",
-         SIM_DEVICE       => DEVICE_FAMILY_G,
-         DELAY_VALUE      => 0,
-         REFCLK_FREQUENCY => REF_FREQ_G,  -- IDELAYCTRL not used in COUNT mode
-         UPDATE_MODE      => "ASYNC",
-         CASCADE          => "NONE",
-         DELAY_SRC        => "IDATAIN",
-         DELAY_TYPE       => "VAR_LOAD")
-      port map(
-         DATAIN      => '0',
-         IDATAIN     => rxIn,
-         DATAOUT     => rxDly,
-         CLK         => clk,
-         RST         => rst,
-         CE          => '0',
-         INC         => '0',
-         LOAD        => dlyLoad,
-         EN_VTC      => '0',
-         CASC_IN     => '0',
-         CASC_RETURN => '0',
-         CNTVALUEIN  => dlyCfg);
+   GEN_REAL : if (SIMULATION_G = false) generate
+      U_DELAY : entity surf.Idelaye3Wrapper
+         generic map (
+            DELAY_FORMAT     => "COUNT",
+            SIM_DEVICE       => DEVICE_FAMILY_G,
+            DELAY_VALUE      => 0,
+            REFCLK_FREQUENCY => REF_FREQ_G,  -- IDELAYCTRL not used in COUNT mode
+            UPDATE_MODE      => "ASYNC",
+            CASCADE          => "NONE",
+            DELAY_SRC        => "IDATAIN",
+            DELAY_TYPE       => "VAR_LOAD")
+         port map(
+            DATAIN      => '0',
+            IDATAIN     => rxIn,
+            DATAOUT     => rxDly,
+            CLK         => clk,
+            RST         => rst,
+            CE          => '0',
+            INC         => '0',
+            LOAD        => dlyLoad,
+            EN_VTC      => '0',
+            CASC_IN     => '0',
+            CASC_RETURN => '0',
+            CNTVALUEIN  => dlyCfg);
+   end generate GEN_REAL;
+
+   GEN_SIM : if (SIMULATION_G = true) generate
+      -- Bypass IDELAYE3 in simulation to avoid Unisim model assertion warnings
+      rxDly <= rxIn;
+   end generate GEN_SIM;
 
    U_IDDR : IDDRE1
       generic map (

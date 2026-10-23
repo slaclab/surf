@@ -36,7 +36,7 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
         self.FLAG_STATUS_RDY = (0x01)
         self.BRAC_CMD        = (0xB9 << 16)
 
-    def _LoadMcsFile(self,arg):
+    def _LoadMcsFile(self,arg,iprogPrint=True):
 
         click.secho( f'LoadMcsFile: {arg}', fg='green')
         self._progDone = False
@@ -72,17 +72,18 @@ class CypressS25Fl(surf.devices.micron.AxiMicronN25Q):
 
         # Add a power cycle reminder
         self._progDone = True
-        click.secho(
-            "\n\n\
-            ***************************************************\n\
-            ***************************************************\n\
-            The MCS data has been written into the PROM.       \n\
-            To reprogram the FPGA with the new PROM data,      \n\
-            a IPROG CMD or power cycle is be required.\n\
-            ***************************************************\n\
-            ***************************************************\n\n"
-            , bg='green',
-        )
+        if iprogPrint:
+            click.secho(
+                "\n\n\
+                ***************************************************\n\
+                ***************************************************\n\
+                The MCS data has been written into the PROM.       \n\
+                To reprogram the FPGA with the new PROM data,      \n\
+                a IPROG CMD or power cycle is be required.\n\
+                ***************************************************\n\
+                ***************************************************\n\n"
+                , bg='green',
+            )
 
     def resetFlash(self):
         # Send the "Mode Bit Reset" command

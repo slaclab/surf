@@ -33,6 +33,7 @@ class AxiStreamMonChannel(pr.Device):
             ))
             self.add(pr.LinkVariable(
                 name         = name,
+                description  = description,
                 mode         = 'RO',
                 units        = units,
                 linkedGet    = function,
@@ -163,63 +164,68 @@ class AxiStreamMonAxiL(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.RemoteCommand(
-            name         = 'CntRst',
-            description  = "Counter Reset",
-            offset       = 0x0,
-            bitSize      = 1,
-            function     = lambda cmd: cmd.post(1),
-            overlapEn    = True,
+            name        = 'CntRst',
+            description = "Counter Reset",
+            offset      = 0x0,
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
+            overlapEn   = True,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TDATA_BYTES_C',
-            offset       = 0x0,
-            bitSize      = 8,
-            bitOffset    = 24,
-            mode         = 'RO',
-            disp         = '{:d}',
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'AXIS_CONFIG_G_TDATA_BYTES_C',
+            description = 'AXI stream TDATA width in bytes (from generic AXIS_CONFIG_G)',
+            offset      = 0x0,
+            bitSize     = 8,
+            bitOffset   = 24,
+            mode        = 'RO',
+            disp        = '{:d}',
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TDEST_BITS_C',
-            offset       = 0x0,
-            bitSize      = 4,
-            bitOffset    = 20,
-            mode         = 'RO',
-            disp         = '{:d}',
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'AXIS_CONFIG_G_TDEST_BITS_C',
+            description = 'Number of TDEST bits in the AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 20,
+            mode        = 'RO',
+            disp        = '{:d}',
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TUSER_BITS_C',
-            offset       = 0x0,
-            bitSize      = 4,
-            bitOffset    = 16,
-            mode         = 'RO',
-            disp         = '{:d}',
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'AXIS_CONFIG_G_TUSER_BITS_C',
+            description = 'Number of TUSER bits in the AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 16,
+            mode        = 'RO',
+            disp        = '{:d}',
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TID_BITS_C',
-            offset       = 0x0,
-            bitSize      = 4,
-            bitOffset    = 12,
-            mode         = 'RO',
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'AXIS_CONFIG_G_TID_BITS_C',
+            description = 'Number of TID bits in the AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 12,
+            mode        = 'RO',
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TKEEP_MODE_C',
-            offset       = 0x0,
-            bitSize      = 4,
-            bitOffset    = 8,
-            mode         = 'RO',
+            name        = 'AXIS_CONFIG_G_TKEEP_MODE_C',
+            description = 'TKEEP mode encoding from AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 8,
+            mode        = 'RO',
             enum        = {
                 0x0: 'TKEEP_NORMAL_C',
                 0x1: 'TKEEP_COMP_C',
@@ -227,16 +233,17 @@ class AxiStreamMonAxiL(pr.Device):
                 0x3: 'TKEEP_COUNT_C',
                 0xF: 'UNDEFINED',
             },
-            overlapEn    = True,
-            hidden       = hideConfig,
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TUSER_MODE_C',
-            offset       = 0x0,
-            bitSize      = 4,
-            bitOffset    = 4,
-            mode         = 'RO',
+            name        = 'AXIS_CONFIG_G_TUSER_MODE_C',
+            description = 'TUSER mode encoding from AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 4,
+            bitOffset   = 4,
+            mode        = 'RO',
             enum        = {
                 0x0: 'TUSER_NORMAL_C',
                 0x1: 'TUSER_FIRST_LAST_C',
@@ -244,30 +251,32 @@ class AxiStreamMonAxiL(pr.Device):
                 0x3: 'TUSER_NONE_C',
                 0xF: 'UNDEFINED',
             },
-            overlapEn    = True,
-            hidden       = hideConfig,
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AXIS_CONFIG_G_TSTRB_EN_C',
-            offset       = 0x0,
-            bitSize      = 1,
-            bitOffset    = 1,
-            mode         = 'RO',
-            base         = pr.Bool,
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'AXIS_CONFIG_G_TSTRB_EN_C',
+            description = 'Indicates whether TSTRB is enabled in the AXI stream configuration generic',
+            offset      = 0x0,
+            bitSize     = 1,
+            bitOffset   = 1,
+            mode        = 'RO',
+            base        = pr.Bool,
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'COMMON_CLK_G',
-            offset       = 0x0,
-            bitSize      = 1,
-            bitOffset    = 0,
-            mode         = 'RO',
-            base         = pr.Bool,
-            overlapEn    = True,
-            hidden       = hideConfig,
+            name        = 'COMMON_CLK_G',
+            description = 'Indicates whether the monitor uses a common clock (from COMMON_CLK_G generic)',
+            offset      = 0x0,
+            bitSize     = 1,
+            bitOffset   = 0,
+            mode        = 'RO',
+            base        = pr.Bool,
+            overlapEn   = True,
+            hidden      = hideConfig,
         ))
 
         if chName is None:
@@ -277,9 +286,9 @@ class AxiStreamMonAxiL(pr.Device):
 
         for i in range(numberLanes):
             self.add(AxiStreamMonChannel(
-                name        = self.chName[i],
-                offset      = (i*0x40),
-                expand      = True,
+                name   = self.chName[i],
+                offset = (i*0x40),
+                expand = True,
             ))
 
     def hardReset(self):

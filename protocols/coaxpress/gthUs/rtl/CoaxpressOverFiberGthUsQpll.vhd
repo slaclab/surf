@@ -54,30 +54,34 @@ begin
 
    gtClk <= refClock;
 
-   IBUFDS_GTE3_Inst : IBUFDS_GTE3
-      generic map (
-         REFCLK_EN_TX_PATH  => '0',
-         REFCLK_HROW_CK_SEL => "00",    -- 2'b00: ODIV2 = O
-         REFCLK_ICNTL_RX    => "00")
-      port map (
-         I     => gtClkP,
-         IB    => gtClkN,
-         CEB   => '0',
-         ODIV2 => refClkCopy,
-         O     => refClk);
+   INT_REF : if (not EXT_REF_G) generate
 
-   BUFG_GT_Inst : BUFG_GT
-      port map (
-         I       => refClkCopy,
-         CE      => '1',
-         CEMASK  => '1',
-         CLR     => '0',
-         CLRMASK => '1',
-         DIV     => "000",
-         O       => coreClock);
+      U_IBUFDS : IBUFDS_GTE3
+         generic map (
+            REFCLK_EN_TX_PATH  => '0',
+            REFCLK_HROW_CK_SEL => "00",  -- 2'b00: ODIV2 = O
+            REFCLK_ICNTL_RX    => "00")
+         port map (
+            I     => gtClkP,
+            IB    => gtClkN,
+            CEB   => '0',
+            ODIV2 => refClkCopy,
+            O     => refClk);
 
-   refClock <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else refClk;
-   coreClk  <= gtRefClk when(QPLL_REFCLK_SEL_G = "111") else coreClock;
+      U_BUFG : BUFG_GT
+         port map (
+            I       => refClkCopy,
+            CE      => '1',
+            CEMASK  => '1',
+            CLR     => '0',
+            CLRMASK => '1',
+            DIV     => "000",
+            O       => coreClock);
+
+   end generate;
+
+   refClock <= gtRefClk     when(EXT_REF_G) else refClk;
+   coreClk  <= gtRefClkBufg when(EXT_REF_G) else coreClock;
 
    qpllReset(0) <= qpllRst(0) or coreRst;
    qpllReset(1) <= qpllRst(1) or coreRst;

@@ -150,7 +150,7 @@ begin
       -- Blank lines ignored
       -- Extra words ignored.
 
-      -- Auto clear uartTxValid upton uartTxReady
+      -- Auto clear uartTxValid upon uartTxReady
       if (uartTxReady = '1') then
          v.uartTxValid := '0';
       end if;
@@ -246,7 +246,7 @@ begin
 
          when WAIT_EOL_S =>
             -- Issue AXIL TXN once EOL seen
-            -- Any other charachters are echo'd but otherwise ignored
+            -- Any other characters are echo'd but otherwise ignored
             if (uartRxValid = '1') then
                uartTx(uartRxData);
                if (isEOL(uartRxData)) then

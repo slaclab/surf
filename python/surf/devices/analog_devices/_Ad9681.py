@@ -1,8 +1,8 @@
 #-----------------------------------------------------------------------------
-# Title      : PyRogue _ad9249 Module
+# Title      : PyRogue AD9681 model
 #-----------------------------------------------------------------------------
 # Description:
-# PyRogue _ad9249 Module
+# AD9681 configuration, normalized readout, and calibration models.
 #-----------------------------------------------------------------------------
 # This file is part of 'SLAC Firmware Standard Library'.
 # It is subject to the license terms in the LICENSE.txt file found in the
@@ -13,20 +13,37 @@
 # the terms contained in the LICENSE.txt file.
 #-----------------------------------------------------------------------------
 
+from __future__ import annotations
+
+from typing import Any
+
 import pyrogue as pr
-import rogue.interfaces.memory as rim
-# import math
+
+import surf.devices.analog_devices as analog_devices
 
 class Ad9681Config(pr.Device):
-    def __init__(self,
-                 description = 'Configure one side of an AD9249 ADC',
-                 **kwargs):
+    """PyRogue configuration model for the AD9681 ADC.
+
+    Parameters
+    ----------
+    description : str, optional
+        PyRogue device description.
+    **kwargs : Any
+        Additional arguments forwarded to ``pyrogue.Device``.
+    """
+
+    def __init__(
+            self,
+            description: str = 'Configure an AD9681 ADC',
+            **kwargs: Any) -> None:
+        """Create the AD9681 configuration model."""
 
         super().__init__(description=description, **kwargs)
 
-        # AD9249 bank configuration registers
+        # AD9681 configuration registers
         self.add(pr.RemoteVariable(
             name        = 'ChipId',
+            description = 'ADC chip identification register',
             offset      = 0x04,
             bitSize     = 8,
             bitOffset   = 0,
@@ -35,6 +52,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChipGrade',
+            description = 'ADC speed grade identification',
             offset      = 0x08,
             bitSize     = 3,
             bitOffset   = 4,
@@ -43,6 +61,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ExternalPdwnMode',
+            description = 'Selects behavior of PDWN pin (full power down or standby)',
             offset      = 0x20,
             bitSize     = 1,
             bitOffset   = 5,
@@ -54,6 +73,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'InternalPdwnMode',
+            description = 'Sets internal power-down mode via SPI register',
             offset      = 0x20,
             bitSize     = 2,
             bitOffset   = 0,
@@ -67,6 +87,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DutyCycleStabilizer',
+            description = 'Enables the clock duty cycle stabilizer',
             offset      = 0x24,
             bitSize     = 1,
             bitOffset   = 0,
@@ -78,6 +99,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ClockDivide',
+            description = 'Input clock divide ratio selection',
             offset      = (0xb*4),
             bitSize     = 3,
             bitOffset   = 0,
@@ -86,6 +108,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ChopMode',
+            description = 'Enables chop mode for offset cancellation',
             offset      = (0x0c*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -97,6 +120,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DataCh',
+            description = 'Device index mask for data channels',
             offset      = 0x05 *4,
             bitSize     = 4,
             bitOffset   = 0,
@@ -107,6 +131,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_FCO',
+            description = 'Device index mask for the frame clock output (FCO)',
             offset      = 0x05 *4,
             bitSize     = 1,
             bitOffset   = 4,
@@ -116,6 +141,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DevIndexMask_DCO',
+            description = 'Device index mask for the data clock output (DCO)',
             offset      = 0x05 * 4,
             bitSize     = 1,
             bitOffset   = 5,
@@ -125,6 +151,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserTestModeCfg',
+            description = 'Configures user-defined test pattern cycling mode',
             offset      = (0x0D*4),
             bitSize     = 2,
             bitOffset   = 6,
@@ -138,6 +165,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputTestMode',
+            description = 'Selects ADC output test pattern mode',
             offset      = (0x0D*4),
             bitSize     = 4,
             bitOffset   = 0,
@@ -160,7 +188,29 @@ class Ad9681Config(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
+            name        = 'ResetPNShort',
+            description = 'Reset the PN9 test-pattern generator',
+            offset      = (0x0D*4),
+            bitSize     = 1,
+            bitOffset   = 4,
+            base        = pr.Bool,
+            mode        = 'RW',
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'ResetPNLongReg',
+            description = 'Reset the PN23 test-pattern generator',
+            offset      = (0x0D*4),
+            bitSize     = 1,
+            bitOffset   = 5,
+            base        = pr.Bool,
+            mode        = 'RW',
+            hidden      = True,
+        ))
+
+        self.add(pr.RemoteVariable(
             name        = 'OffsetAdjust',
+            description = 'Output offset adjustment in LSB steps',
             offset      = (0x10*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -168,6 +218,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputInvert',
+            description = 'Inverts the ADC output data polarity',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -176,17 +227,19 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputFormat',
+            description = 'Selects output data format (twos complement or offset binary)',
             offset      = (0x14*4),
             bitSize     = 1,
             bitOffset   = 0,
             enum        = {
-                1: 'Twos Compliment',
+                1: 'Twos Complement',
                 0: 'Offset Binary',
             },
         ))
 
         self.add(pr.RemoteVariable(
             name        = 'OutputDriveTerm',
+            description = 'LVDS output termination resistor selection',
             offset      = (0x15*4),
             bitSize     = 2,
             bitOffset   = 4,
@@ -200,6 +253,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DcoFcoDrive',
+            description = 'DCO/FCO output drive strength selection',
             offset      = (0x15*4),
             bitSize     = 1,
             bitOffset   = 0,
@@ -211,26 +265,29 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'InputClkPhaseAdj',
+            description = 'Input clock phase adjustment in clock delay steps',
             offset      = (0x16*4),
             bitSize     = 3,
             bitOffset   = 4,
-            disp = '{:d}',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
             name        = 'OutputClkPhaseAdj',
+            description = 'Output clock (DCO) phase adjustment in delay steps',
             offset      = (0x16*4),
             bitSize     = 4,
             bitOffset   = 0,
-            disp = '{:d}',
+            disp        = '{:d}',
         ))
 
         self.add(pr.RemoteVariable(
             name        = 'DigitalFsRangeAdj',
+            description = 'Digital full-scale range adjustment for the ADC input',
             offset      = (0x18*4),
             bitSize     = 3,
             bitOffset   = 0,
-            enum = {
+            enum        = {
                 0b000: '1.0 V',
                 0b001: '1.14 V',
                 0b010: '1.33 V',
@@ -243,6 +300,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Lsb',
+            description = 'User-defined test pattern 1 LSB byte',
             offset      = (0x19*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -250,6 +308,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt1Msb',
+            description = 'User-defined test pattern 1 MSB byte',
             offset      = (0x1A*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -257,6 +316,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Lsb',
+            description = 'User-defined test pattern 2 LSB byte',
             offset      = (0x1B*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -264,6 +324,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'UserPatt2Msb',
+            description = 'User-defined test pattern 2 MSB byte',
             offset      = (0x1C*4),
             bitSize     = 8,
             bitOffset   = 0,
@@ -271,6 +332,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'LvdsLsbFirst',
+            description = 'Sets LVDS output bit order (LSB first when enabled)',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 7,
@@ -279,10 +341,11 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputMode',
+            description = 'Selects LVDS serial output mode (SDR/DDR, lane count, bit order)',
             offset      = (0x21*4),
             bitSize     = 3,
             bitOffset   = 4,
-            enum = {
+            enum        = {
                 0b000: 'SDR two-lane, bitwise',
                 0b001: 'SDR two-lane, bytewise',
                 0b010: 'DDR two-lane, bitwise',
@@ -293,6 +356,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'PllLowEncodeRateMode',
+            description = 'Enables PLL low encode rate mode for slow clock operation',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 3,
@@ -301,6 +365,7 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'Select2xFrame',
+            description = 'Selects 2x frame rate mode for output serialization',
             offset      = (0x21*4),
             bitSize     = 1,
             bitOffset   = 2,
@@ -309,387 +374,140 @@ class Ad9681Config(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'OutputNumBits',
+            description = 'Selects ADC output word width (12 or 16 bits)',
             offset      = (0x21*4),
             bitSize     = 2,
             bitOffset   = 0,
-            enum = {
+            enum        = {
                 0b00: '16 bits',
                 0b10: '12 bits',
             },
         ))
 
+        # Register 0x100 (resolution/sample-rate override) is a transfer-staged
+        # register: the datasheet specifies it is not applied until the 0xFF
+        # transfer strobe, and a read returns the old value until then. That
+        # breaks pyrogue's immediate write-verify, and the override is not needed
+        # for normal full-rate operation, so these fields are disabled for now.
+        # Re-enable with verify=False (and route through DeviceUpdate) if the
+        # override is ever required.
+        # self.add(pr.RemoteVariable(
+        #     name        = 'ResolutionSampleRateOverride',
+        #     description = 'Enables the resolution and maximum sample-rate override',
+        #     offset      = (0x100*4),
+        #     bitSize     = 1,
+        #     bitOffset   = 6,
+        #     base        = pr.Bool,
+        # ))
+
+        # self.add(pr.RemoteVariable(
+        #     name        = 'Resolution',
+        #     description = 'Selects ADC resolution when the override is enabled',
+        #     offset      = (0x100*4),
+        #     bitSize     = 2,
+        #     bitOffset   = 4,
+        #     enum        = {
+        #         0b00: 'Default (14 bits)',  # power-up/reset value; effective 14-bit
+        #         0b01: '14 bits',
+        #         0b10: '12 bits',
+        #     },
+        # ))
+
+        # self.add(pr.RemoteVariable(
+        #     name        = 'SampleRate',
+        #     description = 'Selects maximum ADC sample rate when the override is enabled',
+        #     offset      = (0x100*4),
+        #     bitSize     = 3,
+        #     bitOffset   = 0,
+        #     enum        = {
+        #         0b000: '20 MSPS',
+        #         0b001: '40 MSPS',
+        #         0b010: '50 MSPS',
+        #         0b011: '65 MSPS',
+        #         0b100: '80 MSPS',
+        #         0b101: '105 MSPS',
+        #         0b110: '125 MSPS',
+        #     },
+        # ))
+
         self.add(pr.RemoteCommand(
             name='DeviceUpdate',
+            description='Transfers the resolution/sample-rate override into the ADC',
             offset=0x3FC,
-            function=pr.BaseCommand.touchZero,
+            function=pr.BaseCommand.touchOne,
         ))
 
-    def writeBlocks(self, force=False, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
-        pr.Device.writeBlocks(self, force=force, recurse=True, variable=variable, checkEach=checkEach, index=index)
+        analog_devices.addAdcDdrResetCommands(
+            self, self.InternalPdwnMode, self.ResetPNLongReg)
+
+    def writeBlocks(self, **kwargs: Any) -> None:
+        """Write pending blocks and transfer them into the ADC."""
+        super().writeBlocks(**kwargs)
         self.DeviceUpdate()
 
 
+class Ad9681Readout(analog_devices.AdcDdr):
+    """Normalized register model for the eight-channel AD9681 readout.
+
+    Parameters
+    ----------
+    deviceFamily : {'7SERIES', 'ULTRASCALE', 'ULTRASCALE_PLUS'}, optional
+        FPGA device family selected by RTL ``DEVICE_FAMILY_G``.
+    patternCheck : bool, optional
+        Whether RTL ``PATTERN_CHECK_G`` includes the hardware pattern tester.
+    **kwargs : Any
+        Additional arguments forwarded to ``AdcDdr``.
+    """
+
+    def __init__(
+            self,
+            *,
+            deviceFamily: analog_devices.AdcDdrDeviceFamily = 'ULTRASCALE',
+            patternCheck: bool = True,
+            **kwargs: Any) -> None:
+        """Create the normalized AD9681 readout."""
+
+        delayBits = analog_devices.adcDdrDelayBits(deviceFamily)
+        kwargs.setdefault('description', 'AD9681 serialized DDR readout')
+        super().__init__(
+            dataLanes           = 16,
+            fcoLanes            = 2,
+            channels            = 8,
+            sampleBits          = 14,
+            serializationFactor = 8,
+            delayBits           = delayBits,
+            patternCheck        = patternCheck,
+            **kwargs)
 
 
-class Ad9681ReadoutManual(pr.Device):
-    def __init__(self,
-                 name        = 'Ad9249Readout',
-                 description = 'Configure readout of 1 bank of an AD9249',
-                 fpga        = '7series',
-                 channels    = 8,
-                 **kwargs):
+class Ad9681ReadoutCalibration(analog_devices.AdcDdrCalibration):
+    """Calibration process for a normalized AD9681 readout.
 
-        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
-        super().__init__(name=name, description=description, **kwargs)
+    Parameters
+    ----------
+    config : Ad9681Config
+        ADC configuration device.
+    readout : Ad9681Readout
+        Normalized readout to calibrate.
+    **kwargs : Any
+        Additional arguments forwarded to ``AdcDdrCalibration``.
+    """
 
-        if fpga == '7series':
-            delayBits = 6
-        elif fpga == 'ultrascale':
-            delayBits = 10
-        else:
-            delayBits = 6
+    def __init__(
+            self,
+            *,
+            config: Ad9681Config,
+            readout: Ad9681Readout,
+            **kwargs: Any) -> None:
+        """Create the AD9681 calibration process."""
 
-
-        for ch in range(channels):
-            for i in range(2):
-                self.add(pr.RemoteVariable(
-                    name         = f'ChannelDelay[{ch}][{i}]',
-                    description  = f'IDELAY value for serial channel {ch}_{i}',
-                    offset       = ch*8 + i*4,
-                    bitSize      = delayBits,
-                    bitOffset    = 0,
-                    base         = pr.UInt,
-                    mode         = 'RW',
-                    verify       = False,
-                ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'FrameDelay[{i}]',
-                description = f'IDELAY value for FCO_{i}',
-                offset      = 0x40 + i*4,
-                bitSize     = delayBits,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                mode        = 'RW',
-                verify       = False,
-            ))
-
-        @self.command()
-        def AllDelay0(arg):
-            self.FrameDelay[0].set(arg)
-            for ch in range(8):
-                self.ChannelDelay[ch][0].set(arg)
-
-        @self.command()
-        def AllDelay1(arg):
-            self.FrameDelay[1].set(arg)
-            for ch in range(8):
-                self.ChannelDelay[ch][1].set(arg)
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'LostLockCount[{i}]',
-                description = 'Number of times that frame lock has been lost since reset',
-                offset      = 0x50+ 4*i,
-                bitSize     = 16,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                mode        = 'RO',
-            ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'Locked[{i}]',
-                description = 'Readout has locked on to the frame boundary',
-                offset      = 0x50+ 4*i,
-                bitSize     = 1,
-                bitOffset   = 16,
-                base        = pr.Bool,
-                mode        = 'RO',
-            ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'AdcFrameSync[{i}]',
-                description = 'Last deserialized FCO value for debug',
-                offset      = 0x58,
-                bitSize     = 8,
-                bitOffset   = i*8,
-                base        = pr.UInt,
-                mode        = 'RO',
-            ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'Invert',
-            description = 'Optional ADC data inversion (offset binary only)',
-            offset      = 0x60,
-            bitSize     = 1,
-            bitOffset   = 0,
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'Negate',
-            description = "Optional ADC data negation (two's complement)",
-            offset      = 0x60,
-            bitSize     = 1,
-            bitOffset   = 1,
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))
-
-
-        for i in range(channels):
-            self.add(pr.RemoteVariable(
-                name        = f'AdcChannel[{i:d}]',
-                description = f'Last deserialized channel {i:d} ADC value for debug',
-                offset      = 0x80 + (i*4),
-                bitSize     = 32,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                disp        = '{:09_x}',
-                mode        = 'RO',
-            ))
-
-        for i in range(channels):
-            self.add(pr.LinkVariable(
-                name = f'AdcVoltage[{i}]',
-                mode = 'RO',
-                disp = '{:1.9f}',
-                variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
-                units = 'V'))
-
-        self.add(pr.RemoteCommand(
-            name        = 'LostLockCountReset',
-            description = 'Reset LostLockCount',
-            function    = pr.BaseCommand.toggle,
-            offset      = 0x5C,
-            bitSize     = 1,
-            bitOffset   = 0,
-        ))
-
-        self.add(pr.RemoteCommand(
-            name='FreezeDebug',
-            description='Freeze all of the AdcChannel registers',
-            hidden=True,
-            offset=0xA0,
-            bitSize=1,
-            bitOffset=0,
-            base=pr.UInt,
-            function=pr.RemoteCommand.touch))
-
-        self.add(pr.RemoteCommand(
-            name='Relock',
-            hidden=False,
-            offset=0x70,
-            bitSize=2,
-            bitOffset=0,
-            base=pr.UInt,
-            function=pr.RemoteCommand.createToggle([0, 3, 0])))
-
-
-    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
-        """
-        Perform background reads
-        """
-        checkEach = checkEach or self.forceCheckEach
-
-        if variable is not None:
-            freeze = False #isinstance(variable, list) and any(v.name.startswith('AdcChannel') for v in variable)
-            if freeze:
-                self.FreezeDebug(1)
-            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
-            if freeze:
-                self.FreezeDebug(0)
-
-        else:
-            self.FreezeDebug(1)
-            for block in self._blocks:
-                if block.bulkOpEn:
-                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
-            self.FreezeDebug(0)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
-
-class Ad9681Readout(pr.Device):
-    def __init__(self,
-                 name        = 'Ad9249Readout',
-                 description = 'Configure readout of 1 bank of an AD9249',
-                 fpga        = '7series',
-                 channels    = 8,
-                 **kwargs):
-
-        assert (channels > 0 and channels <= 8), f'channels ({channels}) must be between 0 and 8'
-        super().__init__(name=name, description=description, **kwargs)
-
-        if fpga == '7series':
-            delayBits = 6
-        elif fpga == 'ultrascale':
-            delayBits = 10
-        else:
-            delayBits = 6
-
-        self.add(pr.RemoteVariable(
-            name         = 'EnUsrDelay',
-            description  = 'Enable manual delay value',
-            offset       = 0x20,
-            bitSize      = 1,
-            bitOffset    = 0,
-            base         = pr.Bool,
-            mode         = 'RW',
-            verify       = True,
-        ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name         = f'Delay[{i}]',
-                description  = f'IDELAY value for serial channel {i}',
-                offset       = i*4,
-                bitSize      = delayBits,
-                bitOffset    = 0,
-                base         = pr.UInt,
-                mode         = 'RW',
-                verify       = False,
-            ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'ErrorDetCount[{i}]',
-                description = 'Number of times that frame lock has been lost since reset',
-                offset      = 0x30+ 4*i,
-                disp = '{:d}',
-                bitSize     = 16,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                mode        = 'RO',
-            ))
-
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'LostLockCount[{i}]',
-                description = 'Number of times that frame lock has been lost since reset',
-                offset      = 0x50+ 4*i,
-                bitSize     = 16,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                mode        = 'RO',
-            ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'Locked[{i}]',
-                description = 'Readout has locked on to the frame boundary',
-                offset      = 0x50+ 4*i,
-                bitSize     = 1,
-                bitOffset   = 16,
-                base        = pr.Bool,
-                mode        = 'RO',
-            ))
-
-        for i in range(2):
-            self.add(pr.RemoteVariable(
-                name        = f'AdcFrameSync[{i}]',
-                description = 'Last deserialized FCO value for debug',
-                offset      = 0x58,
-                bitSize     = 8,
-                bitOffset   = i*8,
-                base        = pr.UInt,
-                mode        = 'RO',
-            ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'Invert',
-            description = 'Optional ADC data inversion (offset binary only)',
-            offset      = 0x60,
-            bitSize     = 1,
-            bitOffset   = 0,
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = 'Negate',
-            description = "Optional ADC data negation (two's complement)",
-            offset      = 0x60,
-            bitSize     = 1,
-            bitOffset   = 1,
-            base        = pr.Bool,
-            mode        = 'RW',
-        ))
-
-
-        for i in range(channels):
-            self.add(pr.RemoteVariable(
-                name        = f'AdcChannel[{i:d}]',
-                description = f'Last deserialized channel {i:d} ADC value for debug',
-                offset      = 0x80 + (i*4),
-                bitSize     = 32,
-                bitOffset   = 0,
-                base        = pr.UInt,
-                disp        = '{:09_x}',
-                mode        = 'RO',
-            ))
-
-        for i in range(channels):
-            self.add(pr.LinkVariable(
-                name = f'AdcVoltage[{i}]',
-                mode = 'RO',
-                disp = '{:1.9f}',
-                variable = self.AdcChannel[i],
-                linkedGet = lambda read, check, r=self.AdcChannel[i]: 2*pr.twosComplement(r.get(read=read, check=check)>>18, 14)/2**14,
-                units = 'V'))
-
-        self.add(pr.RemoteCommand(
-            name        = 'LostLockCountReset',
-            description = 'Reset LostLockCount',
-            function    = pr.BaseCommand.toggle,
-            offset      = 0x5C,
-            bitSize     = 1,
-            bitOffset   = 0,
-        ))
-
-        self.add(pr.RemoteCommand(
-            name='FreezeDebug',
-            description='Freeze all of the AdcChannel registers',
-            hidden=True,
-            offset=0xA0,
-            bitSize=1,
-            bitOffset=0,
-            base=pr.UInt,
-            function=pr.RemoteCommand.touch))
-
-        self.add(pr.RemoteCommand(
-            name='Relock',
-            hidden=False,
-            offset=0x70,
-            bitSize=2,
-            bitOffset=0,
-            base=pr.UInt,
-            function=pr.RemoteCommand.createToggle([0, 3, 0])))
-
-
-    def readBlocks(self, *, recurse=True, variable=None, checkEach=False, index=-1, **kwargs):
-        """
-        Perform background reads
-        """
-        checkEach = checkEach or self.forceCheckEach
-
-        if variable is not None:
-            pr.startTransaction(variable._block, type=rim.Read, checkEach=checkEach, variable=variable, index=index, **kwargs)
-
-        else:
-            self.FreezeDebug(1)
-            for block in self._blocks:
-                if block.bulkOpEn:
-                    pr.startTransaction(block, type=rim.Read, checkEach=checkEach, **kwargs)
-            self.FreezeDebug(0)
-
-            if recurse:
-                for key,value in self.devices.items():
-                    value.readBlocks(recurse=True, checkEach=checkEach, **kwargs)
+        if not isinstance(config, Ad9681Config):
+            raise TypeError('config must be an Ad9681Config')
+        if not isinstance(readout, Ad9681Readout):
+            raise TypeError('readout must be an Ad9681Readout')
+        super().__init__(
+            config            = config,
+            readout           = readout,
+            dataLaneToChannel = tuple(range(8))+tuple(range(8)),
+            dataLaneMasks     = (0x003F,)*8+(0x3FC0,)*8,
+            **kwargs)

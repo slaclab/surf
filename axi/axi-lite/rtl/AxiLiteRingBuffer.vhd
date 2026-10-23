@@ -25,6 +25,7 @@ entity AxiLiteRingBuffer is
    generic (
       -- General Configurations
       TPD_G            : time                   := 1 ns;
+      RST_POLARITY_G   : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G      : boolean                := false;
       EXT_CTRL_ONLY_G  : boolean                := false;
       MEMORY_TYPE_G    : string                 := "block";
@@ -113,14 +114,15 @@ begin
    ----------------------
    DualPortRam_1 : entity surf.DualPortRam
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         MEMORY_TYPE_G => MEMORY_TYPE_G,
-         REG_EN_G      => REG_EN_G,
-         MODE_G        => "read-first",
-         DOB_REG_G     => REG_EN_G,
-         DATA_WIDTH_G  => DATA_WIDTH_G,
-         ADDR_WIDTH_G  => RAM_ADDR_WIDTH_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
+         REG_EN_G       => REG_EN_G,
+         MODE_G         => "read-first",
+         DOB_REG_G      => REG_EN_G,
+         DATA_WIDTH_G   => DATA_WIDTH_G,
+         ADDR_WIDTH_G   => RAM_ADDR_WIDTH_G)
       port map (
          clka  => dataClk,
          wea   => dataR.ramWrEn,
@@ -138,8 +140,9 @@ begin
    -------------------------------
    Synchronizer_bufferEn : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => dataClk,
          rst     => dataRst,
@@ -148,8 +151,9 @@ begin
 
    Synchronizer_bufferClear : entity surf.SynchronizerOneShot
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => dataClk,
          rst     => dataRst,
@@ -192,7 +196,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and dataRst = '1') or (clear = '1') then
+      if (RST_ASYNC_G = false and dataRst = RST_POLARITY_G) or (clear = '1') then
          v := DATA_REG_INIT_C;
       end if;
 
@@ -203,7 +207,7 @@ begin
 
    dataSeq : process (dataClk, dataRst) is
    begin
-      if (RST_ASYNC_G and dataRst = '1') then
+      if (RST_ASYNC_G and dataRst = RST_POLARITY_G) then
          dataR <= DATA_REG_INIT_C after TPD_G;
       elsif rising_edge(dataClk) then
          dataR <= dataRin after TPD_G;
@@ -215,9 +219,10 @@ begin
    -----------------------------------------------------
    SynchronizerFifo_1 : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => RAM_ADDR_WIDTH_G)
       port map (
          rst    => axilRst,
          wr_clk => dataClk,
@@ -227,9 +232,10 @@ begin
 
    SynchronizerFifo_2 : entity surf.SynchronizerFifo
       generic map (
-         TPD_G        => TPD_G,
-         RST_ASYNC_G  => RST_ASYNC_G,
-         DATA_WIDTH_G => RAM_ADDR_WIDTH_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         DATA_WIDTH_G   => RAM_ADDR_WIDTH_G)
       port map (
          rst    => axilRst,
          wr_clk => dataClk,
@@ -239,8 +245,9 @@ begin
 
    Synchronizer_dataBufferEn : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => axilClk,
          rst     => axilRst,
@@ -249,8 +256,9 @@ begin
 
    Synchronizer_dataBufferClr : entity surf.Synchronizer
       generic map (
-         TPD_G       => TPD_G,
-         RST_ASYNC_G => RST_ASYNC_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          clk     => axilClk,
          rst     => axilRst,
@@ -335,7 +343,7 @@ begin
       end if;
 
       -- Synchronous Reset
-      if (RST_ASYNC_G = false and axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := AXIL_REG_INIT_C;
       end if;
 
@@ -350,7 +358,7 @@ begin
 
    axilseq : process (axilClk, axilRst) is
    begin
-      if (RST_ASYNC_G and axilRst = '1') then
+      if (RST_ASYNC_G and axilRst = RST_POLARITY_G) then
          axilR <= AXIL_REG_INIT_C after TPD_G;
       elsif rising_edge(axilClk) then
          axilR <= axilRin after TPD_G;

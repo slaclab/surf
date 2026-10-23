@@ -59,8 +59,9 @@ use surf.AxiLitePkg.all;
 entity SsiAxiLiteMaster is
    generic (
       -- General Config
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false;
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
 
       -- FIFO Config
       RESP_THOLD_G        : integer range 0 to (2**24) := 1;  -- =1 = normal operation
@@ -76,14 +77,14 @@ entity SsiAxiLiteMaster is
    port (
       -- Streaming Slave (Rx) Interface (sAxisClk domain)
       sAxisClk    : in  sl;
-      sAxisRst    : in  sl := '0';
+      sAxisRst    : in  sl := not RST_POLARITY_G;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
 
       -- Streaming Master (Tx) Data Interface (mAxisClk domain)
       mAxisClk    : in  sl;
-      mAxisRst    : in  sl := '0';
+      mAxisRst    : in  sl := not RST_POLARITY_G;
       mAxisMaster : out AxiStreamMasterType;
       mAxisSlave  : in  AxiStreamSlaveType;
 
@@ -160,6 +161,7 @@ begin
    SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
@@ -411,7 +413,7 @@ begin
       sFifoAxisSlave <= v.sFifoAxisSlave;
 
       -- Reset
-      if (RST_ASYNC_G = false and axiLiteRst = '1') then
+      if (RST_ASYNC_G = false and axiLiteRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -427,7 +429,7 @@ begin
 
    seq : process (axiLiteClk, axiLiteRst) is
    begin
-      if (RST_ASYNC_G) and (axiLiteRst = '1') then
+      if (RST_ASYNC_G) and (axiLiteRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiLiteClk) then
          r <= rin after TPD_G;
@@ -440,6 +442,7 @@ begin
    MasterAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          PIPE_STAGES_G       => 0,
          VALID_THOLD_G       => RESP_THOLD_G,

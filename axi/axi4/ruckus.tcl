@@ -10,4 +10,4 @@ if {  $::env(VIVADO_VERSION) > 0.0} {
 }
 
 # Load Simulation
-loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb"
+loadSource -lib surf -sim_only -dir "$::DIR_PATH/tb" -fileType "VHDL 2008"

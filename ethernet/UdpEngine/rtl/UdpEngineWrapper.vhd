@@ -25,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineWrapper is
    generic (
-      -- Simulation Generics
       TPD_G               : time                  := 1 ns;
+      RST_POLARITY_G      : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G         : boolean               := false;
       -- UDP Server Generics
       SERVER_EN_G         : boolean               := true;
       SERVER_SIZE_G       : positive              := 1;
@@ -43,6 +44,8 @@ entity UdpEngineWrapper is
       IGMP_GRP_SIZE       : positive range 1 to 8 := 1;
       IGMP_INIT_G         : Slv32Array            := (0 => x"0000_0000");
       CLK_FREQ_G          : real                  := 156.25E+06;  -- In units of Hz
+      DSCP_G              : natural range 0 to 63 := 0;
+      ECN_G               : slv(1 downto 0)       := "00";
       COMM_TIMEOUT_G      : positive              := 30;  -- In units of seconds, Client's Communication timeout before re-ARPing or DHCP discover/request
       TTL_G               : slv(7 downto 0)       := x"20";  -- IPv4's Time-To-Live (TTL)
       SYNTH_MODE_G        : string                := "inferred");  -- Synthesis mode for internal RAMs
@@ -86,6 +89,8 @@ architecture rtl of UdpEngineWrapper is
       softMac          : slv(47 downto 0);
       softIp           : slv(31 downto 0);
       broadcastIp      : slv(31 downto 0);
+      ecnFlag          : slv(1 downto 0);
+      dscpFlag         : slv(5 downto 0);
       igmpIp           : Slv32Array(IGMP_GRP_SIZE-1 downto 0);
       clientRemotePort : Slv16Array(CLIENT_SIZE_G-1 downto 0);
       clientRemoteIp   : Slv32Array(CLIENT_SIZE_G-1 downto 0);
@@ -97,6 +102,8 @@ architecture rtl of UdpEngineWrapper is
       softMac          => (others => '0'),
       softIp           => (others => '0'),
       broadcastIp      => (others => '0'),
+      ecnFlag          => ECN_G,
+      dscpFlag         => toSlv(DSCP_G, 6),
       igmpIp           => IGMP_INIT_G,
       clientRemotePort => (others => (others => '0')),
       clientRemoteIp   => (others => (others => '0')),
@@ -128,10 +135,14 @@ begin
    IpV4Engine_Inst : entity surf.IpV4Engine
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => 1,
          PROTOCOL_G      => (0 => UDP_C),
          CLIENT_SIZE_G   => CLIENT_SIZE_G,
          CLK_FREQ_G      => CLK_FREQ_G,
+         DSCP_G          => DSCP_G,
+         ECN_G           => ECN_G,
          IGMP_G          => IGMP_G,
          IGMP_GRP_SIZE   => IGMP_GRP_SIZE,
          TTL_G           => TTL_G)
@@ -139,6 +150,8 @@ begin
          -- Local Configurations
          localMac             => localMac,
          localIp              => dhcpIp,
+         ecn                  => r.ecnFlag,
+         dscp                 => r.dscpFlag,
          igmpIp               => r.igmpIp,
          -- Interface to Ethernet Media Access Controller (MAC)
          obMacMaster          => obMacMaster,
@@ -164,8 +177,9 @@ begin
    -------------
    UdpEngine_Inst : entity surf.UdpEngine
       generic map (
-         -- Simulation Generics
          TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
          IGMP_G         => IGMP_G,
          IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
          -- UDP Server Generics
@@ -249,6 +263,8 @@ begin
       axiSlaveRegister (regCon, x"FF0", 0, v.broadcastIp);
       axiSlaveRegisterR(regCon, x"FF4", 0, dhcpIp);
       axiSlaveRegisterR(regCon, x"FF8", 0, localMac);
+      axiSlaveRegister (regCon, x"FFC", 16, v.ecnFlag);
+      axiSlaveRegister (regCon, x"FFC", 18, v.dscpFlag);
 
       -- Closeout the transaction
       axiSlaveDefault(regCon, v.axilWriteSlave, v.axilReadSlave, AXI_RESP_DECERR_C);
@@ -260,7 +276,7 @@ begin
       softMac        <= r.softMac;
 
       -- Synchronous Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -275,9 +291,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if (rising_edge(clk)) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

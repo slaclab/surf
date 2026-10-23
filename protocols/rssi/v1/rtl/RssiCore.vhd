@@ -88,8 +88,7 @@ entity RssiCore is
 
       -- Counters
       MAX_RETRANS_CNT_G : positive := 2;
-      MAX_CUM_ACK_CNT_G : positive := 3
-      );
+      MAX_CUM_ACK_CNT_G : positive := 3);
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -128,6 +127,20 @@ end entity RssiCore;
 architecture rtl of RssiCore is
 
    constant BUFFER_ADDR_WIDTH_C : positive := (SEGMENT_ADDR_SIZE_G+WINDOW_ADDR_SIZE_G);
+   -- Pause one segment early, padded by 16 words.  The padding is capped at half
+   -- a segment so that segment buffers smaller than 32 words keep a valid,
+   -- proportional threshold instead of going non-positive.
+   constant FIFO_PAUSE_THRESH_C : positive := (2**SEGMENT_ADDR_SIZE_G) - minimum(16, 2**(SEGMENT_ADDR_SIZE_G-1));
+
+   type RegType is record
+      busyEnable : sl;
+   end record RegType;
+
+   constant REG_INIT_C : RegType := (
+      busyEnable => '0');
+
+   signal r   : RegType := REG_INIT_C;
+   signal rin : RegType;
 
    -- Busy Flags
    signal s_localBusy : sl;
@@ -219,7 +232,6 @@ architecture rtl of RssiCore is
    signal s_mAppAxisMaster : AxiStreamMasterType;
    signal s_mAppAxisSlave  : AxiStreamSlaveType;
    signal s_mAppAxisCtrl   : AxiStreamCtrlType;
-   signal s_mAppfifoWrCnt  : slv(SEGMENT_ADDR_SIZE_G downto 0);
 
    -- SSI Application side
    signal s_sAppSsiMaster : SsiMasterType;
@@ -291,8 +303,8 @@ architecture rtl of RssiCore is
    -- attribute dont_touch of s_mAppAxisCtrl : signal is "TRUE";
    -- attribute dont_touch of s_mTspAxisCtrl : signal is "TRUE";
 
-----------------------------------------------------------------------
 begin
+
    -- Assertions to check generics
    assert (1 <= MAX_NUM_OUTS_SEG_G and MAX_NUM_OUTS_SEG_G <= (2**WINDOW_ADDR_SIZE_G)) report "MAX_NUM_OUTS_SEG_G should be less or equal to 2**WINDOW_ADDR_SIZE_G" severity failure;
    assert (8 <= MAX_SEG_SIZE_G and MAX_SEG_SIZE_G <= (2**SEGMENT_ADDR_SIZE_G)*8) report "MAX_SEG_SIZE_G should be less or equal to (2**SEGMENT_ADDR_SIZE_G)*8" severity failure;
@@ -669,66 +681,25 @@ begin
    -- Tx buffer RAM
    GEN_TX : if (BYP_TX_BUFFER_G = false) generate
 
-      GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity surf.SimpleDualPortRamXpm
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_txWrBuffWe,
-               addra  => s_txWrBuffAddr,
-               dina   => s_txWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_txRdBuffAddr,
-               doutb  => s_txRdBuffData);
-      end generate;
-
-      GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity surf.SimpleDualPortRamAlteraMf
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_txWrBuffWe,
-               addra  => s_txWrBuffAddr,
-               dina   => s_txWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_txRdBuffAddr,
-               doutb  => s_txRdBuffData);
-      end generate;
-
-      GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity surf.SimpleDualPortRam
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka  => clk_i,
-               wea   => s_txWrBuffWe,
-               addra => s_txWrBuffAddr,
-               dina  => s_txWrBuffData,
-               -- Port B - Read only
-               clkb  => clk_i,
-               rstb  => rst_i,
-               addrb => s_txRdBuffAddr,
-               doutb => s_txRdBuffData);
-      end generate;
+      U_RAM : entity surf.SimpleDualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            SYNTH_MODE_G  => SYNTH_MODE_G,
+            COMMON_CLK_G  => true,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
+            ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
+         port map (
+            -- Port A - Write only
+            clka  => clk_i,
+            wea   => s_txWrBuffWe,
+            addra => s_txWrBuffAddr,
+            dina  => s_txWrBuffData,
+            -- Port B - Read only
+            clkb  => clk_i,
+            rstb  => rst_i,
+            addrb => s_txRdBuffAddr,
+            doutb => s_txRdBuffData);
 
    end generate;
 
@@ -736,8 +707,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16
-         )
+         CSUM_WIDTH_G => 16)
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
@@ -795,66 +765,25 @@ begin
    -- Rx buffer RAM
    GEN_RX : if (BYP_RX_BUFFER_G = false) generate
 
-      GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-         U_RAM : entity surf.SimpleDualPortRamXpm
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_rxWrBuffWe,
-               addra  => s_rxWrBuffAddr,
-               dina   => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_rxRdBuffAddr,
-               doutb  => s_rxRdBuffData);
-      end generate;
-
-      GEN_ALTERA : if (SYNTH_MODE_G = "altera_mf") generate
-         U_RAM : entity surf.SimpleDualPortRamAlteraMf
-            generic map (
-               TPD_G         => TPD_G,
-               COMMON_CLK_G  => true,
-               MEMORY_TYPE_G => MEMORY_TYPE_G,
-               DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka   => clk_i,
-               wea(0) => s_rxWrBuffWe,
-               addra  => s_rxWrBuffAddr,
-               dina   => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb   => clk_i,
-               rstb   => rst_i,
-               addrb  => s_rxRdBuffAddr,
-               doutb  => s_rxRdBuffData);
-      end generate;
-
-      GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-         U_RAM : entity surf.SimpleDualPortRam
-            generic map (
-               TPD_G        => TPD_G,
-               DATA_WIDTH_G => RSSI_WORD_WIDTH_C*8,
-               ADDR_WIDTH_G => BUFFER_ADDR_WIDTH_C)
-            port map (
-               -- Port A - Write only
-               clka  => clk_i,
-               wea   => s_rxWrBuffWe,
-               addra => s_rxWrBuffAddr,
-               dina  => s_rxWrBuffData,
-               -- Port B - Read only
-               clkb  => clk_i,
-               rstb  => rst_i,
-               addrb => s_rxRdBuffAddr,
-               doutb => s_rxRdBuffData);
-      end generate;
+      U_RAM : entity surf.SimpleDualPortRam
+         generic map (
+            TPD_G         => TPD_G,
+            SYNTH_MODE_G  => SYNTH_MODE_G,
+            COMMON_CLK_G  => true,
+            MEMORY_TYPE_G => MEMORY_TYPE_G,
+            DATA_WIDTH_G  => RSSI_WORD_WIDTH_C*8,
+            ADDR_WIDTH_G  => BUFFER_ADDR_WIDTH_C)
+         port map (
+            -- Port A - Write only
+            clka  => clk_i,
+            wea   => s_rxWrBuffWe,
+            addra => s_rxWrBuffAddr,
+            dina  => s_rxWrBuffData,
+            -- Port B - Read only
+            clkb  => clk_i,
+            rstb  => rst_i,
+            addrb => s_rxRdBuffAddr,
+            doutb => s_rxRdBuffData);
 
    end generate;
 
@@ -865,8 +794,7 @@ begin
       generic map (
          TPD_G        => TPD_G,
          DATA_WIDTH_G => 64,
-         CSUM_WIDTH_G => 16
-         )
+         CSUM_WIDTH_G => 16)
       port map (
          clk_i    => clk_i,
          rst_i    => rst_i,
@@ -888,7 +816,39 @@ begin
    -- SSI Application side
    s_mAppAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mAppSsiMaster);
    s_mAppSsiSlave   <= axis2SsiSlave(RSSI_AXIS_CONFIG_C, s_mAppAxisSlave, s_mAppAxisCtrl);
-   s_localBusy      <= s_mAppfifoWrCnt(SEGMENT_ADDR_SIZE_G);
+
+   combBusy : process (r, s_mAppAxisCtrl, s_rstFifo) is
+      variable v         : RegType;
+      variable localBusy : sl;
+   begin
+      v := r;
+
+      -- FIFO reset asserts pause, with implementation-dependent recovery time.
+      -- RX cannot fill the FIFO until pause clears, so first observe it low
+      -- before advertising later pressure as BUSY for this connection.
+      if s_mAppAxisCtrl.pause = '0' then
+         v.busyEnable := '1';
+      end if;
+
+      -- Preserve the direct pause-to-header/monitor timing once armed. A
+      -- combinational reset override also prevents FIFO reset from being
+      -- sampled as pressure on the first disconnected clock edge.
+      localBusy := r.busyEnable and s_mAppAxisCtrl.pause;
+      if s_rstFifo = '1' then
+         v         := REG_INIT_C;
+         localBusy := '0';
+      end if;
+
+      rin         <= v;
+      s_localBusy <= localBusy;
+   end process combBusy;
+
+   seqBusy : process (clk_i) is
+   begin
+      if rising_edge(clk_i) then
+         r <= rin after TPD_G;
+      end if;
+   end process seqBusy;
 
    -- SSI Transport side
    s_mTspAxisMaster <= ssi2AxisMaster(RSSI_AXIS_CONFIG_C, s_mTspSsiMaster);
@@ -910,7 +870,7 @@ begin
          MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,
@@ -921,7 +881,7 @@ begin
          sAxisMaster => s_mAppAxisMaster,
          sAxisSlave  => s_mAppAxisSlave,
          sAxisCtrl   => s_mAppAxisCtrl,
-         fifoWrCnt   => s_mAppfifoWrCnt,
+         fifoWrCnt   => open,
          --
          mAxisClk    => clk_i,
          mAxisRst    => s_rstFifo,
@@ -942,7 +902,7 @@ begin
          MEMORY_TYPE_G       => "block",
          FIFO_ADDR_WIDTH_G   => SEGMENT_ADDR_SIZE_G+1,  -- Enough to store 2 segments
          FIFO_FIXED_THRESH_G => true,
-         FIFO_PAUSE_THRESH_G => (2**SEGMENT_ADDR_SIZE_G) - 16,  -- Threshold at 1 segment minus padding
+         FIFO_PAUSE_THRESH_G => FIFO_PAUSE_THRESH_C,  -- Threshold at 1 segment minus padding
          INT_WIDTH_SELECT_G  => "CUSTOM",
          INT_DATA_WIDTH_G    => RSSI_WORD_WIDTH_C,
          SLAVE_AXI_CONFIG_G  => RSSI_AXIS_CONFIG_C,

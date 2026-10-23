@@ -351,7 +351,7 @@ package body Code12b14bPkg is
 
 
    -- Given an running disparity and a selected code disparity,
-   -- determine whether the selected code needs to be complimented, and what the out disparity is
+   -- determine whether the selected code needs to be complemented, and what the out disparity is
    -- Should maybe implement DisparityType as a constrained integer and just use math here
    -- instead of this state machine. Not sure which is better.
    procedure disparityControl (
@@ -448,10 +448,12 @@ package body Code12b14bPkg is
       variable data6       : slv(5 downto 0);
       variable blockDisp56 : BlockDisparityType;
 
-      variable debug      : boolean := false;
-      variable tmpDisp    : integer range -8 to 8;
+      variable debug      : boolean               := false;
+      variable tmpDisp    : integer range -8 to 8 := 0;
       variable compliment : sl;
    begin
+
+      invalidK := '0';
 
       -- First, split in input word in two
       dataIn5 := dataIn(11 downto 7);
@@ -521,12 +523,16 @@ package body Code12b14bPkg is
             end if;
          end loop;
 
-         if (blockDispIn = 0 or blockDispIn = 2 or blockDispIn = 4) then
-            dataOut := not dataOut;
-            tmpDisp := getDisparity(dataOut);
-         end if;
+         if (invalidK = '0') then
+            if (blockDispIn = 0 or blockDispIn = 2 or blockDispIn = 4) then
+               dataOut := not dataOut;
+               tmpDisp := getDisparity(dataOut);
+            end if;
 
-         dispOut := toSlv(blockDispIn + tmpDisp);
+            dispOut := toSlv(blockDispIn + tmpDisp);
+         else
+            dispOut := dispIn;
+         end if;
       end if;
 
    end procedure encode12b14b;

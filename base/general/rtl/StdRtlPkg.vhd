@@ -134,6 +134,13 @@ package StdRtlPkg is
    function "/" (L : integer; R : real) return real;
    function "/" (L : real; R : integer) return real;
 
+   -- Recode an ADC bit pattern without resizing or sign extension. The leftmost
+   -- bit is the MSB; preserve the input bounds/direction. Null vectors are invalid.
+   function offsetBinaryToTwosComplement (vec : slv) return slv;
+   function twosComplementToOffsetBinary (vec : slv) return slv;
+
+   -- Simulation: round to the nearest code and saturate at the representable
+   -- rails. Requires high > low and 1 <= bits <= 30 (integer arithmetic limit).
    function adcConversion (ain : real; low : real; high : real; bits : positive; twosComp : boolean) return slv;
 
    --gets a time ratio
@@ -1286,6 +1293,22 @@ package body StdRtlPkg is
       return real(L/real(R));
    end function;
 
+   function offsetBinaryToTwosComplement (vec : slv) return slv is
+      variable result : slv(vec'range) := vec;
+   begin
+      assert vec'length > 0
+         report "offsetBinaryToTwosComplement requires a nonempty vector"
+         severity failure;
+      result(result'left) := not result(result'left);
+      return result;
+   end function offsetBinaryToTwosComplement;
+
+   function twosComplementToOffsetBinary (vec : slv) return slv is
+   begin
+      -- Flipping the code MSB is its own inverse.
+      return offsetBinaryToTwosComplement(vec);
+   end function twosComplementToOffsetBinary;
+
    -------------------------------------------------------------------------------------------------
    -- Simulates an ADC conversion
    -------------------------------------------------------------------------------------------------
@@ -1302,6 +1325,9 @@ package body StdRtlPkg is
       variable retSigned   : signed(bits-1 downto 0);
       variable retUnsigned : unsigned(bits-1 downto 0);
    begin
+      assert high > low and bits <= 30
+         report "adcConversion requires high > low and bits <= 30"
+         severity failure;
       tmpR := ain;
 
       -- Constrain input to full scale range
@@ -1315,10 +1341,13 @@ package body StdRtlPkg is
       tmpR := tmpR * real(2**bits);
 
       if (twosComp) then
-         retSigned := to_signed(integer(round(tmpR)), bits);
+         tmpI := minimum(integer(round(tmpR)), 2**(bits-1)-1);
+         tmpI := maximum(tmpI, -2**(bits-1));
+         retSigned := to_signed(tmpI, bits);
          return slv(retSigned);
       else
-         retUnsigned := to_unsigned(integer(round(tmpR)), bits);
+         tmpI := minimum(integer(round(tmpR)), 2**bits-1);
+         retUnsigned := to_unsigned(tmpI, bits);
          return slv(retUnsigned);
       end if;
    end function adcConversion;

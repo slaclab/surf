@@ -211,9 +211,10 @@ begin
       -----------------------------------------------------------------------------------------
       U_DmaWriteMux : entity surf.AxiStreamDmaV2WriteMux
          generic map (
-            TPD_G          => TPD_G,
-            AXI_CONFIG_G   => AXI_DMA_CONFIG_G,
-            AXI_READY_EN_G => AXI_READY_EN_G)
+            TPD_G             => TPD_G,
+            AXI_CONFIG_G      => AXI_DMA_CONFIG_G,
+            AXI_READY_EN_G    => AXI_READY_EN_G,
+            ACK_WAIT_BVALID_G => false)
          port map (
             -- Clock and reset
             axiClk          => axiClk,

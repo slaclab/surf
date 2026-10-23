@@ -212,6 +212,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when IDLE_S =>
+            v.stCount           := (others => '0');
             -- Set write dma request data
             v.dmaWrDescReq.dest := intAxisMaster.tDest;
             v.dmaWrDescReq.id   := intAxisMaster.tId;
@@ -286,8 +287,7 @@ begin
             end if;
          ----------------------------------------------------------------------
          when ADDR_S =>
-            -- Reset counter, continue and last user
-            v.stCount  := (others => '0');
+            -- Reset continue and last user
             v.continue := '0';
             v.lastUser := (others => '0');
             -- Determine transfer size aligned to 4k boundaries
@@ -320,7 +320,7 @@ begin
                if intAxisMaster.tDest /= r.dmaWrTrack.dest then
                   v.state := PAD_S;
                -- Overflow detect
-               elsif (r.dmaWrTrack.maxSize(31 downto 5) = 0) then  -- Assumes max AXIS.TDATA width of 128-bits
+               elsif (r.dmaWrTrack.maxSize(31 downto log2(DATA_BYTES_C)) = 0) then
                   -- Multi-descriptor DMA is supported
                   if r.dmaWrTrack.contEn = '1' then
                      v.continue         := '1';
@@ -362,7 +362,7 @@ begin
                      v.dmaWrTrack.firstUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
                         axiStreamGetUserField(AXIS_CONFIG_G, intAxisMaster, 0);
                   end if;
-                  -- -- Check for last AXIS word
+                  -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      -- Latch the tUser value
                      v.lastUser(AXIS_CONFIG_G.TUSER_BITS_C-1 downto 0) :=
@@ -383,16 +383,37 @@ begin
                   if r.awlen = 0 then
                      -- Set the flag
                      v.wMaster.wlast := '1';
-                     -- If next state has not already been updated go to idle
+                     -- If next state has not already been updated, decide where
+                     -- to go next.
                      if v.state = MOVE_S then
-                        v.state := IDLE_S;
+                        -- If this burst exactly filled the buffer while the
+                        -- frame continues, start the continue here (return the
+                        -- descriptor with continue set) rather than re-entering
+                        -- ADDR_S.  Re-entering ADDR_S with maxSize=0 would issue
+                        -- a stray zero-length burst at the next buffer's base
+                        -- address; on a host DMA that off-by-one write lands
+                        -- past the mapped page and raises an IOMMU page fault.
+                        -- (contEn=0 keeps the legacy overflow/drop path.)
+                        if (v.dmaWrTrack.maxSize(31 downto log2(DATA_BYTES_C)) = 0) and (r.dmaWrTrack.contEn = '1') then
+                           v.continue         := '1';
+                           v.dmaWrTrack.inUse := '0';
+                           if r.dmaWrTrack.metaEnable = '1' then
+                              v.state := META_S;
+                           else
+                              v.state := RETURN_S;
+                           end if;
+                        else
+                           v.state := IDLE_S;
+                        end if;
                      end if;
                   else
                      -- Decrement the transaction counter
                      v.awlen := r.awlen - 1;
                   end if;
                end if;
-            -- Timeout on stalled writes to avoid locking AXI crossbar
+            -- If the incoming AXI stream data stalled out ('timeout event') while we are in the
+            -- middle of a write, we treat it like a destination change and complete the write
+            -- with the valid strobes as '0' and re-start it when data is available
             elsif r.stCount = 100 then
                v.state := PAD_S;
             else
@@ -426,24 +447,18 @@ begin
             end if;
          ----------------------------------------------------------------------
          when META_S =>
-
-            -- Wair for existing transactions to complete
-            if v.wMaster.wvalid = '0' and v.wMaster.awvalid = '0' then
-
-               -- Init
-               v.wMaster := axiWriteMasterInit(AXI_CONFIG_G, '1', "01", "0000");
+            -- Wait for existing transactions to complete
+            if (v.wMaster.wvalid = '0') and (v.wMaster.awvalid = '0') then
 
                -- Write address channel
-               v.wMaster.awaddr := r.dmaWrTrack.metaAddr;
-               v.wMaster.awlen  := x"00";  -- Single transaction
+               v.wMaster.awvalid := '1';
+               v.wMaster.awaddr  := r.dmaWrTrack.metaAddr;
+               v.wMaster.awlen   := x"00";  -- Single transaction
 
                -- Write data channel
-               v.wMaster.wlast := '1';
-
-               -- Increment the counter
-               v.reqCount := r.reqCount + 1;
-
-               -- Descriptor data, 64-bits
+               v.wMaster.wvalid              := '1';
+               v.wMaster.wlast               := '1';
+               v.wMaster.wstrb               := resize(x"FF", AXI_MAX_WSTRB_WIDTH_C);  -- Descriptor data, 64-bits
                v.wMaster.wdata(63 downto 32) := r.dmaWrTrack.size;
                v.wMaster.wdata(31 downto 24) := r.dmaWrTrack.firstUser;
                v.wMaster.wdata(23 downto 16) := r.lastUser;
@@ -452,11 +467,11 @@ begin
                v.wMaster.wdata(2)            := r.dmaWrTrack.overflow;
                v.wMaster.wdata(1 downto 0)   := r.result;
 
-               v.wMaster.wstrb := resize(x"FF", 128);
+               -- Increment the counter
+               v.reqCount := r.reqCount + 1;
 
-               v.wMaster.awvalid := '1';
-               v.wMaster.wvalid  := '1';
-               v.state           := RETURN_S;
+               -- Next state
+               v.state := RETURN_S;
             end if;
          ----------------------------------------------------------------------
          when RETURN_S =>
@@ -481,13 +496,9 @@ begin
                   v.state              := IDLE_S;
                -- Check for ACK timeout
                elsif (r.stCount = r.dmaWrTrack.timeout) then
-                  -- Set the flags
+                  -- Latch the errors flags
                   v.dmaWrDescRet.result(1 downto 0) := "11";
-                  v.dmaWrDescRet.valid              := '1';
                   v.dmaWrDescRet.result(3)          := '1';
-                  v.reqCount                        := (others => '0');
-                  v.ackCount                        := (others => '0');
-                  v.state                           := IDLE_S;
                else
                   -- Increment the counter
                   v.stCount := r.stCount + 1;
@@ -505,7 +516,7 @@ begin
                else
                   -- Accept the data
                   v.slave.tReady := '1';
-                  -- -- Check for last AXIS word
+                  -- Check for last AXIS word
                   if intAxisMaster.tLast = '1' then
                      v.dmaWrTrack.inUse := '0';
                      if r.dmaWrTrack.metaEnable = '1' then

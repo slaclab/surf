@@ -138,6 +138,7 @@ architecture mapping of FifoXpm is
 begin
 
    GEN_ASYNC : if (GEN_SYNC_FIFO_G = false) generate
+
       U_FIFO : xpm_fifo_async
          generic map (
             FIFO_MEMORY_TYPE    => MEMORY_TYPE_G,
@@ -184,9 +185,27 @@ begin
             injectdbiterr => '0',
             sbiterr       => open,
             dbiterr       => open);
+
+      ------------------------------------------------------------------------------------
+      -- From UG974 (v2025.1) on page 39
+      ------------------------------------------------------------------------------------
+      -- Reset: Must be synchronous to wr_clk. The clock(s) can be unstable at the time of
+      -- applying reset, but reset must be released only after the clock(s) is/are stable.
+      ------------------------------------------------------------------------------------
+      U_Reset : entity surf.RstSync
+         generic map (
+            TPD_G          => TPD_G,
+            IN_POLARITY_G  => RST_POLARITY_G,  -- 0 for active low rst, 1 for high
+            OUT_POLARITY_G => '1')      -- XPM_FIFO_ASYNC.RST is ACTIVE HIGH
+         port map (
+            clk      => wr_clk,
+            asyncRst => rst,
+            syncRst  => reset);
+
    end generate;
 
    GEN_SYNC : if (GEN_SYNC_FIFO_G = true) generate
+
       U_FIFO : xpm_fifo_sync
          generic map (
             FIFO_MEMORY_TYPE    => MEMORY_TYPE_G,
@@ -231,9 +250,10 @@ begin
             sbiterr       => open,
             dbiterr       => open);
 
-   end generate;
+      -- XPM_FIFO_SYNC.RST is ACTIVE HIGH
+      reset <= rst when(RST_POLARITY_G = '1') else not(rst);
 
-   reset <= rst when(RST_POLARITY_G = '1') else not(rst);
+   end generate;
 
    process(rd_data_count_xpm, wr_data_count_xpm)
    begin

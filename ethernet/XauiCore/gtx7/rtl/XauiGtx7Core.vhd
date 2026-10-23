@@ -105,7 +105,7 @@ architecture wrapper of XauiGtx7Core is
          gt0_txphinitdone_out     : out std_logic;
          gt0_txdlysresetdone_out  : out std_logic;
          gt_qplllock_out          : out std_logic;
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt0_eyescantrigger_in    : in  std_logic;
          gt0_eyescanreset_in      : in  std_logic;
@@ -160,7 +160,7 @@ architecture wrapper of XauiGtx7Core is
          gt1_txphaligndone_out    : out std_logic;
          gt1_txphinitdone_out     : out std_logic;
          gt1_txdlysresetdone_out  : out std_logic;
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt1_eyescantrigger_in    : in  std_logic;
          gt1_eyescanreset_in      : in  std_logic;
@@ -215,7 +215,7 @@ architecture wrapper of XauiGtx7Core is
          gt2_txphaligndone_out    : out std_logic;
          gt2_txphinitdone_out     : out std_logic;
          gt2_txdlysresetdone_out  : out std_logic;
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt2_eyescantrigger_in    : in  std_logic;
          gt2_eyescanreset_in      : in  std_logic;
@@ -270,7 +270,7 @@ architecture wrapper of XauiGtx7Core is
          gt3_txphaligndone_out    : out std_logic;
          gt3_txphinitdone_out     : out std_logic;
          gt3_txdlysresetdone_out  : out std_logic;
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt3_eyescantrigger_in    : in  std_logic;
          gt3_eyescanreset_in      : in  std_logic;
@@ -367,7 +367,7 @@ begin
          gt0_txphinitdone_out     => open,
          gt0_txdlysresetdone_out  => open,
          gt_qplllock_out          => open,
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt0_eyescantrigger_in    => '0',
          gt0_eyescanreset_in      => '0',
@@ -422,7 +422,7 @@ begin
          gt1_txphaligndone_out    => open,
          gt1_txphinitdone_out     => open,
          gt1_txdlysresetdone_out  => open,
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt1_eyescantrigger_in    => '0',
          gt1_eyescanreset_in      => '0',
@@ -477,7 +477,7 @@ begin
          gt2_txphaligndone_out    => open,
          gt2_txphinitdone_out     => open,
          gt2_txdlysresetdone_out  => open,
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt2_eyescantrigger_in    => '0',
          gt2_eyescanreset_in      => '0',
@@ -532,7 +532,7 @@ begin
          gt3_txphaligndone_out    => open,
          gt3_txphinitdone_out     => open,
          gt3_txdlysresetdone_out  => open,
-         -- Signal Integrity adn Functionality
+         -- Signal Integrity and Functionality
          -- Eye Scan
          gt3_eyescantrigger_in    => '0',
          gt3_eyescanreset_in      => '0',

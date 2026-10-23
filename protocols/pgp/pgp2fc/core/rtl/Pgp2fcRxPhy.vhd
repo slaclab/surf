@@ -38,8 +38,8 @@ entity Pgp2fcRxPhy is
       pgpRxLinkReady : out sl;          -- Local side has link
 
       -- Error Flags, one pulse per event
-      pgpRxLinkDown  : out sl := '0';   -- A link down event has occured
-      pgpRxLinkError : out sl := '0';   -- A link error has occured
+      pgpRxLinkDown  : out sl := '0';   -- A link down event has occurred
+      pgpRxLinkError : out sl := '0';   -- A link error has occurred
 
       -- Fast control interface
       fcValid : out sl := '0';

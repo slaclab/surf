@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiStreamPkg.all;
@@ -26,8 +25,9 @@ use surf.EthMacPkg.all;
 
 entity UdpEngineDhcp is
    generic (
-      -- Simulation Generics
       TPD_G          : time     := 1 ns;
+      RST_POLARITY_G : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean  := false;
       -- UDP ARP/DHCP Generics
       CLK_FREQ_G     : real     := 156.25E+06;  -- In units of Hz
       COMM_TIMEOUT_G : positive := 30;
@@ -146,6 +146,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => true,
@@ -260,8 +262,12 @@ begin
                   if r.commCnt = 0 then
                      -- Reset the counter
                      v.cnt   := 0;
-                     -- Increment the counter
-                     v.xid   := r.xid + 1;
+                     -- Start a new transaction ID only for a new DHCP Discover or a
+                     -- lease renewal; the SELECTING-state DHCP Request must reuse the
+                     -- XID from the Discover/Offer exchange (RFC 2131 4.4.1, Table 5)
+                     if (r.dhcpReq = '0') or (r.leaseCnt /= 0) then
+                        v.xid := r.xid + 1;
+                     end if;
                      -- Next state
                      v.state := REQ_S;
                   end if;
@@ -292,7 +298,10 @@ begin
                      v.txMaster.tData(7 downto 0)   := r.xid(31 downto 24);
                   -- SECS/FLAGS
                   when 2 =>
-                     v.txMaster.tData(31 downto 0) := x"00080000";
+                     -- FLAGS = 0x8000: BOOTP broadcast flag (RFC 2131 4.1) so the
+                     -- server broadcasts the Offer/ACK rather than unicasting to the
+                     -- not-yet-leased yiaddr.
+                     v.txMaster.tData(31 downto 0) := x"00800000";
                   -- SIADDR
                   when 5 =>
                      -- Check for DHCP request
@@ -546,7 +555,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') or (r.localMac /= v.localMac) or (r.localMac = 0) then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) or (r.localMac /= v.localMac) or (r.localMac = 0) then
          -- Reset the DHCP FSM
          v                := REG_INIT_C;
          -- Don't touch the delayed copy of local MAC
@@ -564,9 +573,11 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
@@ -575,6 +586,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 0,
          SLAVE_READY_EN_G    => true,

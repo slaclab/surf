@@ -36,8 +36,9 @@ use surf.SsiCmdMasterPkg.all;
 
 entity SsiCmdMaster is
    generic (
-      TPD_G       : time    := 1 ns;
-      RST_ASYNC_G : boolean := false;
+      TPD_G          : time    := 1 ns;
+      RST_POLARITY_G : sl      := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean := false;
 
       -- AXI Stream FIFO Config
       SLAVE_READY_EN_G    : boolean                    := false;
@@ -53,7 +54,7 @@ entity SsiCmdMaster is
    port (
       -- Streaming Data Interface
       axisClk     : in  sl;
-      axisRst     : in  sl := '0';
+      axisRst     : in  sl := not RST_POLARITY_G;
       sAxisMaster : in  AxiStreamMasterType;
       sAxisSlave  : out AxiStreamSlaveType;
       sAxisCtrl   : out AxiStreamCtrlType;
@@ -93,6 +94,7 @@ begin
    SlaveAxiStreamFifo : entity surf.AxiStreamFifoV2
       generic map (
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          RST_ASYNC_G         => RST_ASYNC_G,
          SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
          MEMORY_TYPE_G       => MEMORY_TYPE_G,
@@ -162,7 +164,8 @@ begin
 
       end if;
 
-      if (RST_ASYNC_G = false and cmdRst = '1') then
+      -- Reset
+      if (RST_ASYNC_G = false and cmdRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -174,7 +177,7 @@ begin
 
    seq : process (cmdClk, cmdRst) is
    begin
-      if (RST_ASYNC_G) and (cmdRst = '1') then
+      if (RST_ASYNC_G) and (cmdRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(cmdClk) then
          r <= rin after TPD_G;

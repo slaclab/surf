@@ -300,7 +300,6 @@ begin
             if rxMaster.tValid = '1' then
                -- Accept the data
                v.rxSlave.tReady := '1';
-
                -- Increment the header count
                v.hdrCnt := r.hdrCnt + 1;
 
@@ -309,6 +308,7 @@ begin
                if rxMaster.tLast = '1' then
                   -- Set the flags
                   v.frameError := '1';
+                  v.hdrCnt     := (others => '0');
                   -- Next State
                   v.state      := HDR_RESP_S;
                end if;
@@ -444,7 +444,7 @@ begin
 
                      -------------------------------------------------------------------------------
 
-                     -- If no error found above, procede with read or write request
+                     -- If no error found above, proceed with read or write request
                      if (v.state /= FOOTER_S) then
                         -- Issue an SRP request
                         v.srpReq.request := '1';
@@ -490,7 +490,7 @@ begin
 
                -- Count each txn
                -- If tLast before cntSize, eofe
-               -- if cntSize reached and no tlast, blead read data, eofe
+               -- if cntSize reached and no tlast, bleed read data, eofe
                v.txnCnt := r.txnCnt + 1;
                if r.txnCnt = r.srpReq.reqSize(31 downto 2) and srpRdMasterInt.tLast = '1' then
                   -- Done when reqSize and tlast
@@ -504,6 +504,13 @@ begin
                   v.state := FOOTER_S;
                   v.eofe  := '1';       -- Should assign a memResp bit
                end if;
+            end if;
+
+            -- Some downstream implementations can reject a read immediately
+            -- without producing any read-data beats. In that case the request
+            -- still needs to complete through the ack/footer path.
+            if (srpAck.done = '1' and srpRdMasterInt.tValid = '0' and r.txnCnt = 0 and srpAck.respCode /= 0) then
+               v.state := WAIT_ACK_S;
             end if;
 
 
@@ -548,7 +555,7 @@ begin
 
                -- Count each txn
                -- If tLast before cntSize, frameError
-               -- if cntSize reached and no tlast, blead write data, frame error
+               -- if cntSize reached and no tlast, bleed write data, frame error
                v.txnCnt := r.txnCnt + 1;
                if r.txnCnt = r.srpReq.reqSize(31 downto 2) and rxMaster.tLast = '1' then
                   -- Done when reqSize reached and tlast

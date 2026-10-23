@@ -57,7 +57,7 @@ entity RssiHeaderReg is
 
       -- Header values
       txSeqN_i : in slv(7 downto 0);  -- Sequence number of the current packet
-      rxAckN_i : in slv(7 downto 0);  -- Acknowledgment number of the recived packet handelled by receiver
+      rxAckN_i : in slv(7 downto 0);  -- Acknowledgment number of the received packet handled by receiver
 
       -- Negotiated or from GENERICS
       headerValues_i : in RssiParamType;

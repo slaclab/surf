@@ -213,7 +213,7 @@ begin
             when 16#06# =>              -- ADDR (0x18)
                v.invertData := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#09# =>              -- ADDR (0x24)
-               v.axilReadSlave.rdata(L_G-1 downto 0) := r.rxPowerDown;
+               v.rxPowerDown := axilWriteMaster.wdata(L_G-1 downto 0);
             when 16#20# to 16#2F# =>
                for i in (L_G-1) downto 0 loop
                   if (axilWriteMaster.awaddr(5 downto 2) = i) then
@@ -249,7 +249,7 @@ begin
             when 16#06# =>              -- ADDR (0x18)
                v.axilReadSlave.rdata(L_G-1 downto 0) := r.invertData;
             when 16#09# =>              -- ADDR (0x24)
-               v.rxPowerDown := axilWriteMaster.wdata(L_G-1 downto 0);
+               v.axilReadSlave.rdata(L_G-1 downto 0) := r.rxPowerDown;
             when 16#0A# =>              -- ADDR (0x28)
                v.axilReadSlave.rdata(15 downto 0)  := sysRefPeriodmin;
                v.axilReadSlave.rdata(31 downto 16) := sysRefPeriodmax;

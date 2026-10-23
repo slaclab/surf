@@ -18,6 +18,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VIN',
+            description  = 'Input voltage measurement in volts',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -27,6 +28,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IIN',
+            description  = 'Input current measurement in amperes',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -36,6 +38,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'VOUT',
+            description  = 'Output voltage measurement in volts',
             mode         = 'RO',
             units        = 'V',
             disp         = '{:1.3f}',
@@ -45,6 +48,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'IOUT',
+            description  = 'Output current measurement in amperes',
             mode         = 'RO',
             units        = 'A',
             disp         = '{:1.3f}',
@@ -54,6 +58,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'TEMPERATURE[1]',
+            description  = 'Primary temperature sensor measurement in degrees Celsius',
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
@@ -63,6 +68,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'TEMPERATURE[2]',
+            description  = 'Secondary temperature sensor measurement in degrees Celsius',
             mode         = 'RO',
             units        = 'degC',
             disp         = '{:1.3f}',
@@ -72,6 +78,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'FAN_SPEED[1]',
+            description  = 'Primary fan speed measurement in RPM',
             mode         = 'RO',
             units        = 'RPM',
             disp         = '{:1.3f}',
@@ -81,6 +88,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'DUTY_CYCLE',
+            description  = 'PWM duty cycle measurement as a percentage',
             mode         = 'RO',
             units        = '%',
             disp         = '{:1.3f}',
@@ -90,6 +98,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'POUT',
+            description  = 'Output power measurement in watts',
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',
@@ -99,6 +108,7 @@ class UCD92xx(surf.protocols.i2c.PMBus):
 
         self.add(pr.LinkVariable(
             name         = 'PIN',
+            description  = 'Input power measurement in watts',
             mode         = 'RO',
             units        = 'W',
             disp         = '{:1.3f}',

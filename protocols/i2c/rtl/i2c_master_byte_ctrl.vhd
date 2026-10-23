@@ -277,7 +277,7 @@ begin
                c_state  <= st_idle;
                ack_out  <= '0';
             else
-               -- initialy reset all signal
+               -- initially reset all signal
                core_txd <= sr(7);
                shift    <= '0';
                ld       <= '0';

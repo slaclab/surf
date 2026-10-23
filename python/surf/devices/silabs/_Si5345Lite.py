@@ -13,6 +13,7 @@ import surf.devices.silabs as silabs
 import csv
 import click
 import fnmatch
+import time
 
 class Si5345Lite(pr.Device):
     def __init__(self,
@@ -24,10 +25,10 @@ class Si5345Lite(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name         = "CsvFilePath",
-            description  = "Used if command's argument is empty",
-            mode         = "RW",
-            value        = "",
+            name        = "CsvFilePath",
+            description = "Used if command's argument is empty",
+            mode        = "RW",
+            value       = "",
         ))
 
         ##############################
@@ -63,7 +64,7 @@ class Si5345Lite(pr.Device):
                             data   = int(row[1],16),
                         )
 
-            # Update local RemoteVariables and verify conflagration
+            # Update local RemoteVariables and verify configuration
             self.readBlocks(recurse=True)
             self.checkBlocks(recurse=True)
 
@@ -108,6 +109,39 @@ class Si5345Lite(pr.Device):
             linkedGet    = lambda read: (False if self.Page0.LOL.get(read=read) else True)
         ))
 
+        self.add(pr.RemoteCommand(
+            name        = 'ReloadFromRom',
+            description = 'Reconfigure the PLL from the ROM in Si5345.vhd',
+            offset      = (0x1<<14),
+            bitSize     = 1,
+            function    = lambda cmd: cmd.post(1),
+        ))
+
     def _setValue(self,offset,data):
         # Note: index is byte index (not word index)
         self._pages[offset // 0x400].DataBlock.set(value=data,index=(offset%0x400)>>2)
+
+    def LockedWait(self, timeout=100):
+        # Initialize watchdog counter
+        watchdog_counter = 0
+        watchdog_limit = 10  # 50 iterations of 0.1s = 1 second
+
+        # Convert timeout from seconds to iterations of 0.1s
+        timeout_iterations = int(timeout / 0.1) if timeout > 0 else float('inf')
+        timeout_counter = 0
+
+        # Wait for the AXI-Lite to recover from reset
+        while watchdog_counter < watchdog_limit:
+            if self.Page0.LOL.get(read=True):
+                watchdog_counter = 0  # Reset watchdog if condition is broken
+            else:
+                watchdog_counter += 1
+
+            # Handle timeout condition
+            if timeout_counter >= timeout_iterations:
+                return True  # Timed out
+
+            timeout_counter += 1
+            time.sleep(0.1)
+
+        return False  # Watchdog condition met

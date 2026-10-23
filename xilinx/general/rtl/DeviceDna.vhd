@@ -22,10 +22,11 @@ use surf.TextUtilPkg.all;
 entity DeviceDna is
    generic (
       TPD_G           : time     := 1 ns;
+      RST_POLARITY_G  : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean  := false;
       XIL_DEVICE_G    : string   := "7SERIES";  -- Either "7SERIES" or "ULTRASCALE" or "ULTRASCALE_PLUS"
       USE_SLOWCLK_G   : boolean  := false;
       BUFR_CLK_DIV_G  : positive := 8;
-      RST_POLARITY_G  : sl       := '1';
       SIM_DNA_VALUE_G : slv      := X"000000000000000000000000");
    port (
       clk      : in  sl;
@@ -71,6 +72,9 @@ begin
 
    assert (XIL_DEVICE_G = "7SERIES" or XIL_DEVICE_G = "ULTRASCALE" or XIL_DEVICE_G = "ULTRASCALE_PLUS")
       report "XIL_DEVICE_G must be either [7SERIES,ULTRASCALE,ULTRASCALE_PLUS]" severity failure;
+
+   assert (RST_ASYNC_G = false)
+      report "RST_ASYNC_G = false not supported" severity failure;
 
    GEN_7SERIES : if (XIL_DEVICE_G = "7SERIES") generate
       DeviceDna7Series_Inst : DeviceDna7Series

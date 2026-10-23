@@ -145,7 +145,7 @@ class Ltc4151(pr.Device):
             bitOffset   = 0,
             base        = pr.UInt,
             mode        = 'RW',
-            hidden       = True,
+            hidden      = True,
         ))
 
     def _getLsbMsb(self, var, read):

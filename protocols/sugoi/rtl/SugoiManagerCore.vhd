@@ -141,6 +141,7 @@ begin
    U_Rx : entity surf.SugoiManagerRx
       generic map (
          TPD_G           => TPD_G,
+         SIMULATION_G    => SIMULATION_G,
          DIFF_PAIR_G     => DIFF_PAIR_G,
          DEVICE_FAMILY_G => DEVICE_FAMILY_G,
          IODELAY_GROUP_G => IODELAY_GROUP_G,
@@ -222,7 +223,7 @@ begin
          TPD_G          => TPD_G,
          RST_POLARITY_G => '1',         -- active HIGH reset
          RST_ASYNC_G    => RST_ASYNC_G,
-         -- FLOW_CTRL_EN_G => true, -- placeholder incase FLOW_CTRL_EN_G is added in the future
+         -- FLOW_CTRL_EN_G => true, -- placeholder in case FLOW_CTRL_EN_G is added in the future
          NUM_BYTES_G    => 1)
       port map (
          -- Clock and Reset

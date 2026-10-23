@@ -47,7 +47,7 @@ entity Pgp3RxProtocol is
       remRxLinkReady : out sl;
       locRxLinkReady : out sl;
 
-      -- Received data from descramber/CC FIFO
+      -- Received data from descrambler/CC FIFO
       phyRxActive   : in  sl;
       protRxValid   : in  sl;
       protRxPhyInit : out sl;
@@ -138,7 +138,7 @@ begin
 
          else
             -- Linked
-            -- Increment count on every incomming word
+            -- Increment count on every incoming word
             -- reset when IDLE or SOF or SOC seen
             v.count := r.count + 1;
 
@@ -182,7 +182,7 @@ begin
                      if (btf = PGP3_USER_C(i)) then
                         v.pgpRxOut.opCodeNumber := toSlv(i, 3);
                         v.pgpRxOut.opCodeData   := protRxData(PGP3_USER_OPCODE_FIELD_C);
-                        -- Verify checksun
+                        -- Verify checksum
                         if (protRxData(PGP3_USER_CHECKSUM_FIELD_C) = opCodeChecksum) then
                            v.pgpRxOut.opCodeEn := '1';
                         else

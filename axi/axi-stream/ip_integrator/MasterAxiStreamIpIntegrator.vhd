@@ -85,7 +85,16 @@ architecture mapping of MasterAxiStreamIpIntegrator is
       "ASSOCIATED_BUSIF " & INTERFACENAME & ", " &
       "ASSOCIATED_RESET " & INTERFACENAME & "_ARESETN";
 
-   signal M_AXIS_Master : AxiStreamMasterType := AXI_STREAM_MASTER_INIT_C;
+   constant AXIS_CONFIG_C : AxiStreamConfigType := (
+      TSTRB_EN_C    => (HAS_TSTRB = 1),
+      TDATA_BYTES_C => TDATA_NUM_BYTES,
+      TDEST_BITS_C  => TDEST_WIDTH,
+      TID_BITS_C    => TID_WIDTH,
+      TKEEP_MODE_C  => TKEEP_NORMAL_C,
+      TUSER_BITS_C  => TUSER_WIDTH,
+      TUSER_MODE_C  => TUSER_NORMAL_C);
+
+   signal M_AXIS_Master : AxiStreamMasterType := axiStreamMasterInit(AXIS_CONFIG_C);
    signal M_AXIS_Slave  : AxiStreamSlaveType  := AXI_STREAM_SLAVE_FORCE_C;
 
 begin

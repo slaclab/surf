@@ -52,7 +52,7 @@ end entity Gtp7RxFixedLatPhaseAligner;
 
 architecture rtl of Gtp7RxFixedLatPhaseAligner is
 
-   constant SLIDE_WAIT_C : integer := 64;  -- Dictated by UG476 GTX Tranceiver Guide
+   constant SLIDE_WAIT_C : integer := 64;  -- Dictated by UG476 GTX Transceiver Guide
 
    type StateType is (SEARCH_S, RESET_S, SLIDE_S, SLIDE_WAIT_S, ALIGNED_S);
 

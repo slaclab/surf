@@ -66,7 +66,7 @@ entity AxiStreamFifoV2IpIntegrator is
 
       -- Internal FIFO width select, "WIDE", "NARROW" or "CUSTOM"
       -- WIDE uses wider of slave / master. NARROW  uses narrower.
-      -- CUSOTM uses passed FIFO_DATA_WIDTH_G
+      -- CUSTOM uses passed FIFO_DATA_WIDTH_G
       INT_WIDTH_SELECT : string                := "WIDE";
       INT_DATA_WIDTH   : natural range 1 to 16 := 16;
 

@@ -22,7 +22,7 @@
 --                      1. increment the in order SEQn
 --                      2. save seqN, type, and occupied to the window buffer at current rxBufferAddr
 --                      3. increment rxBufferAddr
---               - DROP Just report dropped packet and got back to WAIT_SOF
+--               - DROP Just report dropped packet and go back to WAIT_SOF
 --              Receiver side FSM. Send data to App side.
 --                - CHECK_BUFFER and DATA Send the data frame to the Application
 --                  when the data at the next txSegmentAddr is ready.
@@ -150,7 +150,7 @@ architecture rtl of RssiRxFsm is
 
    type RegType is record
 
-      -- Resception buffer window
+      -- Reception buffer window
       windowArray : WindowTypeArray(0 to 2 ** WINDOW_ADDR_SIZE_G-1);
 
       -- Transport side FSM (Receive and check segments)
@@ -251,7 +251,7 @@ architecture rtl of RssiRxFsm is
       tspState   => WAIT_SOF_S,
       rxTspState => (others => '0'),
 
-      -- Application side FSM (Send segments when received next in odrer received)
+      -- Application side FSM (Send segments when received next in order received)
       -----------------------------------------------------------
       txBufferAddr  => (others => '0'),
       txSegmentAddr => (others => '0'),
@@ -325,7 +325,7 @@ begin
                v.chkEn  := '1';
                v.chkStb := '1';
 
-               -- When SOF has been received dessert ready until package is checked
+               -- When SOF has been received deassert ready until package is checked
                v.tspSsiSlave := SSI_SLAVE_RDY_C;
 
                -- If the packet is longer than one set the data flag
@@ -635,7 +635,7 @@ begin
       -- These flags will hold if not overridden
       v.appSsiMaster := SSI_MASTER_INIT_C;
 
-      -- Pipeline incomming slave
+      -- Pipeline incoming slave
       v.appSsiSlave := appSsiSlave_i;
 
       case r.appState is

@@ -409,7 +409,7 @@ begin
             -- Go back to idle
             nxtState <= IDLE_S;
 
-         -- Send first charactor of cell, assert ready
+         -- Send first character of cell, assert ready
          when SOC_S =>
             cellCntRst      <= '1';
             nxtFrameTxReady <= not intTimeout;

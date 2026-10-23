@@ -16,14 +16,16 @@ class Max5443(pr.Device):
 
         for i in range(numChip):
             self.add(pr.RemoteVariable(
-                name    = f'Dac[{i}]',
-                offset  = i*0x4,
-                bitSize = 16,
-                mode    = 'RW',
+                name        = f'Dac[{i}]',
+                description = 'DAC output code register',
+                offset      = i*0x4,
+                bitSize     = 16,
+                mode        = 'RW',
             ))
 
             self.add(pr.LinkVariable(
                 name         = f'VDac[{i}]',
+                description  = 'DAC output voltage in volts',
                 linkedGet    = self.convtFloat,
                 dependencies = [self.Dac[i]],
             ))

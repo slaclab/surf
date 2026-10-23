@@ -30,6 +30,7 @@ entity Sgmii88E1111LvdsUltraScale is
       JUMBO_G           : boolean               := true;
       EN_AXIL_REG_G     : boolean               := false;
       PHY_G             : natural range 0 to 31 := 7;
+      ROCEV2_EN_G       : boolean               := false;
       AXIS_CONFIG_G     : AxiStreamConfigType   := EMAC_AXIS_CONFIG_C);
    port (
       -- clock and reset
@@ -192,6 +193,7 @@ begin
       generic map (
          TPD_G         => TPD_G,
          PAUSE_EN_G    => PAUSE_EN_G,
+         ROCEV2_EN_G   => ROCEV2_EN_G,
          JUMBO_G       => JUMBO_G,
          EN_AXIL_REG_G => EN_AXIL_REG_G,
          AXIS_CONFIG_G => AXIS_CONFIG_G)

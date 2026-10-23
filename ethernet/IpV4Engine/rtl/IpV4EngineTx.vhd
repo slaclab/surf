@@ -26,13 +26,19 @@ use surf.EthMacPkg.all;
 
 entity IpV4EngineTx is
    generic (
-      TPD_G           : time            := 1 ns;
-      PROTOCOL_SIZE_G : positive        := 1;
-      PROTOCOL_G      : Slv8Array       := (0 => UDP_C);
-      TTL_G           : slv(7 downto 0) := x"20");
+      TPD_G           : time                  := 1 ns;
+      RST_POLARITY_G  : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean               := false;
+      PROTOCOL_SIZE_G : positive              := 1;
+      PROTOCOL_G      : Slv8Array             := (0 => UDP_C);
+      DSCP_G          : natural range 0 to 63 := 0;
+      ECN_G           : slv(1 downto 0)       := "00";
+      TTL_G           : slv(7 downto 0)       := x"20");
    port (
       -- Local Configurations
       localMac          : in  slv(47 downto 0);  --  big-Endian configuration
+      ecn               : in  slv(1 downto 0) := ECN_G;  -- runtime IP-header ECN field (defaults to ECN_G)
+      dscp              : in  slv(5 downto 0) := toSlv(DSCP_G, 6);  -- runtime IP-header DSCP field (defaults to DSCP_G)
       -- Interface to Ethernet Frame MUX/DEMUX
       obIpv4Master      : out AxiStreamMasterType;
       obIpv4Slave       : in  AxiStreamSlaveType;
@@ -95,9 +101,11 @@ begin
 
    AxiStreamMux_Inst : entity surf.AxiStreamMux
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0,
-         NUM_SLAVES_G  => PROTOCOL_SIZE_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 0,
+         NUM_SLAVES_G   => PROTOCOL_SIZE_G)
       port map (
          -- Clock and reset
          axisClk      => clk,
@@ -109,7 +117,7 @@ begin
          mAxisMaster  => rxMaster,
          mAxisSlave   => rxSlave);
 
-   comb : process (localMac, r, rst, rxMaster, txSlave) is
+   comb : process (dscp, ecn, localMac, r, rst, rxMaster, txSlave) is
       variable v : RegType;
       variable i : natural;
    begin
@@ -154,7 +162,8 @@ begin
                   v.txMaster.tData(95 downto 48)   := localMac;
                   v.txMaster.tData(111 downto 96)  := IPV4_TYPE_C;
                   v.txMaster.tData(119 downto 112) := x"45";  -- IPVersion = 4,Header length = 5
-                  v.txMaster.tData(127 downto 120) := x"00";  --- DSCP and ECN
+                  v.txMaster.tData(127 downto 122) := dscp;  --- DSCP (runtime register; resets to DSCP_G)
+                  v.txMaster.tData(121 downto 120) := ecn;  --- ECN (runtime register; resets to ECN_G)
                   -- Track the leftovers
                   v.tData(63 downto 0)             := rxMaster.tData(127 downto 64);
                   -- Next state
@@ -301,7 +310,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (rst = '1') then
+      if (RST_ASYNC_G = false and rst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -313,17 +322,21 @@ begin
 
    end process comb;
 
-   seq : process (clk) is
+   seq : process (clk, rst) is
    begin
-      if rising_edge(clk) then
+      if (RST_ASYNC_G and rst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(clk) then
          r <= rin after TPD_G;
       end if;
    end process seq;
 
    U_TxPipeline : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 0)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 0)
       port map (
          axisClk     => clk,
          axisRst     => rst,
@@ -334,9 +347,11 @@ begin
 
    U_DeMux : entity surf.AxiStreamDeMux
       generic map (
-         TPD_G         => TPD_G,
-         PIPE_STAGES_G => 1,
-         NUM_MASTERS_G => 2)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => 1,
+         NUM_MASTERS_G  => 2)
       port map (
          -- Clock and reset
          axisClk         => clk,

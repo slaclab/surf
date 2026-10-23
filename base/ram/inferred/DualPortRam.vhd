@@ -1,7 +1,17 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: This module infers either Block RAM or distributed RAM
+-- Description: Legacy inferred-only dual-port RAM helper
+--
+-- This module is not the preferred general RAM selector for new designs. Use
+-- surf.SimpleDualPortRam for a one-write/one-read memory, and use
+-- surf.TrueDualPortRam when both ports can write.
+--
+-- DualPortRam is kept for compatibility and for inferred-only cases that need
+-- its exact historical behavior. For MEMORY_TYPE_G /= "distributed", it wraps
+-- TrueDualPortRamInferred with port B read-only. For MEMORY_TYPE_G =
+-- "distributed", it wraps LutRam and can provide the legacy inferred
+-- distributed behavior.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -62,7 +72,7 @@ architecture mapping of DualPortRam is
 begin
 
    GEN_BRAM : if (MEMORY_TYPE_G /= "distributed") generate
-      TrueDualPortRam_Inst : entity surf.TrueDualPortRam
+      TrueDualPortRam_Inst : entity surf.TrueDualPortRamInferred
          generic map (
             TPD_G          => TPD_G,
             RST_ASYNC_G    => RST_ASYNC_G,

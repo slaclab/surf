@@ -82,7 +82,7 @@
 --               Cleaned up code
 --
 --               Revision 1.3  2002/10/30 18:09:53  rherveille
---               Fixed some reported minor start/stop generation timing issuess.
+--               Fixed some reported minor start/stop generation timing issues.
 --
 --               Revision 1.2  2002/06/15 07:37:04  rherveille
 --               Fixed a small timing bug in the bit controller.\nAdded verilog simulation environment.
@@ -162,7 +162,7 @@
 -- Th_scl       4.0us           0.6us   High period of SCL
 -- Tl_scl       4.7us           1.3us   Low period of SCL
 -- Tsu:sta      4.7us           0.6us   setup time for a repeated start condition
--- Tsu:sto      4.0us           0.6us   setup time for a stop conditon
+-- Tsu:sto      4.0us           0.6us   setup time for a stop condition
 -- Tbuf         4.7us           1.3us   Bus free time between a stop and start condition
 --
 
@@ -328,7 +328,7 @@ begin
             csync      <= andv(discl_oen(DR downto 1)) and not fSCL(0) and fSCL(1);
 
             -- generate arbitration lost signal
-            -- aribitration lost when:
+            -- arbitration lost when:
             -- 1) master drives SDA high, but the i2c bus is low
             -- 2) stop detected while not requested (detect during 'idle' state)
             gen_al : process(clk, nReset)
@@ -449,7 +449,7 @@ begin
             csync      <= andv(fiscl_oen) and not fSCL(0) and fSCL(1);
 
             -- generate arbitration lost signal
-            -- aribitration lost when:
+            -- arbitration lost when:
             -- 1) master drives SDA high, but the i2c bus is low
             -- 2) stop detected while not requested (detect during 'idle' state)
             gen_ald : process(clk, nReset)

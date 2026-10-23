@@ -227,7 +227,7 @@ begin
       rxStatusSync.remLinkData <= pgpRxOut.remLinkData;
    end generate;
 
-   -- Errror counters and non counted values
+   -- Error counters and non counted values
    U_RxError : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,
@@ -367,7 +367,7 @@ begin
          valid  => open,
          dout   => txStatusSync.txOpCodeLast);
 
-   -- Errror counters and non counted values
+   -- Error counters and non counted values
    U_TxError : entity surf.SyncStatusVector
       generic map (
          TPD_G          => TPD_G,

@@ -71,6 +71,10 @@ architecture rtl of Pgp4Rx is
    signal unscrambledValid       : sl;
    signal unscrambledData        : slv(63 downto 0);
    signal unscrambledHeader      : slv(1 downto 0);
+   signal checkedValid           : sl;
+   signal checkedData            : slv(63 downto 0);
+   signal checkedHeader          : slv(1 downto 0);
+   signal kCodeLinkError         : sl;
    signal remLinkData            : slv(47 downto 0);
    signal ebValid                : sl;
    signal ebData                 : slv(63 downto 0);
@@ -134,34 +138,46 @@ begin
          outputData     => unscrambledData,     -- [out]
          outputSideband => unscrambledHeader);  -- [out]
 
-   GEN_EB : if (SKIP_EN_G = true) generate
-      -- Elastic Buffer
-      U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
-         generic map (
-            TPD_G          => TPD_G,
-            RST_POLARITY_G => RST_POLARITY_G,
-            RST_ASYNC_G    => RST_ASYNC_G)
-         port map (
-            phyRxClk    => phyRxClk,           -- [in]
-            phyRxRst    => phyRxRst,           -- [in]
-            phyRxValid  => unscrambledValid,   -- [in]
-            phyRxData   => unscrambledData,    -- [in]
-            phyRxHeader => unscrambledHeader,  -- [in]
-            pgpRxClk    => pgpRxClk,           -- [in]
-            pgpRxRst    => pgpRxRst,           -- [in]
-            pgpRxValid  => ebValid,            -- [out]
-            pgpRxData   => ebData,             -- [out]
-            pgpRxHeader => ebHeader,           -- [out]
-            remLinkData => remLinkData,        -- [out]
-            overflow    => ebOverflow,         -- [out]
-            linkError   => linkError,          -- [out]
-            status      => ebStatus);          -- [out]
-   end generate GEN_EB;
-   NO_EB : if (SKIP_EN_G = false) generate
-      ebValid  <= unscrambledValid;
-      ebHeader <= unscrambledHeader;
-      ebData   <= unscrambledData;
-   end generate NO_EB;
+   -- Check K-code checksum before the elastic buffer or no-EB bypass path
+   U_Pgp4RxKCodeChecker_1 : entity surf.Pgp4RxKCodeChecker
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
+      port map (
+         phyRxClk      => phyRxClk,           -- [in]
+         phyRxRst      => phyRxRst,           -- [in]
+         phyRxValid    => unscrambledValid,   -- [in]
+         phyRxData     => unscrambledData,    -- [in]
+         phyRxHeader   => unscrambledHeader,  -- [in]
+         checkedValid  => checkedValid,       -- [out]
+         checkedData   => checkedData,        -- [out]
+         checkedHeader => checkedHeader,      -- [out]
+         linkError     => kCodeLinkError);    -- [out]
+
+   -- Elastic Buffer or same-clock bypass path
+   U_Pgp4RxEb_1 : entity surf.Pgp4RxEb
+      generic map (
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         SKIP_EN_G      => SKIP_EN_G)
+      port map (
+         phyRxClk       => phyRxClk,        -- [in]
+         phyRxRst       => phyRxRst,        -- [in]
+         phyRxValid     => checkedValid,    -- [in]
+         phyRxData      => checkedData,     -- [in]
+         phyRxHeader    => checkedHeader,   -- [in]
+         phyRxLinkError => kCodeLinkError,  -- [in]
+         pgpRxClk       => pgpRxClk,        -- [in]
+         pgpRxRst       => pgpRxRst,        -- [in]
+         pgpRxValid     => ebValid,         -- [out]
+         pgpRxData      => ebData,          -- [out]
+         pgpRxHeader    => ebHeader,        -- [out]
+         remLinkData    => remLinkData,     -- [out]
+         overflow       => ebOverflow,      -- [out]
+         linkError      => linkError,       -- [out]
+         status         => ebStatus);       -- [out]
 
    -- Main RX protocol logic
    U_Pgp4RxProtocol_1 : entity surf.Pgp4RxProtocol
@@ -242,6 +258,8 @@ begin
    pgpRxOut.linkReady   <= pgpRxOutProtocol.linkReady;
    pgpRxOut.frameRx     <= depacketizerDebug.eof;
    pgpRxOut.frameRxErr  <= depacketizerDebug.eofe;
+   pgpRxOut.linkDown    <= pgpRxOutProtocol.linkDown;
+   pgpRxOut.linkError   <= pgpRxOutProtocol.linkError;
 
    pgpRxOut.cellError        <= depacketizerDebug.packetError;
    pgpRxOut.cellSofError     <= depacketizerDebug.sofError;

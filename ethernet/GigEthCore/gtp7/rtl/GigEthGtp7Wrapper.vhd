@@ -210,7 +210,7 @@ begin
             qPllReset         => qpllReset);
 
       -- Once the QPLL is locked, prevent the
-      -- IP cores from accidentally reseting each other
+      -- IP cores from accidentally resetting each other
       qpllReset(0) <= sysRst125 or (uOr(qpllRst) and not(qPllLock(0)));
       qPllReset(1) <= '1';              -- Not using QPLL[1]
 

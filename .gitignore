@@ -15,7 +15,35 @@
 xvcSrv
 doxygen/
 ghdl-build/
+ruckus
 ruckus/
 build/
-sim_build/
-.coverage
+sim_build*
+xsc.pb
+.coverage*
+
+# SimLink simulator-local build state
+/simlink/vcs/.obj/
+/simlink/vcs/.pytest-build.lock
+/simlink/xsim/.Xil/
+/simlink/xsim/xsim.dir/
+/simlink/xsim/xsc.jou
+/simlink/xsim/xelab.jou
+/simlink/xsim/xelab.pb
+/simlink/iverilog/RogueSimLink.vpi
+
+# Local editor/agent state
+.vscode/
+.cursor/
+.claude/
+.planning/
+planning/
+CLAUDE.md
+.DS_Store
+.venv/
+work/
+*.orig
+base/general/proj/
+*/xsim.dir/*
+base/vhdl-libs/*
+tests/simlink/env.local.sh

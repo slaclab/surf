@@ -36,6 +36,7 @@ entity Pgp4GtyUs is
       ----------------------------------------------------------------------------------------------
       -- PGP Settings
       ----------------------------------------------------------------------------------------------
+      PGP_FEC_ENABLE_G            : boolean               := false;
       PGP_RX_ENABLE_G             : boolean               := true;
       RX_ALIGN_SLIP_WAIT_G        : integer               := 32;
       PGP_TX_ENABLE_G             : boolean               := true;
@@ -104,16 +105,20 @@ architecture rtl of Pgp4GtyUs is
 
    -- PgpRx Signals
 --   signal gtRxUserReset : sl;
-   signal phyRxClk      : sl;
-   signal phyRxRst      : sl;
-   signal phyRxInit     : sl;
-   signal phyRxActive   : sl;
-   signal phyRxValid    : sl;
-   signal phyRxHeader   : slv(1 downto 0);
-   signal phyRxData     : slv(63 downto 0);
-   signal phyRxStartSeq : sl;
-   signal phyRxSlip     : sl;
-
+   signal phyRxClk         : sl;
+   signal phyRxRst         : sl;
+   signal phyRxInit        : sl;
+   signal phyRxActive      : sl;
+   signal phyRxValid       : sl;
+   signal phyRxHeader      : slv(1 downto 0);
+   signal phyRxData        : slv(63 downto 0);
+   signal phyRxStartSeq    : sl;
+   signal phyRxSlip        : sl;
+   signal phyRxFecByp      : sl;
+   signal phyRxFecInjErr   : sl;
+   signal phyRxFecLock     : sl;
+   signal phyRxFecCorInc   : sl;
+   signal phyRxFecUnCorInc : sl;
 
    -- PgpTx Signals
 --   signal gtTxUserReset : sl;
@@ -121,6 +126,7 @@ architecture rtl of Pgp4GtyUs is
    signal phyTxStart  : sl;
    signal phyTxData   : slv(63 downto 0);
    signal phyTxHeader : slv(1 downto 0);
+   signal phyTxFecByp : sl;
 
    constant NUM_AXIL_MASTERS_C : integer := 2;
    constant PGP_AXIL_INDEX_C   : integer := 0;
@@ -193,11 +199,11 @@ begin
       axilReadMasters(PGP_AXIL_INDEX_C)  <= axilReadMaster;
    end generate GEN_PGP_MON_ONLY;
 
-
    U_Pgp4Core_1 : entity surf.Pgp4Core
       generic map (
          TPD_G                       => TPD_G,
          NUM_VC_G                    => NUM_VC_G,
+         PGP_FEC_ENABLE_G            => PGP_FEC_ENABLE_G,
          PGP_RX_ENABLE_G             => PGP_RX_ENABLE_G,
          RX_ALIGN_SLIP_WAIT_G        => RX_ALIGN_SLIP_WAIT_G,
          PGP_TX_ENABLE_G             => PGP_TX_ENABLE_G,
@@ -213,53 +219,59 @@ begin
          ERROR_CNT_WIDTH_G           => ERROR_CNT_WIDTH_G,
          TX_POLARITY_G               => TX_POLARITY_G,
          RX_POLARITY_G               => RX_POLARITY_G,
-         RX_CRC_PIPELINE_G           => ite((RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.625Gbps"), 1, 0),
+         RX_CRC_PIPELINE_G           => ite((RATE_G = "17.1875Gbps") or (RATE_G = "18.75Gbps") or (RATE_G = "20.625Gbps") or (RATE_G = "25.0Gbps"), 1, 0),
          AXIL_CLK_FREQ_G             => AXIL_CLK_FREQ_G)
       port map (
          -- Tx User interface
-         pgpTxClk        => pgpTxClkInt,                         -- [in]
-         pgpTxRst        => pgpTxRstInt,                         -- [in]
-         pgpTxIn         => pgpTxIn,                             -- [in]
-         pgpTxOut        => pgpTxOut,                            -- [out]
-         pgpTxMasters    => pgpTxMasters,                        -- [in]
-         pgpTxSlaves     => pgpTxSlaves,                         -- [out]
+         pgpTxClk         => pgpTxClkInt,                         -- [in]
+         pgpTxRst         => pgpTxRstInt,                         -- [in]
+         pgpTxIn          => pgpTxIn,                             -- [in]
+         pgpTxOut         => pgpTxOut,                            -- [out]
+         pgpTxMasters     => pgpTxMasters,                        -- [in]
+         pgpTxSlaves      => pgpTxSlaves,                         -- [out]
          -- Tx PHY interface
-         phyTxActive     => phyTxActive,                         -- [in]
-         phyTxReady      => '1',                                 -- [in]
-         phyTxStart      => phyTxStart,                          -- [out]
-         phyTxData       => phyTxData,                           -- [out]
-         phyTxHeader     => phyTxHeader,                         -- [out]
+         phyTxActive      => phyTxActive,                         -- [in]
+         phyTxReady       => '1',                                 -- [in]
+         phyTxStart       => phyTxStart,                          -- [out]
+         phyTxData        => phyTxData,                           -- [out]
+         phyTxHeader      => phyTxHeader,                         -- [out]
+         phyTxFecByp      => phyTxFecByp,                         -- [out]
          -- Rx User interface
-         pgpRxClk        => pgpTxClkInt,                         -- [in]
-         pgpRxRst        => pgpTxRstInt,                         -- [in]
-         pgpRxIn         => pgpRxIn,                             -- [in]
-         pgpRxOut        => pgpRxOut,                            -- [out]
-         pgpRxMasters    => pgpRxMasters,                        -- [out]
-         pgpRxCtrl       => pgpRxCtrl,                           -- [in]
+         pgpRxClk         => pgpTxClkInt,                         -- [in]
+         pgpRxRst         => pgpTxRstInt,                         -- [in]
+         pgpRxIn          => pgpRxIn,                             -- [in]
+         pgpRxOut         => pgpRxOut,                            -- [out]
+         pgpRxMasters     => pgpRxMasters,                        -- [out]
+         pgpRxCtrl        => pgpRxCtrl,                           -- [in]
          -- Rx PHY interface
-         phyRxClk        => phyRxClk,                            -- [in]
-         phyRxRst        => phyRxRst,                            -- [in]
-         phyRxInit       => phyRxInit,                           -- [out]
-         phyRxActive     => phyRxActive,                         -- [in]
-         phyRxValid      => phyRxValid,                          -- [in]
-         phyRxHeader     => phyRxHeader,                         -- [in]
-         phyRxData       => phyRxData,                           -- [in]
-         phyRxStartSeq   => phyRxStartSeq,                       -- [in]
-         phyRxSlip       => phyRxSlip,                           -- [out]
+         phyRxClk         => phyRxClk,                            -- [in]
+         phyRxRst         => phyRxRst,                            -- [in]
+         phyRxInit        => phyRxInit,                           -- [out]
+         phyRxActive      => phyRxActive,                         -- [in]
+         phyRxValid       => phyRxValid,                          -- [in]
+         phyRxHeader      => phyRxHeader,                         -- [in]
+         phyRxData        => phyRxData,                           -- [in]
+         phyRxStartSeq    => phyRxStartSeq,                       -- [in]
+         phyRxSlip        => phyRxSlip,                           -- [out]
+         phyRxFecByp      => phyRxFecByp,                         -- [out]
+         phyRxFecInjErr   => phyRxFecInjErr,                      -- [out]
+         phyRxFecLock     => phyRxFecLock,                        -- [in]
+         phyRxFecCorInc   => phyRxFecCorInc,                      -- [in]
+         phyRxFecUnCorInc => phyRxFecUnCorInc,                    -- [in]
          -- Debug Interface
-         loopback        => loopback,                            -- [out]
-         txDiffCtrl      => txDiffCtrl,                          -- [out]
-         txPreCursor     => txPreCursor,                         -- [out]
-         txPostCursor    => txPostCursor,                        -- [out]
-         txPolarity      => txPolarity,                          -- [out]
-         rxPolarity      => rxPolarity,                          -- [out]
+         loopback         => loopback,                            -- [out]
+         txDiffCtrl       => txDiffCtrl,                          -- [out]
+         txPreCursor      => txPreCursor,                         -- [out]
+         txPostCursor     => txPostCursor,                        -- [out]
+         txPolarity       => txPolarity,                          -- [out]
+         rxPolarity       => rxPolarity,                          -- [out]
          -- AXI-Lite Register Interface (axilClk domain)
-         axilClk         => axilClk,                             -- [in]
-         axilRst         => axilRst,                             -- [in]
-         axilReadMaster  => axilReadMasters(PGP_AXIL_INDEX_C),   -- [in]
-         axilReadSlave   => axilReadSlaves(PGP_AXIL_INDEX_C),    -- [out]
-         axilWriteMaster => axilWriteMasters(PGP_AXIL_INDEX_C),  -- [in]
-         axilWriteSlave  => axilWriteSlaves(PGP_AXIL_INDEX_C));  -- [out]
+         axilClk          => axilClk,                             -- [in]
+         axilRst          => axilRst,                             -- [in]
+         axilReadMaster   => axilReadMasters(PGP_AXIL_INDEX_C),   -- [in]
+         axilReadSlave    => axilReadSlaves(PGP_AXIL_INDEX_C),    -- [out]
+         axilWriteMaster  => axilWriteMasters(PGP_AXIL_INDEX_C),  -- [in]
+         axilWriteSlave   => axilWriteSlaves(PGP_AXIL_INDEX_C));  -- [out]
 
    --------------------------
    -- Wrapper for GTH IP core
@@ -268,6 +280,7 @@ begin
       generic map (
          TPD_G    => TPD_G,
          RATE_G   => RATE_G,
+         EN_FEC_G => PGP_FEC_ENABLE_G,
          EN_DRP_G => EN_DRP_G)
       port map (
          stableClk       => stableClk,  -- [in]
@@ -292,6 +305,11 @@ begin
          rxHeaderValid   => open,       -- [out]
          rxStartOfSeq    => phyRxStartSeq,                  -- [out]
          rxGearboxSlip   => phyRxSlip,  -- [in]
+         rxBypassFec     => phyRxFecByp,                    -- [in]
+         rxFecInjErr     => phyRxFecInjErr,                 -- [in]
+         rxFecLock       => phyRxFecLock,                   -- [out]
+         rxFecCorInc     => phyRxFecCorInc,                 -- [out]
+         rxFecUnCorInc   => phyRxFecUnCorInc,               -- [out]
          rxOutClk        => open,       -- [out]
          rxPolarity      => rxPolarity,                     -- [in]
          txReset         => '0',        -- [in]
@@ -302,6 +320,7 @@ begin
          txUsrClkRst     => pgpTxRstInt,                    -- [out]
          txData          => phyTxData,  -- [in]
          txHeader        => phyTxHeader,                    -- [in]
+         txBypassFec     => phyTxFecByp,                    -- [in]
          txOutClk        => open,       -- [out]
          txPolarity      => txPolarity,                     -- [in]
          loopback        => loopback,   -- [in]
@@ -314,6 +333,5 @@ begin
          axilReadSlave   => axilReadSlaves(DRP_AXIL_INDEX_C),    -- [out]
          axilWriteMaster => axilWriteMasters(DRP_AXIL_INDEX_C),  -- [in]
          axilWriteSlave  => axilWriteSlaves(DRP_AXIL_INDEX_C));  -- [out]
-
 
 end rtl;

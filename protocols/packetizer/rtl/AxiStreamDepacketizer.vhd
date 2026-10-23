@@ -3,7 +3,7 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: AXI stream DePacketerizer Module (non-interleave only)
+-- Description: AXI stream Depacketizer Module (non-interleave only)
 --    Formats an AXI-Stream for a transport link.
 --    Sideband fields are placed into the data stream in a header.
 --    Long frames are broken into smaller packets.
@@ -303,6 +303,9 @@ begin
                v.outputAxisMaster(0)        := r.outputAxisMaster(1);
                v.state                      := HEADER_S;
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to HEADER_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 

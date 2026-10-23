@@ -17,6 +17,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+library std;
+use std.env.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiPkg.all;
@@ -145,6 +148,7 @@ begin
          if (passed = '1') then
             assert false
                report "Simulation Passed!" severity note;
+            std.env.finish;
          end if;
       end if;
    end process;

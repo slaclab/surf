@@ -27,6 +27,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000000,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -38,6 +39,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000004,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -49,6 +51,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000008,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -60,6 +63,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x000000000C,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -71,6 +75,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000010,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -82,6 +87,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DATA',
+                    description = f'GPIO data output value for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000014,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -95,6 +101,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x0000000000,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -106,6 +113,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x0000000004,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -117,6 +125,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x0000000008,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -128,6 +137,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x000000000C,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -139,6 +149,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x0000000010,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -150,6 +161,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_MASK',
+                    description = f'GPIO data mask bit for {mioConfig[idx]["name"]} (1=masked/unchanged)',
                     offset      = 0x0000000014,
                     bitOffset   = i+16,
                     bitSize     = 1,
@@ -163,6 +175,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OUT',
+                    description = f'GPIO output data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000040,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -175,6 +188,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OUT',
+                    description = f'GPIO output data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000044,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -186,6 +200,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OUT',
+                    description = f'GPIO output data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000048,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -200,6 +215,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_IN',
+                    description = f'GPIO input data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000060,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -212,6 +228,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_IN',
+                    description = f'GPIO input data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000064,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -223,6 +240,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_IN',
+                    description = f'GPIO input data register for {mioConfig[idx]["name"]}',
                     offset      = 0x0000000068,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -236,6 +254,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DIR',
+                    description = f'GPIO direction control for {mioConfig[idx]["name"]} (1=output)',
                     offset      = 0x0000000204,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -248,6 +267,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DIR',
+                    description = f'GPIO direction control for {mioConfig[idx]["name"]} (1=output)',
                     offset      = 0x0000000244,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -259,6 +279,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_DIR',
+                    description = f'GPIO direction control for {mioConfig[idx]["name"]} (1=output)',
                     offset      = 0x0000000284,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -272,6 +293,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OEN',
+                    description = f'GPIO output enable for {mioConfig[idx]["name"]} (1=enabled)',
                     offset      = 0x0000000208,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -284,6 +306,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OEN',
+                    description = f'GPIO output enable for {mioConfig[idx]["name"]} (1=enabled)',
                     offset      = 0x0000000248,
                     bitOffset   = i+0,
                     bitSize     = 1,
@@ -295,6 +318,7 @@ class GpioPs(pr.Device):
             if mioConfig[idx]["enable"]:
                 self.add(pr.RemoteVariable(
                     name        = f'{mioConfig[idx]["name"]}_OEN',
+                    description = f'GPIO output enable for {mioConfig[idx]["name"]} (1=enabled)',
                     offset      = 0x0000000288,
                     bitOffset   = i+0,
                     bitSize     = 1,

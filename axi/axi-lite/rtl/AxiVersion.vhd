@@ -25,6 +25,7 @@ use surf.AxiLitePkg.all;
 entity AxiVersion is
    generic (
       TPD_G              : time             := 1 ns;
+      RST_POLARITY_G     : sl               := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G        : boolean          := false;
       BUILD_INFO_G       : BuildInfoType;
       SIM_DNA_VALUE_G    : slv              := X"000000000000000000000000";
@@ -37,7 +38,7 @@ entity AxiVersion is
       USE_SLOWCLK_G      : boolean          := false;
       BUFR_CLK_DIV_G     : positive         := 8;
       AUTO_RELOAD_EN_G   : boolean          := false;
-      AUTO_RELOAD_TIME_G : positive         := 10;         -- units of seconds
+      AUTO_RELOAD_TIME_G : positive         := 10;   -- units of seconds
       AUTO_RELOAD_ADDR_G : slv(31 downto 0) := (others => '0'));
    port (
       -- AXI-Lite Interface
@@ -100,8 +101,8 @@ architecture rtl of AxiVersion is
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
 
-   signal dnaValue : slv(127 downto 0) := (others => '0');
-   signal fdValue  : slv(63 downto 0)  := (others => '0');
+   signal dnaValue : slv(127 downto 0);
+   signal fdValue  : slv(63 downto 0);
 
    attribute rom_style                         : string;
    attribute rom_style of BUILD_STRING_ROM_C   : constant is "distributed";
@@ -119,6 +120,8 @@ begin
       DeviceDna_1 : entity surf.DeviceDna
          generic map (
             TPD_G           => TPD_G,
+            RST_POLARITY_G  => RST_POLARITY_G,
+            RST_ASYNC_G     => RST_ASYNC_G,
             USE_SLOWCLK_G   => USE_SLOWCLK_G,
             BUFR_CLK_DIV_G  => BUFR_CLK_DIV_G,
             XIL_DEVICE_G    => XIL_DEVICE_G,
@@ -129,23 +132,33 @@ begin
             slowClk  => slowClk,
             dnaValue => dnaValue);
    end generate GEN_DEVICE_DNA;
+   BYP_DEVICE_DNA : if (not EN_DEVICE_DNA_G) generate
+      dnaValue <= (others => '0');
+   end generate BYP_DEVICE_DNA;
 
    GEN_DS2411 : if (EN_DS2411_G) generate
       DS2411Core_1 : entity surf.DS2411Core
          generic map (
-            TPD_G        => TPD_G,
-            CLK_PERIOD_G => CLK_PERIOD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            CLK_PERIOD_G   => CLK_PERIOD_G)
          port map (
             clk       => axiClk,
             rst       => axiRst,
             fdSerSdio => fdSerSdio,
             fdValue   => fdValue);
    end generate GEN_DS2411;
+   BYP_DS2411 : if (not EN_DS2411_G) generate
+      fdValue <= (others => '0');
+   end generate BYP_DS2411;
 
    GEN_ICAP : if (EN_ICAP_G) generate
       Iprog_1 : entity surf.Iprog
          generic map (
             TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
             USE_SLOWCLK_G  => USE_SLOWCLK_G,
             BUFR_CLK_DIV_G => BUFR_CLK_DIV_G,
             XIL_DEVICE_G   => XIL_DEVICE_G)
@@ -223,7 +236,7 @@ begin
       --------
       -- Reset
       --------
-      if (RST_ASYNC_G = false and axiRst = '1') then
+      if (RST_ASYNC_G = false and axiRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -242,7 +255,7 @@ begin
 
    seq : process (axiClk, axiRst) is
    begin
-      if (RST_ASYNC_G and axiRst = '1') then
+      if (RST_ASYNC_G and axiRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axiClk) then
          r <= rin after TPD_G;

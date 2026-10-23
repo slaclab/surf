@@ -17,17 +17,18 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 
 entity SlvArraytoAxiLite is
    generic (
-      TPD_G        : time       := 1 ns;
-      COMMON_CLK_G : boolean    := false;  -- Set true if axilClk = clk
-      SIZE_G       : positive   := 1;
-      ADDR_G       : Slv32Array := (0 => x"00000000"));
+      TPD_G          : time       := 1 ns;
+      RST_POLARITY_G : sl         := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G    : boolean    := false;
+      COMMON_CLK_G   : boolean    := false;  -- Set true if axilClk = clk
+      SIZE_G         : positive   := 1;
+      ADDR_G         : Slv32Array := (0 => x"00000000"));
    port (
       -- SLV Array Interface
       clk             : in  sl;
@@ -78,9 +79,11 @@ begin
    for i in (SIZE_G-1) downto 0 generate
       SyncFifo : entity surf.SynchronizerFifo
          generic map (
-            TPD_G        => TPD_G,
-            COMMON_CLK_G => COMMON_CLK_G,
-            DATA_WIDTH_G => 32)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            COMMON_CLK_G   => COMMON_CLK_G,
+            DATA_WIDTH_G   => 32)
          port map (
             -- Write Ports (wr_clk domain)
             wr_clk => clk,
@@ -92,7 +95,9 @@ begin
 
    U_AxiLiteMaster : entity surf.AxiLiteMaster
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          req             => r.req,
          ack             => ack,
@@ -159,7 +164,7 @@ begin
       end case;
 
       -- Synchronous Reset
-      if (axilRst = '1') then
+      if (RST_ASYNC_G = false and axilRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -168,9 +173,11 @@ begin
 
    end process comb;
 
-   seq : process (axilClk) is
+   seq : process (axilClk, axilRst) is
    begin
-      if (rising_edge(axilClk)) then
+      if (RST_ASYNC_G) and (axilRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(axilClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

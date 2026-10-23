@@ -19,6 +19,9 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
 use ieee.std_logic_arith.all;
 
+library std;
+use std.env.all;
+
 library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
@@ -229,15 +232,21 @@ begin
       end if;
    end process;
 
-   process(failed, passed)
+   ---------------------
+   -- Report the Results
+   ---------------------
+   process(slowClk)
    begin
-      if failed = '1' then
-         assert false
-            report "Simulation Failed!" severity failure;
-      end if;
-      if passed = '1' then
-         assert false
-            report "Simulation Passed!" severity note;
+      if rising_edge(slowClk) then
+         if (failed = '1') then
+            assert false
+               report "Simulation Failed!" severity failure;
+         end if;
+         if (passed = '1') then
+            assert false
+               report "Simulation Passed!" severity note;
+            std.env.finish;
+         end if;
       end if;
    end process;
 

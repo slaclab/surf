@@ -26,8 +26,9 @@ class Pgp3AxiL(pr.Device):
                  **kwargs):
         super().__init__(description=description, **kwargs)
 
-        def addErrorCountVar(**ecvkwargs):
+        def addErrorCountVar(description='PGP link error/status counter', **ecvkwargs):
             self.add(pr.RemoteVariable(
+                description  = description,
                 bitSize      = errorCountBits,
                 mode         = 'RO',
                 bitOffset    = 0,
@@ -38,6 +39,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteCommand(
             name        = 'CountReset',
+            description = "Reset all status and error counters",
             offset      = 0x00,
             bitSize     = 1,
             bitOffset   = 0,
@@ -65,10 +67,11 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name   = 'SkipInterval',
-            mode   = 'RW',
-            offset = 0xC,
-            disp   = '{:d}',
+            name        = 'SkipInterval',
+            description = "TX skip k-code interval",
+            mode        = 'RW',
+            offset      = 0xC,
+            disp        = '{:d}',
         ))
 
         ####################
@@ -133,6 +136,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxClockFreqRaw",
+            description  = "Raw RX clock frequency in Hz",
             offset       = 0x2C,
             bitSize      = 32,
             bitOffset    = 0,
@@ -144,6 +148,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "RxClockFrequency",
+            description  = "RX clock frequency in MHz",
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.RxClockFreqRaw],
@@ -154,6 +159,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "RxFrameCount",
+            description  = "Count of received frames",
             offset       = 0x24,
             bitSize      = statusCountBits,
             bitOffset    = 0,
@@ -196,6 +202,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxOpCodeDataLastRaw',
+            description  = "Raw data of last received op-code",
             mode         = 'RO',
             offset       = 0x34,
             bitSize      = 56,
@@ -206,6 +213,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RxOpCodeNumLastRaw',
+            description  = "Raw number of last received op-code",
             mode         = 'RO',
             offset       = 0x34,
             bitOffset    = 56,
@@ -216,6 +224,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = 'RxOpCodeLast',
+            description  = "Last received op-code (number - data)",
             mode         = 'RO',
             dependencies = [self.RxOpCodeDataLastRaw, self.RxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.RxOpCodeNumLastRaw.value()} - {self.RxOpCodeDataLastRaw.value():x}',
@@ -223,6 +232,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PhyRxValid',
+            description  = "PHY RX data valid indicator",
             mode         = 'RO',
             offset       = 0x108,
             bitOffset    = 2,
@@ -232,6 +242,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PhyRxData',
+            description  = "PHY RX raw data word",
             mode         = 'RO',
             offset       = 0x100,
             bitOffset    = 0,
@@ -241,6 +252,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PhyRxHeader',
+            description  = "PHY RX header bits",
             mode         = 'RO',
             offset       = 0x108,
             bitOffset    = 0,
@@ -250,6 +262,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxValid',
+            description  = "Elastic buffer RX data valid indicator",
             mode         = 'RO',
             offset       = 0x118,
             bitOffset    = 2,
@@ -259,6 +272,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxData',
+            description  = "Elastic buffer RX raw data word",
             mode         = 'RO',
             offset       = 0x110,
             bitOffset    = 0,
@@ -268,6 +282,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxHeader',
+            description  = "Elastic buffer RX header bits",
             mode         = 'RO',
             offset       = 0x118,
             bitOffset    = 0,
@@ -277,6 +292,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxStatus',
+            description  = "Elastic buffer RX status flags",
             mode         = 'RO',
             offset       = 0x118,
             bitOffset    = 3,
@@ -287,6 +303,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxOverflow',
+            description  = "Elastic buffer RX overflow flag",
             mode         = 'RO',
             offset       = 0x11C,
             bitOffset    = 0,
@@ -296,6 +313,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'EbRxOverflowCnt',
+            description  = "Count of elastic buffer RX overflow events",
             mode         = 'RO',
             offset       = 0x11C,
             bitOffset    = 1,
@@ -305,6 +323,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'GearboxAligned',
+            description  = "Gearbox alignment achieved status",
             mode         = 'RO',
             offset       = 0x120,
             bitOffset    = 0,
@@ -314,6 +333,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'GearboxAlignCnt',
+            description  = "Count of gearbox alignment events",
             mode         = 'RO',
             offset       = 0x120,
             bitOffset    = 8,
@@ -323,6 +343,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'PhyRxInitCnt',
+            description  = "Count of PHY RX initialization events",
             mode         = 'RO',
             offset       = 0x130,
             bitOffset    = 0,
@@ -332,6 +353,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'RemLinkData',
+            description  = "Sideband data received from remote PGP3 link",
             mode         = 'RO',
             offset       = 0x138,
             bitSize      = 56,
@@ -342,36 +364,39 @@ class Pgp3AxiL(pr.Device):
         # TX
         ################
         self.add(pr.RemoteVariable(
-            name      = 'FlowControlDisable',
-            offset    = 0x80,
-            bitOffset = 0,
-            bitSize   = 1,
-            base      = pr.Bool,
-            mode      = 'RW' if writeEn else 'RO'
-        ))
-
-        self.add(pr.RemoteVariable(
-            name      = 'TxDisable',
-            offset    = 0x80,
-            bitOffset = 1,
-            bitSize   = 1,
-            base      = pr.Bool,
-            mode      = 'RW' if writeEn else 'RO'
-        ))
-
-        self.add(pr.RemoteVariable(
-            name        = "TxPhyActive",
-            offset      = 0x84,
+            name        = 'FlowControlDisable',
+            description = "Disable PGP flow control",
+            offset      = 0x80,
+            bitOffset   = 0,
             bitSize     = 1,
-            bitOffset   = 1,
-            mode        = 'RO',
             base        = pr.Bool,
-            description = "TX Phy is Ready",
+            mode        = 'RW' if writeEn else 'RO'
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'TxDisable',
+            description = "Disable PGP TX path",
+            offset      = 0x80,
+            bitOffset   = 1,
+            bitSize     = 1,
+            base        = pr.Bool,
+            mode        = 'RW' if writeEn else 'RO'
+        ))
+
+        self.add(pr.RemoteVariable(
+            name         = "TxPhyActive",
+            offset       = 0x84,
+            bitSize      = 1,
+            bitOffset    = 1,
+            mode         = 'RO',
+            base         = pr.Bool,
+            description  = "TX Phy is Ready",
             pollInterval = 1,
         ))
 
         self.add(pr.RemoteVariable(
             name         = 'TxLinkReady',
+            description  = "TX link ready status",
             offset       = 0x84,
             bitOffset    = 0,
             bitSize      = 1,
@@ -406,6 +431,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxClockFreqRaw",
+            description  = "Raw TX clock frequency in Hz",
             offset       = 0x9C,
             bitSize      = 32,
             bitOffset    = 0,
@@ -417,6 +443,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.LinkVariable(
             name         = "TxClockFrequency",
+            description  = "TX clock frequency in MHz",
             units        = "MHz",
             mode         = 'RO',
             dependencies = [self.TxClockFreqRaw],
@@ -426,6 +453,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = "TxFrameCount",
+            description  = "Count of transmitted frames",
             offset       = 0x90,
             bitSize      = statusCountBits,
             bitOffset    = 0,
@@ -453,6 +481,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxOpCodeDataLastRaw',
+            description  = "Raw data of last transmitted op-code",
             mode         = 'RO',
             offset       = 0xA4,
             bitSize      = 56,
@@ -463,6 +492,7 @@ class Pgp3AxiL(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         = 'TxOpCodeNumLastRaw',
+            description  = "Raw number of last transmitted op-code",
             mode         = 'RO',
             offset       = 0xA4,
             bitOffset    = 56,
@@ -472,31 +502,35 @@ class Pgp3AxiL(pr.Device):
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxDiffCtrl',
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 0,
-            bitSize      = 5,
+            name        = 'TxDiffCtrl',
+            description = "GT TX differential swing control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 0,
+            bitSize     = 5,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxPreCursor',
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 8,
-            bitSize      = 5,
+            name        = 'TxPreCursor',
+            description = "GT TX pre-cursor emphasis control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 8,
+            bitSize     = 5,
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'TxPostCursor',
-            mode         = 'RW',
-            offset       = 0xAC,
-            bitOffset    = 16,
-            bitSize      = 5,
+            name        = 'TxPostCursor',
+            description = "GT TX post-cursor emphasis control",
+            mode        = 'RW',
+            offset      = 0xAC,
+            bitOffset   = 16,
+            bitSize     = 5,
         ))
 
         self.add(pr.LinkVariable(
             name         = 'TxOpCodeLast',
+            description  = "Last transmitted op-code (number - data)",
             mode         = 'RO',
             dependencies = [self.TxOpCodeDataLastRaw, self.TxOpCodeNumLastRaw],
             linkedGet    = lambda: f'{self.TxOpCodeNumLastRaw.value()} - {self.TxOpCodeDataLastRaw.value():x}'),

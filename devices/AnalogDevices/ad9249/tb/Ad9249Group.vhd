@@ -93,7 +93,7 @@ architecture behavioral of Ad9249Group is
       clockDivRatio     => "000",
       outputLvds        => '0',
       outputInvert      => '0',
-      binFormat         => "00",
+      binFormat         => "01",
       termination       => "00",
       driveStrength     => '0',
       lsbFirst          => '0',
@@ -541,7 +541,10 @@ begin
          if (r.channel(i).powerDown = '0') then
             case (r.channel(i).outputTestMode) is
                when "0000" =>           -- normal
-                  v.sample(0)(i) := adcConversion(vin(i), 0.0, 2.0, 14, false);
+                  v.sample(0)(i) := adcConversion(vin(i), -1.0, 1.0, 14, false);
+                  if (r.global.binFormat = "01") then
+                     v.sample(0)(i) := offsetBinaryToTwosComplement(v.sample(0)(i));
+                  end if;
                when "0001" =>           -- midscale short
                   v.sample(0)(i) := "10000000000000";
                when "0010" =>           -- +FS short

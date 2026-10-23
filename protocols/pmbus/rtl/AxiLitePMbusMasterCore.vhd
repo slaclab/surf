@@ -2,6 +2,14 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
+--
+-- RD_GAP_TIME_G/WR_GAP_TIME_G optionally enforce a minimum idle time after a
+-- completed I2C read/write before the next I2C data transaction is issued, for
+-- PMBus devices that require a delay between commands (e.g. Flex BMR467:
+-- 2 ms after a read, 10 ms after a write). The AXI-Lite response is not
+-- delayed; only the next data-space request is held in IDLE_S. Config-space
+-- accesses (address bit 10 set) are never gated and do not restart the timer.
+-- Longer device specific gaps (STORE/RESTORE type commands) are left to software.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -22,14 +30,19 @@ library surf;
 use surf.StdRtlPkg.all;
 use surf.AxiLitePkg.all;
 use surf.I2cPkg.all;
+use surf.PMbusPkg.all;
 
 entity AxiLitePMbusMasterCore is
    generic (
-      TPD_G           : time            := 1 ns;
-      I2C_ADDR_G      : slv(6 downto 0) := "1010000";
-      I2C_SCL_FREQ_G  : real            := 100.0E+3;    -- units of Hz
-      I2C_MIN_PULSE_G : real            := 100.0E-9;    -- units of seconds
-      AXI_CLK_FREQ_G  : real            := 156.25E+6);  -- units of Hz
+      TPD_G              : time             := 1 ns;
+      I2C_ADDR_G         : slv(6 downto 0)  := "1010000";
+      I2C_SCL_FREQ_G     : real             := 100.0E+3;    -- units of Hz
+      I2C_MIN_PULSE_G    : real             := 100.0E-9;    -- units of seconds
+      RD_GAP_TIME_G      : real             := 0.0;         -- units of seconds, 0.0 = no gap after a read
+      WR_GAP_TIME_G      : real             := 0.0;         -- units of seconds, 0.0 = no gap after a write
+      IGNORE_RESP_INIT_G : sl               := '1';         -- '1' = mask I2C failures (read zeros), '0' = SLVERR + fail code
+      ACCESS_ROM_INIT_G  : PMbusAccessArray := PMBUS_ACCESS_ROM_INIT_C;
+      AXI_CLK_FREQ_G     : real             := 156.25E+6);  -- units of Hz
    port (
       -- I2C Ports
       i2ci            : in  i2c_in_type;
@@ -46,61 +59,19 @@ end AxiLitePMbusMasterCore;
 
 architecture rtl of AxiLitePMbusMasterCore is
 
-   -- BIT2 = regAddrSkip, BIT[1:0] = regDataSize
-   type AccessArray is array (0 to 255) of slv(2 downto 0);
-
-   -- Refer to Table 26 in http://pmbus.org/Assets/PDFS/Public/PMBus_Specification_Part_II_Rev_1-1_20070205.pdf
-   constant ACCESS_ROM_C : AccessArray := (
-      16#00# to 16#02# => "000",
-      16#03# to 16#03# => "100",
-      16#04# to 16#10# => "000",
-      16#11# to 16#12# => "100",
-      16#13# to 16#14# => "000",
-      16#15# to 16#16# => "100",
-      16#17# to 16#20# => "000",
-      16#21# to 16#39# => "001",
-      16#3A# to 16#3A# => "000",
-      16#3B# to 16#3C# => "001",
-      16#3D# to 16#3D# => "000",
-      16#3E# to 16#40# => "001",
-      16#41# to 16#41# => "000",
-      16#42# to 16#44# => "001",
-      16#45# to 16#45# => "000",
-      16#46# to 16#46# => "001",
-      16#47# to 16#47# => "000",
-      16#48# to 16#48# => "001",
-      16#49# to 16#49# => "000",
-      16#4A# to 16#4B# => "001",
-      16#4C# to 16#4E# => "000",
-      16#4F# to 16#4F# => "001",
-      16#50# to 16#50# => "000",
-      16#51# to 16#53# => "001",
-      16#54# to 16#54# => "000",
-      16#55# to 16#55# => "001",
-      16#56# to 16#56# => "000",
-      16#57# to 16#59# => "001",
-      16#5A# to 16#5A# => "000",
-      16#5B# to 16#5B# => "001",
-      16#5C# to 16#5C# => "000",
-      16#5D# to 16#62# => "001",
-      16#63# to 16#63# => "000",
-      16#64# to 16#68# => "001",
-      16#69# to 16#69# => "000",
-      16#6A# to 16#6B# => "001",
-      16#6C# to 16#78# => "000",
-      16#79# to 16#79# => "001",
-      16#7A# to 16#87# => "000",
-      16#88# to 16#97# => "001",
-      16#98# to 16#98# => "000",
-      16#99# to 16#9F# => "011",
-      16#A0# to 16#A9# => "001",
-      16#AA# to 16#FF# => "000");
+   -- Refer to PMbusPkg for details on the access ROM
+   constant ACCESS_ROM_C : PMbusAccessArray := ACCESS_ROM_INIT_G;
 
    -- Note: PRESCALE_G = (clk_freq / (5 * i2c_freq)) - 1
    --       FILTER_G = (min_pulse_time / clk_period) + 1
    constant I2C_SCL_5xFREQ_C : real    := 5.0 * I2C_SCL_FREQ_G;
    constant PRESCALE_C       : natural := (getTimeRatio(AXI_CLK_FREQ_G, I2C_SCL_5xFREQ_C)) - 1;
    constant FILTER_C         : natural := natural(AXI_CLK_FREQ_G * I2C_MIN_PULSE_G) + 1;
+
+   -- Post-transaction idle gaps in axilClk cycles
+   constant RD_GAP_C  : natural := natural(AXI_CLK_FREQ_G * RD_GAP_TIME_G);
+   constant WR_GAP_C  : natural := natural(AXI_CLK_FREQ_G * WR_GAP_TIME_G);
+   constant GAP_MAX_C : natural := maximum(RD_GAP_C, WR_GAP_C);
 
    constant I2C_ADDR_C : slv(9 downto 0) := ("000" & I2C_ADDR_G);
 
@@ -126,6 +97,7 @@ architecture rtl of AxiLitePMbusMasterCore is
 
    type RegType is record
       ignoreResp     : sl;
+      gapCnt         : natural range 0 to GAP_MAX_C;
       axilReadSlave  : AxiLiteReadSlaveType;
       axilWriteSlave : AxiLiteWriteSlaveType;
       regIn          : I2cRegMasterInType;
@@ -133,7 +105,8 @@ architecture rtl of AxiLitePMbusMasterCore is
    end record;
 
    constant REG_INIT_C : RegType := (
-      ignoreResp     => '1',
+      ignoreResp     => IGNORE_RESP_INIT_G,
+      gapCnt         => 0,
       axilReadSlave  => AXI_LITE_READ_SLAVE_INIT_C,
       axilWriteSlave => AXI_LITE_WRITE_SLAVE_INIT_C,
       regIn          => MY_I2C_REG_MASTER_IN_INIT_C,
@@ -194,6 +167,11 @@ begin
       -- Update the AXI-Lite response
       axilResp := ite((regOut.regFail = '1' and r.ignoreResp = '0'), AXI_RESP_SLVERR_C, AXI_RESP_OK_C);
 
+      -- Count down the post-transaction idle gap
+      if (r.gapCnt /= 0) then
+         v.gapCnt := r.gapCnt - 1;
+      end if;
+
       -- State Machine
       case (r.state) is
          ----------------------------------------------------------------------
@@ -202,35 +180,38 @@ begin
                -- Check for a write request
                if (axilStatus.writeEnable = '1') then
 
-                  -- Check for I2C data Access
+                  -- Check for I2C data Access (held until the post-transaction gap has expired)
                   if (axilWriteMaster.awaddr(10) = '0') then
+                     if (r.gapCnt = 0) then
 
-                     -- Send read transaction to I2cRegMaster
-                     v.regIn.regReq      := '1';
-                     v.regIn.regOp       := '1';  -- 1 for write operation
-                     v.regIn.regAddrSkip := ACCESS_ROM_C(wrIdx)(2);
-                     v.regIn.regDataSize := ACCESS_ROM_C(wrIdx)(1 downto 0);
+                        -- Send write transaction to I2cRegMaster
+                        v.regIn.regReq      := '1';
+                        v.regIn.regOp       := '1';  -- 1 for write operation
+                        v.regIn.regAddrSkip := ACCESS_ROM_C(wrIdx)(2);
+                        v.regIn.regDataSize := ACCESS_ROM_C(wrIdx)(1 downto 0);
 
-                     -- Check if not skipping address
-                     if (v.regIn.regAddrSkip = '0') then
+                        -- Check if not skipping address
+                        if (v.regIn.regAddrSkip = '0') then
 
-                        -- Normal Access
-                        v.regIn.regAddr(7 downto 0) := axilWriteMaster.awaddr(9 downto 2);
-                        v.regIn.regWrData           := axilWriteMaster.wData;
+                           -- Normal Access
+                           v.regIn.regAddr(7 downto 0) := axilWriteMaster.awaddr(9 downto 2);
+                           v.regIn.regWrData           := axilWriteMaster.wData;
 
-                     -- Else skipping address
-                     else
+                        -- Else skipping address
+                        else
 
-                        -- Send the address into the data
-                        v.regIn.regWrData := x"0000_00" & axilWriteMaster.awaddr(9 downto 2);
+                           -- Send the address into the data
+                           v.regIn.regWrData := x"0000_00" & axilWriteMaster.awaddr(9 downto 2);
 
-                        -- Force 1 byte transaction
-                        v.regIn.regDataSize := "00";
+                           -- Force 1 byte transaction
+                           v.regIn.regDataSize := "00";
+
+                        end if;
+
+                        -- Next state
+                        v.state := WRITE_ACK_S;
 
                      end if;
-
-                     -- Next state
-                     v.state := WRITE_ACK_S;
 
                   -- Else I2C config Access
                   else
@@ -250,18 +231,21 @@ begin
                -- Check for a read request
                elsif (axilStatus.readEnable = '1') then
 
-                  -- Check for I2C data Access
+                  -- Check for I2C data Access (held until the post-transaction gap has expired)
                   if (axilReadMaster.araddr(10) = '0') then
+                     if (r.gapCnt = 0) then
 
-                     -- Send read transaction to I2cRegMaster
-                     v.regIn.regReq              := '1';
-                     v.regIn.regOp               := '0';  -- 0 for read operation
-                     v.regIn.regAddrSkip         := ACCESS_ROM_C(rdIdx)(2);
-                     v.regIn.regDataSize         := ACCESS_ROM_C(rdIdx)(1 downto 0);
-                     v.regIn.regAddr(7 downto 0) := axilReadMaster.araddr(9 downto 2);
+                        -- Send read transaction to I2cRegMaster
+                        v.regIn.regReq              := '1';
+                        v.regIn.regOp               := '0';  -- 0 for read operation
+                        v.regIn.regAddrSkip         := ACCESS_ROM_C(rdIdx)(2);
+                        v.regIn.regDataSize         := ACCESS_ROM_C(rdIdx)(1 downto 0);
+                        v.regIn.regAddr(7 downto 0) := axilReadMaster.araddr(9 downto 2);
 
-                     -- Next state
-                     v.state := READ_ACK_S;
+                        -- Next state
+                        v.state := READ_ACK_S;
+
+                     end if;
 
                   -- Else I2C config Access
                   else
@@ -288,6 +272,9 @@ begin
                -- Reset the flag
                v.regIn.regReq := '0';
 
+               -- Start the post-read idle gap
+               v.gapCnt := RD_GAP_C;
+
                -- Check for I2C failure
                if regOut.regFail = '1' and r.ignoreResp = '0' then
                   -- Forward error code on the data bus for debugging
@@ -298,8 +285,14 @@ begin
                   v.axilReadSlave.rdata := (others => '0');
 
                else
-                  -- Forward the readout data
-                  v.axilReadSlave.rdata := regOut.regRdData;
+                  -- Forward the readout data, masked to the transfer size
+                  -- (I2cRegMaster only updates the bytes it transferred)
+                  case r.regIn.regDataSize is
+                     when "00"   => v.axilReadSlave.rdata := x"000000" & regOut.regRdData(7 downto 0);
+                     when "01"   => v.axilReadSlave.rdata := x"0000" & regOut.regRdData(15 downto 0);
+                     when "10"   => v.axilReadSlave.rdata := x"00" & regOut.regRdData(23 downto 0);
+                     when others => v.axilReadSlave.rdata := regOut.regRdData;
+                  end case;
 
                end if;
 
@@ -317,6 +310,9 @@ begin
 
                -- Reset the flag
                v.regIn.regReq := '0';
+
+               -- Start the post-write idle gap
+               v.gapCnt := WR_GAP_C;
 
                -- Send AXI-Lite response
                axiSlaveWriteResponse(v.axilWriteSlave, axilResp);

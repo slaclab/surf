@@ -86,7 +86,7 @@ entity Gtp7AutoPhaseAligner is
       STABLE_CLOCK         : in  std_logic;  --Stable Clock, either a stable clock from the PCB
                                              --or reference-clock present at startup.
       RUN_PHALIGNMENT      : in  std_logic;  --Signal from the main Reset-FSM to run the auto phase-alignment procedure
-      PHASE_ALIGNMENT_DONE : out std_logic := '0';  -- Auto phase-alignment performed sucessfully
+      PHASE_ALIGNMENT_DONE : out std_logic := '0';  -- Auto phase-alignment performed successfully
       PHALIGNDONE          : in  std_logic;  --\ Phase-alignment signals from and to the
       DLYSRESET            : out std_logic;  -- |transceiver.
       DLYSRESETDONE        : in  std_logic;  --/

@@ -626,46 +626,26 @@ begin
       end if;
    end process seq;
 
-   GEN_XPM : if (SYNTH_MODE_G = "xpm") generate
-      U_BRAM : entity surf.SimpleDualPortRamXpm
-         generic map(
-            TPD_G          => TPD_G,
-            COMMON_CLK_G   => true,
-            MEMORY_TYPE_G  => MEMORY_TYPE_G,
-            READ_LATENCY_G => 2,
-            DATA_WIDTH_G   => 8*DATA_BYTES_G,
-            ADDR_WIDTH_G   => BURST_BITSIZE_C)
-         port map (
-            -- Port A
-            clka   => dataClk,
-            wea(0) => r.bramWe,
-            addra  => r.bramAddr,
-            dina   => r.bramWrDat,
-            -- Port B
-            clkb   => dataClk,
-            addrb  => r.bramAddr,
-            doutb  => bramData);
-   end generate;
-
-   GEN_INFERRED : if (SYNTH_MODE_G = "inferred") generate
-      U_BRAM : entity surf.SimpleDualPortRam
-         generic map(
-            TPD_G         => TPD_G,
-            MEMORY_TYPE_G => MEMORY_TYPE_G,
-            DOB_REG_G     => true,
-            DATA_WIDTH_G  => 8*DATA_BYTES_G,
-            ADDR_WIDTH_G  => BURST_BITSIZE_C)
-         port map (
-            -- Port A
-            clka  => dataClk,
-            wea   => r.bramWe,
-            addra => r.bramAddr,
-            dina  => r.bramWrDat,
-            -- Port B
-            clkb  => dataClk,
-            addrb => r.bramAddr,
-            doutb => bramData);
-   end generate;
+   U_BRAM : entity surf.SimpleDualPortRam
+      generic map(
+         TPD_G          => TPD_G,
+         SYNTH_MODE_G   => SYNTH_MODE_G,
+         COMMON_CLK_G   => true,
+         MEMORY_TYPE_G  => MEMORY_TYPE_G,
+         DOB_REG_G      => true,
+         READ_LATENCY_G => 2,
+         DATA_WIDTH_G   => 8*DATA_BYTES_G,
+         ADDR_WIDTH_G   => BURST_BITSIZE_C)
+      port map (
+         -- Port A
+         clka  => dataClk,
+         wea   => r.bramWe,
+         addra => r.bramAddr,
+         dina  => r.bramWrDat,
+         -- Port B
+         clkb  => dataClk,
+         addrb => r.bramAddr,
+         doutb => bramData);
 
    GEN_SYNC_AXI : if (AXI_CLK_IS_DATA_CLK_G = true) generate
 

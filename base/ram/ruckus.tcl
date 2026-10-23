@@ -17,3 +17,5 @@ if {  $::env(VIVADO_VERSION) >= 2019.1} {
 } else {
    loadSource -lib surf -dir "$::DIR_PATH/dummy"
 }
+
+loadSource -lib surf -dir "$::DIR_PATH/rtl"

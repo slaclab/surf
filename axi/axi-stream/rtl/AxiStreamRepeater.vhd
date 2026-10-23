@@ -26,6 +26,7 @@ use surf.AxiStreamPkg.all;
 entity AxiStreamRepeater is
    generic (
       TPD_G                : time     := 1 ns;
+      RST_POLARITY_G       : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G          : boolean  := false;
       NUM_MASTERS_G        : positive := 2;
       INCR_AXIS_ID_G       : boolean  := false;  -- true = overwrites the TID with a counter that increments after each TLAST (help with frame alignment down stream)
@@ -71,9 +72,10 @@ begin
    -----------------
    U_Input : entity surf.AxiStreamPipeline
       generic map (
-         TPD_G         => TPD_G,
-         RST_ASYNC_G   => RST_ASYNC_G,
-         PIPE_STAGES_G => INPUT_PIPE_STAGES_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         PIPE_STAGES_G  => INPUT_PIPE_STAGES_G)
       port map (
          axisClk     => axisClk,
          axisRst     => axisRst,
@@ -143,7 +145,7 @@ begin
       outputAxisMasters <= r.masters;
 
       -- Reset
-      if (RST_ASYNC_G = false and axisRst = '1') then
+      if (RST_ASYNC_G = false and axisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -154,7 +156,7 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1') then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(axisClk) then
          r <= rin after TPD_G;
@@ -169,9 +171,10 @@ begin
 
       U_Output : entity surf.AxiStreamPipeline
          generic map (
-            TPD_G         => TPD_G,
-            RST_ASYNC_G   => RST_ASYNC_G,
-            PIPE_STAGES_G => OUTPUT_PIPE_STAGES_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            PIPE_STAGES_G  => OUTPUT_PIPE_STAGES_G)
          port map (
             axisClk     => axisClk,
             axisRst     => axisRst,

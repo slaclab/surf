@@ -37,10 +37,12 @@ entity Scrambler is
       clk            : in  sl;
       rst            : in  sl;
       inputValid     : in  sl := '1';
+      inputBypass    : in  sl := '0';
       inputReady     : out sl;
       inputData      : in  slv(DATA_WIDTH_G-1 downto 0);
       inputSideband  : in  slv(SIDEBAND_WIDTH_G-1 downto 0);
       outputValid    : out sl;
+      outputBypass   : out sl;
       outputReady    : in  sl := '1';
       outputData     : out slv(DATA_WIDTH_G-1 downto 0);
       outputSideband : out slv(SIDEBAND_WIDTH_G-1 downto 0));
@@ -53,6 +55,7 @@ architecture rtl of Scrambler is
    type RegType is record
       inputReady     : sl;
       outputValid    : sl;
+      outputBypass   : sl;
       scrambler      : slv(SCRAMBLER_WIDTH_C-1 downto 0);
       outputData     : slv(DATA_WIDTH_G-1 downto 0);
       outputSideband : slv(SIDEBAND_WIDTH_G-1 downto 0);
@@ -61,6 +64,7 @@ architecture rtl of Scrambler is
    constant REG_INIT_C : RegType := (
       inputReady     => '0',
       outputValid    => '0',
+      outputBypass   => '0',
       scrambler      => (others => '0'),
       outputData     => (others => '0'),
       outputSideband => (others => '0'));
@@ -70,7 +74,8 @@ architecture rtl of Scrambler is
 
 begin
 
-   comb : process (inputData, inputSideband, inputValid, outputReady, r, rst) is
+   comb : process (inputBypass, inputData, inputSideband, inputValid,
+                   outputReady, r, rst) is
       variable v                 : RegType;
       variable inputDataReversed : slv(DATA_WIDTH_G-1 downto 0);
    begin
@@ -88,8 +93,9 @@ begin
 
       -- Advance pipeline
       if (inputValid = '1' and v.outputValid = '0') then
-         v.outputValid := '1';
-         v.inputReady  := '1';
+         v.outputValid  := '1';
+         v.outputBypass := inputBypass;
+         v.inputReady   := '1';
 
          if BIT_REVERSE_IN_G then
             v.outputSideband := bitReverse(inputSideband);
@@ -105,19 +111,24 @@ begin
                v.outputData(i) := inputData(i);
             end if;
 
-            for j in TAPS_G'range loop
-               v.outputData(i) := v.outputData(i) xor v.scrambler(TAPS_G(j)-1);
-            end loop;
+            -- Check if not bypassing scrambler process
+            if (inputBypass = '0') then
 
-            if (DIRECTION_G = "SCRAMBLER") then
-               v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & v.outputData(i);
+               for j in TAPS_G'range loop
+                  v.outputData(i) := v.outputData(i) xor v.scrambler(TAPS_G(j)-1);
+               end loop;
 
-            elsif (DIRECTION_G = "DESCRAMBLER") then
+               if (DIRECTION_G = "SCRAMBLER") then
+                  v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & v.outputData(i);
 
-               if BIT_REVERSE_IN_G then
-                  v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & inputDataReversed(i);
-               else
-                  v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & inputData(i);
+               elsif (DIRECTION_G = "DESCRAMBLER") then
+
+                  if BIT_REVERSE_IN_G then
+                     v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & inputDataReversed(i);
+                  else
+                     v.scrambler := v.scrambler(SCRAMBLER_WIDTH_C-2 downto 0) & inputData(i);
+                  end if;
+
                end if;
 
             end if;
@@ -138,7 +149,8 @@ begin
       rin <= v;
 
       -- Registered Outputs
-      outputValid <= r.outputValid;
+      outputValid  <= r.outputValid;
+      outputBypass <= r.outputBypass;
       if BIT_REVERSE_OUT_G then
          outputData     <= bitReverse(r.outputData);
          outputSideband <= bitReverse(r.outputSideband);

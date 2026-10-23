@@ -17,9 +17,9 @@ class LeapXcvr(pr.Device):
         super().__init__(**kwargs)
 
         self.add(pr.LocalVariable(
-            name         = "WriteEn",
-            mode         = "RO",
-            value        = writeEn,
+            name  = "WriteEn",
+            mode  = "RO",
+            value = writeEn,
         ))
 
         self.add(pr.RemoteVariable(
@@ -27,6 +27,7 @@ class LeapXcvr(pr.Device):
             offset      = 0x000,
             bitSize     = 1,
             mode        = 'RW',
+            description = 'Hardware reset control: writing 1 initiates a full module reset',
         ))
 
         self.add(amphenol.LeapXcvrLowerPage(

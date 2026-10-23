@@ -71,7 +71,7 @@ begin
          PRESCALE_G           => 62)    -- 400 kHz clk
       port map (
          clk    => masterClk,
-         rst    => masterRst,
+         srst   => masterRst,
          regIn  => regIn,
          regOut => regOut,
          i2ci   => i2ci,

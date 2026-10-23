@@ -18,37 +18,37 @@ class TmrInject(pr.Device):
         super().__init__(description=description, **kwargs)
 
         self.add(pr.RemoteVariable(
-            name         = 'CR',
-            description  = 'Control Register',
-            offset       = 0x00,
-            bitSize      = 20,
-            bitOffset    = 0,
-            mode         = 'WO',
+            name        = 'CR',
+            description = 'Control Register',
+            offset      = 0x00,
+            bitSize     = 20,
+            bitOffset   = 0,
+            mode        = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'AIR',
-            description  = 'Address Inject Register',
-            offset       = 0x04,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'WO',
+            name        = 'AIR',
+            description = 'Address Inject Register',
+            offset      = 0x04,
+            bitSize     = 32,
+            bitOffset   = 0,
+            mode        = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'IIR',
-            description  = 'Instruction Inject Register',
-            offset       = 0x08,
-            bitSize      = 32,
-            bitOffset    = 0,
-            mode         = 'WO',
+            name        = 'IIR',
+            description = 'Instruction Inject Register',
+            offset      = 0x08,
+            bitSize     = 32,
+            bitOffset   = 0,
+            mode        = 'WO',
         ))
 
         self.add(pr.RemoteVariable(
-            name         = 'EAIR',
-            description  = 'Extended Address Inject Register',
-            offset       = 0x10,
-            bitSize      = 64,
-            bitOffset    = 0,
-            mode         = 'WO',
+            name        = 'EAIR',
+            description = 'Extended Address Inject Register',
+            offset      = 0x10,
+            bitSize     = 64,
+            bitOffset   = 0,
+            mode        = 'WO',
         ))

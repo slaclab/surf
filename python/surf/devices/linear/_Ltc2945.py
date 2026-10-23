@@ -391,7 +391,7 @@ class Ltc2945(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'MaxVinThresholdLsb',
-            description = 'Maximum ADC VIN Threshold LSB Dto Generate Alert',
+            description = 'Maximum ADC VIN Threshold LSB to Generate Alert',
             offset      = (0x25 << 2),
             bitSize     = 8,
             bitOffset   = 0,
@@ -491,7 +491,7 @@ class Ltc2945(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'MaxAdinThresholdLsb',
-            description = 'Maximum ADIN Threshold LSB Dto Generate Alert',
+            description = 'Maximum ADIN Threshold LSB to Generate Alert',
             offset      = (0x2F << 2),
             bitSize     = 8,
             bitOffset   = 0,

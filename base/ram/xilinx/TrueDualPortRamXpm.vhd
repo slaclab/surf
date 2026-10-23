@@ -33,6 +33,8 @@ entity TrueDualPortRamXpm is
       MEMORY_INIT_PARAM_G : string                     := "0";
       WRITE_MODE_G        : string                     := "no_change";
       READ_LATENCY_G      : natural range 0 to 100     := 1;
+      READ_LATENCY_A_G    : integer range -1 to 100    := -1;
+      READ_LATENCY_B_G    : integer range -1 to 100    := -1;
       DATA_WIDTH_G        : integer range 1 to (2**24) := 16;
       BYTE_WR_EN_G        : boolean                    := false;
       BYTE_WIDTH_G        : integer range 8 to 9       := 8;  -- If BRAM, should be multiple or 8 or 9
@@ -60,6 +62,9 @@ end TrueDualPortRamXpm;
 
 architecture rtl of TrueDualPortRamXpm is
 
+   constant READ_LATENCY_A_C : natural := ite(READ_LATENCY_A_G < 0, READ_LATENCY_G, READ_LATENCY_A_G);
+   constant READ_LATENCY_B_C : natural := ite(READ_LATENCY_B_G < 0, READ_LATENCY_G, READ_LATENCY_B_G);
+
    signal resetA : sl;
    signal resetB : sl;
 
@@ -85,15 +90,15 @@ begin
          MESSAGE_CONTROL         => 0,  -- Default value = 0
          READ_DATA_WIDTH_A       => DATA_WIDTH_G,
          READ_DATA_WIDTH_B       => DATA_WIDTH_G,
-         READ_LATENCY_A          => READ_LATENCY_G,
-         READ_LATENCY_B          => READ_LATENCY_G,
+         READ_LATENCY_A          => READ_LATENCY_A_C,
+         READ_LATENCY_B          => READ_LATENCY_B_C,
          USE_EMBEDDED_CONSTRAINT => 0,  -- Default value = 0
          USE_MEM_INIT            => 1,  -- Default value = 1
          WAKEUP_TIME             => "disable_sleep",  -- "disable_sleep" to disable dynamic power saving option
          WRITE_DATA_WIDTH_A      => DATA_WIDTH_G,
          WRITE_DATA_WIDTH_B      => DATA_WIDTH_G,
-         WRITE_MODE_A            => ite(READ_LATENCY_G = 0, "read_first", WRITE_MODE_G),  -- Default value = no_change
-         WRITE_MODE_B            => ite(READ_LATENCY_G = 0, "read_first", WRITE_MODE_G))  -- Default value = no_change
+         WRITE_MODE_A            => ite(READ_LATENCY_A_C = 0, "read_first", WRITE_MODE_G),  -- Default value = no_change
+         WRITE_MODE_B            => ite(READ_LATENCY_B_C = 0, "read_first", WRITE_MODE_G))  -- Default value = no_change
       port map (
          -- Port A
          clka           => clka,

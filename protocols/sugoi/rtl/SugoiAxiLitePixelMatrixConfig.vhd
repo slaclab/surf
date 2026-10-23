@@ -31,7 +31,7 @@ entity SugoiAxiLitePixelMatrixConfig is
       COL_WIDTH_G     : positive range 1 to 10 := 6;
       ROW_GRAY_CODE_G : boolean                := true;
       ROW_WIDTH_G     : positive range 1 to 10 := 6;
-      DATA_WIDTH_G    : positive range 1 to 11 := 9;
+      DATA_WIDTH_G    : positive range 1 to 32 := 9;
       TIMER_WIDTH_G   : positive range 1 to 16 := 12);
    port (
       -- Matrix periphery: coldec and rowdec
@@ -84,7 +84,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       globalRstL     : sl;
       cckReg         : sl;
       cckPix         : sl;
-      cnt            : natural range 0 to 7;
+      cnt            : natural range 0 to 8;
       timer          : slv(TIMER_WIDTH_G-1 downto 0);
       timerSize      : slv(TIMER_WIDTH_G-1 downto 0);
       axilReadSlave  : AxiLiteReadSlaveType;
@@ -102,7 +102,7 @@ architecture rtl of SugoiAxiLitePixelMatrixConfig is
       dataOut        => (others => '0'),
       readWrite      => '1',
       configTri      => '0',
-      globalRstL     => '1',
+      globalRstL     => '0',
       cckReg         => '0',
       cckPix         => '0',
       cnt            => 0,
@@ -161,7 +161,7 @@ begin
                         v.axilReadSlave.rdata(5)            := ite(ROW_GRAY_CODE_G, '1', '0');
                         v.axilReadSlave.rdata(11 downto 8)  := toSlv(COL_WIDTH_G, 4);
                         v.axilReadSlave.rdata(15 downto 12) := toSlv(ROW_WIDTH_G, 4);
-                        v.axilReadSlave.rdata(19 downto 16) := toSlv(DATA_WIDTH_G, 4);
+                        v.axilReadSlave.rdata(23 downto 16) := toSlv(DATA_WIDTH_G, 8);
                         v.axilReadSlave.rdata(31 downto 24) := toSlv(TIMER_WIDTH_G, 8);
                         axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
                      when x"C" =>
@@ -228,43 +228,55 @@ begin
             -- Check the read phase
             case (r.cnt) is
                when 0 =>
-                  -- TRI-STATE & READ MODE
+                  -- Turn off digital output driver (both drivers disabled)
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '1';
+               when 1 =>
+                  -- Turn on analog output driver
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
-               when 1 =>
+               when 2 =>
                   -- CCK PIX HIGH
                   v.cckPix    := '1';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
-               when 2 =>
-                  -- CCK PIX LOW
-                  v.cckPix    := '0';
-                  v.cckReg    := '0';
-                  v.configTri := '1';
-                  v.readWrite := '0';
                when 3 =>
-                  -- CCK REG HIGH
-                  v.cckPix    := '0';
-                  v.cckReg    := '1';
+                  -- CCK PIX HIGH
+                  v.cckPix    := '1';
+                  v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 4 =>
-                  -- CCK REG LOW
-                  v.cckPix    := '0';
-                  v.cckReg    := '0';
+                  -- CCK REG HIGH
+                  v.cckPix    := '1';
+                  v.cckReg    := '1';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 5 =>
-                  -- SAMPLE
+                  -- SAMPLE & CCK LOW
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '1';
                   v.readWrite := '0';
                when 6 =>
-                  -- RETURN TO WRITE
+                  -- HOLD
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '0';
+               when 7 =>
+                  -- Turn off analog output driver (both drivers disabled)
+                  v.cckPix    := '0';
+                  v.cckReg    := '0';
+                  v.configTri := '1';
+                  v.readWrite := '1';
+               when 8 =>
+                  -- Turn on digital output driver
                   v.cckPix    := '0';
                   v.cckReg    := '0';
                   v.configTri := '0';
@@ -289,14 +301,14 @@ begin
                   -- Assign read data
                   v.axilReadSlave.rdata(DATA_WIDTH_G-1 downto 0) := dataIn;
 
+                  -- Ack the read TXN
+                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+
                   -- Increment the counter
                   v.cnt := r.cnt + 1;
 
                -- Check if "RETURN TO WRITE" phase
-               elsif (r.cnt = 6) then
-
-                  -- Ack the read TXN
-                  axiSlaveReadResponse(v.axilReadSlave, AXI_RESP_OK_C);
+               elsif (r.cnt = 8) then
 
                   -- Next state
                   v.state := IDLE_S;
@@ -385,6 +397,9 @@ begin
                end if;
 
             end if;
+         ----------------------------------------------------------------------
+         when others =>  -- For ASIC designs it is best to declare a 'Default' state which returns to IDLE_S state
+            v := REG_INIT_C;
       ----------------------------------------------------------------------
       end case;
 

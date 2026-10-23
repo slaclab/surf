@@ -24,8 +24,9 @@ use surf.EthMacPkg.all;
 
 entity EthMacTxExportXgmii is
    generic (
-      TPD_G        : time   := 1 ns;
-      SYNTH_MODE_G : string := "inferred");  -- Synthesis mode for internal RAMs
+      TPD_G          : time   := 1 ns;
+      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      SYNTH_MODE_G   : string := "inferred");  -- Synthesis mode for internal RAMs
    port (
       -- Clock and Reset
       ethClk         : in  sl;
@@ -141,6 +142,7 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
          INT_PIPE_STAGES_G   => 0,
          PIPE_STAGES_G       => 1,
          SLAVE_READY_EN_G    => true,
@@ -185,7 +187,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if (ethRst = '1') or (phyReady = '0') then
+         if (ethRst = RST_POLARITY_G) then
             crcInit       <= '1'             after TPD_G;
             curState      <= ST_IDLE_C       after TPD_G;
             intError      <= '0'             after TPD_G;
@@ -260,16 +262,16 @@ begin
             intDump       <= '0';
 
             -- Wait for start flag
-            if macMaster.tValid = '1' and ethRst = '0' then
+            if macMaster.tValid = '1' and ethRst = (not RST_POLARITY_G) then
                wordCountRst <= '1';
 
                -- Phy is ready
                if phyReady = '1' then
                   nxtState <= ST_READ_C;
 
-               -- Phy is not ready dump data
+               -- Hold a frame that has not started until the PHY is ready
                else
-                  nxtState       <= ST_DUMP_C;
+                  nxtState       <= ST_IDLE_C;
                   txLinkNotReady <= '1';
                end if;
             else
@@ -286,8 +288,22 @@ begin
             intAdvance    <= '1';
             nxtState      <= curState;
 
+            -- Drain an interrupted frame through its accepted last beat.
+            -- Returning to IDLE here would transmit its tail as a new frame.
+            if phyReady = '0' then
+               intAdvance     <= '0';
+               intDump        <= '1';
+               nxtError       <= '1';
+               txLinkNotReady <= '1';
+               if macMaster.tValid = '1' and macMaster.tLast = '1' then
+                  nxtState      <= ST_WAIT_C;
+                  stateCountRst <= '1';
+               else
+                  nxtState <= ST_DUMP_C;
+               end if;
+
             -- Read until we get last
-            if macMaster.tLast = '1' and (exportWordCnt < 7) then
+            elsif macMaster.tLast = '1' and (exportWordCnt < 7) then
                nxtState  <= ST_PAD_C;
                txCountEn <= '1';
                nxtError  <= intError or axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
@@ -313,21 +329,19 @@ begin
          -- Reading from PIC, Dumping data
          when ST_DUMP_C =>
             intAdvance    <= '0';
+            intDump       <= '1';
+            intLastLine   <= '0';
             stateCountRst <= '0';
             wordCountRst  <= '0';
             intPad        <= '0';
 
             -- Read until we get last
-            if macMaster.tLast = '1' then
-               intDump       <= '0';
-               intLastLine   <= '1';
+            if macMaster.tValid = '1' and macMaster.tLast = '1' then
                nxtState      <= ST_WAIT_C;
                stateCountRst <= '1';
 
             -- Keep reading
             else
-               intDump     <= macMaster.tValid;
-               intLastLine <= '0';
                nxtState    <= curState;
             end if;
 
@@ -380,7 +394,7 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             frameShift0  <= '0'             after TPD_G;
             frameShift1  <= '0'             after TPD_G;
             txEnable0    <= '0'             after TPD_G;
@@ -460,7 +474,7 @@ begin
    U_CrcFifo : entity surf.Fifo
       generic map (
          TPD_G           => TPD_G,
-         RST_POLARITY_G  => '1',
+         RST_POLARITY_G  => RST_POLARITY_G,
          RST_ASYNC_G     => false,
          GEN_SYNC_FIFO_G => true,
          MEMORY_TYPE_G   => "distributed",
@@ -496,13 +510,13 @@ begin
    process (ethClk)
    begin
       if rising_edge(ethClk) then
-         if ethRst = '1' then
+         if ethRst = RST_POLARITY_G then
             phyTxd <= (others => '0') after TPD_G;
             phyTxc <= (others => '0') after TPD_G;
             nxtEOF <= '0'             after TPD_G;
          else
 
-            -- EOF Charactor Required If CRC was in last word and there was
+            -- EOF Character Required If CRC was in last word and there was
             -- not enough space for EOF
             if nxtEOF = '1' then
                phyTxd <= X"07070707070707FD" after TPD_G;

@@ -25,17 +25,18 @@ use surf.AxiStreamPkg.all;
 entity RoceResizeAndSwap is
    generic (
       -- General Configurations
-      TPD_G             : time     := 1 ns;
-      RST_ASYNC_G       : boolean  := false;
-      READY_EN_G        : boolean  := true;
-      PIPE_STAGES_G     : natural  := 0;
-      SIDE_BAND_WIDTH_G : positive := 1;  -- General purpose sideband
-      SWAP_ENDIAN_G     : boolean  := false;
-      LITTLE_ENDIAN_G   : boolean  := true;
+      TPD_G             : time     := 1 ns;    -- simulation propagation delay
+      RST_POLARITY_G    : sl       := '1';     -- '1' = active-HIGH reset, '0' = active-LOW
+      RST_ASYNC_G       : boolean  := false;   -- true = asynchronous reset
+      READY_EN_G        : boolean  := true;    -- true = honor downstream tReady backpressure
+      PIPE_STAGES_G     : natural  := 0;        -- output AXI-Stream pipeline stages
+      SIDE_BAND_WIDTH_G : positive := 1;       -- general-purpose sideband bit width
+      SWAP_ENDIAN_G     : boolean  := false;   -- reverse byte lanes per word
+      LITTLE_ENDIAN_G   : boolean  := true;    -- byte ordering of resized words
 
       -- AXI Stream Port Configurations
-      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;
-      MASTER_AXI_CONFIG_G : AxiStreamConfigType);
+      SLAVE_AXI_CONFIG_G  : AxiStreamConfigType;    -- inbound stream config
+      MASTER_AXI_CONFIG_G : AxiStreamConfigType);   -- outbound (resized) stream config
    port (
 
       -- Clock and reset
@@ -119,7 +120,7 @@ begin
    assert (SLV_BYTES_C <= MST_BYTES_C or READY_EN_G = true)
       report "READY_EN_G must be true if slave width is great than master" severity failure;
 
-   -- Cant use tkeep_fixed on master side when resizing or if not on slave side
+   -- Can't use tkeep_fixed on master side when resizing or if not on slave side
    assert (not (MASTER_AXI_CONFIG_G.TKEEP_MODE_C = TKEEP_FIXED_C and
                 SLAVE_AXI_CONFIG_G.TKEEP_MODE_C /= TKEEP_FIXED_C))
       report "AxiStreamResize: Can't have TKEEP_MODE = TKEEP_FIXED on master side if not on slave side"
@@ -323,10 +324,10 @@ begin
 
    seq : process (axisClk, axisRst) is
    begin
-      if (RST_ASYNC_G) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+      if (RST_ASYNC_G) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
          r <= REG_INIT_C after TPD_G;
       elsif (rising_edge(axisClk)) then
-         if (RST_ASYNC_G = false) and (axisRst = '1' or (SLV_BYTES_C = MST_BYTES_C)) then
+         if (RST_ASYNC_G = false) and (axisRst = RST_POLARITY_G or (SLV_BYTES_C = MST_BYTES_C)) then
             r <= REG_INIT_C after TPD_G;
          else
             r <= rin after TPD_G;
@@ -338,6 +339,7 @@ begin
    AxiStreamPipeline_1 : entity surf.AxiStreamPipeline
       generic map (
          TPD_G             => TPD_G,
+         RST_POLARITY_G    => RST_POLARITY_G,
          RST_ASYNC_G       => RST_ASYNC_G,
          SIDE_BAND_WIDTH_G => SIDE_BAND_WIDTH_G,
          PIPE_STAGES_G     => PIPE_STAGES_G)

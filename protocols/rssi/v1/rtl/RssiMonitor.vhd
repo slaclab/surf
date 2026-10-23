@@ -52,8 +52,8 @@ entity RssiMonitor is
       STATUS_WIDTH_G      : positive := 8;
       CNT_WIDTH_G         : positive := 32;
       RETRANSMIT_ENABLE_G : boolean  := true
-    --
-      );
+   --
+   );
    port (
       clk_i : in sl;
       rst_i : in sl;
@@ -185,7 +185,9 @@ architecture rtl of RssiMonitor is
    signal rin      : RegType;
    signal s_status : slv(STATUS_WIDTH_G - 1 downto 0);
 --
+
 begin
+
    -- Status assignment
    s_status(0) <= r.retransMax and r.sndResend and not r.sndResendD1;
    s_status(1) <= r.nullTout;
@@ -308,7 +310,9 @@ begin
 
       -- Null timeout (Server)
       else
-         -- Null timeout counter
+         -- Rogue and the RTL client postpone NULLs while sending ACKs.
+         -- Valid ACK/BUSY traffic must therefore refresh server liveness,
+         -- including during sustained transfers from server to client.
          if (connActive_i = '0' or
              (rxValid_i = '1' and rxFlags_i.data = '1') or
              (rxValid_i = '1' and rxFlags_i.nul = '1') or
@@ -356,7 +360,7 @@ begin
           dataHeadSt_i = '1' or
           rstHeadSt_i = '1' or
           nullHeadSt_i = '1' or
-          (rxLastSeqN_i - r.lastAckSeqN) = 0
+          ((rxLastSeqN_i - r.lastAckSeqN) = 0 and localBusy_i = '0')
           ) then
          v.ackToutCnt := (others => '0');
       elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0 and (rxLastSeqN_i - r.lastAckSeqN) <= rxWindowSize_i) or (localBusy_i = '1') then
@@ -374,8 +378,16 @@ begin
           ) then
          v.sndAck := '0';
 
+      -- Periodic BUSY acknowledgment request.  The RSSI page recommends
+      -- Retransmission Timeout/2 so the peer keeps its retransmission timer
+      -- reset while this receiver remains busy.
+      elsif (localBusy_i = '1' and (rxLastSeqN_i - r.lastAckSeqN) = 0 and
+             r.ackToutCnt >= ((conv_integer(rssiParam_i.retransTout)*SAMPLES_PER_TIME_C)/2)) then
+         v.sndAck := '1';
+
       -- Timeout acknowledgment request
-      elsif (r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
+      elsif ((rxLastSeqN_i - r.lastAckSeqN) > 0 and
+             r.ackToutCnt >= (conv_integer(rssiParam_i.cumulAckTout)* SAMPLES_PER_TIME_C)) then
          v.sndAck := '1';
 
       -- Cumulative acknowledgment request
@@ -460,4 +472,5 @@ begin
    resendCnt_o <= r.resendCnt;
    reconCnt_o  <= r.reconCnt;
 ---------------------------------------------------------------------
+
 end architecture rtl;

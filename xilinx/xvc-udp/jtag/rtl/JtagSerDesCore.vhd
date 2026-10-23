@@ -20,7 +20,7 @@ library surf;
 use surf.StdRtlPkg.all;
 
 -- Serialize a TMS/TDI word pair into JTAG signals and deserialize
--- TDO into a paralle output word.
+-- TDO into a parallel output word.
 
 entity JtagSerDesCore is
    generic (

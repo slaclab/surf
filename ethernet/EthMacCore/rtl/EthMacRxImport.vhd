@@ -17,7 +17,6 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_arith.all;
 use ieee.std_logic_unsigned.all;
 
-
 library surf;
 use surf.AxiStreamPkg.all;
 use surf.StdRtlPkg.all;
@@ -25,9 +24,10 @@ use surf.EthMacPkg.all;
 
 entity EthMacRxImport is
    generic (
-      TPD_G        : time   := 1 ns;
-      PHY_TYPE_G   : string := "XGMII";
-      SYNTH_MODE_G : string := "inferred");
+      TPD_G          : time   := 1 ns;
+      RST_POLARITY_G : sl     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      PHY_TYPE_G     : string := "XGMII";
+      SYNTH_MODE_G   : string := "inferred");
    port (
       -- Clock and Reset
       ethClkEn    : in  sl;
@@ -60,7 +60,8 @@ begin
    U_40G : if (PHY_TYPE_G = "XLGMII") generate
       U_XLGMII : entity surf.EthMacRxImportXlgmii
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
          port map (
             -- Clock and Reset
             ethClk      => ethClk,
@@ -79,7 +80,8 @@ begin
    U_10G : if (PHY_TYPE_G = "XGMII") generate
       U_XGMII : entity surf.EthMacRxImportXgmii
          generic map (
-            TPD_G => TPD_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G)
          port map (
             -- Clock and Reset
             ethClk      => ethClk,
@@ -98,8 +100,9 @@ begin
    U_1G : if (PHY_TYPE_G = "GMII") generate
       U_GMII : entity surf.EthMacRxImportGmii
          generic map (
-            TPD_G        => TPD_G,
-            SYNTH_MODE_G => SYNTH_MODE_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            SYNTH_MODE_G   => SYNTH_MODE_G)
          port map (
             -- Clock and Reset
             ethClkEn    => ethClkEn,

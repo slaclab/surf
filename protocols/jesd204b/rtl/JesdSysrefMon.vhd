@@ -115,7 +115,7 @@ begin
 
       end if;
 
-      -- Check for reseting statistics
+      -- Check for resetting statistics
       if (clr = '1') then
          v := REG_INIT_C;
       end if;

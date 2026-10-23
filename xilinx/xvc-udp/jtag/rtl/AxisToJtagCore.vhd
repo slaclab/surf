@@ -76,7 +76,7 @@ use surf.AxiStreamPkg.all;
 --                    the return stream truncated as well). If TLAST is asserted
 --                    after the announced number of bits then the excess words are
 --                    discarded.
---                    If the TLAST_IGNORE_G generic is true the the behavior is
+--                    If the TLAST_IGNORE_G generic is true the behavior is
 --                    changed and no data are discarded if TLAST is missing (an early
 --                    TLAST still leads to truncated data).
 --                    This TLAST_IGNORE_G allows the core to be used with implicit

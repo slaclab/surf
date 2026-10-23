@@ -22,18 +22,24 @@ use surf.EthMacPkg.all;
 
 entity IpV4Engine is
    generic (
-      TPD_G           : time            := 1 ns;  -- Simulation parameter only
-      PROTOCOL_SIZE_G : positive        := 1;  -- Default to 1x protocol
-      PROTOCOL_G      : Slv8Array       := (0 => UDP_C);  -- Default to UDP protocol
-      CLIENT_SIZE_G   : positive        := 1;  -- Sets the number of attached client engines
-      CLK_FREQ_G      : real            := 156.25E+06;    -- In units of Hz
-      TTL_G           : slv(7 downto 0) := x"20";
-      IGMP_G          : boolean         := false;
-      IGMP_GRP_SIZE   : positive        := 1);
+      TPD_G           : time                  := 1 ns;  -- Simulation parameter only
+      RST_POLARITY_G  : sl                    := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G     : boolean               := false;
+      PROTOCOL_SIZE_G : positive              := 1;  -- Default to 1x protocol
+      PROTOCOL_G      : Slv8Array             := (0 => UDP_C);  -- Default to UDP protocol
+      CLIENT_SIZE_G   : positive              := 1;  -- Sets the number of attached client engines
+      CLK_FREQ_G      : real                  := 156.25E+06;  -- In units of Hz
+      TTL_G           : slv(7 downto 0)       := x"20";
+      DSCP_G          : natural range 0 to 63 := 0;
+      ECN_G           : slv(1 downto 0)       := "00";
+      IGMP_G          : boolean               := false;
+      IGMP_GRP_SIZE   : positive              := 1);
    port (
       -- Local Configurations
-      localMac          : in  slv(47 downto 0);   --  big-Endian configuration
-      localIp           : in  slv(31 downto 0);   --  big-Endian configuration
+      localMac          : in  slv(47 downto 0);  --  big-Endian configuration
+      localIp           : in  slv(31 downto 0);  --  big-Endian configuration
+      ecn               : in  slv(1 downto 0) := ECN_G;  -- runtime IP-header ECN field (defaults to ECN_G)
+      dscp              : in  slv(5 downto 0) := toSlv(DSCP_G, 6);  -- runtime IP-header DSCP field (defaults to DSCP_G)
       igmpIp            : in  Slv32Array(IGMP_GRP_SIZE-1 downto 0);  --  big-Endian configuration
       -- Interface to Ethernet Media Access Controller (MAC)
       obMacMaster       : in  AxiStreamMasterType;
@@ -96,7 +102,9 @@ begin
 
    U_EthFrameDeMux : entity surf.IpV4EngineDeMux
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          -- Local Configurations
          localMac     => localMac,
@@ -114,8 +122,10 @@ begin
 
    U_EthFrameMux : entity surf.AxiStreamMux
       generic map (
-         TPD_G        => TPD_G,
-         NUM_SLAVES_G => 2)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         NUM_SLAVES_G   => 2)
       port map (
          -- Clock and reset
          axisClk         => clk,
@@ -131,9 +141,11 @@ begin
 
    U_ArpEngine : entity surf.ArpEngine
       generic map (
-         TPD_G         => TPD_G,
-         CLIENT_SIZE_G => CLIENT_SIZE_G,
-         CLK_FREQ_G    => CLK_FREQ_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G,
+         CLIENT_SIZE_G  => CLIENT_SIZE_G,
+         CLK_FREQ_G     => CLK_FREQ_G)
       port map (
          -- Local Configurations
          localMac      => localMac,
@@ -155,6 +167,8 @@ begin
    U_IpV4EngineRx : entity surf.IpV4EngineRx
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C)
       port map (
@@ -173,12 +187,18 @@ begin
    U_IpV4EngineTx : entity surf.IpV4EngineTx
       generic map (
          TPD_G           => TPD_G,
+         RST_POLARITY_G  => RST_POLARITY_G,
+         RST_ASYNC_G     => RST_ASYNC_G,
          PROTOCOL_SIZE_G => PROTOCOL_SIZE_C,
          PROTOCOL_G      => PROTOCOL_C,
+         DSCP_G          => DSCP_G,
+         ECN_G           => ECN_G,
          TTL_G           => TTL_G)
       port map (
          -- Local Configurations
          localMac          => localMac,
+         ecn               => ecn,
+         dscp              => dscp,
          -- Interface to Ethernet Frame MUX/DEMUX
          obIpv4Master      => obIpv4Master,
          obIpv4Slave       => obIpv4Slave,
@@ -193,7 +213,9 @@ begin
 
    U_IcmpEngine : entity surf.IcmpEngine
       generic map (
-         TPD_G => TPD_G)
+         TPD_G          => TPD_G,
+         RST_POLARITY_G => RST_POLARITY_G,
+         RST_ASYNC_G    => RST_ASYNC_G)
       port map (
          -- Local Configurations
          localIp      => localIp,
@@ -209,9 +231,11 @@ begin
    GEN_IGMP : if (IGMP_G = true) generate
       U_IgmpV2Engine : entity surf.IgmpV2Engine
          generic map (
-            TPD_G         => TPD_G,
-            IGMP_GRP_SIZE => IGMP_GRP_SIZE,
-            CLK_FREQ_G    => CLK_FREQ_G)
+            TPD_G          => TPD_G,
+            RST_POLARITY_G => RST_POLARITY_G,
+            RST_ASYNC_G    => RST_ASYNC_G,
+            IGMP_GRP_SIZE  => IGMP_GRP_SIZE,
+            CLK_FREQ_G     => CLK_FREQ_G)
          port map (
             -- Local Configurations
             localIp      => localIp,

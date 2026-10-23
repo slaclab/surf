@@ -380,7 +380,7 @@ begin
             end if;
           end if;
         end if;
-        -- Risinge edge
+        -- Rising edge
         if (not r.scl and v.scl) = '1' then
           if (r.i2caddr or not r.ahbacc) = '1' then
             if r.sda = I2C_ACK then

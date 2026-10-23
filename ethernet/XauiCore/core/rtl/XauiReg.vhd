@@ -178,12 +178,12 @@ begin
          --axiSlaveRegister(regCon, x"210", 0, v.config.macConfig.txShift);
          --axiSlaveRegister(regCon, x"214", 0, v.config.macConfig.txShiftEn);
          --axiSlaveRegister(regCon, x"218", 0, v.config.macConfig.interFrameGap);
-         axiSlaveRegister(regCon, x"21C", 0, v.config.macConfig.pauseTime);
+         axiSlaveRegisterR(regCon, x"21C", 0, r.config.macConfig.pauseTime);
 
          --axiSlaveRegister(regCon, x"220", 0, v.config.macConfig.rxShift);
          --axiSlaveRegister(regCon, x"224", 0, v.config.macConfig.rxShiftEn);
-         axiSlaveRegister(regCon, x"228", 0, v.config.macConfig.filtEnable);
-         axiSlaveRegister(regCon, x"22C", 0, v.config.macConfig.pauseEnable);
+         axiSlaveRegisterR(regCon, x"228", 0, r.config.macConfig.filtEnable);
+         axiSlaveRegisterR(regCon, x"22C", 0, r.config.macConfig.pauseEnable);
 
          axiSlaveRegister(regCon, x"230", 0, v.config.configVector);
 

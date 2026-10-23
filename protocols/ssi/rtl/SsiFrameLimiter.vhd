@@ -27,6 +27,7 @@ use surf.SsiPkg.all;
 entity SsiFrameLimiter is
    generic (
       TPD_G               : time     := 1 ns;
+      RST_POLARITY_G      : sl       := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
       RST_ASYNC_G         : boolean  := false;
       EN_TIMEOUT_G        : boolean  := true;
       MAXIS_CLK_FREQ_G    : real     := 156.25E+06;  -- In units of Hz
@@ -90,6 +91,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             READY_EN_G          => true,
             -- AXI Stream Port Configurations
@@ -112,6 +114,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => SLAVE_READY_EN_G,
@@ -237,7 +240,7 @@ begin
       rxSlave <= v.rxSlave;
 
       -- Reset
-      if (RST_ASYNC_G = false and mAxisRst = '1') then
+      if (RST_ASYNC_G = false and mAxisRst = RST_POLARITY_G) then
          v := REG_INIT_C;
       end if;
 
@@ -251,7 +254,7 @@ begin
 
    seq : process (mAxisClk, mAxisRst) is
    begin
-      if (RST_ASYNC_G) and (mAxisRst = '1') then
+      if (RST_ASYNC_G) and (mAxisRst = RST_POLARITY_G) then
          r <= REG_INIT_C after TPD_G;
       elsif rising_edge(mAxisClk) then
          r <= rin after TPD_G;
@@ -268,6 +271,7 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
             RST_ASYNC_G         => RST_ASYNC_G,
             PIPE_STAGES_G       => 0,
             SLAVE_READY_EN_G    => true,

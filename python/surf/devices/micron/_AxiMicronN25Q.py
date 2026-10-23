@@ -43,6 +43,7 @@ class AxiMicronN25Q(pr.Device):
         ##############################
         self.add(pr.RemoteVariable(
             name        = 'PasswordLock',
+            description = 'Password protection lock register',
             offset      = 0x00,
             base        = pr.UInt,
             bitSize     = 32,
@@ -56,6 +57,7 @@ class AxiMicronN25Q(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'ModeReg',
+            description = 'SPI flash address mode selection register (3-byte or 4-byte)',
             offset      = 0x04,
             base        = pr.UInt,
             bitSize     = 32,
@@ -69,6 +71,7 @@ class AxiMicronN25Q(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'AddrReg',
+            description = 'Flash address register for read/write/erase operations',
             offset      = 0x08,
             base        = pr.UInt,
             bitSize     = 32,
@@ -82,6 +85,7 @@ class AxiMicronN25Q(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'CmdReg',
+            description = 'SPI flash command register for sending opcodes',
             offset      = 0x0C,
             base        = pr.UInt,
             bitSize     = 32,
@@ -95,6 +99,7 @@ class AxiMicronN25Q(pr.Device):
 
         self.add(pr.RemoteVariable(
             name        = 'DataReg',
+            description = 'Burst data buffer (64 x 32-bit words) for block flash transfers',
             offset      = 0x200,
             base        = pr.UInt,
             bitSize     = 32*64,
@@ -169,7 +174,7 @@ class AxiMicronN25Q(pr.Device):
             value       = '',
         ))
 
-    def _LoadMcsFile(self,arg):
+    def _LoadMcsFile(self,arg,iprogPrint=True):
         # arg = value
 
         click.secho( f'{self.path}.LoadMcsFile: {arg}', fg='green')
@@ -207,17 +212,18 @@ class AxiMicronN25Q(pr.Device):
 
         # Add a power cycle reminder
         self._progDone = True
-        click.secho(
-            "\n\n\
-            ***************************************************\n\
-            ***************************************************\n\
-            The MCS data has been written into the PROM.       \n\
-            To reprogram the FPGA with the new PROM data,      \n\
-            a IPROG CMD or power cycle is be required.\n\
-            ***************************************************\n\
-            ***************************************************\n\n"
-            , bg='green',
-        )
+        if iprogPrint:
+            click.secho(
+                "\n\n\
+                ***************************************************\n\
+                ***************************************************\n\
+                The MCS data has been written into the PROM.       \n\
+                To reprogram the FPGA with the new PROM data,      \n\
+                a IPROG CMD or power cycle is be required.\n\
+                ***************************************************\n\
+                ***************************************************\n\n"
+                , bg='green',
+            )
 
     def eraseProm(self):
         # Set the starting address index

@@ -25,6 +25,8 @@ use surf.EthMacPkg.all;
 entity EthMacRxFifo is
    generic (
       TPD_G             : time                   := 1 ns;
+      RST_POLARITY_G    : sl                     := '1';  -- '1' for active HIGH reset, '0' for active LOW reset
+      RST_ASYNC_G       : boolean                := false;
       SYNTH_MODE_G      : string                 := "inferred";
       MEMORY_TYPE_G     : string                 := "block";
       DROP_ERR_PKT_G    : boolean                := true;
@@ -89,6 +91,8 @@ begin
       generic map (
          -- General Configurations
          TPD_G               => TPD_G,
+         RST_POLARITY_G      => RST_POLARITY_G,
+         RST_ASYNC_G         => RST_ASYNC_G,
          INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
          PIPE_STAGES_G       => PIPE_STAGES_G,
          SLAVE_READY_EN_G    => false,
@@ -124,6 +128,8 @@ begin
          generic map (
             -- General Configurations
             TPD_G               => TPD_G,
+            RST_POLARITY_G      => RST_POLARITY_G,
+            RST_ASYNC_G         => RST_ASYNC_G,
             INT_PIPE_STAGES_G   => INT_PIPE_STAGES_G,
             PIPE_STAGES_G       => PIPE_STAGES_G,
             SLAVE_READY_EN_G    => false,
@@ -171,7 +177,7 @@ begin
       rxFifoDrop <= r.rxFifoDrop;
 
       -- Reset
-      if (sRst = '1') or (phyReady = '0') then
+      if (RST_ASYNC_G = false and sRst = RST_POLARITY_G) or (phyReady = '0') then
          v := REG_INIT_C;
       end if;
 
@@ -180,9 +186,11 @@ begin
 
    end process comb;
 
-   seq : process (sClk) is
+   seq : process (sClk, sRst) is
    begin
-      if rising_edge(sClk) then
+      if (RST_ASYNC_G and sRst = RST_POLARITY_G) then
+         r <= REG_INIT_C after TPD_G;
+      elsif rising_edge(sClk) then
          r <= rin after TPD_G;
       end if;
    end process seq;

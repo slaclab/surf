@@ -260,7 +260,10 @@ begin
 
 
          when WAIT_ADDR_ACK_S =>
-            v.timer := r.timer + 1;
+            -- Saturate the timer to prevent an out of range value
+            if (r.timer /= TIMEOUT_C) then
+               v.timer := r.timer + 1;
+            end if;
 
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
                if (byteCtrlOut.ackOut = '0') then  -- Slave ack'd the transfer
@@ -302,7 +305,10 @@ begin
 
 
          when WAIT_READ_DATA_S =>
-            v.timer := r.timer + 1;
+            -- Saturate the timer to prevent an out of range value
+            if (r.timer /= TIMEOUT_C) then
+               v.timer := r.timer + 1;
+            end if;
 
             v.byteCtrlIn.stop  := r.byteCtrlIn.stop;  -- Hold stop or it wont get seen
             v.byteCtrlIn.ackIn := r.byteCtrlIn.ackIn;  -- This too
@@ -331,7 +337,10 @@ begin
             end if;
 
          when WAIT_WRITE_ACK_S =>
-            v.timer := r.timer + 1;
+            -- Saturate the timer to prevent an out of range value
+            if (r.timer /= TIMEOUT_C) then
+               v.timer := r.timer + 1;
+            end if;
 
             v.byteCtrlIn.stop := r.byteCtrlIn.stop;
             if (byteCtrlOut.cmdAck = '1') then     -- Master sent the command
@@ -342,7 +351,7 @@ begin
                      v.i2cMasterOut.txnError := '0';  -- Necessary, should already be 0?
                      v.state                 := WAIT_TXN_REQ_S;
                   else
-                     -- If not last byte, write nother
+                     -- If not last byte, write another
                      v.state := WRITE_S;
                   end if;
                else

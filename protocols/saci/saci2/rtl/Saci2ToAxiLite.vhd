@@ -56,6 +56,7 @@ architecture mapping of Saci2ToAxiLite is
    -- SACI Slave parallel interface
    signal exec   : sl;
    signal ack    : sl;
+   signal resp   : sl;
    signal readL  : sl;
    signal addr   : slv(29 downto 0);
    signal wrData : slv(31 downto 0);
@@ -78,6 +79,7 @@ begin
          rstInL   => rstInL,            -- [in]
          exec     => exec,              -- [out]
          ack      => ack,               -- [in]
+         resp     => resp,              -- [in]
          readL    => readL,             -- [out]
          addr     => addr,              -- [out]
          wrData   => wrData,            -- [out]
@@ -133,6 +135,7 @@ begin
    -- By the time axilAck.done gets synced to ack
    ------------------------------------------------------
    rdData <= axilAck.rdData;
+   resp   <= uOr(axilAck.resp);         -- OR the bits together
 
    U_AxiLiteMaster_1 : entity surf.AxiLiteMaster
       generic map (

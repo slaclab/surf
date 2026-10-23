@@ -121,7 +121,7 @@ begin
             v.master.awvalid := '0';
             v.dataReq        := '0';
 
-            -- Aribrate between requesters
+            -- Arbitrate between requesters
             if r.addrValid = '0' then
                arbitrate(addrRequests, r.addrAckNum, v.addrAckNum, v.addrValid, v.addrAcks);
             end if;
@@ -216,7 +216,7 @@ begin
                end if;
             end if;
 
-         -- Laster transfer
+         -- Last transfer
          when S_LAST_C =>
             if mAxiWriteSlave.wready = '1' then
                v.master.wvalid := '0';

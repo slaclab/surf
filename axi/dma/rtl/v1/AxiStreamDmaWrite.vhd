@@ -352,7 +352,7 @@ begin
             if (v.wMaster.awvalid = '0') then
                -- Set the memory address
                v.wMaster.awaddr(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0) := r.dmaReq.address(AXI_CONFIG_G.ADDR_WIDTH_C-1 downto 0);
-               -- Bursts after the FIRST are garunteed to be aligned.
+               -- Bursts after the FIRST are guaranteed to be aligned.
                v.wMaster.awlen                                        := AWLEN_C;
                if r.dmaReq.maxSize(31 downto ADDR_LSB_C) < v.wMaster.awlen then
                   v.wMaster.awlen := resize(r.dmaReq.maxSize(ADDR_LSB_C+AXI_CONFIG_G.LEN_BITS_C-1 downto ADDR_LSB_C)-1, 8);
