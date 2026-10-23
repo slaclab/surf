@@ -95,62 +95,70 @@ class _Regs(pr.Device):
             if transaction is None:
                 return
             with self._memLock, transaction.lock():
-                #tranId = transaction.id()
-                #print(f'Woke the pollWorker with id: {tranId}')
+                try:
+                    self._proxyTransaction(transaction)
+                except Exception as e:
+                    # Fail only this transaction. An exception leaving this block
+                    # would end the worker and time out every later proxy access
+                    transaction.error(f'AxiLiteMasterProxy transaction failed: {type(e).__name__}: {e}')
 
-                # Get the transaction address and write it to the proxy address register
-                addr = transaction.address()
-                #print('Writing address')
-                self.Addr.set(addr, write=True)
-                #print(f'Wrote address {addr:x}')
+    def _proxyTransaction(self, transaction):
+        #tranId = transaction.id()
+        #print(f'Woke the pollWorker with id: {tranId}')
 
-                if transaction.type() == rogue.interfaces.memory.Write:
-                    # Convert data bytes to int and write data to proxy register
-                    dataBa = bytearray(4)
-                    transaction.getData(dataBa, 0)
-                    data = int.from_bytes(dataBa, 'little', signed=False)
-                    self.Data.set(data, write=True)
-                    #print(f'Wrote data {data:x}')
+        # Get the transaction address and write it to the proxy address register
+        addr = transaction.address()
+        #print('Writing address')
+        self.Addr.set(addr, write=True)
+        #print(f'Wrote address {addr:x}')
 
-                    # Kick off the proxy transaction
-                    self.Rnw.setDisp('Write', write=True)
-                    #print(f'Started write transaction: {tranId}')
+        if transaction.type() == rogue.interfaces.memory.Write:
+            # Convert data bytes to int and write data to proxy register
+            dataBa = bytearray(4)
+            transaction.getData(dataBa, 0)
+            data = int.from_bytes(dataBa, 'little', signed=False)
+            self.Data.set(data, write=True)
+            #print(f'Wrote data {data:x}')
 
-                elif (transaction.type() == rogue.interfaces.memory.Read) or (transaction.type() == rogue.interfaces.memory.Verify):
+            # Kick off the proxy transaction
+            self.Rnw.setDisp('Write', write=True)
+            #print(f'Started write transaction: {tranId}')
 
-                    # Kick off the read proxy txn
-                    self.Rnw.setDisp('Read', write=True)
-                    #print(f'Started read transaction: {tranId}')
+        elif (transaction.type() == rogue.interfaces.memory.Read) or (transaction.type() == rogue.interfaces.memory.Verify):
 
-                else:
-                    # Post transactions not allowed
-                    transaction.error(f'Unsupported transaction type {transaction.type()}')
-                    return
+            # Kick off the read proxy txn
+            self.Rnw.setDisp('Read', write=True)
+            #print(f'Started read transaction: {tranId}')
 
-                # Poll done register
-                # Probably need some timeout here
-                done = False
-                while done is False:
-                    done = self.Done.get(read=True)
-                    #print(f'Polled done: {done}')
-                    time.sleep(self._pollPeriod)
+        else:
+            # Post transactions not allowed
+            transaction.error(f'Unsupported transaction type {transaction.type()}')
+            return
 
-                # Check for error flags
-                resp = self.Resp.get(read=True)
-                #print(f'Resp: {resp}')
-                if resp != 0:
-                    transaction.error(f'AXIL transaction failed with RESP: {resp}')
+        # Poll done register
+        # Probably need some timeout here
+        done = False
+        while done is False:
+            done = self.Done.get(read=True)
+            #print(f'Polled done: {done}')
+            time.sleep(self._pollPeriod)
 
-                # Finish the transaction
-                elif self.Rnw.valueDisp() == 'Write':
-                    transaction.done()
-                else:
-                    data = self.Data.get(read=True)
-                    #print(f'Got read data: {data:x}')
-                    dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
-                    #print(dataBa)
-                    transaction.setData(dataBa, 0)
-                    transaction.done()
+        # Check for error flags
+        resp = self.Resp.get(read=True)
+        #print(f'Resp: {resp}')
+        if resp != 0:
+            transaction.error(f'AXIL transaction failed with RESP: {resp}')
+
+        # Finish the transaction
+        elif self.Rnw.valueDisp() == 'Write':
+            transaction.done()
+        else:
+            data = self.Data.get(read=True)
+            #print(f'Got read data: {data:x}')
+            dataBa = bytearray(data.to_bytes(4, 'little', signed=False))
+            #print(dataBa)
+            transaction.setData(dataBa, 0)
+            transaction.done()
 
 
     def _stop(self):
