@@ -43,6 +43,11 @@ _SMALL_CHANGE_PPM = 3500
 _POLL_PERIOD  = 0.001
 _POLL_TIMEOUT = 1.0
 
+# A NewFreq that arrives more than 10 ms after unfreeze reverts the part to
+# its factory configuration without any error, so a large change is read back
+# and reapplied up to this many times
+_APPLY_ATTEMPTS = 3
+
 class Si570(pr.Device):
     """PyRogue model for the Si570 I2C programmable XO.
 
@@ -79,7 +84,9 @@ class Si570(pr.Device):
     A request within +/-3500 ppm of the center frequency (the last NewFreq or
     RECALL) that the current dividers can reach only retunes RFREQ under
     Freeze M, so the output changes without stopping. Larger changes use the
-    full freeze, write, unfreeze and NewFreq sequence.
+    full freeze, write, unfreeze and NewFreq sequence, with the unfreeze and
+    NewFreq writes queued back to back, then read back registers 7-12 and
+    reapply if the part reverted to its factory configuration.
 
     Registers 7-12 are excluded from bulk register writes. A bulk write such
     as ``WriteAll`` or ``LoadConfig`` that changes them is applied with the
@@ -217,24 +224,7 @@ class Si570(pr.Device):
                     if bit is not cmd and bit.value():
                         bit.set(0, write=False)
                 cmd.set(1)
-
-                # The device clears the bit on completion, and the readback
-                # also refreshes the cached copy of register 135
-                deadline = time.monotonic() + _POLL_TIMEOUT
-                while True:
-                    try:
-                        busy = cmd.get(read=True)
-                    except rogue.GeneralError:
-                        # RST_REG interrupts the I2C state machine, so reads
-                        # fail until the internal reset completes
-                        if not i2c_reset or time.monotonic() > deadline:
-                            raise
-                        busy = True
-                    if not busy:
-                        break
-                    if time.monotonic() > deadline:
-                        raise TimeoutError(f'{cmd.path} did not self-clear within {_POLL_TIMEOUT} s')
-                    time.sleep(_POLL_PERIOD)
+                self._waitSelfClear(cmd, i2c_reset)
             finally:
                 # Keep a later bulk write from replaying an incomplete pulse
                 if cmd.value():
@@ -432,33 +422,82 @@ class Si570(pr.Device):
             self.verifyBlocks(recurse=False, variable=v)
         self.waitBlocks(recurse=False)
 
+    def _waitSelfClear(self, cmd: pr.RemoteCommand, i2c_reset: bool = False) -> None:
+        """Poll a self-clearing register 135 bit until the device clears it."""
+        # The readback also refreshes the cached copy of register 135
+        deadline = time.monotonic() + _POLL_TIMEOUT
+        while True:
+            try:
+                busy = cmd.get(read=True)
+            except rogue.GeneralError:
+                # RST_REG interrupts the I2C state machine, so reads
+                # fail until the internal reset completes
+                if not i2c_reset or time.monotonic() > deadline:
+                    raise
+                busy = True
+            if not busy:
+                return
+            if time.monotonic() > deadline:
+                raise TimeoutError(f'{cmd.path} did not self-clear within {_POLL_TIMEOUT} s')
+            time.sleep(_POLL_PERIOD)
+
+    def _unfreezeAndNewFreq(self) -> None:
+        """Unfreeze the DCO and assert NewFreq within the 10 ms datasheet limit."""
+        # Queue both writes before waiting on either. A wait in between lets
+        # other traffic on a shared I2C bridge (one QSFP ReadDevice through
+        # AxiLiteMasterProxy is ~25 ms) delay NewFreq past the limit
+        for bit in (self.RST_REG, self.RECALL):
+            if bit.value():
+                bit.set(0, write=False)
+        self.FreezeDCO.set(0, write=False)
+        self.NewFreq.set(1, write=False)
+        try:
+            pr.Device.writeBlocks(self, force=True, recurse=False, variable=self.FreezeDCO)
+            pr.Device.writeBlocks(self, force=True, recurse=False, variable=self.NewFreq)
+            self.waitBlocks(recurse=False)
+            self._waitSelfClear(self.NewFreq)
+        finally:
+            # Keep a later bulk write from replaying an incomplete pulse
+            if self.NewFreq.value():
+                self.NewFreq.set(0, write=False)
+
     def _applyConfig(self) -> None:
         """Write the cached registers 7-12 with the datasheet large-change sequence."""
+        staged = [v.value() for v in self._configVars()]
         self._applying = True
         try:
-            # Freeze, refreshing the cached reserved bits of register 137 first
-            self.FreezeDCO.get(read=True)
-            self.FreezeDCO.set(1, write=True)
+            for attempt in range(1, _APPLY_ATTEMPTS + 1):
+                # Freeze, refreshing the cached reserved bits of register 137 first
+                self.FreezeDCO.get(read=True)
+                self.FreezeDCO.set(1, write=True)
 
-            # Write new config
-            try:
-                self._writeConfigRegs(self._configVars())
-            except Exception:
-                # A frozen DCO with new dividers outputs a wrong frequency that
-                # nothing reports. Unfreeze and apply what the registers now hold
-                # so the output matches them, then report the original error
+                # Write new config
                 try:
-                    self.FreezeDCO.set(0, write=True)
-                    self.NewFreq()
-                except Exception as e:
-                    self._log.error(f'{self.path}: recovery after a failed configuration write also failed: {e}')
-                raise
+                    self._writeConfigRegs(self._configVars())
+                except Exception:
+                    # A frozen DCO with new dividers outputs a wrong frequency that
+                    # nothing reports. Unfreeze and apply what the registers now hold
+                    # so the output matches them, then report the original error
+                    try:
+                        self._unfreezeAndNewFreq()
+                    except Exception as e:
+                        self._log.error(f'{self.path}: recovery after a failed configuration write also failed: {e}')
+                    raise
 
-            # Unfreeze
-            self.FreezeDCO.set(0, write=True)
+                self._unfreezeAndNewFreq()
 
-            # NewFreq
-            self.NewFreq()
+                hw = self._readHwConfig()
+                if hw == staged:
+                    break
+                self._centerFdco = None
+                self._log.warning(f'{self.path}: registers 7-12 reverted to {[hex(x) for x in hw]} after NewFreq '
+                                  f'(attempt {attempt} of {_APPLY_ATTEMPTS})')
+            else:
+                # Leave the cache describing what the part now runs
+                for v in self._configVars():
+                    v.get(read=True)
+                raise RuntimeError(f'{self.path}: configuration did not take after {_APPLY_ATTEMPTS} attempts; '
+                                   f'the part reverted to {[hex(x) for x in hw]}')
 
             if self.fxtal.value() != 0.0:
                 self._centerFdco = self.fxtal.value() * self.RFREQ.value()

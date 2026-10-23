@@ -37,10 +37,16 @@
 #   nothing; small changes write only RFREQ under Freeze M without NewFreq
 #   and fall back to the full sequence if the part changed behind the
 #   driver; bulk writes apply a changed configuration with the full sequence,
-#   skip an unchanged one and never write an invalid (unread) cache.
+#   skip an unchanged one and never write an invalid (unread) cache; NewFreq
+#   is queued before the unfreeze write completes; a configuration that
+#   reverts to factory after a late NewFreq is reapplied, and raises once the
+#   attempts run out.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
+
+import threading
+import time
 
 import pytest
 
@@ -101,6 +107,13 @@ class Si570Memory(rim.Slave):
         self.writes = []
         # Register reads (including verify) that fail once each, by register
         self.failReads = {}
+        # NewFreq writes that arrive after the 10 ms unfreeze timeout, which
+        # reverts the part to its factory configuration
+        self.lateNewFreqs = 0
+        # Complete the DCO unfreeze write this many seconds after it arrives
+        self.unfreezeDelay = 0.0
+        self.unfreezeDoneAt = None
+        self.newFreqAt = None
 
         # fxtal implied by the factory configuration
         hsDiv, n1, rfreq = decode(self.nvm)
@@ -132,9 +145,16 @@ class Si570Memory(rim.Slave):
                     if value & RST_REG:
                         self.i2cResetReads = self.resetNacks
                     if value & NEW_FREQ:
+                        self.newFreqAt = time.monotonic()
                         self.newFreqs.append(bool(self.reg137 & FREEZE_DCO))
+                        if self.lateNewFreqs:
+                            self.lateNewFreqs -= 1
+                            self.config = list(self.nvm)
                 elif reg == 137:
                     self.reg137 = value
+                    if self.unfreezeDelay and not value & FREEZE_DCO:
+                        threading.Timer(self.unfreezeDelay, self._completeUnfreeze, args=(transaction,)).start()
+                        return
                 else:
                     if not self.reg137 & FREEZE_DCO:
                         if self.reg135 & FREEZE_M:
@@ -161,6 +181,11 @@ class Si570Memory(rim.Slave):
                 else:
                     value = self.config[reg - 7]
                 transaction.setData(bytes([value, 0, 0, 0]), 0)
+            transaction.done()
+
+    def _completeUnfreeze(self, transaction):
+        with transaction.lock():
+            self.unfreezeDoneAt = time.monotonic()
             transaction.done()
 
 
@@ -207,6 +232,55 @@ def test_frequency_update_sequence(si570_root):
     assert writes[unfreeze + 1:] == [(135, NEW_FREQ)]
     assert memory.newFreqs == [False]
     assert memory.unfrozenConfigWrites == []
+
+
+def test_new_freq_is_queued_before_unfreeze_completes(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+
+    # On a shared I2C bridge the unfreeze write can wait behind other traffic;
+    # NewFreq must already be queued behind it rather than issued after it
+    memory.unfreezeDelay = 0.05
+    si570.Frequency.set(200.0)
+
+    assert memory.newFreqAt < memory.unfreezeDoneAt
+    assert memory.output() == pytest.approx(200.0, rel=1e-9)
+
+
+def test_reverted_configuration_is_reapplied(si570_root, caplog):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    memory.newFreqs.clear()
+
+    memory.lateNewFreqs = 2
+    with caplog.at_level('WARNING'):
+        si570.Frequency.set(200.0)
+
+    assert memory.newFreqs == [False] * 3
+    assert memory.output() == pytest.approx(200.0, rel=1e-9)
+    assert caplog.text.count('reverted') == 2
+
+    # The center frequency is the applied one, so a small change stays glitch-free
+    memory.newFreqs.clear()
+    si570.Frequency.set(200.0 * (1 + 1000e-6))
+    assert memory.newFreqs == []
+
+
+def test_persistent_revert_raises_and_leaves_cache_matching_part(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+
+    memory.lateNewFreqs = si570_module._APPLY_ATTEMPTS
+    with pytest.raises(Exception, match='did not take'):
+        si570.Frequency.set(200.0)
+
+    assert memory.config == DATASHEET_NVM
+    assert not memory.reg137 & FREEZE_DCO
+    assert [si570.Config[i].value() for i in range(7, 13)] == DATASHEET_NVM
+
+    # The next request programs normally
+    si570.Frequency.set(125.0)
+    assert memory.output() == pytest.approx(125.0, rel=1e-9)
 
 
 @pytest.mark.parametrize('ppm', [-1500, 0, 1000])
