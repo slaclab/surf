@@ -110,6 +110,16 @@ class _Regs(pr.Device):
 
         # Get the transaction address and write it to the proxy address register
         addr = transaction.address()
+
+        # The FW proxy ignores a new command while an earlier access is still in
+        # flight (for example one that timed out here), and that access's late
+        # completion would be taken as this transaction's result. Wait for it
+        deadline = time.monotonic() + self._timeout
+        while not self.Done.get(read=True):
+            if time.monotonic() > deadline:
+                raise TimeoutError(f'an earlier proxy access is still in flight; 0x{addr:x} not started')
+            time.sleep(self._pollPeriod)
+
         #print('Writing address')
         self.Addr.set(addr, write=True)
         #print(f'Wrote address {addr:x}')

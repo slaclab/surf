@@ -18,9 +18,14 @@
 #   forwards to a small downstream register map.
 # - Checks: Each failure is reported on that transaction only; the proxy
 #   worker thread stays alive and the next proxied access succeeds; a
-#   transaction that never completes times out; the worker is a daemon.
+#   transaction that never completes times out; the late completion of a
+#   timed-out access is never taken as the next transaction's result; the
+#   worker is a daemon.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout, so a
 #   dead worker shows up as a timeout instead of a hang.
+
+import threading
+import time
 
 import pytest
 
@@ -39,7 +44,8 @@ class ProxyMemory(rim.Slave):
     def __init__(self):
         super().__init__(4, 4)
         self.regs = {0x0: 0, 0x8: 0, 0xC: 0}
-        self.done = 0
+        self.done = 1             # Done resets to 1 in the RTL
+        self.stuck = False
         self.resp = 0
         self.downstream = {}
         self.staleAddrReads = 0   # Addr readbacks that return the previous value
@@ -69,8 +75,13 @@ class ProxyMemory(rim.Slave):
                         else:
                             self.downstream[self.regs[0x8]] = self.regs[0xC]
                     self.done = 0 if self.neverDone else 1
+                    self.stuck = self.neverDone
             else:
                 if addr == 0x4:
+                    # A stuck access completes late once neverDone is cleared
+                    if self.stuck and not self.neverDone:
+                        self.stuck = False
+                        self.done = 1
                     value = (self.resp << 1) | self.done
                 elif addr == 0x8 and self.staleAddrReads > 0:
                     self.staleAddrReads -= 1
@@ -81,10 +92,66 @@ class ProxyMemory(rim.Slave):
             transaction.done()
 
 
+class BusyProxyMemory(rim.Slave):
+    """Proxy window that behaves like AxiLiteMasterProxy.vhd while busy.
+
+    A downstream access takes latency[addr] seconds. Writing Rnw starts one
+    only when idle (READY); while busy the command is ignored, and the late
+    completion sets Done and Data as the RTL does.
+    """
+
+    def __init__(self):
+        super().__init__(4, 4)
+        self.lock = threading.Lock()
+        self.rnw = 0
+        self.addr = 0
+        self.data = 0
+        self.done = 1
+        self.busy = None
+        self.latency = {}
+        self.downstream = {}
+        self.ignored = 0
+
+    def _update(self):
+        if self.busy and time.monotonic() >= self.busy[0]:
+            _, rnw, addr, wrData = self.busy
+            if rnw:
+                self.data = self.downstream.get(addr, 0)
+            else:
+                self.downstream[addr] = wrData
+            self.done, self.busy = 1, None
+
+    def _doTransaction(self, transaction):
+        with transaction.lock(), self.lock:
+            self._update()
+            addr = transaction.address()
+            if transaction.type() in (rim.Write, rim.Post):
+                data = bytearray(4)
+                transaction.getData(data, 0)
+                value = int.from_bytes(data, 'little')
+                if addr == 0x0:
+                    self.rnw = value & 1
+                    if self.busy is None:
+                        self.busy = (time.monotonic() + self.latency.get(self.addr, 0.0), value & 1, self.addr, self.data)
+                        self.done = 0
+                        self._update()
+                    else:
+                        self.ignored += 1
+                elif addr == 0x8:
+                    self.addr = value
+                elif addr == 0xC:
+                    self.data = value
+            else:
+                value = {0x0: self.rnw, 0x4: self.done, 0x8: self.addr, 0xC: self.data}.get(addr, 0)
+                transaction.setData(value.to_bytes(4, 'little'), 0)
+            transaction.done()
+
+
 class Target(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.add(pr.RemoteVariable(name='Reg', offset=0x0, bitSize=32, mode='RW'))
+        self.add(pr.RemoteVariable(name='Reg2', offset=0x4, bitSize=32, mode='RW'))
 
 
 @pytest.fixture
@@ -156,3 +223,27 @@ def test_stuck_downstream_transaction_times_out(proxy_root):
 def test_proxy_worker_is_daemon(proxy_root):
     root, _ = proxy_root
     assert root.Proxy.Regs._pollThread.daemon
+
+
+def test_late_completion_after_timeout_is_not_taken_as_next_result():
+    memory = BusyProxyMemory()
+    root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=2.0)
+    root.add(AxiLiteMasterProxy(name='Proxy', memBase=memory, timeout=0.1))
+    root.Proxy.add(Target(name='Target', offset=TARGET_ADDR))
+    root.start()
+    try:
+        target = root.Proxy.Target
+        target.Reg.set(0xAAAA_AAAA, write=True)
+        target.Reg2.set(0xBBBB_BBBB, write=True)
+
+        # The first read is still in flight when the proxy gives up on it
+        memory.latency = {TARGET_ADDR: 0.15}
+        with pytest.raises(rogue.GeneralError, match='no Done'):
+            target.Reg.get(read=True)
+        memory.latency = {}
+
+        # The next read must wait for it and return its own register
+        assert target.Reg2.get(read=True) == 0xBBBB_BBBB
+        assert memory.ignored == 0
+    finally:
+        root.stop()
