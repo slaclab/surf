@@ -15,13 +15,15 @@ import time
 import queue
 
 class _Regs(pr.Device):
-    def __init__(self, pollPeriod=0.0, **kwargs):
+    def __init__(self, pollPeriod=0.0, timeout=1.0, **kwargs):
         super().__init__(**kwargs)
 
         self._pollPeriod = pollPeriod
+        self._timeout = timeout
 
+        # Daemon so a Root that fails to start cannot hang the process on exit
         self._queue = queue.Queue()
-        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread = threading.Thread(target=self._pollWorker, daemon=True)
         self._pollThread.start()
 
         self.add(pr.RemoteVariable(
@@ -136,11 +138,13 @@ class _Regs(pr.Device):
             return
 
         # Poll done register
-        # Probably need some timeout here
+        deadline = time.monotonic() + self._timeout
         done = False
         while done is False:
             done = self.Done.get(read=True)
             #print(f'Polled done: {done}')
+            if not done and time.monotonic() > deadline:
+                raise TimeoutError(f'no Done within {self._timeout} s for address 0x{addr:x}')
             time.sleep(self._pollPeriod)
 
         # Check for error flags
@@ -178,7 +182,7 @@ class _ProxySlave(rogue.interfaces.memory.Slave):
 
 class AxiLiteMasterProxy(pr.Device):
 
-    def __init__(self, hidden=True, pollPeriod=0.0, **kwargs):
+    def __init__(self, hidden=True, pollPeriod=0.0, timeout=1.0, **kwargs):
         super().__init__(hidden=hidden, **kwargs)
 
         self.add(_Regs(
@@ -187,6 +191,7 @@ class AxiLiteMasterProxy(pr.Device):
             offset  = 0x0000,
             hidden  = hidden,
             pollPeriod = pollPeriod,
+            timeout    = timeout,
         ))
         self.proxy = _ProxySlave(self.Regs)
 

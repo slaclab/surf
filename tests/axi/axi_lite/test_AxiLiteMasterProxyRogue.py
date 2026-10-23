@@ -11,12 +11,14 @@
 # Test methodology:
 # - Sweep: Proxied reads and writes, then one failing transaction of each kind
 #   (a proxy register that fails verify, a downstream SLVERR, an unsupported
-#   Post transaction), each followed by a normal proxied access.
+#   Post transaction, a downstream access that never completes), each
+#   followed by a normal proxied access.
 # - Stimulus: Real Rogue transactions through the PyRogue AxiLiteMasterProxy
 #   against a simulated proxy register window (Rnw/Done/Resp/Addr/Data) that
 #   forwards to a small downstream register map.
 # - Checks: Each failure is reported on that transaction only; the proxy
-#   worker thread stays alive and the next proxied access succeeds.
+#   worker thread stays alive and the next proxied access succeeds; a
+#   transaction that never completes times out; the worker is a daemon.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout, so a
 #   dead worker shows up as a timeout instead of a hang.
 
@@ -42,6 +44,7 @@ class ProxyMemory(rim.Slave):
         self.downstream = {}
         self.staleAddrReads = 0   # Addr readbacks that return the previous value
         self.failNext = False     # next downstream transaction returns SLVERR
+        self.neverDone = False    # downstream transaction never completes
         self.prevAddr = 0
 
     def _doTransaction(self, transaction):
@@ -65,7 +68,7 @@ class ProxyMemory(rim.Slave):
                             self.regs[0xC] = self.downstream.get(self.regs[0x8], 0)
                         else:
                             self.downstream[self.regs[0x8]] = self.regs[0xC]
-                    self.done = 1
+                    self.done = 0 if self.neverDone else 1
             else:
                 if addr == 0x4:
                     value = (self.resp << 1) | self.done
@@ -88,7 +91,7 @@ class Target(pr.Device):
 def proxy_root():
     memory = ProxyMemory()
     root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=1.0)
-    root.add(AxiLiteMasterProxy(name='Proxy', memBase=memory))
+    root.add(AxiLiteMasterProxy(name='Proxy', memBase=memory, timeout=0.2))
     root.Proxy.add(Target(name='Target', offset=TARGET_ADDR))
     root.start()
     yield root, memory
@@ -137,3 +140,19 @@ def test_unsupported_post_keeps_worker_alive(proxy_root):
 
     assert root.Proxy.Regs._pollThread.is_alive()
     assert roundTrip(root, 0x5555_5555) == 0x5555_5555
+
+
+def test_stuck_downstream_transaction_times_out(proxy_root):
+    root, memory = proxy_root
+    memory.neverDone = True
+    with pytest.raises(rogue.GeneralError, match='no Done'):
+        root.Proxy.Target.Reg.get(read=True)
+
+    memory.neverDone = False
+    assert root.Proxy.Regs._pollThread.is_alive()
+    assert roundTrip(root, 0x6666_6666) == 0x6666_6666
+
+
+def test_proxy_worker_is_daemon(proxy_root):
+    root, _ = proxy_root
+    assert root.Proxy.Regs._pollThread.daemon

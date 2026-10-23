@@ -41,8 +41,9 @@ class _Regs(pr.Device):
 
         self._pollPeriod = pollPeriod
 
+        # Daemon so a Root that fails to start cannot hang the process on exit
         self._queue = queue.Queue()
-        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread = threading.Thread(target=self._pollWorker, daemon=True)
         self._pollThread.start()
 
         ####################################################################
