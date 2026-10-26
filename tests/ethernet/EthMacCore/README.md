@@ -114,8 +114,9 @@ the review. **High** denotes data integrity or sustained loss in an affected
 supported path; **Medium** a bounded functional/configuration failure; **Low**
 a diagnostic, startup or unusual-configuration issue. Priority also accounts
 for default-path exposure and strength of the reproducer. Keep these IDs stable
-in subsequent fix PRs; `Old` preserves the initial PR review numbering.
-Reports #1 through #4 are fixed and covered by default regressions; their IDs are retained below.
+in subsequent fix PRs; `Old` preserves the initial PR review numbering. A fixed
+report keeps its row, marked `Fixed`, and names the default tests that replaced
+its gated reproducer.
 Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 
 | # | Old | Severity / applicability | Report and reproduction |
@@ -124,7 +125,7 @@ Reports #16 and #17 remain policy candidates, not confirmed contract violations.
 | 2 | 11 | Fixed; previously High, length/error dependent | Interpret SOF/FRAG before writing final-beat checksum flags, preserving EOFE on a one-byte final beat. Default regression: `test_EthMacRxCsumDepth.py::rx_one_byte_last_beat_eofe_test`. |
 | 3 | 1 | Fixed; previously High, oversize input | TX checksum cache closes the truncated frame before draining its tail, preserving transaction alignment. Default: `test_EthMacKnownIssues.py::tx_csum_oversize_recovery_test` and `test_EthMacTxCsumDepth.py::tx_oversize_recovery` cover standard/jumbo sizes, drop/forward policies and backpressure. |
 | 4 | 4 | Fixed; previously High, XGMII link loss | Drain an interrupted TX frame through its accepted last beat before restarting. Default `tx_xgmii_link_loss_recovery_test` covers short/long outages and early/mid/late loss without valid-FCS tail frames. |
-| 5 | 2 | High; XGMII link loss | RX continues unterminated beats and the checksum blow-off swallows recovery. `rx_xgmii_import_link_loss_emits_beats_known_issue_test`, `rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test`. |
+| 5 | 2 | Fixed; previously High, XGMII link loss | Terminate active RX with EOFE, stop outage beats and preserve recovery. Default `rx_xgmii_import_link_loss_recovery_test`, `rx_xgmii_link_loss_boundaries_test` and `rx_xgmii_top_link_loss_recovery_test` cover both start lanes, early/short outages and the full checksum/FIFO path. |
 | 8 | 8 | Medium | GMII RX_ER re-arms SFD detection inside RX_DV, creating a second errored frame at payload 0xD5. `rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test`. |
 | 9 | 14 | Medium; frame exceeds FIFO | Oversize RX outcome depends on stale pre-reset metadata. Require deterministic discard or truncated EOFE delivery and clean recovery. `test_EthMacRxFifoFlow.py::rx_fifo_oversized_frame_history_known_issue_test`. |
 | 10 | 15 | Medium; threshold boundary | `pauseThresh >= depth-1` is unreachable after writes stop at depth-2; default 562 is affected with a 512-entry FIFO. `test_EthMacRxFifoFlow.py::rx_fifo_pause_threshold_clamp_known_issue_test`. |
@@ -140,6 +141,18 @@ Unqualified entrypoints above live in `test_EthMacKnownIssues.py`. Its known
 failure nodes skip **before simulator launch** unless the gate is enabled;
 its three policy/recovery nodes and its fixed-issue regression nodes run by
 default and are expected to pass.
+
+Report #5 also has default `rx_xgmii_link_loss_final_beat_test`,
+`rx_xgmii_status_timing_test` and `rx_xgmii_status_reset_test` coverage.
+XGMII registers `rxCountEn` and `rxCrcError` on the AXI-conversion edge;
+downstream counters observe the event on the following edge. An active-frame
+link-loss abort counts once as an RX CRC error, including when link loss
+coincides with an otherwise good final beat. Idle link changes do not count.
+GMII's active-frame link-loss path still leaves its counters unchanged.
+The tests check final-beat priority, preservation of a committed good verdict,
+single-cycle status pulses in mixed good/bad-FCS bursts, reset suppression and
+recovery. The burst test logs `RX_TIMING_TRACE` with sampled AXI beats and status
+event cycles to support timing comparisons across RTL revisions.
 
 ### Fixed
 
