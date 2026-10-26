@@ -10,10 +10,16 @@ the DCO is frozen, glitch-free small changes under Freeze M within +/-3500 ppm
 of the last large change, RFREQ rounding, bulk writes (`LoadConfig`,
 `WriteAll`) that apply registers 7-12 only through the full freeze/NewFreq
 sequence, and that cached RST_REG/NewFreq/RECALL bits are never replayed by
-later register 135 or forced bulk writes. The suite does not require an FPGA or an HDL simulator.
+later register 135 or forced bulk writes. It also covers explicit `Calibrate`,
+recalibration failure invalidation, finite positive constructor inputs, raw
+field bounds and preservation of unread neighboring bits, a device that ignores
+DCO freeze, and a failed update followed by a request near the obsolete center.
+The latter must use a full update rather than an out-of-window Freeze M change.
+The suite does not require an FPGA or an HDL simulator.
 
 The driver calibrates fxtal by executing `RECALL`, which reloads the factory
-configuration, so `factory_freq` must be the part's start-up frequency. The
+configuration; `Calibrate()` invokes the same operation explicitly.
+Thus `factory_freq` must be the part's start-up frequency. The
 first `Frequency` write does this automatically; later writes reuse the
 calibration. A calibration more than 3000 ppm from the nominal 114.285 MHz
 (the datasheet allows +/-2000 ppm) raises `ValueError` before any
@@ -36,4 +42,5 @@ PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/devices/silabs
 ```
 
 The suite skips when Rogue is unavailable and runs explicitly in the Rogue
-CI job. See [the test methodology](../../README.md) for shared conventions.
+CI job. See [programming guidance](../../../python/surf/devices/silabs/README.md)
+and [the test methodology](../../README.md) for shared conventions.

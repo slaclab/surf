@@ -15,6 +15,7 @@
 
 from __future__ import annotations
 
+import math
 import time
 from typing import Any
 
@@ -43,6 +44,9 @@ _SMALL_CHANGE_PPM = 3500
 _POLL_PERIOD  = 0.001
 _POLL_TIMEOUT = 1.0
 
+# Allow the specified large-change settling time after NewFreq completes.
+_LARGE_CHANGE_SETTLE = 0.010
+
 # A NewFreq that arrives more than 10 ms after unfreeze reverts the part to
 # its factory configuration without any error, so a large change is read back
 # and reapplied up to this many times
@@ -70,8 +74,10 @@ class Si570(pr.Device):
     -----
     The internal crystal frequency (fxtal) varies by up to +/-2000 ppm
     between parts and must be calibrated per device. Executing ``RECALL``
-    reloads the factory configuration and calibrates ``fxtal``; setting
-    ``Frequency`` does this automatically the first time. A calibration
+    reloads the factory configuration and calibrates ``fxtal``. ``Calibrate``
+    explicitly invokes this same operation; setting ``Frequency`` does it
+    automatically the first time. A failed calibration discards the previous
+    estimate, so the next frequency write retries calibration. A calibration
     more than 3000 ppm from nominal raises ``ValueError`` instead of
     programming a wrong output frequency.
 
@@ -79,14 +85,21 @@ class Si570(pr.Device):
     configuration is applied, so the first ``Frequency`` write stops and
     restarts the output twice rather than once. Downstream logic that is
     sensitive to clock interruptions, such as MGT reference clocks, should
-    expect this on the first write after start-up.
+    expect this on the first write after start-up. For controlled startup,
+    hold consumers in reset, call ``Calibrate``, then set ``Frequency`` and
+    verify the output before releasing reset. Frequency readback is calculated
+    from registers, not an independent measurement. Serialize device access
+    during calibration and programming.
 
     A request within +/-3500 ppm of the center frequency (the last NewFreq or
     RECALL) that the current dividers can reach only retunes RFREQ under
     Freeze M, so the output changes without stopping. Larger changes use the
     full freeze, write, unfreeze and NewFreq sequence, with the unfreeze and
     NewFreq writes queued back to back, then read back registers 7-12 and
-    reapply if the part reverted to its factory configuration.
+    reapply if the part reverted to its factory configuration. The DCO freeze
+    is checked before writing the configuration and a 10 ms settling delay
+    follows NewFreq. Failed full programming invalidates the small-change center;
+    the next frequency write uses the full programming sequence.
 
     Configuration files hold ``Frequency``, not registers 7-12: RFREQ depends
     on each part's fxtal, so the registers and the fields decoded from them
@@ -103,6 +116,10 @@ class Si570(pr.Device):
 
     def __init__(self, factory_freq: float, max_freq: float = 1417.5, **kwargs: Any) -> None:
         """Create the Si570 model."""
+        if not math.isfinite(factory_freq) or factory_freq <= 0:
+            raise ValueError('factory_freq must be a positive finite frequency in MHz')
+        if not math.isfinite(max_freq) or max_freq <= 0:
+            raise ValueError('max_freq must be a positive finite frequency in MHz')
         super().__init__(**kwargs)
         self.factory_freq = factory_freq
         self.max_freq = max_freq
@@ -132,8 +149,10 @@ class Si570(pr.Device):
             return ((high & 0x1f) << 2) | ((low & 0xc0) >> 6)
 
         def n1_raw_set(value: int, write: bool) -> None:
-            high = self.Config[7].value() & 0xe0
-            low = self.Config[8].value() & 0x3f
+            if not 0 <= value <= 127 or (value != 0 and value % 2 == 0):
+                raise ValueError('N1 must be 1 or an even integer from 2 through 128')
+            high = self.Config[7].get(read=write) & 0xe0
+            low = self.Config[8].get(read=write) & 0x3f
 
             high |= (value & 0b01111100) >> 2
             low |= (value & 0x3) << 6
@@ -204,10 +223,12 @@ class Si570(pr.Device):
             return ret
 
         def rfreq_raw_set(value: int, write: bool) -> None:
+            if not 0 <= value < 2**38:
+                raise ValueError('RFREQ_RAW must fit in 38 bits')
             tmp = value
             for i in reversed(range(8, 13)):
                 if i == 8:
-                    old = self.Config[i].get(read=False)
+                    old = self.Config[i].get(read=write)
                     tmp = (tmp & 0x3f) | (old & 0xc0)
                 self.Config[i].set(tmp&0xFF, write=write)
                 tmp = tmp >> 8
@@ -234,6 +255,9 @@ class Si570(pr.Device):
         # RST_REG, NewFreq, FreezeM and RECALL share register 135, so every
         # write of that register replays the cached value of all four bits
         def pulse(cmd: pr.RemoteCommand, i2c_reset: bool = False) -> None:
+            # These commands can recenter the part even if completion polling
+            # fails. Only verified programming/calibration establishes a center.
+            self._centerFdco = None
             try:
                 # Never replay a cached self-clearing bit with this pulse
                 for bit in (self.RST_REG, self.NewFreq, self.RECALL):
@@ -248,8 +272,6 @@ class Si570(pr.Device):
 
         def reset_reg() -> None:
             pulse(self.RST_REG, i2c_reset=True)
-            # The part restarts from NVM; the cached center frequency no longer applies
-            self._centerFdco = None
 
         self.add(pr.RemoteCommand(
             name        = 'RST_REG',
@@ -282,6 +304,7 @@ class Si570(pr.Device):
             base        = pr.UInt))
 
         def recall() -> None:
+            self.fxtal.set(0.0)
             pulse(self.RECALL)
 
             # Registers now hold the factory configuration for factory_freq.
@@ -289,12 +312,15 @@ class Si570(pr.Device):
             # costs one pass over the I2C bridge, not one wait per field
             for i in range(7, 13):
                 self.readBlocks(recurse=False, variable=self.Config[i])
-            self.checkBlocks(recurse=False)
+            self.waitBlocks(recurse=False)
 
             rfreq = self.RFREQ.get(read=False)
             if rfreq == 0:
                 raise ValueError('Si570 RFREQ reads zero after RECALL; cannot calibrate fxtal')
-            fxtal = self.factory_freq * self.HS_DIV_INT.get(read=False) * self.N1.get(read=False) / rfreq
+            n1 = self.N1.get(read=False)
+            if n1 != 1 and n1 % 2 != 0:
+                raise ValueError('Invalid Si570 factory N1 divider')
+            fxtal = self.factory_freq * self.HS_DIV_INT.get(read=False) * n1 / rfreq
             ppm = (fxtal / _FXTAL_NOMINAL - 1) * 1e6
             if abs(ppm) > _FXTAL_MAX_PPM:
                 raise ValueError(
@@ -315,6 +341,14 @@ class Si570(pr.Device):
             bitOffset   = 0,
             bitSize     = 1,
             function    = recall))
+
+        def calibrate() -> None:
+            self.RECALL()
+
+        self.add(pr.LocalCommand(
+            name        = 'Calibrate',
+            description = 'Recall factory NVM and cache crystal calibration; changes the output clock.',
+            function    = calibrate))
 
         # Unverified so unfreeze and NewFreq stay back to back (10 ms limit)
         self.add(pr.RemoteVariable(
@@ -337,12 +371,12 @@ class Si570(pr.Device):
             units        = 'MHz'))
 
 
-        n1_array = [1] + [x for x in range(2, 2**7, 2)]
+        n1_array = [1] + [x for x in range(2, 2**7 + 1, 2)]
         hs_div_array = [11, 9, 7, 6, 5, 4]
 
         def find_params(f1: float) -> tuple[int, int]:
             # want low N1 and high HS_DIV
-            if f1 >= 10:
+            if math.isfinite(f1) and f1 >= 10:
                 for n1 in n1_array:
                     for hs_div in hs_div_array:
                         fdco = f1 * hs_div * n1
@@ -475,6 +509,7 @@ class Si570(pr.Device):
             pr.Device.writeBlocks(self, force=True, recurse=False, variable=self.NewFreq)
             self.waitBlocks(recurse=False)
             self._waitSelfClear(self.NewFreq)
+            time.sleep(_LARGE_CHANGE_SETTLE)
         finally:
             # Keep a later bulk write from replaying an incomplete pulse
             if self.NewFreq.value():
@@ -482,6 +517,9 @@ class Si570(pr.Device):
 
     def _applyConfig(self) -> None:
         """Write the cached registers 7-12 with the datasheet large-change sequence."""
+        # Recovery can issue NewFreq even when programming raises. Never retain
+        # the previous center across an attempted large change.
+        self._centerFdco = None
         staged = [v.value() for v in self._configVars()]
         self._applying = True
         try:
@@ -489,6 +527,8 @@ class Si570(pr.Device):
                 # Freeze, refreshing the cached reserved bits of register 137 first
                 self.FreezeDCO.get(read=True)
                 self.FreezeDCO.set(1, write=True)
+                if self.FreezeDCO.get(read=True) != 1:
+                    raise RuntimeError(f'{self.path}: Si570 did not freeze the DCO')
 
                 # Write new config
                 try:
@@ -508,7 +548,6 @@ class Si570(pr.Device):
                 hw = self._readHwConfig()
                 if hw == staged:
                     break
-                self._centerFdco = None
                 self._log.warning(f'{self.path}: registers 7-12 reverted to {[hex(x) for x in hw]} after NewFreq '
                                   f'(attempt {attempt} of {_APPLY_ATTEMPTS})')
             else:

@@ -18,7 +18,9 @@
 #   register read failure while the DCO is frozen, a max_freq speed-grade
 #   limit, a set while the device is disabled, small changes inside and
 #   outside the +/-3500 ppm window, RFREQ rounding, LoadConfig, WriteAll and
-#   ReadAll, and a device at a non-zero offset.
+#   ReadAll, a device at a non-zero offset, explicit Calibrate/recalibration,
+#   failed recalibration and reset, invalid raw fields and factory inputs,
+#   shared fields with an unread cache, and a device that ignores DCO freeze.
 # - Stimulus: Real Rogue writes and reads against a simulated Si570 register
 #   window behind a 32-bit FPGA I2C bridge. The model reloads NVM on RECALL,
 #   self-clears RST_REG/NewFreq/RECALL after a read, fails reads while RST_REG
@@ -41,12 +43,17 @@
 #   is queued before the unfreeze write completes; a configuration that
 #   reverts to factory after a late NewFreq is reapplied, and raises once the
 #   attempts run out; saved configurations hold Frequency, not registers 7-12,
+#   failed programming cannot reuse an obsolete small-change center; explicit
+#   calibration is reused and failed calibration discards its previous result;
+#   raw field writes preserve hardware neighbors and invalid values write
+#   nothing; an ignored freeze prevents configuration writes;
 #   and LoadConfig programs Frequency with this part's fxtal even when the file
 #   carries registers from another part or holds only Frequency.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout. The
 #   10 ms unfreeze to NewFreq limit is checked as back-to-back writes; DCO
 #   settling and I2C electrical timing are outside this model.
 
+import math
 import threading
 import time
 
@@ -96,6 +103,7 @@ class Si570Memory(rim.Slave):
         self.config = list(nvm)
         self.reg135 = 0
         self.reg137 = RESERVED_137
+        self.ignoreFreezeDco = False
         self.pending = 0
         self.stuck = 0
         # Reads that fail after RST_REG while the I2C state machine resets
@@ -153,7 +161,7 @@ class Si570Memory(rim.Slave):
                             self.lateNewFreqs -= 1
                             self.config = list(self.nvm)
                 elif reg == 137:
-                    self.reg137 = value
+                    self.reg137 = value & ~FREEZE_DCO if self.ignoreFreezeDco else value
                     if self.unfreezeDelay and not value & FREEZE_DCO:
                         threading.Timer(self.unfreezeDelay, self._completeUnfreeze, args=(transaction,)).start()
                         return
@@ -218,6 +226,56 @@ def test_first_frequency_set_matches_datasheet_example(si570_root):
     assert memory.recalls == 1
     assert si570.fxtal.get() == pytest.approx(114.285, abs=1e-6)
     assert si570.Frequency.get() == pytest.approx(161.132812, rel=1e-9)
+
+
+def test_explicit_calibration_is_reused(si570_root):
+    _, si570, memory = si570_root
+    assert memory.writes == []
+    si570.Calibrate()
+    assert memory.recalls == 1
+    assert memory.newFreqs == []
+    assert memory.output() == pytest.approx(FACTORY_FREQ, rel=1e-9)
+    assert si570.fxtal.get() == pytest.approx(memory.fxtal, rel=1e-9)
+
+    for target in (125.0, 156.25, 100.0):
+        si570.Frequency.set(target)
+        assert memory.output() == pytest.approx(target, rel=1e-9)
+    assert memory.recalls == 1
+
+    # Reconnecting to another part requires a fresh factory calibration.
+    memory.nvm = nvmWithFxtalOffset(1000)
+    hs_div, n1, rfreq = decode(memory.nvm)
+    memory.fxtal = FACTORY_FREQ * hs_div * n1 / rfreq
+    si570.Calibrate()
+    assert si570.fxtal.get() == pytest.approx(memory.fxtal, rel=1e-9)
+    si570.Frequency.set(125.0)
+    assert memory.recalls == 2
+    assert memory.output() == pytest.approx(125.0, rel=1e-9)
+
+
+@pytest.mark.parametrize('name', ['factory_freq', 'max_freq'])
+@pytest.mark.parametrize('value', [0.0, -1.0, math.nan, math.inf])
+def test_invalid_constructor_frequency(name, value):
+    kwargs = {'factory_freq': FACTORY_FREQ, name: value}
+    with pytest.raises(ValueError, match=name):
+        Si570(**kwargs)
+
+
+@pytest.mark.parametrize('command', ['Calibrate', 'RECALL'])
+def test_failed_recalibration_discards_previous_calibration(si570_root, monkeypatch, command):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    monkeypatch.setattr(si570_module, '_POLL_TIMEOUT', 0.02)
+    memory.stuck = RECALL
+
+    with pytest.raises(TimeoutError, match='RECALL'):
+        getattr(si570, command)()
+    assert si570.fxtal.get() == 0.0
+
+    memory.stuck = 0
+    si570.Frequency.set(125.0)
+    assert memory.recalls == 3  # Initial, failed and automatic retry calibration.
+    assert memory.output() == pytest.approx(125.0, rel=1e-9)
 
 
 def test_frequency_update_sequence(si570_root):
@@ -383,6 +441,26 @@ def test_rst_reg_persistent_i2c_failure_raises_without_replay(si570_root, monkey
     assert memory.writes == [(135, FREEZE_M)]
 
 
+def test_failed_reset_cannot_reuse_old_small_change_center(si570_root, monkeypatch):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    monkeypatch.setattr(si570_module, '_POLL_TIMEOUT', 0.02)
+    memory.resetNacks = 10**6
+    with pytest.raises(rogue.GeneralError, match='I2C state machine in reset'):
+        si570.RST_REG()
+
+    # Reset restored factory NVM despite the error. Refreshing the cache must
+    # not make the old center usable for a change outside the new center window.
+    memory.i2cResetReads = 0
+    assert si570.Frequency.get() == pytest.approx(FACTORY_FREQ, rel=1e-9)
+    memory.newFreqs.clear()
+    memory.freezeMConfigWrites.clear()
+    si570.Frequency.set(161.132812)
+    assert memory.newFreqs == [False]
+    assert memory.freezeMConfigWrites == []
+    assert memory.output() == pytest.approx(161.132812, rel=1e-9)
+
+
 def test_rfreq_and_n1_share_register_8(si570_root):
     _, si570, memory = si570_root
     rfreq = (1 << 37) | 0x123456789
@@ -394,6 +472,33 @@ def test_rfreq_and_n1_share_register_8(si570_root):
     assert memory.config[1] == 0x40 | 0x20 | 0x01
     assert si570.RFREQ_RAW.get() == rfreq
     assert si570.N1.get() == 10
+
+
+def test_raw_field_writes_preserve_unread_neighbors(si570_root):
+    _, si570, memory = si570_root
+    # Cache is unread: RFREQ must preserve the N1 high bits already in hardware.
+    rfreq = (1 << 37) | 0x123456789
+    si570.RFREQ_RAW.set(rfreq)
+    assert decode(memory.config)[:2] == (4, 8)
+
+    # Change hardware behind the cache before writing the other shared field.
+    memory.config[0] = (5 << 5) | (memory.config[0] & 0x1f)
+    memory.config[1] ^= 0x10
+    expected_rfreq = decode(memory.config)[2]
+    si570.N1.set(128)
+    assert decode(memory.config) == (9, 128, expected_rfreq)
+
+
+@pytest.mark.parametrize('write', [False, True])
+@pytest.mark.parametrize('name,value', [('N1_RAW', -1), ('N1_RAW', 2), ('N1_RAW', 128),
+                                       ('RFREQ_RAW', -1), ('RFREQ_RAW', 1 << 38)])
+def test_invalid_raw_field_does_not_change_registers(si570_root, name, value, write):
+    _, si570, memory = si570_root
+    before = [si570.Config[i].value() for i in range(7, 13)]
+    with pytest.raises(ValueError):
+        getattr(si570, name).set(value, write=write)
+    assert memory.writes == []
+    assert [si570.Config[i].value() for i in range(7, 13)] == before
 
 
 def test_deferred_field_writes(si570_root):
@@ -421,7 +526,7 @@ def test_n1_limits(si570_root):
     assert memory.writes == []
 
 
-@pytest.mark.parametrize('freq', [5.0, 950.0, 1500.0])
+@pytest.mark.parametrize('freq', [0.0, -1.0, math.nan, math.inf, 5.0, 950.0, 1500.0])
 def test_unsupported_frequency_is_rejected_before_any_write(si570_root, freq):
     _, si570, memory = si570_root
 
@@ -462,6 +567,46 @@ def test_failed_config_write_unfreezes_and_applies(si570_root):
     si570.Frequency.set(125.0)
     assert memory.output() == pytest.approx(125.0, rel=1e-9)
     assert not memory.reg137 & FREEZE_DCO
+
+
+def test_failed_update_cannot_reuse_old_small_change_center(si570_root):
+    _, si570, memory = si570_root
+    si570.Frequency.set(161.132812)
+    hs_div, n1, _ = decode(memory.config)
+    old_center = memory.output() * hs_div * n1
+
+    # Recovery applies 200 MHz, even though its verification raises.
+    memory.failReads = {12: 1}
+    with pytest.raises(rogue.GeneralError):
+        si570.Frequency.set(200.0)
+    assert memory.output() == pytest.approx(200.0, rel=1e-9)
+
+    hs_div, n1, _ = decode(memory.config)
+    target = old_center / (hs_div * n1)
+    assert abs(target / memory.output() - 1) > 0.0035
+    memory.newFreqs.clear()
+    memory.freezeMConfigWrites.clear()
+    si570.Frequency.set(target)
+    assert memory.newFreqs == [False]
+    assert memory.freezeMConfigWrites == []
+    assert memory.output() == pytest.approx(target, rel=1e-9)
+
+    # Successful full programming establishes a usable center again.
+    memory.newFreqs.clear()
+    si570.Frequency.set(target * 1.001)
+    assert memory.newFreqs == []
+    assert memory.freezeMConfigWrites == [8, 9, 10, 11, 12]
+
+
+def test_ignored_freeze_prevents_config_writes(si570_root):
+    _, si570, memory = si570_root
+    si570.RECALL()
+    memory.writes.clear()
+    memory.ignoreFreezeDco = True
+    with pytest.raises(RuntimeError, match='freeze'):
+        si570.Frequency.set(200.0)
+    assert all(reg not in range(7, 13) for reg, _ in memory.writes)
+    assert memory.newFreqs == []
 
 
 @pytest.mark.parametrize('freq', [810.000001, 850.0, 1300.0])
