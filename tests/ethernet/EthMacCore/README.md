@@ -150,6 +150,14 @@ Fixed reports leave the table above and keep their IDs here.
 | 6 | 9 | GMII 10/100 RX: retain `delRxDv` until the next enabled clock. Default `test_EthMacRxImportLine.py::rx_clk_en_1_in_10_test`, `rx_clk_en_1_in_100_test` and `rx_clk_en_recovery_test` require exact delivery, bad-FCS marking/status and recovery at full rate. |
 | 7 | 7 | GMII/XGMII TX: propagate EOFE as GMII TX_ER or invalid XGMII FCS, including final beats at/above the padding boundary. Default `tx_eofe_frame_is_rejected_test` checks both PHYs across frame lengths and requires intact clean frames after every error. |
 
+For report #7, `test_EthMacTxExportLine.py` also checks that GMII TX_ER stays
+asserted through padding and all four FCS bytes, then clears with TX_EN on the
+first idle byte. `tx_gmii_eofe_boundary` covers full rate;
+`tx_gmii_eofe_clk_en_1_in_10` and `tx_gmii_eofe_clk_en_1_in_100` cover gated
+clocks. These tests require exact payload/FCS, 12-octet gaps, stable pins on
+disabled clocks, clean recovery and exact status counts. The separate GMII
+underrun behavior remains covered by `tx_underrun`.
+
 
 The integration and leaf benches keep their default-run stimulus clear of
 confirmed defects: `phyReady` changes only while the line is idle, `RX_ER`

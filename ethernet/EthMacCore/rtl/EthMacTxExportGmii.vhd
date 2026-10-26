@@ -259,6 +259,11 @@ begin
                end if;
             ----------------------------------------------------------------------
             when INTERGAP_S =>
+               -- Keep EOFE through the final FCS byte, then clear it with TX_EN.
+               -- DUMP_S already cleared TX_EN; retain its underrun behavior.
+               if r.gmiiTxEn = '1' then
+                  v.gmiiTxEr := '0';
+               end if;
                v.gmiiTxEn := '0';
                v.gmiiTxd  := x"00";
                v.txCount  := r.txCount +1;
