@@ -1,8 +1,12 @@
 -------------------------------------------------------------------------------
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
--- Description: IP integrator wrapper for surf.AxiLiteCrossbar with two slave
---              ports and master ports left undriven at their EMPTY_* defaults
+-- Description: Flattened AXI-Lite integration fixture for cocotb regressions.
+--
+-- Two initiators share RAM and undriven EMPTY_* termination ports, including
+-- a cascaded crossbar. Both interfaces use S_AXI_ACLK and the active-low
+-- S_AXI_ARESETN shim; reset clears pending transactions in both crossbars.
+-- Stimulus and response checks live in tests/axi/axi_lite/test_AxiLiteCrossbar.py.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -116,33 +120,33 @@ begin
          FREQ_HZ       => 125000000,
          ADDR_WIDTH    => 32)
       port map (
-         S_AXI_ACLK      => S_AXI_ACLK,
-         S_AXI_ARESETN   => S_AXI_ARESETN,
-         S_AXI_AWADDR    => S0_AXI_AWADDR,
-         S_AXI_AWPROT    => S0_AXI_AWPROT,
-         S_AXI_AWVALID   => S0_AXI_AWVALID,
-         S_AXI_AWREADY   => S0_AXI_AWREADY,
-         S_AXI_WDATA     => S0_AXI_WDATA,
-         S_AXI_WSTRB     => S0_AXI_WSTRB,
-         S_AXI_WVALID    => S0_AXI_WVALID,
-         S_AXI_WREADY    => S0_AXI_WREADY,
-         S_AXI_BRESP     => S0_AXI_BRESP,
-         S_AXI_BVALID    => S0_AXI_BVALID,
-         S_AXI_BREADY    => S0_AXI_BREADY,
-         S_AXI_ARADDR    => S0_AXI_ARADDR,
-         S_AXI_ARPROT    => S0_AXI_ARPROT,
-         S_AXI_ARVALID   => S0_AXI_ARVALID,
-         S_AXI_ARREADY   => S0_AXI_ARREADY,
-         S_AXI_RDATA     => S0_AXI_RDATA,
-         S_AXI_RRESP     => S0_AXI_RRESP,
-         S_AXI_RVALID    => S0_AXI_RVALID,
-         S_AXI_RREADY    => S0_AXI_RREADY,
-         axilClk         => axilClk,
-         axilRst         => axilRst,
-         axilReadMaster  => axilReadMasters(0),
-         axilReadSlave   => axilReadSlaves(0),
-         axilWriteMaster => axilWriteMasters(0),
-         axilWriteSlave  => axilWriteSlaves(0));
+         S_AXI_ACLK      => S_AXI_ACLK,           -- [in]
+         S_AXI_ARESETN   => S_AXI_ARESETN,        -- [in]
+         S_AXI_AWADDR    => S0_AXI_AWADDR,        -- [in]
+         S_AXI_AWPROT    => S0_AXI_AWPROT,        -- [in]
+         S_AXI_AWVALID   => S0_AXI_AWVALID,       -- [in]
+         S_AXI_AWREADY   => S0_AXI_AWREADY,       -- [out]
+         S_AXI_WDATA     => S0_AXI_WDATA,         -- [in]
+         S_AXI_WSTRB     => S0_AXI_WSTRB,         -- [in]
+         S_AXI_WVALID    => S0_AXI_WVALID,        -- [in]
+         S_AXI_WREADY    => S0_AXI_WREADY,        -- [out]
+         S_AXI_BRESP     => S0_AXI_BRESP,         -- [out]
+         S_AXI_BVALID    => S0_AXI_BVALID,        -- [out]
+         S_AXI_BREADY    => S0_AXI_BREADY,        -- [in]
+         S_AXI_ARADDR    => S0_AXI_ARADDR,        -- [in]
+         S_AXI_ARPROT    => S0_AXI_ARPROT,        -- [in]
+         S_AXI_ARVALID   => S0_AXI_ARVALID,       -- [in]
+         S_AXI_ARREADY   => S0_AXI_ARREADY,       -- [out]
+         S_AXI_RDATA     => S0_AXI_RDATA,         -- [out]
+         S_AXI_RRESP     => S0_AXI_RRESP,         -- [out]
+         S_AXI_RVALID    => S0_AXI_RVALID,        -- [out]
+         S_AXI_RREADY    => S0_AXI_RREADY,        -- [in]
+         axilClk         => axilClk,              -- [out]
+         axilRst         => axilRst,              -- [out]
+         axilReadMaster  => axilReadMasters(0),   -- [out]
+         axilReadSlave   => axilReadSlaves(0),    -- [in]
+         axilWriteMaster => axilWriteMasters(0),  -- [out]
+         axilWriteSlave  => axilWriteSlaves(0));  -- [in]
 
    U_ShimLayer1 : entity surf.SlaveAxiLiteIpIntegrator
       generic map (
@@ -151,33 +155,33 @@ begin
          FREQ_HZ       => 125000000,
          ADDR_WIDTH    => 32)
       port map (
-         S_AXI_ACLK      => S_AXI_ACLK,
-         S_AXI_ARESETN   => S_AXI_ARESETN,
-         S_AXI_AWADDR    => S1_AXI_AWADDR,
-         S_AXI_AWPROT    => S1_AXI_AWPROT,
-         S_AXI_AWVALID   => S1_AXI_AWVALID,
-         S_AXI_AWREADY   => S1_AXI_AWREADY,
-         S_AXI_WDATA     => S1_AXI_WDATA,
-         S_AXI_WSTRB     => S1_AXI_WSTRB,
-         S_AXI_WVALID    => S1_AXI_WVALID,
-         S_AXI_WREADY    => S1_AXI_WREADY,
-         S_AXI_BRESP     => S1_AXI_BRESP,
-         S_AXI_BVALID    => S1_AXI_BVALID,
-         S_AXI_BREADY    => S1_AXI_BREADY,
-         S_AXI_ARADDR    => S1_AXI_ARADDR,
-         S_AXI_ARPROT    => S1_AXI_ARPROT,
-         S_AXI_ARVALID   => S1_AXI_ARVALID,
-         S_AXI_ARREADY   => S1_AXI_ARREADY,
-         S_AXI_RDATA     => S1_AXI_RDATA,
-         S_AXI_RRESP     => S1_AXI_RRESP,
-         S_AXI_RVALID    => S1_AXI_RVALID,
-         S_AXI_RREADY    => S1_AXI_RREADY,
-         axilClk         => open,
-         axilRst         => open,
-         axilReadMaster  => axilReadMasters(1),
-         axilReadSlave   => axilReadSlaves(1),
-         axilWriteMaster => axilWriteMasters(1),
-         axilWriteSlave  => axilWriteSlaves(1));
+         S_AXI_ACLK      => S_AXI_ACLK,           -- [in]
+         S_AXI_ARESETN   => S_AXI_ARESETN,        -- [in]
+         S_AXI_AWADDR    => S1_AXI_AWADDR,        -- [in]
+         S_AXI_AWPROT    => S1_AXI_AWPROT,        -- [in]
+         S_AXI_AWVALID   => S1_AXI_AWVALID,       -- [in]
+         S_AXI_AWREADY   => S1_AXI_AWREADY,       -- [out]
+         S_AXI_WDATA     => S1_AXI_WDATA,         -- [in]
+         S_AXI_WSTRB     => S1_AXI_WSTRB,         -- [in]
+         S_AXI_WVALID    => S1_AXI_WVALID,        -- [in]
+         S_AXI_WREADY    => S1_AXI_WREADY,        -- [out]
+         S_AXI_BRESP     => S1_AXI_BRESP,         -- [out]
+         S_AXI_BVALID    => S1_AXI_BVALID,        -- [out]
+         S_AXI_BREADY    => S1_AXI_BREADY,        -- [in]
+         S_AXI_ARADDR    => S1_AXI_ARADDR,        -- [in]
+         S_AXI_ARPROT    => S1_AXI_ARPROT,        -- [in]
+         S_AXI_ARVALID   => S1_AXI_ARVALID,       -- [in]
+         S_AXI_ARREADY   => S1_AXI_ARREADY,       -- [out]
+         S_AXI_RDATA     => S1_AXI_RDATA,         -- [out]
+         S_AXI_RRESP     => S1_AXI_RRESP,         -- [out]
+         S_AXI_RVALID    => S1_AXI_RVALID,        -- [out]
+         S_AXI_RREADY    => S1_AXI_RREADY,        -- [in]
+         axilClk         => open,                 -- [out]
+         axilRst         => open,                 -- [out]
+         axilReadMaster  => axilReadMasters(1),   -- [out]
+         axilReadSlave   => axilReadSlaves(1),    -- [in]
+         axilWriteMaster => axilWriteMasters(1),  -- [out]
+         axilWriteSlave  => axilWriteSlaves(1));  -- [in]
 
    ---------------------
    -- Primary crossbar
@@ -188,28 +192,28 @@ begin
          NUM_MASTER_SLOTS_G => NUM_AXIL_MASTERS_C,
          MASTERS_CONFIG_G   => AXIL_XBAR_CONFIG_C)
       port map (
-         axiClk           => axilClk,
-         axiClkRst        => axilRst,
-         sAxiWriteMasters => axilWriteMasters,
-         sAxiWriteSlaves  => axilWriteSlaves,
-         sAxiReadMasters  => axilReadMasters,
-         sAxiReadSlaves   => axilReadSlaves,
-         mAxiWriteMasters => xbarWriteMasters,
-         mAxiWriteSlaves  => xbarWriteSlaves,
-         mAxiReadMasters  => xbarReadMasters,
-         mAxiReadSlaves   => xbarReadSlaves);
+         axiClk           => axilClk,           -- [in]
+         axiClkRst        => axilRst,           -- [in]
+         sAxiWriteMasters => axilWriteMasters,  -- [in]
+         sAxiWriteSlaves  => axilWriteSlaves,   -- [out]
+         sAxiReadMasters  => axilReadMasters,   -- [in]
+         sAxiReadSlaves   => axilReadSlaves,    -- [out]
+         mAxiWriteMasters => xbarWriteMasters,  -- [out]
+         mAxiWriteSlaves  => xbarWriteSlaves,   -- [in]
+         mAxiReadMasters  => xbarReadMasters,   -- [out]
+         mAxiReadSlaves   => xbarReadSlaves);   -- [in]
 
    U_MEM : entity surf.AxiDualPortRam
       generic map (
          ADDR_WIDTH_G => 10,
          DATA_WIDTH_G => 32)
       port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => xbarReadMasters(0),
-         axiReadSlave   => xbarReadSlaves(0),
-         axiWriteMaster => xbarWriteMasters(0),
-         axiWriteSlave  => xbarWriteSlaves(0));
+         axiClk         => axilClk,              -- [in]
+         axiRst         => axilRst,              -- [in]
+         axiReadMaster  => xbarReadMasters(0),   -- [in]
+         axiReadSlave   => xbarReadSlaves(0),    -- [out]
+         axiWriteMaster => xbarWriteMasters(0),  -- [in]
+         axiWriteSlave  => xbarWriteSlaves(0));  -- [out]
 
    ---------------------
    -- Cascade crossbar
@@ -220,27 +224,27 @@ begin
          NUM_MASTER_SLOTS_G => NUM_CASCADE_MASTERS_C,
          MASTERS_CONFIG_G   => CASCADE_XBAR_CONFIG_C)
       port map (
-         axiClk              => axilClk,
-         axiClkRst           => axilRst,
-         sAxiWriteMasters(0) => xbarWriteMasters(4),
-         sAxiWriteSlaves(0)  => xbarWriteSlaves(4),
-         sAxiReadMasters(0)  => xbarReadMasters(4),
-         sAxiReadSlaves(0)   => xbarReadSlaves(4),
-         mAxiWriteMasters    => cascadeWriteMasters,
-         mAxiWriteSlaves     => cascadeWriteSlaves,
-         mAxiReadMasters     => cascadeReadMasters,
-         mAxiReadSlaves      => cascadeReadSlaves);
+         axiClk              => axilClk,              -- [in]
+         axiClkRst           => axilRst,              -- [in]
+         sAxiWriteMasters(0) => xbarWriteMasters(4),  -- [in]
+         sAxiWriteSlaves(0)  => xbarWriteSlaves(4),   -- [out]
+         sAxiReadMasters(0)  => xbarReadMasters(4),   -- [in]
+         sAxiReadSlaves(0)   => xbarReadSlaves(4),    -- [out]
+         mAxiWriteMasters    => cascadeWriteMasters,  -- [out]
+         mAxiWriteSlaves     => cascadeWriteSlaves,   -- [in]
+         mAxiReadMasters     => cascadeReadMasters,   -- [out]
+         mAxiReadSlaves      => cascadeReadSlaves);   -- [in]
 
    U_CASCADE_MEM : entity surf.AxiDualPortRam
       generic map (
          ADDR_WIDTH_G => 9,
          DATA_WIDTH_G => 32)
       port map (
-         axiClk         => axilClk,
-         axiRst         => axilRst,
-         axiReadMaster  => cascadeReadMasters(0),
-         axiReadSlave   => cascadeReadSlaves(0),
-         axiWriteMaster => cascadeWriteMasters(0),
-         axiWriteSlave  => cascadeWriteSlaves(0));
+         axiClk         => axilClk,                 -- [in]
+         axiRst         => axilRst,                 -- [in]
+         axiReadMaster  => cascadeReadMasters(0),   -- [in]
+         axiReadSlave   => cascadeReadSlaves(0),    -- [out]
+         axiWriteMaster => cascadeWriteMasters(0),  -- [in]
+         axiWriteSlave  => cascadeWriteSlaves(0));  -- [out]
 
 end architecture mapping;
