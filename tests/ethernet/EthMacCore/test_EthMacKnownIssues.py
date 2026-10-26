@@ -20,6 +20,13 @@
 #   #5 fixed: XGMII RX link loss closes the active frame with EOFE, emits
 #       no further outage beats, and preserves the first recovery frame.
 #       Both start lanes, early loss and one-clock outages are exercised.
+#       Abort status is registered and counted once, idle flapping is silent,
+#       and link loss wins over a coincident good final beat. Calibrate that
+#       boundary using a clean frame's public status pulse, then replay it
+#       with link loss on the decision edge and one clock later.
+#       Tight mixed good/bad-FCS bursts check pulse width and event ordering;
+#       a cycle trace supports comparison of AXI timing before/after changes.
+#       Reset wins over a simultaneous active-frame link-loss event.
 #   #4 fixed: XGMII TX link loss must drain the interrupted frame and deliver
 #       intact recovery without fabricating a valid-FCS tail frame.
 #   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
@@ -39,13 +46,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import os
 import random
 
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge
+from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
 
 from tests.common.regression_utils import (
     cocotb_filtered_env,
@@ -335,6 +343,7 @@ async def rx_xgmii_import_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     driver = XgmiiDriver(dut, clk=bench.clk)
     collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
     rng = random.Random(SEED + 1)
     interrupted = random_frame(rng, 400)
     recovery = random_frame(rng, 100, src_mac=0x660000000001)
@@ -345,6 +354,12 @@ async def rx_xgmii_import_link_loss_recovery_test(dut):
     await driver.send(xgmii_words_from_lanes(partial, ifg=0))
     dut.rxPhyReady.value = 0
 
+    # Changing the link between clocks must not change registered status.
+    await ReadOnly()
+    assert resolved_int(dut.rxCrcError) == 0 and resolved_int(dut.rxCountEn) == 0
+    await FallingEdge(bench.clk)
+    assert resolved_int(dut.rxCrcError) == 1 and resolved_int(dut.rxCountEn) == 0
+
     # Allow 16 clocks for the importer pipeline to close the frame, then
     # count every beat it emits during the rest of a 200-clock outage.
     await cycle(bench.clk, 16)
@@ -352,6 +367,14 @@ async def rx_xgmii_import_link_loss_recovery_test(dut):
     beats_before = collector.total_beats
     await cycle(bench.clk, 184)
     outage_beats = collector.total_beats - beats_before
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 1}, status.counts
+
+    # Idle flapping after the abort must not create additional error events.
+    for ready in (1, 0, 1, 0):
+        await FallingEdge(bench.clk)
+        dut.rxPhyReady.value = ready
+        await cycle(bench.clk, 4)
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 1}, status.counts
     await FallingEdge(bench.clk)
     dut.rxPhyReady.value = 1
     await cycle(bench.clk, 20)
@@ -374,6 +397,7 @@ async def rx_xgmii_import_link_loss_recovery_test(dut):
         f"{interrupted_closed}; beats emitted during the next 184 link-down clocks: "
         f"{outage_beats}; importer frames: [{observed}]"
     )
+    assert status.counts == {"rxCountEn": 1, "rxCrcError": 1}, status.counts
 
 
 @cocotb.test(timeout_time=300, timeout_unit="us")
@@ -405,6 +429,184 @@ async def rx_xgmii_link_loss_boundaries_test(dut):
             aborted = observed[:-1]
             assert len(aborted) <= 1 and all(frame.eofe == 1 for frame in aborted), (lane, words, aborted)
             assert not collector.open_beats, collector.describe()
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_link_loss_final_beat_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
+    rng = random.Random(SEED + 9)
+
+    # Exercise both /S/ lanes and full/partial final 64-bit beats. Measure a
+    # clean frame's public registered verdict; do not peek at internal state
+    # or encode the CRC pipeline's implementation in the stimulus timing.
+    for lane in (0, 4):
+        for length in (96, 101):
+            frame = random_frame(rng, length)
+            words = xgmii_words(frame, start_lane=lane, ifg=0)
+            first = len(collector.frames)
+            before = status.snapshot()
+            await driver.send(words)
+            for verdict_delay in range(1, 33):
+                await FallingEdge(bench.clk)
+                if resolved_int(dut.rxCountEn):
+                    break
+            else:
+                raise AssertionError(f"No clean verdict: lane={lane}, length={length}, seed={SEED + 9:#x}")
+            assert verdict_delay > 1
+            await cycle(bench.clk, 32)
+            assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}
+            assert len(collector.frames) == first + 1, collector.describe()
+            assert collector.frames[-1].payload == frame and collector.frames[-1].eofe == 0
+
+            # A pulse visible at falling edge N was registered on the prior
+            # rising edge. Drop at falling edge N-1 to hit that decision, or
+            # at N to prove an already committed good verdict is preserved.
+            for offset, expected_error in ((-1, 1), (0, 0)):
+                first = len(collector.frames)
+                before = status.snapshot()
+                await driver.send(words)
+                for _ in range(verdict_delay + offset):
+                    await FallingEdge(bench.clk)
+                prior_status = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+                dut.rxPhyReady.value = 0
+                await ReadOnly()
+                assert (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError)) == prior_status
+                await cycle(bench.clk, 32)
+
+                context = f"lane={lane}, length={length}, offset={offset}, seed={SEED + 9:#x}"
+                assert len(collector.frames) == first + 1, (context, collector.describe())
+                received = collector.frames[-1]
+                assert received.payload == frame and received.eofe == expected_error, (context, received.describe())
+                assert received.beats[0].sof == 1 and not collector.open_beats, (context, collector.describe())
+                assert status.delta(before) == {"rxCountEn": 1 - expected_error, "rxCrcError": expected_error}, (
+                    context, status.delta(before)
+                )
+
+                # The first frame after restoration must be complete and
+                # produce exactly one good event, without another abort.
+                await FallingEdge(bench.clk)
+                dut.rxPhyReady.value = 1
+                recovery = random_frame(rng, 100)
+                before = status.snapshot()
+                await driver.send(xgmii_words(recovery, start_lane=lane))
+                await cycle(bench.clk, 32)
+                assert len(collector.frames) == first + 2, (context, collector.describe())
+                assert collector.frames[-1].payload == recovery and collector.frames[-1].eofe == 0, context
+                assert not collector.open_beats, (context, collector.describe())
+                assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}, (context, status.delta(before))
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_status_timing_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    rng = random.Random(SEED + 10)
+    # All final-byte positions, both start lanes, and alternating verdicts at
+    # short interframe spacing. One continuous send avoids per-frame bubbles.
+    frames = [random_frame(rng, length) for length in range(60, 76)]
+    errors = [index % 2 for index in range(len(frames))]
+    words = []
+    for index, (frame, error) in enumerate(zip(frames, errors)):
+        words += xgmii_words(frame, start_lane=4 * (index % 2), bad_fcs=bool(error), ifg=12)
+
+    # Sample exactly as a downstream synchronous consumer does, before the
+    # registered update. Keep complete valid AXI beats and status event cycles
+    # in the log for a differential comparison with the previous RTL.
+    async def capture_timing():
+        beats = []
+        events = []
+        previous = (0, 0)
+        for tick in range(len(words) + 64):
+            await RisingEdge(bench.clk)
+            current = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+            assert current != (1, 1), (tick, current)
+            assert not any(old and new for old, new in zip(previous, current)), (tick, previous, current)
+            previous = current
+            if any(current):
+                events.append((tick, *current))
+            if resolved_int(dut.mAxisTValid):
+                beats.append((tick, *(resolved_int(getattr(dut, name)) for name in (
+                    "mAxisTData", "mAxisTKeep", "mAxisTLast", "mAxisSof", "mAxisEofe"
+                ))))
+        return {"beats": beats, "status": events}
+
+    capture = cocotb.start_soon(capture_timing())
+    await driver.send(words)
+    trace = await capture
+    dut._log.info("RX_TIMING_TRACE %s", json.dumps(trace))
+    assert [frame.payload for frame in collector.frames] == frames, collector.describe()
+    assert [frame.eofe for frame in collector.frames] == errors, collector.describe()
+    assert not collector.open_beats, collector.describe()
+    assert [(good, bad) for _, good, bad in trace["status"]] == [(1 - error, error) for error in errors]
+
+
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_xgmii_status_reset_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    rng = random.Random(SEED + 11)
+
+    # With output active, reset must suppress a link-loss event on the same
+    # edge, then release without a stale pulse. The data path may discard its
+    # partial frame on reset; start the recovery collector afterwards.
+    interrupted = random_frame(rng, 400)
+    await driver.send(xgmii_words_from_lanes(xgmii_lanes(interrupted, terminate=False)[:LINK_LOSS_LANES], ifg=0))
+    dut.ethRst.value = 1
+    dut.rxPhyReady.value = 0
+    await ReadOnly()
+    assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+    for _ in range(4):
+        await FallingEdge(bench.clk)
+        assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+    dut.ethRst.value = 0
+    dut.rxPhyReady.value = 1
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
+    await cycle(bench.clk, 16)
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 0}
+    recovery = random_frame(rng, 101)
+    await driver.send(xgmii_words(recovery, start_lane=4))
+    await cycle(bench.clk, 32)
+    assert len(collector.frames) == 1 and not collector.open_beats, collector.describe()
+    assert collector.frames[0].payload == recovery and collector.frames[0].eofe == 0
+    assert status.counts == {"rxCountEn": 1, "rxCrcError": 0}
+
+    # Reset after either kind of pulse has been published. Synchronous reset
+    # must retain the pulse until its clock edge, clear it on that edge, and
+    # leave no delayed event after release. Verify clean recovery each time.
+    for bad_fcs in (False, True):
+        await driver.send(xgmii_words(random_frame(rng, 101), start_lane=4, bad_fcs=bad_fcs, ifg=0))
+        for _ in range(32):
+            await FallingEdge(bench.clk)
+            pulse = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+            if any(pulse):
+                break
+        else:
+            raise AssertionError(f"Missing pre-reset pulse: bad_fcs={bad_fcs}")
+        assert pulse == (int(not bad_fcs), int(bad_fcs))
+        dut.ethRst.value = 1
+        await ReadOnly()
+        assert (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError)) == pulse
+        for _ in range(4):
+            await FallingEdge(bench.clk)
+            assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+        # Discard any partial frame observed before reset, as the AXI receiver
+        # would do on the same reset. The monitor stays active for recovery.
+        collector.frames.clear()
+        collector.open_beats.clear()
+        before = status.snapshot()
+        dut.ethRst.value = 0
+        await cycle(bench.clk, 16)
+        assert status.delta(before) == {"rxCountEn": 0, "rxCrcError": 0}
+        await driver.send(xgmii_words(recovery, start_lane=4))
+        await cycle(bench.clk, 32)
+        assert len(collector.frames) == 1 and not collector.open_beats, collector.describe()
+        assert collector.frames[0].payload == recovery and collector.frames[0].eofe == 0
+        assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}
 
 
 @cocotb.test(timeout_time=100, timeout_unit="us")
@@ -464,6 +666,7 @@ async def rx_xgmii_top_link_loss_recovery_test(dut):
     # Hold the link down for longer than 1500 bytes of importer output
     # (8 bytes per clock) so EthMacRxCsum reaches its oversize blow-off.
     await cycle(dut.ethClk, 400)
+    assert status.counts["rxCrcErrorCnt"] == 1 and status.counts["rxCountEn"] == 0, top_status(status)
     await FallingEdge(dut.ethClk)
     dut.phyReady.value = 1
     await cycle(dut.ethClk, 20)
@@ -484,6 +687,7 @@ async def rx_xgmii_top_link_loss_recovery_test(dut):
         f"seed={SEED + 1:#x}; expected [first_good, second_good]; delivered [{observed}] "
         f"({collector.describe()}); {top_status(status)}"
     )
+    assert status.counts["rxCrcErrorCnt"] == 1 and status.counts["rxCountEn"] == 2, top_status(status)
 
 
 @cocotb.test(timeout_time=300, timeout_unit="us")
@@ -828,7 +1032,9 @@ FIXED_ISSUE_CASES = [
     pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
                  ("tx_xgmii_link_loss_recovery_test",), id="xgmii_tx_link_loss"),
     pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
-                 ("rx_xgmii_import_link_loss_recovery_test", "rx_xgmii_link_loss_boundaries_test"), id="xgmii_rx_link_loss"),
+                 ("rx_xgmii_import_link_loss_recovery_test", "rx_xgmii_link_loss_boundaries_test",
+                  "rx_xgmii_link_loss_final_beat_test", "rx_xgmii_status_timing_test",
+                  "rx_xgmii_status_reset_test"), id="xgmii_rx_link_loss"),
     pytest.param("surf.ethmactopphywrapper", TOP_PHY_WRAPPER, {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
                  ("rx_xgmii_top_link_loss_recovery_test",), id="xgmii_rx_top_link_loss"),
 ]

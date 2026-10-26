@@ -142,6 +142,18 @@ failure nodes skip **before simulator launch** unless the gate is enabled;
 its three policy/recovery nodes and its fixed-issue regression nodes run by
 default and are expected to pass.
 
+Report #5 also has default `rx_xgmii_link_loss_final_beat_test`,
+`rx_xgmii_status_timing_test` and `rx_xgmii_status_reset_test` coverage.
+XGMII registers `rxCountEn` and `rxCrcError` on the AXI-conversion edge;
+downstream counters observe the event on the following edge. An active-frame
+link-loss abort counts once as an RX CRC error, including when link loss
+coincides with an otherwise good final beat. Idle link changes do not count.
+GMII's active-frame link-loss path still leaves its counters unchanged.
+The tests check final-beat priority, preservation of a committed good verdict,
+single-cycle status pulses in mixed good/bad-FCS bursts, reset suppression and
+recovery. The burst test logs `RX_TIMING_TRACE` with sampled AXI beats and status
+event cycles to support timing comparisons across RTL revisions.
+
 ### Fixed
 
 Fixed reports leave the table above and keep their IDs here.
