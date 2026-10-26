@@ -21,6 +21,8 @@
 #   last beat of a 128-byte frame. `txPhyReady` is held low while a frame
 #   arrives in idle. GMII clock-enable patterns of 1-in-10 and 1-in-100 model
 #   100 and 10 Mb/s operation.
+#   GMII EOFE scenarios at enable periods 1/10/100 alternate errored and clean
+#   frames across padding/beat boundaries, including minimum and long frames.
 # - Checks: an independent GMII/XGMII line monitor decodes every frame and
 #   checks the 7x0x55+SFD (GMII) or /S/+6x0x55+SFD (XGMII) preamble, the exact
 #   payload with zero padding, the IEEE FCS, /T/ termination, the absence of
@@ -30,12 +32,15 @@
 #   (GMII TX_ER, XGMII abort plus inverted FCS) and that the next frame is
 #   clean. Behaviour that differs from IEEE 802.3 is asserted explicitly and
 #   labelled "current baseline behaviour" with its RTL location.
+#   EOFE checks require TX_ER through padding and every FCS byte, no TX_ER
+#   outside TX_EN, exact payload/FCS and 12-octet gaps, and unchanged pins on
+#   disabled clocks. Existing underrun assertions retain their separate policy.
 # - Timing: monitors sample on rising edges (with the clock enable high for
 #   GMII) before the registered `TPD_G` update, so gaps are measured in line
 #   octets; XGMII gaps count /T/ as the first IPG octet. Every wait is bounded
 #   by a cycle limit scaled to the PHY rate and enable period.
-# - Not covered (known-issue set, owned elsewhere): txPhyReady loss while a
-#   frame is on the line, for either PHY.
+# - Mid-frame link loss is covered separately by test_EthMacKnownIssues.py
+#   (default recovery scenarios for both PHYs).
 
 from __future__ import annotations
 
@@ -68,6 +73,7 @@ from tests.ethernet.EthMacCore.ethmac_line_models import (
     describe_case,
     fcs_bytes,
     random_frame,
+    resolved_int,
 )
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
@@ -443,9 +449,8 @@ async def tx_phy_not_ready_idle(dut):
         assert after == {"txCountEn": 1, "txUnderRun": 0, "txLinkNotReady": 1}, f"GMII status {after}"
     else:
         # Current baseline behaviour: the XGMII exporter holds the frame rather
-        # than dropping it. phyReady=0 forces ST_IDLE_C every clock
-        # (EthMacTxExportXgmii.vhd:190-192), so txLinkNotReady is asserted on
-        # every clock the frame waits (:265-276), and the held frame is sent
+        # than dropping it. IDLE waits for phyReady, so txLinkNotReady is
+        # asserted on every clock the frame waits, and the held frame is sent
         # when the link returns, ahead of the recovery frame.
         assert down["txCountEn"] == 0 and down["txUnderRun"] == 0, f"XGMII link-down status {down}"
         assert contiguous(not_ready_cycles), "XGMII txLinkNotReady clocks not contiguous"
@@ -485,7 +490,89 @@ async def tx_clk_en_1_in_100(dut):
     await run_clk_en(dut, 100, [60, 45])
 
 
-CLK_EN_TESTS = ("tx_clk_en_1_in_10", "tx_clk_en_1_in_100")
+async def run_gmii_eofe(dut, period: int, lengths: list[int]) -> None:
+    """EOFE spans the final data/padding/FCS and clears with TX_EN."""
+    bench = TxLineBench(dut)
+    assert bench.gmii, "GMII EOFE pin timing requires the GMII parameter case"
+    await bench.start(clk_en_period=period)
+
+    async def check_disabled_clocks():
+        """Lifetime agent: check GMII pin holds until bench.close() cancels it."""
+        names = ("gmiiTxEn", "gmiiTxEr", "gmiiTxd")
+        previous = tuple(resolved_int(getattr(dut, name)) for name in names)
+        while True:
+            await RisingEdge(bench.clk)
+            enabled = resolved_int(dut.ethClkEn)
+            # Falling-edge observation is after TPD_G and before the next
+            # rising edge; outputs may advance only on an enabled edge.
+            await FallingEdge(bench.clk)
+            current = tuple(resolved_int(getattr(dut, name)) for name in names)
+            if not enabled:
+                assert current == previous, f"GMII 1-in-{period}: pins changed on disabled clock"
+            previous = current
+
+    bench._tasks.append(cocotb.start_soon(check_disabled_clocks()))
+    frames = []
+    for length in lengths:
+        frames.extend((random_frame(bench.rng, length), random_frame(bench.rng, 100)))
+    before = bench.status.snapshot()
+    # Drive continuously through the stream handshake so every error frame
+    # has an immediately queued clean successor. All finite sends are awaited.
+    for index, frame in enumerate(frames):
+        for beat in frame_beats_from_bytes(frame, eofe=int(index % 2 == 0)):
+            await bench._send_beat(beat)
+    bench.source.set_idle()
+    await bench.wait_frames(len(frames), cycles=bench.line_cycles(100) + 256, what="EOFE recovery")
+    await bench.settle()
+
+    lines = bench.monitor.frames
+    errors = bench.monitor.er_symbols
+    assert len(lines) == len(frames), f"GMII 1-in-{period}: extra/missing line frame"
+    for index, (line, frame) in enumerate(zip(lines, frames, strict=True)):
+        ctx = describe_case(bench.seed, index, f"EOFE 1-in-{period}, length={len(frame)}")
+        expected = bench.expected_line_payload(frame)
+        assert line.raw == GMII_PREAMBLE + expected + fcs_bytes(expected), ctx
+        assert line.preamble_ok and line.terminated and line.fcs_ok, ctx
+        if index:
+            assert line.ifg == 12, f"{ctx}: interframe gap {line.ifg}"
+        if index % 2 == 0:
+            assert line.error, f"{ctx}: missing TX_ER"
+            error_cycles = [tick for tick, _, _ in errors if line.start_cycle <= tick <= line.end_cycle]
+            # At least the last payload byte, all padding and all four FCS
+            # bytes must carry TX_ER. In particular, do not clear on CRC3.
+            last_payload = line.start_cycle + len(GMII_PREAMBLE) + len(frame) - 1
+            assert set(range(last_payload, line.end_cycle + 1)) <= set(error_cycles), (
+                ctx, "TX_ER missing from final payload/padding/FCS", error_cycles
+            )
+            assert contiguous(error_cycles), f"{ctx}: TX_ER has a gap inside the frame"
+        else:
+            bench.check_clean_frame(line, frame, ctx)
+    # Checking every error sample also covers the first idle byte and the
+    # complete following gap, which frame-level error decoding would miss.
+    assert all(en == 1 for _, en, _ in errors), f"GMII 1-in-{period}: TX_ER remained high during idle"
+    assert not bench.monitor.frame_pending
+    assert bench.status.delta(before) == {"txCountEn": len(frames), "txUnderRun": 0, "txLinkNotReady": 0}
+    await bench.close()
+
+
+@cocotb.test(timeout_time=500, timeout_unit="us")
+async def tx_gmii_eofe_boundary(dut):
+    await run_gmii_eofe(dut, 1, [14, 40, 59, 60, 61, 64, 127, 128, 129, 1518])
+
+
+@cocotb.test(timeout_time=1000, timeout_unit="us")
+async def tx_gmii_eofe_clk_en_1_in_10(dut):
+    await run_gmii_eofe(dut, 10, [14, 59, 60, 61, 129])
+
+
+@cocotb.test(timeout_time=2000, timeout_unit="us")
+async def tx_gmii_eofe_clk_en_1_in_100(dut):
+    await run_gmii_eofe(dut, 100, [14, 59, 60, 61, 129])
+
+
+CLK_EN_TESTS = ("tx_clk_en_1_in_10", "tx_clk_en_1_in_100",
+                "tx_gmii_eofe_clk_en_1_in_10", "tx_gmii_eofe_clk_en_1_in_100")
+GMII_ONLY_TESTS = ("tx_gmii_eofe_boundary", *CLK_EN_TESTS)
 
 # XLGMII is omitted: EthMacTxExportXlgmii is a placeholder leaf with no line
 # behaviour, this wrapper leaves its pins open and there is no XLGMII line
@@ -493,7 +580,7 @@ CLK_EN_TESTS = ("tx_clk_en_1_in_10", "tx_clk_en_1_in_100")
 PARAMETER_SWEEP = [
     pytest.param({"PHY_TYPE_G": "GMII"}, cocotb_test_filter_excluding(*CLK_EN_TESTS), id="gmii"),
     pytest.param({"PHY_TYPE_G": "GMII"}, cocotb_test_filter(*CLK_EN_TESTS), id="gmii_clk_en"),
-    pytest.param({"PHY_TYPE_G": "XGMII"}, cocotb_test_filter_excluding(*CLK_EN_TESTS), id="xgmii"),
+    pytest.param({"PHY_TYPE_G": "XGMII"}, cocotb_test_filter_excluding(*GMII_ONLY_TESTS), id="xgmii"),
 ]
 
 

@@ -202,6 +202,8 @@ begin
                end if;
                if (macMaster.tValid = '1') then
                   if (macMaster.tlast = '1') then
+                     -- Carry the input frame error through padding and FCS.
+                     v.gmiiTxEr := axiStreamGetUserBit(AXI_CONFIG_C, macMaster, EMAC_EOFE_BIT_C);
                      if (v.txCount = x"3C") then
                         v.state := TX_CRC_S;
                      else
@@ -257,6 +259,11 @@ begin
                end if;
             ----------------------------------------------------------------------
             when INTERGAP_S =>
+               -- Keep EOFE through the final FCS byte, then clear it with TX_EN.
+               -- DUMP_S already cleared TX_EN; retain its underrun behavior.
+               if r.gmiiTxEn = '1' then
+                  v.gmiiTxEr := '0';
+               end if;
                v.gmiiTxEn := '0';
                v.gmiiTxd  := x"00";
                v.txCount  := r.txCount +1;

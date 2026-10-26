@@ -40,7 +40,9 @@ for file in "${EXCLUDE_FILES[@]}"; do
     EXCLUDE_MAP["$file"]=1
 done
 
-# Gather all non-excluded files into a list
+# Gather all non-excluded files into a list. The ruckus directory is pruned
+# because CI clones it into the checkout and its VHDL test fixtures are not
+# part of surf.
 INCLUDED_FILES=()
 while IFS= read -r vhd_file; do
     if [[ -z "${EXCLUDE_MAP["$vhd_file"]}" ]]; then
@@ -48,7 +50,7 @@ while IFS= read -r vhd_file; do
     else
         echo "Skipping:   $vhd_file"
     fi
-done < <(find "$SCRIPT_DIR/../" -type f -name "*.vhd")
+done < <(find "$SCRIPT_DIR/../" -path "$SCRIPT_DIR/../ruckus" -prune -o -type f -name "*.vhd" -print)
 
 # Determine number of CPU cores available
 if command -v nproc &> /dev/null; then
