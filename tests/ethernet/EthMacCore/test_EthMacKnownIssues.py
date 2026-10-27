@@ -15,14 +15,24 @@
 #   with its separate RTL fix. Default recovery scenarios cover reports whose
 #   proposed stricter policy is not an established interface requirement.
 # - Stimulus / expected failures:
-#   #3: TX oversize followed by three distinct UDP frames loses the first and
-#       assigns earlier transaction lengths/checksums to subsequent frames.
-#   #5: XGMII RX link loss continues unterminated beats; the full MAC then
-#       swallows the first recovery frame while the checksum stage blows off.
-#   #4: XGMII TX link loss sends the remaining bytes as a new valid-FCS frame.
+#   #3 fixed: TX oversize followed by three distinct UDP frames must preserve
+#       frame/transaction alignment and all recovery lengths/checksums.
+#   #5 fixed: XGMII RX link loss closes the active frame with EOFE, emits
+#       no further outage beats, and preserves the first recovery frame.
+#       Both start lanes, early loss and one-clock outages are exercised.
+#       Abort status is registered and counted once, idle flapping is silent,
+#       and link loss wins over a coincident good final beat. Calibrate that
+#       boundary using a clean frame's public status pulse, then replay it
+#       with link loss on the decision edge and one clock later.
+#       Tight mixed good/bad-FCS bursts check pulse width and event ordering;
+#       a cycle trace supports comparison of AXI timing before/after changes.
+#       Reset wins over a simultaneous active-frame link-loss event.
+#   #4 fixed: XGMII TX link loss must drain the interrupted frame and deliver
+#       intact recovery without fabricating a valid-FCS tail frame.
 #   #13: An outbound EOFE FIFO drop is absent from rxFifoDrop; the unconnected
 #        lockup-reset event is not independently reproduced.
-#   #7: EOFE TX frames leave with valid FCS (all GMII lengths, XGMII >=57).
+#   #7 fixed: EOFE TX frames must carry a line error or invalid FCS across
+#       padding/beat boundaries; every following clean frame is intact.
 #   #8: RX_ER followed by payload 0xD5 inside RX_DV starts a spurious frame.
 #   #16 policy candidate: nested XGMII /S/ sweeps both start lanes. Accept
 #       salvage or discard, require no clean merged frame and intact recovery.
@@ -37,13 +47,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 import os
 import random
 
 import cocotb
 import pytest
 from cocotb.clock import Clock
-from cocotb.triggers import FallingEdge, RisingEdge
+from cocotb.triggers import FallingEdge, ReadOnly, RisingEdge
 
 from tests.common.regression_utils import (
     cocotb_filtered_env,
@@ -272,8 +283,8 @@ def top_status(status: StatusPulseCounter) -> str:
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=200, timeout_unit="us")
-async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def tx_csum_oversize_recovery_test(dut):
     # Start the clock, enable IPv4/UDP insertion and release reset.
     bench = await setup_flat_emac_testbench(
         dut,
@@ -302,8 +313,11 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
         repaired.append(build_ipv4_udp_frame(**fields))
         inputs.append(build_ipv4_udp_frame(**fields, ip_checksum_override=0, udp_checksum_override=0))
 
+    # A 64-cycle gap keeps the loopback RxCsum checker clear of report #11
+    # (adjacent frames flag a false IPv4 error); the pre-fix TX RTL still
+    # misaligns transactions at this spacing.
     frames = [frame_beats_from_bytes(oversize)] + [frame_beats_from_bytes(frame) for frame in inputs]
-    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=4)
+    await send_frame_burst(bench.source, frames, clk=bench.clk, inter_frame_gap_cycles=64)
     await wait_until(lambda: len(collector.frames) >= len(repaired), clk=bench.clk, cycles=2000)
     await cycle(bench.clk, 200)
 
@@ -315,9 +329,7 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
         f"{frame.describe()} looks like {describe_header(frame.payload, names)}" for frame in collector.frames
     ) or "none"
     assert delivered == repaired and all(frame.eofe == 0 for frame in collector.frames), (
-        "Known defect (EthMacTxCsum oversize branch): the oversize frame leaves a "
-        "tLast-less beat in Fifo_Cache, the next frame is dropped with it and Fifo_Trans "
-        "stays misaligned, so later frames get the previous frame's length/checksums. "
+        "Report #3: oversize TX must not consume a recovery frame or its checksum metadata. "
         f"seed={SEED:#x}; expected good0, good1, good2 intact; delivered {observed}"
     )
 
@@ -327,11 +339,12 @@ async def tx_csum_oversize_frame_misaligns_transactions_known_issue_test(dut):
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=100, timeout_unit="us")
-async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_xgmii_import_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     driver = XgmiiDriver(dut, clk=bench.clk)
     collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
     rng = random.Random(SEED + 1)
     interrupted = random_frame(rng, 400)
     recovery = random_frame(rng, 100, src_mac=0x660000000001)
@@ -342,6 +355,12 @@ async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
     await driver.send(xgmii_words_from_lanes(partial, ifg=0))
     dut.rxPhyReady.value = 0
 
+    # Changing the link between clocks must not change registered status.
+    await ReadOnly()
+    assert resolved_int(dut.rxCrcError) == 0 and resolved_int(dut.rxCountEn) == 0
+    await FallingEdge(bench.clk)
+    assert resolved_int(dut.rxCrcError) == 1 and resolved_int(dut.rxCountEn) == 0
+
     # Allow 16 clocks for the importer pipeline to close the frame, then
     # count every beat it emits during the rest of a 200-clock outage.
     await cycle(bench.clk, 16)
@@ -349,6 +368,14 @@ async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
     beats_before = collector.total_beats
     await cycle(bench.clk, 184)
     outage_beats = collector.total_beats - beats_before
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 1}, status.counts
+
+    # Idle flapping after the abort must not create additional error events.
+    for ready in (1, 0, 1, 0):
+        await FallingEdge(bench.clk)
+        dut.rxPhyReady.value = ready
+        await cycle(bench.clk, 4)
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 1}, status.counts
     await FallingEdge(bench.clk)
     dut.rxPhyReady.value = 1
     await cycle(bench.clk, 20)
@@ -366,13 +393,221 @@ async def rx_xgmii_import_link_loss_emits_beats_known_issue_test(dut):
         f"{describe_bytes(frame.payload, {'recovery': recovery})} eofe={frame.eofe}" for frame in collector.frames
     ) or "none"
     assert interrupted_closed and outage_beats == 0 and len(recovered) == 1, (
-        "Known defect (EthMacRxImportXgmii phyReady loss): phyReady clears the frame and "
-        "CRC pipeline but not intAdvance, so the importer keeps emitting beats with no "
-        "tLast and merges them with the next frame. "
+        "Report #5: link loss must terminate the partial frame with EOFE and preserve recovery. "
         f"seed={SEED + 1:#x}; interrupted frame closed within 16 clocks: "
         f"{interrupted_closed}; beats emitted during the next 184 link-down clocks: "
         f"{outage_beats}; importer frames: [{observed}]"
     )
+    assert status.counts == {"rxCountEn": 1, "rxCrcError": 1}, status.counts
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_link_loss_boundaries_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    rng = random.Random(SEED + 8)
+    # Drop before and after AXI output starts, at either /S/ alignment.
+    for lane in (0, 4):
+        for words, outage in ((1, 1), (3, 1), (5, 32), (25, 1)):
+            first = len(collector.frames)
+            interrupted = random_frame(rng, 400)
+            partial = xgmii_lanes(interrupted, terminate=False)[:8 * words - lane]
+            await driver.send(xgmii_words_from_lanes(partial, start_lane=lane, ifg=0))
+            dut.rxPhyReady.value = 0
+            await cycle(bench.clk, outage)
+            await FallingEdge(bench.clk)
+            dut.rxPhyReady.value = 1
+            # Send on the next available line clock: recovery must not need
+            # an extra idle window to flush stale CRC/FIFO data.
+            recovery = random_frame(rng, 100)
+            await driver.send(xgmii_words(recovery, start_lane=lane))
+            await cycle(bench.clk, 100)
+            observed = collector.frames[first:]
+            assert observed and observed[-1].payload == recovery and observed[-1].eofe == 0, (
+                lane, words, outage, collector.describe()
+            )
+            aborted = observed[:-1]
+            assert len(aborted) <= 1 and all(frame.eofe == 1 for frame in aborted), (lane, words, aborted)
+            assert not collector.open_beats, collector.describe()
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_link_loss_final_beat_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
+    rng = random.Random(SEED + 9)
+
+    # Exercise both /S/ lanes and full/partial final 64-bit beats. Measure a
+    # clean frame's public registered verdict; do not peek at internal state
+    # or encode the CRC pipeline's implementation in the stimulus timing.
+    for lane in (0, 4):
+        for length in (96, 101):
+            frame = random_frame(rng, length)
+            words = xgmii_words(frame, start_lane=lane, ifg=0)
+            first = len(collector.frames)
+            before = status.snapshot()
+            await driver.send(words)
+            for verdict_delay in range(1, 33):
+                await FallingEdge(bench.clk)
+                if resolved_int(dut.rxCountEn):
+                    break
+            else:
+                raise AssertionError(f"No clean verdict: lane={lane}, length={length}, seed={SEED + 9:#x}")
+            assert verdict_delay > 1
+            await cycle(bench.clk, 32)
+            assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}
+            assert len(collector.frames) == first + 1, collector.describe()
+            assert collector.frames[-1].payload == frame and collector.frames[-1].eofe == 0
+
+            # A pulse visible at falling edge N was registered on the prior
+            # rising edge. Drop at falling edge N-1 to hit that decision, or
+            # at N to prove an already committed good verdict is preserved.
+            for offset, expected_error in ((-1, 1), (0, 0)):
+                first = len(collector.frames)
+                before = status.snapshot()
+                await driver.send(words)
+                for _ in range(verdict_delay + offset):
+                    await FallingEdge(bench.clk)
+                prior_status = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+                dut.rxPhyReady.value = 0
+                await ReadOnly()
+                assert (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError)) == prior_status
+                await cycle(bench.clk, 32)
+
+                context = f"lane={lane}, length={length}, offset={offset}, seed={SEED + 9:#x}"
+                assert len(collector.frames) == first + 1, (context, collector.describe())
+                received = collector.frames[-1]
+                assert received.payload == frame and received.eofe == expected_error, (context, received.describe())
+                assert received.beats[0].sof == 1 and not collector.open_beats, (context, collector.describe())
+                assert status.delta(before) == {"rxCountEn": 1 - expected_error, "rxCrcError": expected_error}, (
+                    context, status.delta(before)
+                )
+
+                # The first frame after restoration must be complete and
+                # produce exactly one good event, without another abort.
+                await FallingEdge(bench.clk)
+                dut.rxPhyReady.value = 1
+                recovery = random_frame(rng, 100)
+                before = status.snapshot()
+                await driver.send(xgmii_words(recovery, start_lane=lane))
+                await cycle(bench.clk, 32)
+                assert len(collector.frames) == first + 2, (context, collector.describe())
+                assert collector.frames[-1].payload == recovery and collector.frames[-1].eofe == 0, context
+                assert not collector.open_beats, (context, collector.describe())
+                assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}, (context, status.delta(before))
+
+
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_status_timing_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    rng = random.Random(SEED + 10)
+    # All final-byte positions, both start lanes, and alternating verdicts at
+    # short interframe spacing. One continuous send avoids per-frame bubbles.
+    frames = [random_frame(rng, length) for length in range(60, 76)]
+    errors = [index % 2 for index in range(len(frames))]
+    words = []
+    for index, (frame, error) in enumerate(zip(frames, errors)):
+        words += xgmii_words(frame, start_lane=4 * (index % 2), bad_fcs=bool(error), ifg=12)
+
+    # Sample exactly as a downstream synchronous consumer does, before the
+    # registered update. Keep complete valid AXI beats and status event cycles
+    # in the log for a differential comparison with the previous RTL.
+    async def capture_timing():
+        beats = []
+        events = []
+        previous = (0, 0)
+        for tick in range(len(words) + 64):
+            await RisingEdge(bench.clk)
+            current = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+            assert current != (1, 1), (tick, current)
+            assert not any(old and new for old, new in zip(previous, current)), (tick, previous, current)
+            previous = current
+            if any(current):
+                events.append((tick, *current))
+            if resolved_int(dut.mAxisTValid):
+                beats.append((tick, *(resolved_int(getattr(dut, name)) for name in (
+                    "mAxisTData", "mAxisTKeep", "mAxisTLast", "mAxisSof", "mAxisEofe"
+                ))))
+        return {"beats": beats, "status": events}
+
+    capture = cocotb.start_soon(capture_timing())
+    await driver.send(words)
+    trace = await capture
+    dut._log.info("RX_TIMING_TRACE %s", json.dumps(trace))
+    assert [frame.payload for frame in collector.frames] == frames, collector.describe()
+    assert [frame.eofe for frame in collector.frames] == errors, collector.describe()
+    assert not collector.open_beats, collector.describe()
+    assert [(good, bad) for _, good, bad in trace["status"]] == [(1 - error, error) for error in errors]
+
+
+@cocotb.test(timeout_time=100, timeout_unit="us")
+async def rx_xgmii_status_reset_test(dut):
+    bench = await start_import_export_bench(dut)
+    driver = XgmiiDriver(dut, clk=bench.clk)
+    rng = random.Random(SEED + 11)
+
+    # With output active, reset must suppress a link-loss event on the same
+    # edge, then release without a stale pulse. The data path may discard its
+    # partial frame on reset; start the recovery collector afterwards.
+    interrupted = random_frame(rng, 400)
+    await driver.send(xgmii_words_from_lanes(xgmii_lanes(interrupted, terminate=False)[:LINK_LOSS_LANES], ifg=0))
+    dut.ethRst.value = 1
+    dut.rxPhyReady.value = 0
+    await ReadOnly()
+    assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+    for _ in range(4):
+        await FallingEdge(bench.clk)
+        assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+    dut.ethRst.value = 0
+    dut.rxPhyReady.value = 1
+    collector = EmacFrameCollector(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"rxCountEn": dut.rxCountEn, "rxCrcError": dut.rxCrcError})
+    await cycle(bench.clk, 16)
+    assert status.counts == {"rxCountEn": 0, "rxCrcError": 0}
+    recovery = random_frame(rng, 101)
+    await driver.send(xgmii_words(recovery, start_lane=4))
+    await cycle(bench.clk, 32)
+    assert len(collector.frames) == 1 and not collector.open_beats, collector.describe()
+    assert collector.frames[0].payload == recovery and collector.frames[0].eofe == 0
+    assert status.counts == {"rxCountEn": 1, "rxCrcError": 0}
+
+    # Reset after either kind of pulse has been published. Synchronous reset
+    # must retain the pulse until its clock edge, clear it on that edge, and
+    # leave no delayed event after release. Verify clean recovery each time.
+    for bad_fcs in (False, True):
+        await driver.send(xgmii_words(random_frame(rng, 101), start_lane=4, bad_fcs=bad_fcs, ifg=0))
+        for _ in range(32):
+            await FallingEdge(bench.clk)
+            pulse = (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError))
+            if any(pulse):
+                break
+        else:
+            raise AssertionError(f"Missing pre-reset pulse: bad_fcs={bad_fcs}")
+        assert pulse == (int(not bad_fcs), int(bad_fcs))
+        dut.ethRst.value = 1
+        await ReadOnly()
+        assert (resolved_int(dut.rxCountEn), resolved_int(dut.rxCrcError)) == pulse
+        for _ in range(4):
+            await FallingEdge(bench.clk)
+            assert resolved_int(dut.rxCountEn) == 0 and resolved_int(dut.rxCrcError) == 0
+        # Discard any partial frame observed before reset, as the AXI receiver
+        # would do on the same reset. The monitor stays active for recovery.
+        collector.frames.clear()
+        collector.open_beats.clear()
+        before = status.snapshot()
+        dut.ethRst.value = 0
+        await cycle(bench.clk, 16)
+        assert status.delta(before) == {"rxCountEn": 0, "rxCrcError": 0}
+        await driver.send(xgmii_words(recovery, start_lane=4))
+        await cycle(bench.clk, 32)
+        assert len(collector.frames) == 1 and not collector.open_beats, collector.describe()
+        assert collector.frames[0].payload == recovery and collector.frames[0].eofe == 0
+        assert status.delta(before) == {"rxCountEn": 1, "rxCrcError": 0}
 
 
 @cocotb.test(timeout_time=100, timeout_unit="us")
@@ -415,8 +650,8 @@ async def rx_xgmii_import_nested_start_recovery_test(dut):
     assert not failures, "Nested /S/ broke clean recovery: " + " | ".join(failures)
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=300, timeout_unit="us")
-async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
+@cocotb.test(timeout_time=300, timeout_unit="us")
+async def rx_xgmii_top_link_loss_recovery_test(dut):
     driver, collector, status = await start_top_phy_bench(dut)
     rng = random.Random(SEED + 1)
     interrupted = random_frame(rng, 400)
@@ -432,6 +667,7 @@ async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
     # Hold the link down for longer than 1500 bytes of importer output
     # (8 bytes per clock) so EthMacRxCsum reaches its oversize blow-off.
     await cycle(dut.ethClk, 400)
+    assert status.counts["rxCrcErrorCnt"] == 1 and status.counts["rxCountEn"] == 0, top_status(status)
     await FallingEdge(dut.ethClk)
     dut.phyReady.value = 1
     await cycle(dut.ethClk, 20)
@@ -448,12 +684,11 @@ async def rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test(dut):
     names = {"first_good": first_good, "second_good": second_good}
     observed = "; ".join(describe_bytes(payload, names) for payload in delivered) or "none"
     assert delivered == [first_good, second_good], (
-        "Known defect (EthMacRxImportXgmii phyReady loss + EthMacRxCsum blow-off): the "
-        "importer keeps emitting beats without tLast after phyReady drops, EthMacRxCsum "
-        "closes them at 1500 bytes and its BLOWOFF_S swallows the next frame. "
+        "Report #5: the RX checksum stage must receive EOF on link loss and preserve both recovery frames. "
         f"seed={SEED + 1:#x}; expected [first_good, second_good]; delivered [{observed}] "
         f"({collector.describe()}); {top_status(status)}"
     )
+    assert status.counts["rxCrcErrorCnt"] == 1 and status.counts["rxCountEn"] == 2, top_status(status)
 
 
 @cocotb.test(timeout_time=300, timeout_unit="us")
@@ -488,51 +723,54 @@ async def rx_xgmii_top_nested_start_recovery_test(dut):
 ###############################################################################
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=200, timeout_unit="us")
-async def tx_xgmii_link_loss_sends_valid_fragment_known_issue_test(dut):
+async def send_link_loss_frame(source, beats, *, clk, pause_tail):
+    """Optionally hold back the source tail until after the short outage."""
+    if pause_tail:
+        await send_frame_burst(source, [beats[:4]], clk=clk)
+        await cycle(clk, 64)
+        await send_frame_burst(source, [beats[4:]], clk=clk)
+    else:
+        await send_frame_burst(source, [beats], clk=clk)
+
+
+@cocotb.test(timeout_time=200, timeout_unit="us")
+async def tx_xgmii_link_loss_recovery_test(dut):
     bench = await start_import_export_bench(dut)
     monitor = XgmiiMonitor(dut, clk=bench.clk)
     rng = random.Random(SEED + 3)
-    interrupted = random_frame(rng, 512)
-    recovery = random_frame(rng, 100, src_mac=0x660000000005)
 
-    # Queue the long frame and wait for its /S/ on the line.
-    send_task = cocotb.start_soon(
-        send_frame_burst(bench.source, [frame_beats_from_bytes(interrupted)], clk=bench.clk)
-    )
-    started = await wait_until(
-        lambda: (resolved_int(dut.xgmiiTxc) & 1) == 1 and (resolved_int(dut.xgmiiTxd) & 0xFF) == 0xFB,
-        clk=bench.clk,
-        cycles=200,
-    )
-    assert started, "Bench: the exporter never started the long frame"
+    # Short and long outages at the beginning, middle and tail of a frame.
+    # In the short-outage cases the source tail is drained after link return.
+    cases = ((128, 0, 1, False), (512, 10, 50, False), (512, 58, 1, False), (512, 1, 1, True))
+    for index, (length, offset, outage, pause_tail) in enumerate(cases):
+        interrupted = random_frame(rng, length)
+        recovery = random_frame(rng, 100, src_mac=0x660000000005 + index)
+        first = len(monitor.frames)
+        send_task = cocotb.start_soon(
+            send_link_loss_frame(bench.source, frame_beats_from_bytes(interrupted), clk=bench.clk, pause_tail=pause_tail)
+        )
+        started = await wait_until(
+            lambda: (resolved_int(dut.xgmiiTxc) & 1) == 1 and (resolved_int(dut.xgmiiTxd) & 0xFF) == 0xFB,
+            clk=bench.clk, cycles=200,
+        )
+        assert started, "exporter never started the interrupted frame"
+        await cycle(bench.clk, offset)
+        await FallingEdge(bench.clk)
+        dut.txPhyReady.value = 0
+        await cycle(bench.clk, outage)
+        await FallingEdge(bench.clk)
+        dut.txPhyReady.value = 1
+        await send_task
 
-    # Ten words into the frame, take the link down for 50 clocks.
-    await cycle(bench.clk, 10)
-    dut.txPhyReady.value = 0
-    await cycle(bench.clk, 50)
-    dut.txPhyReady.value = 1
-    await send_task
-
-    # A recovery frame after the link returns.
-    await send_frame_burst(bench.source, [frame_beats_from_bytes(recovery)], clk=bench.clk)
-    await cycle(bench.clk, 300)
-
-    # Expected: nothing with a valid FCS appears on the line except complete
-    # submitted frames, and the recovery frame is transmitted intact.
-    names = {"interrupted": interrupted, "recovery": recovery}
-    valid = [frame for frame in monitor.frames if frame.fcs_ok and frame.preamble_ok and frame.terminated and not frame.error]
-    fragments = [frame for frame in valid if frame.frame not in (interrupted, recovery)]
-    recovered = [frame for frame in valid if frame.frame == recovery]
-    line = "; ".join(
-        f"{describe_bytes(frame.frame, names)} fcs_ok={frame.fcs_ok} terminated={frame.terminated} error={frame.error}"
-        for frame in monitor.frames
-    )
-    assert not fragments and len(recovered) == 1, (
-        "Known defect (EthMacTxExportXgmii phyReady loss): the remainder of the frame "
-        "interrupted by link loss is sent after the link returns as a fresh frame with a "
-        f"correct FCS. seed={SEED + 3:#x}; line frames: [{line}]"
-    )
+        await send_frame_burst(bench.source, [frame_beats_from_bytes(recovery)], clk=bench.clk)
+        await cycle(bench.clk, 300)
+        observed = monitor.frames[first:]
+        valid = [frame for frame in observed if frame.fcs_ok and frame.preamble_ok and frame.terminated and not frame.error]
+        assert all(frame.frame in (interrupted, recovery) for frame in valid), (
+            f"report #4: fabricated valid frame; seed={SEED + 3:#x} offset={offset} outage={outage}; {observed}"
+        )
+        assert sum(frame.frame == recovery for frame in valid) == 1, (index, observed)
+        assert not monitor.frame_pending, (index, observed)
 
 
 ###############################################################################
@@ -627,7 +865,7 @@ async def rx_fifo_outbound_drop_not_counted_known_issue_test(dut):
 
 
 ###############################################################################
-# Report #7: EOFE frames leave the exporter with a valid FCS
+# Report #7: EOFE frames must be rejected on the wire
 ###############################################################################
 
 EOFE_LENGTHS = {
@@ -649,23 +887,28 @@ def length_ranges(lengths: list[int]) -> str:
     return ", ".join(f"{low}" if low == high else f"{low}-{high}" for low, high in ranges) or "none"
 
 
-@cocotb.test(skip=KNOWN_ISSUE_SKIP, timeout_time=500, timeout_unit="us")
-async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
+@cocotb.test(timeout_time=500, timeout_unit="us")
+async def tx_eofe_frame_is_rejected_test(dut):
     phy = os.environ["PHY_TYPE_G"]
     bench = await start_import_export_bench(dut)
     monitor = XgmiiMonitor(dut, clk=bench.clk) if phy == "XGMII" else GmiiMonitor(dut, clk=bench.clk)
+    status = StatusPulseCounter(bench.clk, {"txCountEn": dut.txCountEn, "txUnderRun": dut.txUnderRun})
     rng = random.Random(SEED + 6)
 
-    # Every frame is closed with EOFE on its last beat, as EthMacTx forwards
-    # it with DROP_ERR_PKT_G=false. Frames go back-to-back.
+    # Forward EOFE as with DROP_ERR_PKT_G=false. Follow every errored frame
+    # immediately with a clean frame to check that error state does not leak.
     lengths = EOFE_LENGTHS[phy]
     frames = [random_frame(rng, length) for length in lengths]
-    await send_frame_burst(bench.source, [frame_beats_from_bytes(frame, eofe=1) for frame in frames], clk=bench.clk)
+    recovery = [random_frame(rng, 100) for _ in frames]
+    beats = []
+    for errored, clean in zip(frames, recovery, strict=True):
+        beats.extend((frame_beats_from_bytes(errored, eofe=1), frame_beats_from_bytes(clean)))
+    await send_frame_burst(bench.source, beats, clk=bench.clk)
     per_frame = 90 if phy == "XGMII" else 1600
-    await wait_until(lambda: len(monitor.frames) >= len(frames), clk=bench.clk, cycles=per_frame * len(frames))
+    await wait_until(lambda: len(monitor.frames) >= len(beats), clk=bench.clk, cycles=per_frame * len(beats))
     await cycle(bench.clk, 100)
-    assert len(monitor.frames) == len(frames), (
-        f"Bench: {len(monitor.frames)} line frames decoded for {len(frames)} submitted"
+    assert len(monitor.frames) == len(beats), (
+        f"Bench: {len(monitor.frames)} line frames decoded for {len(beats)} submitted"
     )
 
     # Expected: every EOFE frame that reaches the line carries an invalid FCS
@@ -675,7 +918,7 @@ async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
     # exporter pads short frames to 61 octets (baseline behaviour owned by
     # test_EthMacTxExportLine).
     valid_fcs = []
-    for length, frame, line in zip(lengths, frames, monitor.frames, strict=True):
+    for length, frame, line in zip(lengths, frames, monitor.frames[::2], strict=True):
         prefix = min(len(frame), 56)
         assert line.preamble_ok and line.frame[:prefix] == frame[:prefix], (
             f"Bench: line frame for length {length} does not start with the submitted payload"
@@ -683,18 +926,16 @@ async def tx_eofe_frame_leaves_with_valid_fcs_known_issue_test(dut):
         if line.fcs_ok and not line.error:
             valid_fcs.append(length)
     assert not valid_fcs, (
-        f"Known defect (EthMacTxExport{'Gmii' if phy == 'GMII' else 'Xgmii'} EOFE): "
-        + (
-            "EthMacTxExportGmii never looks at EOFE, so an EOFE frame leaves with a valid FCS. "
-            if phy == "GMII"
-            else "when tLast falls on the 8th or later 64-bit word (ST_READ_C, exportWordCnt >= 7) "
-            "intLastLine is set in the same cycle that EOFE is ORed into nxtError, so the FCS "
-            "mask is chosen from the old intError and the EOFE is lost; only frames finished "
-            "through ST_PAD_C (<= 56 bytes) get the inverted FCS. "
-        )
-        + f"seed={SEED + 6:#x}; EOFE frames with a valid FCS on the line, by length (bytes "
+        f"Report #7 ({phy}): EOFE must produce a line error or invalid FCS. "
+        f"seed={SEED + 6:#x}; EOFE frames with a valid FCS on the line, by length (bytes "
         f"without FCS): {length_ranges(valid_fcs)}; tested lengths: {length_ranges(lengths)}"
     )
+    for expected, line in zip(recovery, monitor.frames[1::2], strict=True):
+        assert line.frame == expected and line.preamble_ok and line.terminated and line.fcs_ok and not line.error, (
+            f"{phy}: EOFE leaked into the following clean frame"
+        )
+    assert not monitor.frame_pending, f"{phy}: unterminated frame after recovery"
+    assert status.counts == {"txCountEn": len(beats), "txUnderRun": 0}, status.counts
 
 
 ###############################################################################
@@ -749,38 +990,10 @@ async def rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test(dut):
 
 KNOWN_ISSUE_CASES = [
     pytest.param(
-        "surf.ethmactxcsumloopbackwrapper",
-        TXCSUM_WRAPPER,
-        {"JUMBO_G": "false"},
-        ("tx_csum_oversize_frame_misaligns_transactions_known_issue_test",),
-        id="txcsum_oversize",
-    ),
-    pytest.param(
-        "surf.ethmacimportexportwrapper",
-        IMPORT_EXPORT_WRAPPER,
-        {"PHY_TYPE_G": "XGMII"},
-        (
-            "rx_xgmii_import_link_loss_emits_beats_known_issue_test",
-            "tx_xgmii_link_loss_sends_valid_fragment_known_issue_test",
-            "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
-        ),
-        id="xgmii_import_export",
-    ),
-    pytest.param(
-        "surf.ethmactopphywrapper",
-        TOP_PHY_WRAPPER,
-        {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
-        (
-            "rx_xgmii_top_link_loss_swallows_next_frame_known_issue_test",
-        ),
-        id="rx_xgmii_top",
-    ),
-    pytest.param(
         "surf.ethmacimportexportwrapper",
         IMPORT_EXPORT_WRAPPER,
         {"PHY_TYPE_G": "GMII"},
         (
-            "tx_eofe_frame_leaves_with_valid_fcs_known_issue_test",
             "rx_gmii_import_sfd_rearm_after_rx_er_known_issue_test",
         ),
         id="gmii_import_export",
@@ -799,6 +1012,33 @@ KNOWN_ISSUE_CASES = [
 def test_EthMacKnownIssues(toplevel, wrapper, parameters, entrypoints):
     if KNOWN_ISSUE_SKIP:
         pytest.skip("unresolved RTL reports; set RUN_KNOWN_ISSUE_TESTS=1")
+    _run_case(toplevel, wrapper, parameters, entrypoints)
+
+
+FIXED_ISSUE_CASES = [
+    pytest.param(
+        "surf.ethmactxcsumloopbackwrapper",
+        TXCSUM_WRAPPER,
+        {"JUMBO_G": "false"},
+        ("tx_csum_oversize_recovery_test",),
+        id="txcsum_oversize",
+    ),
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
+                 ("tx_xgmii_link_loss_recovery_test",), id="xgmii_tx_link_loss"),
+    pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": "XGMII"},
+                 ("rx_xgmii_import_link_loss_recovery_test", "rx_xgmii_link_loss_boundaries_test",
+                  "rx_xgmii_link_loss_final_beat_test", "rx_xgmii_status_timing_test",
+                  "rx_xgmii_status_reset_test"), id="xgmii_rx_link_loss"),
+    pytest.param("surf.ethmactopphywrapper", TOP_PHY_WRAPPER, {"PHY_TYPE_G": "XGMII", "JUMBO_G": "false"},
+                 ("rx_xgmii_top_link_loss_recovery_test",), id="xgmii_rx_top_link_loss"),
+    *(pytest.param("surf.ethmacimportexportwrapper", IMPORT_EXPORT_WRAPPER, {"PHY_TYPE_G": phy},
+                   ("tx_eofe_frame_is_rejected_test",), id=f"{phy.lower()}_tx_eofe")
+      for phy in ("GMII", "XGMII")),
+]
+
+
+@pytest.mark.parametrize("toplevel, wrapper, parameters, entrypoints", FIXED_ISSUE_CASES)
+def test_EthMacFixedIssues(toplevel, wrapper, parameters, entrypoints):
     _run_case(toplevel, wrapper, parameters, entrypoints)
 
 
