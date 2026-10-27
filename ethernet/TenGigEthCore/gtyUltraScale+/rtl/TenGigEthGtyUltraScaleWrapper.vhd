@@ -33,6 +33,7 @@ entity TenGigEthGtyUltraScaleWrapper is
       PAUSE_EN_G        : boolean                          := true;
       ROCEV2_EN_G       : boolean                          := false;
       -- QUAD PLL Configurations
+      REFCLK_DIFF_G     : boolean                          := true;
       QPLL_REFCLK_SEL_G : slv(2 downto 0)                  := "001";
       -- AXI-Lite Configurations
       EN_AXI_REG_G      : boolean                          := false;
@@ -71,6 +72,8 @@ entity TenGigEthGtyUltraScaleWrapper is
       gtTxPolarity        : in  sl                                             := '0';
       -- MGT Clock Port (156.25 MHz)
       gtRefClk            : in  sl                                             := '0';
+      -- Shared input mode: dedicated GT reference and full-rate fabric copy
+      gtRefClkG           : in  sl                                             := '0';
       gtClkP              : in  sl                                             := '1';
       gtClkN              : in  sl                                             := '0';
       -- MGT Ports
@@ -115,10 +118,12 @@ begin
    TenGigEthGtyUltraScaleClk_Inst : entity surf.TenGigEthGtyUltraScaleClk
       generic map (
          TPD_G             => TPD_G,
+         REFCLK_DIFF_G     => REFCLK_DIFF_G,
          QPLL_REFCLK_SEL_G => QPLL_REFCLK_SEL_G)
       port map (
          -- MGT Clock Port (156.25 MHz)
          gtRefClk      => gtRefClk,
+         gtRefClkG     => gtRefClkG,
          gtClkP        => gtClkP,
          gtClkN        => gtClkN,
          coreClk       => coreClock,
