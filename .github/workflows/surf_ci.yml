@@ -382,6 +382,11 @@ jobs:
           PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
             tests/devices/transceivers/test_QsfpRogue.py
 
+      - name: Eye scan Rogue tests
+        run: |
+          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
+            tests/xilinx/eyescan
+
 # ----------------------------------------------------------------------------
 
   docs:
