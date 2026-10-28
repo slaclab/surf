@@ -30,6 +30,7 @@ setup (
              'surf/misc',
              'surf/protocols',
              'surf/xilinx',
+             'surf/xilinx/eyescan',
              'surf/devices/analog_devices',
              'surf/devices/cypress',
              'surf/devices/intel',
