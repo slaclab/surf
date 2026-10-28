@@ -19,6 +19,7 @@ SLAC Ultimate RTL Framework
 - [SimLink](simlink/README.md): setup and reference documentation for Rogue-facing Stream, Memory, and SideBand simulation links with GHDL, VCS, or Vivado xsim.
 - [Xilinx](xilinx/README.md): Xilinx-family wrappers, primitive integrations, and XVC UDP support.
 - [Python](python/README.md): PyRogue package layout under `python/surf`.
+- [GT eye scan](python/surf/xilinx/README.md): statistical bathtub, 2D eye and margin summary of the GTH and GTY receivers through the `EyeScan` child of `Gthe3Channel` and `Gtye4Channel`.
 - [Tests](tests/README.md): cocotb regression layout, methodology, helpers, and simulator conventions.
 
 <!--- ########################################################################################### -->
