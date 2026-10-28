@@ -9,6 +9,7 @@ SLAC Ultimate RTL Framework
 # Repository Map
 
 - [Agent guidance](AGENTS.md): project layout, coding conventions, and verification notes for contributors and coding agents.
+- [VHDL conventions](docs/vhdl-conventions.md): shared RTL style, state and interface ownership, reset/CDC, register maps, and review guidance.
 - [AXI](axi/README.md): AXI-Lite, AXI4, AXI Stream, DMA, and bridges.
 - [Base](base/README.md): foundational packages, CDC, FIFO, RAM, reset, delay, CRC, and generic RTL helpers.
 - [Devices](devices/README.md): vendor and component-specific RTL support.

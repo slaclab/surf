@@ -24,7 +24,7 @@ class PMBus(pr.Device):
         def addPMBusCommand(**kwargs):
             if kwargs['name'] not in self.notImplemented:
                 desc = kwargs.pop('description', f"PMBus {kwargs['name']} command")
-                self.add(pr.RemoteVariable(hidden=simpleDisplay, description=desc, **kwargs))
+                self.add(pr.RemoteCommand(hidden=simpleDisplay, description=desc, **kwargs))
 
 
         self.add(pr.RemoteVariable(

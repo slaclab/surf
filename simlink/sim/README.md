@@ -2,7 +2,9 @@
 
 This directory contains reusable, simulator-neutral VHDL components intended
 for downstream simulation designs. `simlink/ruckus.tcl` imports these files as
-simulation-only SURF library sources before loading the selected backend.
+simulation-only SURF library sources for the GHDL, VCS, and xsim backends,
+before loading the selected backend. The Icarus and Verilator backends import
+[`../sv/`](../sv/README.md) instead, since neither tool parses VHDL.
 
 The stable `RogueTcpStreamWrap`, `RogueTcpMemoryWrap`, and
 `RogueSideBandWrap` entities adapt backend scalar leaves to SURF record or

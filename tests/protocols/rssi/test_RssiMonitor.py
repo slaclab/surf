@@ -20,8 +20,9 @@
 #   occupancy directly.  This bypasses the RX/TX FSMs while still exercising
 #   the monitor's policy decisions.
 # - Checks: Remote BUSY must suppress retransmission timeout progress.  Server
-#   liveness must refresh only on DATA or NULL receipt, not ACK/BUSY-only
-#   traffic.  Local BUSY must request an immediate ACK on assertion and then
+#   liveness must refresh on valid DATA, NULL, ACK, or BUSY receipt, including
+#   sustained ACK-only traffic from Rogue. Silence or invalid control flags
+#   must still time out. Local BUSY must request an immediate ACK and then
 #   periodic BUSY ACKs at the RSSI page's recommended Retransmission
 #   Timeout/2 cadence.
 # - Timing: Samples are taken after the default `TPD_G` output delay.  Timeout
@@ -163,25 +164,41 @@ async def remote_busy_suppresses_retransmission_timeout_progress_test(dut):
 
 
 @cocotb.test()
-async def server_ack_and_busy_only_traffic_does_not_reset_null_timeout_test(dut):
+async def server_valid_traffic_refreshes_null_timeout_test(dut):
+    tb = TB(dut)
+
+    # Rogue suppresses NULL keepalives while it is sending frequent ACKs.
+    # Exercise each qualifying receive flag separately for several timeout
+    # periods so DATA/NULL cannot conceal broken ACK/BUSY liveness handling.
+    for flag_name in ("rxFlagsAck_i", "rxFlagsBusy_i", "rxFlagsData_i", "rxFlagsNul_i"):
+        await tb.reset()
+        for _ in range(12):
+            await tb.pulse_rx_flag(flag_name)
+            assert int(dut.closeRq_o.value) == 0, flag_name
+            await tb.cycle(2)
+            assert int(dut.closeRq_o.value) == 0, flag_name
+
+        # A peer that actually stops transmitting must still be disconnected.
+        await tb.wait_for_close(cycles=8)
+        await tb.cycle()
+        assert int(dut.statusReg_o.value) & (1 << 2), flag_name
+
+
+@cocotb.test()
+async def server_invalid_control_flags_do_not_refresh_null_timeout_test(dut):
     tb = TB(dut)
     await tb.reset()
-
-    # Server-side liveness is defined by DATA or NULL receipt.  Standalone ACK
-    # and BUSY traffic may affect other timers, but it must not prevent the
-    # server null-timeout close when no DATA/NULL arrives.
     await tb.pulse_rx_flag("rxFlagsNul_i")
 
-    for index in range(10):
-        tb._set_flag_defaults()
-        flag_name = "rxFlagsAck_i" if index % 2 == 0 else "rxFlagsBusy_i"
-        getattr(dut, flag_name).value = 1
-        dut.rxValid_i.value = 1
-        await tb.cycle()
-        if int(dut.closeRq_o.value) == 1:
-            break
-    else:
-        raise AssertionError("ACK/BUSY-only traffic incorrectly prevented server null timeout")
+    # Flags may remain asserted between packets or accompany a rejected frame.
+    # Without rxValid, neither ACK nor BUSY is evidence of a live peer.
+    dut.rxFlagsAck_i.value = 1
+    dut.rxFlagsBusy_i.value = 1
+    dut.rxValid_i.value = 0
+    dut.rxDrop_i.value = 1
+    await tb.wait_for_close(cycles=8)
+    await tb.cycle()
+    assert int(dut.statusReg_o.value) & (1 << 2)
 
 
 @cocotb.test()
