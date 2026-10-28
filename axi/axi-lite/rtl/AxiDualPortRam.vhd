@@ -73,8 +73,11 @@ architecture rtl of AxiDualPortRam is
 
    constant NOT_RST_C : sl := not RST_POLARITY_G;
 
-   -- Number of Axi address bits that need to be manually decoded
-   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2((DATA_WIDTH_G-1)/32));
+   -- Number of Axi address bits that need to be manually decoded: enough to
+   -- select one of the wordCount(DATA_WIDTH_G, 32) words of a RAM line
+   -- (log2((DATA_WIDTH_G-1)/32) was one bit short for 3, 5, 9, ... words, e.g.
+   -- DATA_WIDTH_G = 96: word 2 of a line aliased into the next line)
+   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2(wordCount(DATA_WIDTH_G, 32)));
 
    constant AXI_DEC_ADDR_HIGH_C : integer := 1+AXI_DEC_BITS_C;
    constant AXI_DEC_ADDR_LOW_C  : integer := 2;
