@@ -13,6 +13,8 @@
 
 import pyrogue as pr
 
+from surf.xilinx import eyescan
+
 DIV_ENU = {
     0: '2',
     1: '3',
@@ -26,7 +28,7 @@ DIV_ENU = {
     16: '1'}
 
 class Gthe3Channel(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, eyeScan=True, **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -3281,3 +3283,11 @@ class Gthe3Channel(pr.Device):
             mode        = 'RO',
             name        = 'es_control_status',
             description = 'Eye-scan state [3:1] plus done [0]: WAIT 0x1, RESET 0x2, COUNT 0x6, END 0x5, ARMED 0xA, READ 0x9 (0x0 is read on a lane whose sampler was never enabled)')
+
+        # Statistical eye-scan engine, no hardware access until it is used
+        if eyeScan:
+            self.add(eyescan.EyeScan(
+                name   = 'EyeScan',
+                family = 'GTHE3',
+                expand = False,
+            ))
