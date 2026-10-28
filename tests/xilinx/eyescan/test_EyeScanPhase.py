@@ -10,7 +10,7 @@
 
 # Test methodology:
 # - Sweep: the phase-unification bit (bit 11 of ES_HORZ_OFFSET) under the
-#   'sign' and 'rate' rules on emulated GTHE3 and GTYE4 lanes: the bit written
+#   'sign' and 'rate' rules on emulated GTHE3, GTHE4, GTYE3 and GTYE4 lanes: the bit written
 #   at the activation probe, the line-rate measurement run and every scan
 #   point, the encoding edges, the descriptor default, the expert keyword and
 #   the refusal of a 'rate' scan without a line rate.
@@ -39,6 +39,7 @@ import surf.xilinx.eyescan as es  # noqa: E402
 from surf.xilinx.eyescan import FAMILIES, ScanStatus  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import bitOf, makeGtRoot  # noqa: E402
+from tests.xilinx.eyescan.gt_new_eye_model import makeGthe4Root, makeGtye3Root  # noqa: E402
 from tests.xilinx.eyescan.gtye4_eye_model import makeGtyRoot  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanMargin import shifted  # noqa: E402
@@ -49,6 +50,8 @@ RATE_HIGH = 15.46875
 FAMS = {
     'GTHE3': SimpleNamespace(name='GTHE3', make=makeGtRoot),
     'GTYE4': SimpleNamespace(name='GTYE4', make=makeGtyRoot),
+    'GTYE3': SimpleNamespace(name='GTYE3', make=makeGtye3Root),
+    'GTHE4': SimpleNamespace(name='GTHE4', make=makeGthe4Root),
 }
 
 
@@ -103,7 +106,7 @@ def test_rate_rule_without_a_line_rate_is_refused_before_any_write():
 # ----------------------------------------------------------------------
 # Both rules on both families
 # ----------------------------------------------------------------------
-@pytest.fixture(params=['GTHE3', 'GTYE4'])
+@pytest.fixture(params=sorted(FAMS))
 def fam(request):
     return FAMS[request.param]
 
@@ -370,6 +373,10 @@ def test_the_rule_has_no_variable(rig):
 
 def test_gtye4_phase_unification_default_matches_the_hardware_record():
     assert FAMILIES['GTYE4'].phaseUnification == 'sign'
+    # The unverified GTYE3 and GTHE4 descriptors keep the rule of the verified families; UG578
+    # reads UltraScale GTY as 'rate' (bit 11 set above 10 Gb/s), which stays a per-call option
+    assert FAMILIES['GTYE3'].phaseUnification == 'sign'
+    assert FAMILIES['GTHE4'].phaseUnification == 'sign'
 
     root, gt, model, hook = gtyRig()
     log = logHorz(model)

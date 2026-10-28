@@ -1,6 +1,6 @@
 # Test methodology:
 # - Sweep: the scans and the probe of a lane that has no link, on emulated
-#   GTHE3 and GTYE4 lanes. A lane that delivers no data shows up in three ways:
+#   GTHE3, GTHE4, GTYE3 and GTYE4 lanes. A lane that delivers no data shows up in three ways:
 #   a static input whose offset sampler counts no errors anywhere, not even at
 #   the two ends of the UI where a live link shows its data transitions; an
 #   activation whose centre run reaches END with fewer samples than a full run;
@@ -48,6 +48,7 @@ from surf.xilinx.eyescan import EyeScanEngine, ResetPolicy, ScanStatus, loadResu
 from surf.xilinx.eyescan._EyeScanEngine import SYNC_RESETS  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import SAMPLE_MAX, makeGtRoot  # noqa: E402
+from tests.xilinx.eyescan.gt_new_eye_model import makeGthe4Root, makeGtye3Root  # noqa: E402
 from tests.xilinx.eyescan.gtye4_eye_model import makeGtyRoot  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, seedWords  # noqa: E402
 
@@ -58,7 +59,7 @@ WINDOW = 0.3
 OUT_OF_STEP = 'out of step with the data sampler'
 LINK_DOWN = 'link is closed or unlocked'
 
-FAMS = {'GTHE3': makeGtRoot, 'GTYE4': makeGtyRoot}
+FAMS = {'GTHE3': makeGtRoot, 'GTYE4': makeGtyRoot, 'GTYE3': makeGtye3Root, 'GTHE4': makeGthe4Root}
 
 
 def static(horz, ut):
@@ -66,7 +67,7 @@ def static(horz, ut):
     return 0.0
 
 
-@pytest.fixture(params=['GTHE3', 'GTYE4'])
+@pytest.fixture(params=sorted(FAMS))
 def rig(request):
     roots = []
 

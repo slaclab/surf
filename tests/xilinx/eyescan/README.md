@@ -1,22 +1,35 @@
 # Eye-scan tests
 
 Tests for the statistical eye-scan support in `surf.xilinx.eyescan`. They run real
-Rogue memory transactions against emulated GTHE3 and GTYE4 DRP memories
-(`gthe3_eye_model.py`, `gtye4_eye_model.py`) and do not require an FPGA or an HDL
-simulator.
+Rogue memory transactions against emulated GTHE3, GTHE4, GTYE3 and GTYE4 DRP
+memories (`gthe3_eye_model.py`, `gtye4_eye_model.py`, `gt_new_eye_model.py`) and
+do not require an FPGA or an HDL simulator.
 
 - `test_Gthe3Registers.py`: the `Gthe3Channel` variable list compared with the
   frozen pre-change list in `gthe3_variables.json`, bit placement of the added
   variables, the shared-word read-modify-write hazard, and role resolution.
-- `test_EyeScanFamilies.py`: the GTHE3 and GTYE4 families side by side: role
+- `test_Gthe4AndGtye3Registers.py`: the `Gthe4Channel`, `Gtye3Channel`,
+  `Gthe4Common` and `Gtye3Common` register maps written from UG576 Table C-2 and
+  C-1 and UG578 Table B-2 and B-1 without hardware: the variable lists against
+  `gthe4_variables.json` and `gtye3_variables.json`, the eye-scan fields at the
+  GTYE4 positions, the five GTH scan words of GTHE4 against the ten GTY words of
+  GTYE3, the divider and PROGDIV enums of each family against the user guide and
+  the shared enums against `Gtye4Channel`, the declared bit overlap of GTYE3 word
+  0xFB, the shared-word read-modify-write hazard and role resolution.
+- `gt_new_eye_model.py`: the GTYE3 model (the GTYE4 model over the `Gtye3Channel`
+  field positions) and the GTHE4 model (the GTHE3 sampler over the `Gthe4Channel`
+  positions with a 32-bit seed and all thirty mask words seeded, so a write to the
+  GTY-only words 5 to 9 is caught), with `makeGtye3Root` and `makeGthe4Root`.
+- `test_EyeScanFamilies.py`: the GTHE3, GTHE4, GTYE3 and GTYE4 families side by side: role
   and mask word resolution, the bits that share a DRP word with a scan field,
   the RESET, COUNT, END sequence and status decode, bit counts per run, mask
   word values and order, the width and RXOUT_DIV tables with their refusals,
   abort, back-to-back scans, a refused second run, start-up, `ReadAll`, polling
   and saved YAML with and without the child, both variable lists against their
   golden files, the per-family DRP address and bit-overlap table, the
-  descriptor invariants, the `hwVerified` pin of GTYE4 and the `HwVerified`
-  variable of its child.
+  descriptor invariants, the `hwVerified` pin of GTYE4, the `hwVerified=False`
+  pin of the unverified GTHE4 and GTYE3 descriptors, and the `HwVerified`
+  variable of each child.
 - `gtye4_eye_model.py` and `gtye4_variables.json`: the GTYE4 DRP model (the GTHE3
   sampler over the `Gtye4Channel` field positions, ten mask words per array) and
   the 526 row `Gtye4Channel` variable list captured before the child was added.
@@ -74,14 +87,14 @@ simulator.
   runs, and the progress weighted by modelled seconds.
 
 - `test_EyeScanPhase.py`: the phase-unification bit of `ES_HORZ_OFFSET` on
-  emulated GTHE3 and GTYE4 lanes: the `sign` and `rate` rules at 15.46875 and
+  emulated GTHE3, GTHE4, GTYE3 and GTYE4 lanes: the `sign` and `rate` rules at 15.46875 and
   6.25 Gb/s on every run of a scan (activation probe, line-rate run and every
   point), the encoding edges and the 10 Gb/s threshold, the descriptor default,
   an unknown rule refused before any bus transaction, and the refusal of a
   `rate` scan without a line rate (keyword, descriptor default and Start path).
 
 - `test_EyeScanSync.py`: the activation check that the sampler is in step
-  with the data on emulated GTHE3 and GTYE4 lanes (`desyncResets`,
+  with the data on emulated GTHE3, GTHE4, GTYE3 and GTYE4 lanes (`desyncResets`,
   `resetMode` and `enableDraws` of the model): an out-of-step activation is
   reset again and its bathtub is open, alternating resets cost one extra reset
   per bad activation, a reset that keeps the out-of-step state (the C1100 lane
@@ -100,8 +113,8 @@ simulator.
   whose samples follow the data stays `CLOSED` with one reset, and a re-arm
   that is aborted or hits a failing DRP write still sets both enables again.
 
-- `test_EyeScanNoLink.py`: a lane that delivers no data, on emulated GTHE3 and
-  GTYE4 lanes, in the three forms measured on cards without a link. A static
+- `test_EyeScanNoLink.py`: a lane that delivers no data, on emulated GTHE3,
+  GTHE4, GTYE3 and GTYE4 lanes, in the three forms measured on cards without a link. A static
   input that counts no errors anywhere, including the two ends of the UI where
   a live link shows its data transitions, ends the full-range bathtub, eye and
   margin `CLOSED` with the two-cause warning in the message and the scan

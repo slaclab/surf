@@ -9,19 +9,21 @@
 ##############################################################################
 
 # Test methodology:
-# - Sweep: the GTHE3 and GTYE4 eye-scan families over their emulated DRP
-#   models, through the EyeScan child each driver adds to itself: role
+# - Sweep: the GTHE3, GTHE4, GTYE3 and GTYE4 eye-scan families over their
+#   emulated DRP models, through the EyeScan child each driver adds to itself: role
 #   resolution, neighbour bits, state machine, bit counts, mask words, the width
 #   and divider tables, abort, idempotency, concurrency, start-up, ReadAll,
 #   polling, saved YAML, the variable lists against their golden files, the
 #   per-family DRP address and bit-overlap table, and the descriptor invariants.
-# - Stimulus: real Rogue transactions against Gthe3EyeModel and Gtye4EyeModel
-#   with the seeded dual-Dirac BER model of the bathtub tests and a callable
+# - Stimulus: real Rogue transactions against Gthe3EyeModel, Gtye4EyeModel and
+#   the GTYE3 and GTHE4 models derived from them (gt_new_eye_model.py), with
+#   the seeded dual-Dirac BER model of the bathtub tests and a callable
 #   RX reset hook. Every scan passes lineRateGbps explicitly so no test depends
 #   on the line-rate measurement.
 # - Checks: a bathtub ends OK with the family, the sample width and the
 #   RXOUT_DIV of the seed in its meta, writes every mask word of the sampler
-#   (five per array on GTHE3, ten on GTYE4) with the exact width pattern, keeps
+#   (five per array on GTHE3 and GTHE4, ten on GTYE3 and GTYE4) with the exact
+#   width pattern, keeps
 #   the bits that share a DRP word with a scan field, and leaves every scan
 #   register at its pre-scan value; a pair outside the width table or a divider
 #   outside the divider table is refused with the raw values and no write; a
@@ -38,6 +40,13 @@
 # in nodes.values() was recorded as a row with the keys name, class (type
 # name), offset, bitOffset (list), bitSize (list) and mode, sorted by name.
 # The list holds 526 rows and none for the EyeScan child.
+#
+# Golden list capture (gtye3_variables.json, gthe4_variables.json): the GTYE3
+# and GTHE4 drivers were written from UG578 Table B-2 and UG576 Table C-2 with
+# the EyeScan child from the start, so their lists were captured from the new
+# drivers constructed with eyeScan=False, in the same row shape. They hold 493
+# and 514 rows. test_Gthe4AndGtye3Registers.py checks every row against the
+# user-guide tables.
 
 import inspect
 import json
@@ -64,10 +73,11 @@ from surf.xilinx.eyescan import (  # noqa: E402
     decodeControlStatus,
     getFamily,
 )
-from surf.xilinx.eyescan._EyeScanFamilies import FAMILIES, GTHE3, GTYE4, PHASE_RULES, UNSUPPORTED_FAMILIES  # noqa: E402
+from surf.xilinx.eyescan._EyeScanFamilies import FAMILIES, GTHE3, GTHE4, GTYE3, GTYE4, PHASE_RULES, UNSUPPORTED_FAMILIES  # noqa: E402
 from surf.xilinx.eyescan._EyeScanMath import bitsPerRun, internalWidth, maskWords, sdataMask  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import Gthe3EyeModel, fieldOf, makeGtRoot  # noqa: E402
+from tests.xilinx.eyescan.gt_new_eye_model import GTHE4_SCAN_WORDS, Gthe4EyeModel, Gtye3EyeModel, makeGthe4Root, makeGtye3Root  # noqa: E402
 from tests.xilinx.eyescan.gtye4_eye_model import MASK_WORDS, Gtye4EyeModel, makeGtyRoot, maskVars  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, seedWords  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanDevice import keysOf  # noqa: E402
@@ -86,6 +96,15 @@ FAMS = {
         name='GTYE4', driver=xil.Gtye4Channel, model=Gtye4EyeModel, make=makeGtyRoot,
         golden=HERE / 'gtye4_variables.json', additions={}, maskWords=10, W=64,
         status=(0x251, 0x252, 0x253), scanWords=39),
+    # Written from the user guides, not run on hardware
+    'GTYE3': SimpleNamespace(
+        name='GTYE3', driver=xil.Gtye3Channel, model=Gtye3EyeModel, make=makeGtye3Root,
+        golden=HERE / 'gtye3_variables.json', additions={}, maskWords=10, W=64,
+        status=(0x251, 0x252, 0x253), scanWords=39),
+    'GTHE4': SimpleNamespace(
+        name='GTHE4', driver=xil.Gthe4Channel, model=Gthe4EyeModel, make=makeGthe4Root,
+        golden=HERE / 'gthe4_variables.json', additions={}, maskWords=GTHE4_SCAN_WORDS, W=32,
+        status=(0x251, 0x252, 0x253), scanWords=24),
 }
 
 # role: (DRP word, lsb, width) shared by both families
@@ -117,9 +136,16 @@ MASK_TABLE = {
         'sdataMask': [0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0xF1, 0xF2, 0xF3, 0xF4, 0xF5],
     },
 }
+# UG578 Table B-2 gives GTYE3 the GTYE4 words; UG576 Table C-2 lists the same ten words for
+# GTHE4 but the scan writes only the five GTH words (UG576 Table 4-20 note 1)
+MASK_TABLE['GTYE3'] = MASK_TABLE['GTYE4']
+MASK_TABLE['GTHE4'] = MASK_TABLE['GTHE3']
 
 # GTYE4 words where two pre-existing driver variables share bits; none is a scan word
 GTYE4_OVERLAP_WORDS = {0x11, 0x60, 0xD5}
+
+# GTYE3 word 0xFB: UG578 v1.4 Table B-2 lists TX_FIFO_BYP_EN and TX_PI_DIV2_MODE_B both on bit 0
+GTYE3_OVERLAP_WORDS = {0xFB}
 
 
 @pytest.fixture(params=sorted(FAMS))
@@ -274,6 +300,9 @@ def neighbourFields(fam, gt):
     fields = [(0x3C, 5, 3)]   # unnamed bits 7:5 next to ES_PRESCALE and the enables
     if fam.name == 'GTHE3':
         return fields + [(0x4F, 0, 4), (0x97, 11, 2)]
+    if fam.name == 'GTHE4':
+        # The GTY-only mask words 5 to 9 are driver registers next to the scan words and must stay untouched
+        fields = fields + [fieldOf(getattr(gt, f'{name}{i}')) for name in ('ES_SDATA_MASK', 'ES_QUAL_MASK', 'ES_QUALIFIER') for i in range(5, 10)]
     named = [fieldOf(getattr(gt, name)) for name in ('FTS_LANE_DESKEW_CFG', 'RX_CAPFF_SARC_ENB', 'RX_AFE_CM_EN')]
     assert named == [(0x4F, 0, 4), (0x97, 11, 1), (0x97, 12, 1)]
     return fields + named
@@ -301,7 +330,7 @@ def test_a_scan_keeps_every_neighbour_bit_of_the_shared_words(fam, rigs):
     assert all(seen.values()), f'a shared word was never written: {seen}'
     # The word next to the scan words and the known overlapping words are never written
     assert 0x93 not in {addr for addr, _ in model.writes}
-    assert not {addr for addr, _ in model.writes} & GTYE4_OVERLAP_WORDS
+    assert not {addr for addr, _ in model.writes} & (GTYE4_OVERLAP_WORDS | GTYE3_OVERLAP_WORDS)
     assert seedWords(model, gt) == before
 
 
@@ -366,6 +395,8 @@ def test_bits_per_run_is_exact_above_two_to_the_53():
 PINNED_SDATA = {
     'GTHE3': (32, [0x00FF, 0x0000, 0xFF00, 0xFFFF, 0xFFFF]),
     'GTYE4': (64, [0xFFFF, 0, 0, 0, 0] + [0xFFFF] * 5),
+    'GTYE3': (64, [0xFFFF, 0, 0, 0, 0] + [0xFFFF] * 5),
+    'GTHE4': (32, [0x00FF, 0x0000, 0xFF00, 0xFFFF, 0xFFFF]),
 }
 
 
@@ -408,16 +439,35 @@ def setWidth(fam, model, gt, bits, intRaw):
     model.setField(gt.RX_INT_DATAWIDTH, intRaw)
 
 
+@pytest.mark.parametrize('gty', ['GTYE4', 'GTYE3'])
 @pytest.mark.parametrize('bits,intRaw,decoded', [(160, 2, 80), (128, 2, 64), (80, 2, 80), (64, 2, 64)])
-def test_gtye4_width_pairs_at_the_bus_limit_decode(rigs, bits, intRaw, decoded):
-    root, gt, model, hook = rigs(FAMS['GTYE4'], hooked=False)
-    setWidth(FAMS['GTYE4'], model, gt, bits, intRaw)
+def test_gty_width_pairs_at_the_bus_limit_decode(rigs, gty, bits, intRaw, decoded):
+    root, gt, model, hook = rigs(FAMS[gty], hooked=False)
+    setWidth(FAMS[gty], model, gt, bits, intRaw)
 
     state = gt.EyeScan.readState()
 
     assert state.widthError is None
-    assert state.bitsPerSample == decoded <= FAMILIES['GTYE4'].busWidth
+    assert state.bitsPerSample == decoded <= FAMILIES[gty].busWidth
     assert model.writes == []
+
+
+@pytest.mark.parametrize('bits,intRaw', [(160, 2), (128, 2), (80, 2), (64, 2)])
+def test_gthe4_refuses_the_eight_byte_internal_datapath(rigs, bits, intRaw):
+    # UG576 Table 4-46: the GTH internal datapath is 2 or 4 bytes; the 128 and 160 codes of
+    # RX_DATA_WIDTH are in Table C-2 but no GTH width pair uses RX_INT_DATAWIDTH 2
+    root, gt, model, hook = rigs(FAMS['GTHE4'])
+    model.setField(gt.RX_DATA_WIDTH, {160: 9, 128: 8, 80: 7, 64: 6}[bits])
+    model.setField(gt.RX_INT_DATAWIDTH, intRaw)
+
+    state = gt.EyeScan.readState()
+    assert state.bitsPerSample is None
+    assert 'RX_INT_DATAWIDTH raw 2' in state.widthError
+
+    res = gt.EyeScan.runBathtub(step=16, lineRateGbps=6.25, probeWindow=0.3)
+
+    assert res.status is ScanStatus.ERROR
+    assert model.writes == [] and hook.pulses == 0
 
 
 def test_a_pair_outside_the_family_table_is_refused_with_both_raw_values(fam, rigs):
@@ -592,7 +642,8 @@ def test_saved_config_and_state_yaml_exclude_the_child(fam):
         # The added GTHE3 scan variables are NoConfig
         assert not configKeys[True] & scanRw
     else:
-        # The GTYE4 scan variables are older than the child and stay in the saved file as they were
+        # The GTYE4 scan variables are older than the child and stay in the saved file as they
+        # were; the GTYE3 and GTHE4 drivers follow the GTYE4 layout
         assert scanRw <= configKeys[True]
 
 
@@ -610,7 +661,7 @@ def test_variable_rows_equal_the_golden_rows_with_and_without_the_child(fam):
         assert rowsOf(gt) == expected
         assert ('EyeScan' in gt.nodes) is eyeScan
         assert 'EyeScan' not in rowsOf(gt)
-    assert len(golden) == {'GTHE3': 375, 'GTYE4': 526}[fam.name]
+    assert len(golden) == {'GTHE3': 375, 'GTYE4': 526, 'GTYE3': 493, 'GTHE4': 514}[fam.name]
 
 
 def test_the_default_driver_equals_the_explicit_opt_out_in_every_row():
@@ -688,11 +739,22 @@ def test_the_known_gtye4_overlaps_lie_outside_the_scan_words():
     assert not any(len(names) > 1 for bits in bitOwners(xil.Gthe3Channel(name='G')).values() for names in bits.values())
 
 
+def test_the_known_gtye3_overlap_lies_outside_the_scan_words():
+    gt = xil.Gtye3Channel(name='G')
+    owners = bitOwners(gt)
+    overlapping = {word for word, bits in owners.items() if any(len(names) > 1 for names in bits.values())}
+
+    assert overlapping == GTYE3_OVERLAP_WORDS
+    assert owners[0xFB][0] == {'TX_FIFO_BYP_EN', 'TX_PI_DIV2_MODE_B'}
+    assert not overlapping & scanWords(EyeScanPort(gt, FAMILIES['GTYE3']))
+    assert not any(len(names) > 1 for bits in bitOwners(xil.Gthe4Channel(name='G')).values() for names in bits.values())
+
+
 # ----------------------------------------------------------------------
 # Family registry and the deferred families
 # ----------------------------------------------------------------------
-def test_the_registry_holds_exactly_the_two_ultrascale_families():
-    assert set(FAMILIES) == {'GTHE3', 'GTYE4'}
+def test_the_registry_holds_exactly_the_four_ultrascale_families():
+    assert set(FAMILIES) == {'GTHE3', 'GTHE4', 'GTYE3', 'GTYE4'}
     assert set(UNSUPPORTED_FAMILIES) == {'GTPE2', 'GTXE2'}
     for name in ('GTXE2', 'GTPE2'):
         with pytest.raises(EyeScanError, match='not supported for this family yet'):
@@ -713,6 +775,34 @@ def test_gtye4_hardware_verified_flag_matches_the_hardware_record():
     root, gt, model = build(FAMS['GTYE4'], True)
     with root:
         assert gt.EyeScan.HwVerified.get() is GTYE4.hwVerified
+
+
+def test_the_user_guide_families_are_not_hardware_verified():
+    # GTYE3 and GTHE4 were written from UG578 and UG576 without a card; the flag stays False
+    # until a battery is on record
+    assert GTYE3.hwVerified is False
+    assert GTHE4.hwVerified is False
+    for name in ('GTYE3', 'GTHE4'):
+        root, gt, model = build(FAMS[name], True)
+        with root:
+            assert gt.EyeScan.HwVerified.get() is False
+            assert gt.EyeScan.Family.get() == name
+        assert model.transactions == 0
+
+
+def test_the_user_guide_descriptors_share_the_verified_tables():
+    # GTYE3 is the GTYE4 layout; GTHE4 is the GTHE3 sampler at the GTYE4 addresses
+    assert GTYE3.regs == GTYE4.regs == GTHE3.regs == GTHE4.regs
+    assert GTYE3.arrays == GTYE4.arrays
+    assert GTHE4.arrays == {role: (f'{GTHE3.arrays[role][0]}{{}}', 5) for role in GTHE3.arrays}
+    for a, b in ((GTYE3, GTYE4), (GTHE4, GTHE3)):
+        assert (a.busWidth, a.rxDataWidthCodes, a.widthCombos, a.rxOutDivCodes) == \
+               (b.busWidth, b.rxDataWidthCodes, b.widthCombos, b.rxOutDivCodes), a.name
+        assert (a.horzBits, a.countsPerHalfUiPerDiv, a.vsCodeMax) == (12, 32, 127), a.name
+    assert GTYE3.phaseUnification == GTHE4.phaseUnification == 'sign'
+    assert GTYE3.rateThresholdGbps == GTHE4.rateThresholdGbps == 10.0
+    assert (GTYE3.defaultWidth, GTYE3.defaultDivider) == (64, 2)
+    assert (GTHE4.defaultWidth, GTHE4.defaultDivider) == (32, 2)
 
 
 def test_the_seven_series_drivers_have_no_child_and_no_eye_scan_argument():
