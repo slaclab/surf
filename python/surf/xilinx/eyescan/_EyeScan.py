@@ -23,11 +23,13 @@ from __future__ import annotations
 import contextlib
 import dataclasses
 import math
+import shutil
 import threading
 import time
 from types import SimpleNamespace
 from typing import Any, Callable
 
+import click
 import pyrogue as pr
 
 from surf.xilinx.eyescan._EyeScanEngine import (
@@ -63,6 +65,12 @@ _ETA_MIN_PROGRESS = 0.02
 
 # Seconds added to the reset pulse, fall wait and settle for the sampler probe of an activation
 _ACTIVATION_PROBE = 0.1
+
+# Steps of the terminal progress bar of a synchronous scan
+_BAR_STEPS = 1000
+
+# Columns of the progress bar line kept for the brackets, percent, ETA and at least ten bar characters
+_BAR_RESERVED = 34
 
 
 class _ScanBusy(EyeScanError):
@@ -514,7 +522,8 @@ class EyeScan(pr.Process):
             lineRateGbps: float | None = None,
             phaseUnification: str | None = None,
             control: ScanControl | None = None,
-            outDir: str | None = None) -> BathtubResult:
+            outDir: str | None = None,
+            progressBar: bool = False) -> BathtubResult:
         """Measure the two-sided horizontal bathtub and restore the registers.
 
         The sweep covers every count of the lane's +-0.5 UI range (spaced by
@@ -556,6 +565,9 @@ class EyeScan(pr.Process):
             Abort flag and progress callback.
         outDir : str, optional
             Folder to save the result to; nothing is saved when omitted.
+        progressBar : bool, optional
+            Show a click progress bar with the ETA and the scan stage on the
+            terminal; ``control`` still receives the abort, progress and stage.
 
         Returns
         -------
@@ -571,7 +583,7 @@ class EyeScan(pr.Process):
             If another scan holds the scan lock.
         """
         policy = ResetPolicy(resetPolicy if resetPolicy is not None else self.ResetPolicy.valueDisp())
-        return self._scan(control, outDir, lambda engine: engine.bathtub(
+        return self._scan(control, outDir, progressBar, 'Bathtub', lambda engine: engine.bathtub(
             policy=policy, floor=floor, confidence=confidence, step=step, equalizer=equalizer,
             targetBer=targetBer, fixedPrescale=fixedPrescale, maxTimePerRun=maxTimePerRun,
             probeWindow=probeWindow, phaseUnification=phaseUnification, **self._rateArgs(lineRateGbps)))
@@ -593,7 +605,8 @@ class EyeScan(pr.Process):
             lineRateGbps: float | None = None,
             phaseUnification: str | None = None,
             control: ScanControl | None = None,
-            outDir: str | None = None) -> EyeResult:
+            outDir: str | None = None,
+            progressBar: bool = False) -> EyeResult:
         """Measure the 2D statistical eye and restore the registers.
 
         The grid is symmetric about the eye centre and always contains 0 on
@@ -641,6 +654,9 @@ class EyeScan(pr.Process):
             Abort flag and progress callback.
         outDir : str, optional
             Folder to save the result to; nothing is saved when omitted.
+        progressBar : bool, optional
+            Show a click progress bar with the ETA and the scan stage on the
+            terminal; ``control`` still receives the abort, progress and stage.
 
         Returns
         -------
@@ -656,7 +672,7 @@ class EyeScan(pr.Process):
             If another scan holds the scan lock.
         """
         policy = ResetPolicy(resetPolicy if resetPolicy is not None else self.ResetPolicy.valueDisp())
-        return self._scan(control, outDir, lambda engine: engine.eye(
+        return self._scan(control, outDir, progressBar, 'Eye', lambda engine: engine.eye(
             policy=policy, floor=floor, confidence=confidence, horzStep=horzStep, vertStep=vertStep,
             horzRange=horzRange, vertRange=vertRange, equalizer=equalizer, fixedPrescale=fixedPrescale,
             maxTimePerRun=maxTimePerRun, probeWindow=probeWindow, phaseUnification=phaseUnification,
@@ -681,7 +697,8 @@ class EyeScan(pr.Process):
             lineRateGbps: float | None = None,
             phaseUnification: str | None = None,
             control: ScanControl | None = None,
-            outDir: str | None = None) -> MarginResult:
+            outDir: str | None = None,
+            progressBar: bool = False) -> MarginResult:
         """Measure the 2D eye and the margin cross in one sampler activation.
 
         The eye is measured at ``floor``, then a horizontal bathtub along the
@@ -734,6 +751,9 @@ class EyeScan(pr.Process):
             Abort flag and progress callback.
         outDir : str, optional
             Folder to save the result to; nothing is saved when omitted.
+        progressBar : bool, optional
+            Show a click progress bar with the ETA and the scan stage on the
+            terminal; ``control`` still receives the abort, progress and stage.
 
         Returns
         -------
@@ -750,7 +770,7 @@ class EyeScan(pr.Process):
             If another scan holds the scan lock.
         """
         policy = ResetPolicy(resetPolicy if resetPolicy is not None else self.ResetPolicy.valueDisp())
-        return self._scan(control, outDir, lambda engine: engine.margin(
+        return self._scan(control, outDir, progressBar, 'Margin', lambda engine: engine.margin(
             policy=policy, floor=floor, bathtubFloor=bathtubFloor, targetBer=targetBer,
             confidence=confidence, horzStep=horzStep, vertStep=vertStep, horzRange=horzRange,
             vertRange=vertRange, equalizer=equalizer, fixedPrescale=fixedPrescale,
@@ -805,10 +825,17 @@ class EyeScan(pr.Process):
         self.ResultFile.set(outcome.npzPath if not outcome.errors else '')
         return outcome
 
-    def _scan(self, control: ScanControl | None, outDir: str | None,
+    def _scan(self, control: ScanControl | None, outDir: str | None, progressBar: bool, kind: str,
               measure: Callable[[EyeScanEngine], Any]) -> Any:
         # Resolved before the scan so the save after a Stop never runs git describe
         version = surfVersion()
+        with contextlib.ExitStack() as stack:
+            if progressBar:
+                control = stack.enter_context(self._progressBar(control, kind))
+            return self._scanLocked(control, outDir, version, measure)
+
+    def _scanLocked(self, control: ScanControl | None, outDir: str | None, version: str,
+                    measure: Callable[[EyeScanEngine], Any]) -> Any:
         # Status reads Running while the scan lock is held; a refused call leaves everything as it was
         with self._scanning(control) as engine:
             self.ResultFile.set('')
@@ -825,6 +852,45 @@ class EyeScan(pr.Process):
             if outDir is not None:
                 self.save(result, outDir, surfVersion=version)
         return result
+
+    @contextlib.contextmanager
+    def _progressBar(self, control: ScanControl | None, kind: str):
+        # A terminal bar fed by a ScanControl that forwards the abort, the progress and the stage to control.
+        # The engine's progress is weighted by the modelled point times, so the bar ETA follows the scan time
+        name = self.parent.name if self.parent is not None else self.name
+        label = f'{name} {kind}:'
+
+        def stage(text: str | None) -> str | None:
+            # Trimmed so the line never wraps, a wrapped line would leave a copy behind on every redraw
+            if text is None:
+                return None
+            return text[:max(0, shutil.get_terminal_size().columns - len(label) - _BAR_RESERVED)]
+
+        with click.progressbar(
+                length           = _BAR_STEPS,
+                label            = click.style(label, fg='green'),
+                width            = 0,
+                show_eta         = True,
+                show_percent     = True,
+                update_min_steps = 0,
+                item_show_func   = stage) as bar:
+
+            def onProgress(done: int, total: int) -> None:
+                if control is not None:
+                    control.progress(done, total)
+                target = min(_BAR_STEPS, _BAR_STEPS * done // total) if total > 0 else 0
+                if target > bar.pos:
+                    bar.update(target - bar.pos)
+
+            def onMessage(text: str) -> None:
+                if control is not None:
+                    control.message(text)
+                bar.update(0, text)
+
+            yield ScanControl(
+                isAborted  = None if control is None else (lambda: control.aborted),
+                onProgress = onProgress,
+                onMessage  = onMessage)
 
     def _rateArgs(self, lineRateGbps: float | None) -> dict:
         # None takes the variable; a rate of 0 or below is not defined, so the scan measures it

@@ -24,7 +24,9 @@
 #   YAML contains an EyeScan entry and the GT config keys equal the pre-change
 #   writable variable names; the scan knobs and summary scalars exist with
 #   their defaults, enums and groups, none of them reaches a saved YAML, and a
-#   synchronous run publishes its status, openings and centre BER text.
+#   synchronous run publishes its status, openings and centre BER text; the
+#   opt-in progress bar prints its label, forwards the progress and the stage to
+#   the caller's ScanControl and still honours that control's abort.
 # - Timing: Synchronous memory transactions with a bounded Rogue timeout.
 
 import inspect
@@ -437,6 +439,39 @@ def test_a_synchronous_bathtub_publishes_the_opening_and_a_bound_text():
         assert child.BerAtCenter.value() == es.formatBer(res.ber[centre], res.berUpper[centre],
                                                          res.isBound[centre], 0.95)
         assert child.BerAtCenter.value() != 'BER = 0.00e+00'
+    finally:
+        root.stop()
+
+
+def test_the_progress_bar_forwards_the_progress_and_the_stage_to_the_control(capsys):
+    root, gt, model, hook = hookedRoot(berFn=gauss)
+    try:
+        progress, stages = [], []
+        control = es.ScanControl(onProgress=lambda done, total: progress.append((done, total)),
+                                 onMessage=stages.append)
+
+        res = gt.EyeScan.runBathtub(floor=1e-6, step=16, probeWindow=0.3, control=control, progressBar=True)
+
+        assert res.status is es.ScanStatus.OK
+        assert 'Gt Bathtub:' in capsys.readouterr().out
+        assert stages[0] == 'Activating the sampler'
+        assert any(text.startswith('Bathtub position') for text in stages)
+        done = [d for d, _ in progress]
+        assert done == sorted(done) and progress[-1][0] == progress[-1][1]
+    finally:
+        root.stop()
+
+
+def test_an_abort_of_the_callers_control_stops_a_progress_bar_scan():
+    root, gt, model, hook = hookedRoot(berFn=gauss)
+    try:
+        control = es.ScanControl()
+        control.abort()
+
+        res = gt.EyeScan.runBathtub(floor=1e-6, step=16, probeWindow=0.3, control=control, progressBar=True)
+
+        assert res.status is es.ScanStatus.ABORTED
+        assert gt.EyeScan.Status.get() == res.status.value
     finally:
         root.stop()
 

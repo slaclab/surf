@@ -136,7 +136,7 @@ All methods are on the `EyeScan` child. A scan failure is returned as a typed st
 | `save(result=None, outDir=None, *, png=True, extraMeta=None, surfVersion=None)` | `SaveOutcome` | saves `lastResult` when `result` is omitted and sets `ResultFile` |
 | `surf.xilinx.eyescan.loadResult(path)` | `(arrays, meta)` | reads an npz back without pickle |
 
-The scan methods share `lineRateGbps`, `fixedPrescale`, `maxTimePerRun`, `probeWindow`, `control` and `outDir` (save the result there when given); `lineRateGbps` defaults to the `LineRateGbps` variable. `ScanControl(isAborted=None, onProgress=None, onMessage=None)` carries an abort flag (`abort()`) and the progress and stage callbacks; pass it as `control`. The last result of any scan is kept in `lastResult`. The Bathtub mode of Start uses `HorzStep` (default 2, 65 counts), the `runBathtub` call defaults to step 1.
+The scan methods share `lineRateGbps`, `fixedPrescale`, `maxTimePerRun`, `probeWindow`, `control` and `outDir` (save the result there when given); `lineRateGbps` defaults to the `LineRateGbps` variable. `runBathtub`, `runEye` and `runMargin` also take `progressBar=True`, which shows a click progress bar on the terminal with the percent done, the ETA and the scan stage; the progress is weighted by the modelled time of each point, and a `control` passed alongside still receives the abort, progress and stage. `ScanControl(isAborted=None, onProgress=None, onMessage=None)` carries an abort flag (`abort()`) and the progress and stage callbacks; pass it as `control`. The last result of any scan is kept in `lastResult`. The Bathtub mode of Start uses `HorzStep` (default 2, 65 counts), the `runBathtub` call defaults to step 1.
 
 ### Result files
 
