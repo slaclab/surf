@@ -2,6 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: UART Receiver
+--
+-- Receives LSB-first serial data using baudClkEn in the clk domain. Publishes
+-- parityError with rdData and rdValid, retaining the result until rdReady.
+-- Serial reception cannot be backpressured: a newly completed frame replaces
+-- any unread result, including its parity status. Synchronous rst discards
+-- both the published result and any frame in progress.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -50,6 +56,7 @@ architecture rtl of UartRx is
       rxShiftCount   : slv(3 downto 0);
       baudClkEnCount : slv(3 downto 0);
       parity         : sl;
+      rxParityError  : sl;
       parityError    : sl;
    end record regType;
 
@@ -62,6 +69,7 @@ architecture rtl of UartRx is
       rxShiftCount   => (others => '0'),
       baudClkEnCount => (others => '0'),
       parity         => '0',
+      rxParityError  => '0',
       parityError    => '0');
 
    signal r   : RegType := REG_INIT_C;
@@ -91,7 +99,7 @@ begin
    begin
       v := r;
 
-      if (rdReady = '1') then
+      if (rdReady = '1' and r.rdValid = '1') then
          v.rdValid     := '0';
          v.parityError := '0';
       end if;
@@ -112,6 +120,7 @@ begin
                v.rxState        := WAIT_HALF_S;
                v.baudClkEnCount := (others => '0');
                v.rxShiftCount   := (others => '0');
+               v.rxParityError  := '0';
             end if;
 
          -- Wait BAUD_MULT_G/2 baudClkEn counts to find center of start bit
@@ -152,13 +161,12 @@ begin
                end if;
             end if;
 
-         -- Samples parity bit on rx line and compare it to the calculated parity
-         -- raises a parityError flag if it does not match
+         -- Keep the incoming parity result separate from the published word.
          when PARITY_S =>
             if (baudClkEn = '1') then
-               v.rxState     := WAIT_FULL_S;
-               v.waitState   := WAIT_STOP_S;
-               v.parityError := toSl(r.parity /= rxSync);
+               v.rxState       := WAIT_FULL_S;
+               v.waitState     := WAIT_STOP_S;
+               v.rxParityError := toSl(r.parity /= rxSync);
             end if;
 
          -- Wait for the stop bit
@@ -167,12 +175,13 @@ begin
                v.rxState := WRITE_OUT_S;
             end if;
 
-         -- Put the parallel rx data on the output port.
+         -- Publish data and status together, replacing any unread result.
          when WRITE_OUT_S =>
-            v.rdData    := r.rxShiftReg;
-            v.rdValid   := '1';
-            v.rxState   := WAIT_START_BIT_S;
-            v.waitState := SAMPLE_RX_S;
+            v.rdData      := r.rxShiftReg;
+            v.rdValid     := '1';
+            v.parityError := r.rxParityError;
+            v.rxState     := WAIT_START_BIT_S;
+            v.waitState   := SAMPLE_RX_S;
 
       end case;
 
