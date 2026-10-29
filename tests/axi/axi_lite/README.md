@@ -72,3 +72,16 @@ The asynchronous reset tests use a gateable master clock so the slave domain
 can remain live while the remote domain is unavailable. Accepted handshakes are
 monitored on both sides; final memory contents alone are not used to infer that
 a rejected transaction stayed out of the downstream interface.
+
+## `AxiLiteMasterProxy` (PyRogue)
+
+`test_AxiLiteMasterProxyRogue.py` drives the PyRogue `AxiLiteMasterProxy`
+with real Rogue transactions against a simulated proxy register window. It
+checks that a failing transaction (a proxy register verify error, a downstream
+SLVERR, an unsupported Post, or a downstream access that never completes and
+hits the `timeout`) fails only that transaction and leaves the daemon worker
+thread serving later accesses. It needs Rogue but no simulator:
+
+```bash
+PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/axi/axi_lite/test_AxiLiteMasterProxyRogue.py
+```
