@@ -36,7 +36,11 @@
 #   UI; a drop that returns a live lane adds nothing beyond one run at +half.
 #   A drop that desynchronizes the sampler during either cross stage of the
 #   margin keeps its warning in the margin meta and the saved engine block,
-#   although the eye was assembled before it. Healthy lanes are unchanged.
+#   although the eye was assembled before it. A sampler that goes out of step,
+#   or a lane that goes static, while ready keeps reading True (a drop shorter
+#   than one point) is caught by the centre and edge runs after the last point:
+#   the scan ends CLOSED with the warning and every point kept. Healthy lanes
+#   are unchanged apart from those two runs at the end.
 # - Timing: countReads=1 and a zero settle keep the emulated runs short; the
 #   model steps on status reads, so no test waits on real hardware time. The
 #   stuck runs use a 0.2 s run deadline.
@@ -532,8 +536,8 @@ def test_a_drop_that_keeps_the_sampler_in_step_adds_no_warning(rig, scan):
     assert not any(OUT_OF_STEP in w for w in res.meta['warnings'])
 
 
-def runScan(gt, scan, **grid):
-    kw = dict(probeWindow=WINDOW, lineRateGbps=6.25)
+def runScan(gt, scan, control=None, **grid):
+    kw = dict(probeWindow=WINDOW, lineRateGbps=6.25, control=control)
     if scan == 'bathtub':
         return gt.EyeScan.runBathtub(**{**dict(step=16, floor=FLOOR), **grid}, **kw)
     if scan == 'eye':
@@ -584,8 +588,9 @@ def test_a_drop_that_returns_a_live_lane_runs_one_edge_run_and_stays_ok(rig, sca
     assert res.linkDrops == 1
     assert OUT_OF_STEP not in res.message and LINK_DOWN not in res.message
     assert not any(OUT_OF_STEP in w or LINK_DOWN in w for w in res.meta['warnings'])
-    # One run at +half after the activation and one after the recovery; a live lane never needs the -half run
-    assert [horz for horz, _, _, _ in model.runLog if abs(horz) == 64] == [64, 64]
+    # One run at +half after the activation, one after the recovery and one after the last point; a live lane
+    # never needs the -half run
+    assert [horz for horz, _, _, _ in model.runLog if abs(horz) == 64] == [64, 64, 64]
 
 
 def dropAtStage(hook, stage):
@@ -617,3 +622,91 @@ def test_a_desync_drop_during_a_cross_stage_keeps_its_warning_in_the_margin_meta
     assert outcome.errors == []
     _, meta = loadResult(outcome.npzPath)
     assert any(OUT_OF_STEP in w and LINK_DOWN in w for w in meta['engine']['warnings'])
+
+
+def atStage(stage, action):
+    """A ScanControl that performs ``action`` once, at the first stage message starting with ``stage``."""
+    done = []
+
+    def onMessage(text):
+        if not done and text.startswith(stage):
+            done.append(text)
+            action()
+    return ScanControl(onMessage=onMessage)
+
+
+STAGES = {'bathtub': 'Bathtub position 3 of', 'eye': 'Eye row 3 of', 'margin': 'Horizontal cross at'}
+
+
+# The sampler goes out of step while ready keeps reading True, as after a drop shorter than one point
+@pytest.mark.parametrize('scan', ['bathtub', 'eye', 'margin'])
+def test_a_sampler_that_goes_out_of_step_unseen_ends_closed_with_the_warning(rig, scan, tmp_path):
+    gt, model, hook = rig()
+    before = seedWords(model, gt)
+
+    def desync():
+        model.desynced = True
+
+    res = runScan(gt, scan, control=atStage(STAGES[scan], desync))
+
+    assert res.status is ScanStatus.CLOSED, res.message
+    assert res.linkDrops == 0 and hook.pulses == 1
+    assert 'after the last point of the scan' in res.message
+    assert OUT_OF_STEP in res.message and LINK_DOWN in res.message
+    warned = [w for w in res.meta['warnings'] if OUT_OF_STEP in w and LINK_DOWN in w]
+    assert warned == [res.activation.syncWarning] and 'after the last point' in warned[0]
+    kept = res.eye if scan == 'margin' else res
+    assert kept.bits.sum() > 0 and kept.errors.sum() > 0
+    assert model.getField(gt.ES_CONTROL) == 0
+    assert seedWords(model, gt) == before
+    outcome = gt.EyeScan.save(res, str(tmp_path), png=False)
+    assert outcome.errors == []
+    _, meta = loadResult(outcome.npzPath)
+    assert meta['status'] == 'CLOSED' and any('after the last point' in w for w in meta['engine']['warnings'])
+
+
+@pytest.mark.parametrize('stage', ['Eye row 1 of', 'Vertical cross at'])
+def test_a_margin_whose_sampler_goes_out_of_step_unseen_is_closed_at_every_stage(rig, stage):
+    gt, model, hook = rig()
+
+    def desync():
+        model.desynced = True
+
+    res = runScan(gt, 'margin', control=atStage(stage, desync))
+
+    assert res.status is ScanStatus.CLOSED, res.message
+    assert res.linkDrops == 0
+    assert 'after the last point of the scan' in res.message and OUT_OF_STEP in res.message
+    assert any('after the last point' in w for w in res.meta['warnings'])
+    if stage.startswith('Eye'):
+        # Out of step from the first point: no centre, no cross, and the final check still explains the closed eye
+        assert res.eye.centre is None and res.horz is None and res.vert is None
+    else:
+        assert res.horz is not None and res.horz.complete and res.vert is not None and res.vert.complete
+
+
+@pytest.mark.parametrize('scan', ['bathtub', 'eye', 'margin'])
+def test_a_lane_that_goes_static_unseen_ends_closed_with_the_warning(rig, scan):
+    gt, model, hook = rig()
+
+    res = runScan(gt, scan, control=atStage(STAGES[scan], lambda: goesStatic(model)), **NARROW[scan])
+
+    assert res.status is ScanStatus.CLOSED, res.message
+    assert res.linkDrops == 0
+    assert 'after the last point of the scan' in res.message
+    assert OUT_OF_STEP in res.message and LINK_DOWN in res.message
+    assert any(OUT_OF_STEP in w and 'after the last point' in w for w in res.meta['warnings'])
+    # The final centre run is clean, so both edge runs follow it and the one at -half is silent
+    assert [horz for horz, _, _, _ in model.runLog[-3:]] == [0, 64, -64]
+
+
+@pytest.mark.parametrize('scan', ['bathtub', 'eye', 'margin'])
+def test_a_healthy_scan_ends_with_the_centre_run_and_one_edge_run(rig, scan):
+    gt, model, hook = rig()
+
+    res = runScan(gt, scan, **NARROW[scan])
+
+    assert res.status is ScanStatus.OK, res.message
+    assert not any(OUT_OF_STEP in w or LINK_DOWN in w for w in res.meta['warnings'])
+    # The last point of the scan, then the centre run and the run at +half that finds the transitions
+    assert [(horz, vert) for horz, vert, _, _ in model.runLog[-2:]] == [(0, 0), (64, 0)]

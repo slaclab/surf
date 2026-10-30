@@ -36,7 +36,8 @@
 #   same restore sequence, ES_CONTROL cleared first. An abort between points
 #   keeps exactly the points that completed, a synchronous run during a Start
 #   run is refused before any write and stays refused until the Start run has
-#   saved its result, and Root.stop() during a scan restores the registers.
+#   saved its result and written its final Message and Progress, and
+#   Root.stop() during a scan restores the registers.
 # - Timing: countReads=1 and a zero settle keep the emulated runs short; small
 #   grids and a reduced floor keep each Start run to a few seconds.
 
@@ -63,6 +64,7 @@ import surf.xilinx.eyescan._EyeScan as esDevice  # noqa: E402
 from tests.xilinx.eyescan.gthe3_eye_model import Gthe3EyeModel, _newRoot, makeGtRoot  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, seedWords, waitFor  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanMargin import shifted  # noqa: E402
+from tests.xilinx.eyescan.test_EyeScanNoLink import static  # noqa: E402
 
 
 @pytest.fixture
@@ -754,6 +756,39 @@ def test_a_start_run_keeps_the_scan_lock_until_its_result_is_saved(rigs, tmp_pat
     assert meta['engine']['step'] == 64
     assert files(tmp_path, '.npz') == [os.path.basename(npz)]
     assert ' | saved ' in child.Message.value() and os.path.basename(npz) in child.Message.value()
+
+
+def test_a_start_run_keeps_the_scan_lock_until_its_message_is_published(rigs, tmp_path, monkeypatch):
+    child, model = rigs(berFn=gauss)
+    setKnobs(child, Mode='Bathtub', HorzStep=64, BathtubBerFloor=1e-6, SavePng=False)
+    entered, release = threading.Event(), threading.Event()
+    original = child._runProcess
+
+    def gated():
+        run = original()
+        entered.set()
+        release.wait(10)
+        return run
+
+    monkeypatch.setattr(child, '_runProcess', gated)
+    child.Start()
+    try:
+        assert entered.wait(30)
+        # The step-64 result is published and saved but its Message is not written yet: a synchronous scan of
+        # a lane that has gone static is still refused, so it cannot become the newer result
+        saved = child.ResultFile.value()
+        assert child.Status.value() == 'OK' and os.path.exists(saved)
+        model.berFn = static
+        with pytest.raises(es.EyeScanError, match='in progress'):
+            child.runBathtub(step=32, floor=1e-6, probeWindow=0.3)
+    finally:
+        release.set()
+    finish(child)
+
+    assert child.Status.value() == 'OK' and child.lastResult.meta['step'] == 64
+    assert child.ResultFile.value() == saved
+    assert child.Message.value().startswith('OK:') and os.path.basename(saved) in child.Message.value()
+    assert files(tmp_path, '.npz') == [os.path.basename(saved)]
 
 
 def test_a_scan_publishes_its_result_before_releasing_the_lock(rigs, tmp_path):

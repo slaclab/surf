@@ -132,7 +132,7 @@ class EyeScan(pr.Process):
         self._family = family
         self._hook = None
         self._hookObjs = None
-        # Re-entrant: a Start run holds it across the scan and the save, and the scan itself takes it again
+        # Re-entrant: a Start run holds it from its first write to its last, and the scan itself takes it again
         self._scanLock = threading.RLock()
         self._runGate = threading.Lock()
         self._lastProgress = 0.0
@@ -1097,24 +1097,9 @@ class EyeScan(pr.Process):
             self._runGate.release()
 
     def _runProcess(self) -> SimpleNamespace:
-        # The scan selected by Mode on the worker thread; Stop clears _runEn, which aborts the scan.
-        # Everything one Start measures stays in the returned record, so a refused Start cannot alter another run
-        run = SimpleNamespace(result=None, error=None, outcome=None, refused=False)
-        # The scan lock is held from here through the save: a synchronous caller that completed a scan between
-        # the publication of this result and its save would leave ResultFile naming a result that is not
-        # lastResult. The scan that holds the lock owns Status and the result files; only the Message tells of
-        # the refusal
-        if not self._scanLock.acquire(blocking=False):
-            run.error = _BUSY
-            run.refused = True
-            return run
-        try:
-            return self._runOwned(run)
-        finally:
-            self._scanLock.release()
-
-    def _runOwned(self, run: SimpleNamespace) -> SimpleNamespace:
-        # The scan selected by Mode and its save, with the scan lock held by the worker thread
+        # The scan selected by Mode and its save, on the worker thread with the scan lock held by _process; Stop
+        # clears _runEn, which aborts the scan. Everything one Start measures stays in the returned record
+        run = SimpleNamespace(result=None, error=None, outcome=None)
         self._scanStart = time.monotonic()
         progress = _Throttle(self._setProgressValue)
         message = _Throttle(self.Message.set)
@@ -1159,7 +1144,20 @@ class EyeScan(pr.Process):
                               targetBer=params['targetBer'], **grid, **common)
 
     def _process(self) -> None:
-        # The generic process steps, with the Done message replaced by the outcome of the scan
+        # The generic process steps, with the Done message replaced by the outcome of the scan. The scan lock is
+        # held from the first write to the last: a synchronous caller is refused until Message, Progress, Status
+        # and ResultFile all describe the result of this run, so an older run never publishes over a newer one.
+        # The scan that holds the lock owns Status, Progress and the result files; only the Message tells of the
+        # refusal
+        if not self._scanLock.acquire(blocking=False):
+            self.Message.set(f'Error: {_BUSY}')
+            return
+        try:
+            self._publishRun()
+        finally:
+            self._scanLock.release()
+
+    def _publishRun(self) -> None:
         self.Message.setDisp('Running')
         self.setStep(0)
         self.setProgress(0.0)

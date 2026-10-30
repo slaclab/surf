@@ -60,8 +60,9 @@ simulator.
   `Message` (Status, `ResultFile` and the result of the running scan stay), two
   workers started at once run one scan with `Running` True until it ends, a
   synchronous scan publishes and saves before it releases the scan lock, and a
-  Start run keeps the lock until its result is saved, so a synchronous scan is
-  refused in between and `ResultFile` names `lastResult`. An
+  Start run keeps the lock until its result is saved and its final `Message`
+  and `Progress` are written, so a synchronous scan is refused in between and
+  `Message`, `ResultFile` and `lastResult` describe the same scan. An
   analysis failure of a Start run ends ERROR with the measured counts saved, and
   a non-finite floor is refused before any bus transaction. Stop is timed at the RX reset handshake, a deep-prescale run
   (`slowFrom` and `slowReads` of the model hold a run in COUNT), the eye raster
@@ -123,7 +124,11 @@ simulator.
   adds one run at `+half` and nothing else. A drop that desynchronizes the
   sampler during the horizontal or the vertical cross of a margin keeps its
   warning in the margin meta and the saved `engine.warnings`, although the eye
-  was assembled before it. The scans run the two edge runs
+  was assembled before it. A sampler that goes out of step, or a lane that goes
+  static, while ready keeps reading True is caught by the centre and edge runs
+  every scan performs after its last point: the scan ends `CLOSED` with the
+  warning and every point kept, at every stage of a margin, and a healthy scan
+  ends with exactly the centre run and one run at `+half`. The scans run the two edge runs
   after every clean activation, so a static lane ends `CLOSED` at bathtub step 3
   and 5 and at eye and margin `horzStep` 3 and `horzRange` 32, while healthy
   lanes on those grids stay `OK` at the cost of one extra run at `+half`. An

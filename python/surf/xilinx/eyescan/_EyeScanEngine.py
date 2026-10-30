@@ -149,6 +149,10 @@ _NO_HOOK = 'no RX reset hook registered: call EyeScan.setRxReset(reset, ready)'
 # The two causes a lane that delivers no usable data can have; the scan cannot tell them apart
 _TWO_CAUSES = 'the eye-scan sampler is out of step with the data sampler, or the link is closed or unlocked'
 
+# Why a scan checks the sampler again after its last point
+_LATE_DROP = ('a link drop shorter than one point passes between two ready reads unseen, so the points measured '
+              'after it may read closed by the sampler alone; the scan reports what it measured')
+
 
 class ScanControl:
     """Abort flag, optional external abort source and progress callback.
@@ -1371,6 +1375,43 @@ class EyeScanEngine:
                                   f'the scan continues and reports what it measures')
         self._noteSync(state.params, activation)
 
+    def _finalCheck(self, width: int, state: Any) -> None:
+        """Repeat the eye-centre run, and after a clean one the edge runs, once the last point is measured.
+
+        The ready reads around a point catch a drop that outlasts the point,
+        not one that falls between two reads: the receiver can lose and regain
+        lock inside one point, and the PHY re-init behind that leaves the
+        eye-scan sampler out of step for the rest of the scan, so every later
+        point counts a full error counter and the scan would end with a closed
+        eye and no warning. The centre run of the activation is therefore
+        repeated after the last point, under the same criterion as
+        :meth:`ensureActive` and :meth:`_recoverLink`, and a clean centre is
+        followed by the edge runs. A warning found here sets the sync warning
+        of the activation, so the scan ends ``CLOSED`` with every point kept. A
+        run that does not reach END with samples adds nothing. Nothing is
+        checked when the activation already carries a warning.
+        """
+        activation = state.activation
+        if activation is None or activation.syncWarning:
+            return
+        self._prepareProbe(width)
+        status, samples, errors = self._runProbe(state.probeWindow)
+        if status != STATUS_END or samples == 0:
+            return
+        if errors < _RUN_ERRORS and samples >= _RUN_SAMPLES:
+            self._edgeCheck(activation, state.probeWindow, strict=False)
+            if not activation.syncWarning:
+                return
+            seen = f'{activation.syncWarning} after the last point of the scan'
+        elif errors >= _RUN_ERRORS:
+            seen = (f'the eye-centre error counter is full ({errors} errors in {samples} samples) after the last '
+                    f'point of the scan: {_TWO_CAUSES}')
+        else:
+            seen = (f'the eye-centre run ended at {samples} of {_RUN_SAMPLES} samples ({errors} errors) after the '
+                    f'last point of the scan: {_TWO_CAUSES}')
+        activation.syncWarning = f'{seen}; {_LATE_DROP}'
+        self._noteSync(state.params, activation)
+
     def _checkedPoint(self, horz: int, width: int, state: Any, *, vert: int = 0, **kw: Any) -> PointResult:
         """Measure one position, discarding and repeating it once after a link drop.
 
@@ -1495,7 +1536,11 @@ class EyeScanEngine:
             the UI, counts ``-half`` and ``+half``, counted no errors, whatever
             the step; a lane that delivers no data; the message and the scan
             warnings name both causes, and the points are kept), otherwise the
-            status the scan ended with. A run that reaches END with no samples is a link drop,
+            status the scan ended with. The centre and edge runs repeated
+            after the last point catch a sampler that a drop shorter than one
+            point left out of step unseen, and end the scan ``CLOSED`` with the
+            same warning.
+            A run that reaches END with no samples is a link drop,
             so the second one ends the scan ``UNLOCKED``. The
             extrapolated opening is only set when both tail fits passed every
             quality gate.
@@ -1560,6 +1605,7 @@ class EyeScanEngine:
                     ctl.message(f'Bathtub position {index + 1} of {len(counts)}, count {count}')
                     points.append(self._checkedPoint(count, width, state, **kw))
                     progress.advance(seconds)
+                self._finalCheck(width, state)
             finally:
                 self._rungProgress = True
 
@@ -1758,7 +1804,10 @@ class EyeScanEngine:
             two ends of the UI, counts ``-half`` and ``+half``, counted no
             errors, whatever the steps and ranges; the message and the scan
             warnings name both causes and the measured points are kept),
-            otherwise the status the scan ended with.
+            otherwise the status the scan ended with. The centre and edge runs repeated
+            after the last point catch a sampler that a drop shorter than one
+            point left out of step unseen, and end the scan ``CLOSED`` with the
+            same warning.
             The status is ``ERROR``, with nothing written, when the rule in
             effect is ``rate`` and ``lineRateGbps`` is not positive.
 
@@ -1826,6 +1875,7 @@ class EyeScanEngine:
             self._rungProgress = False
             try:
                 self._raster(width, state, horzAxis, vertAxis, order, kw, errors, bits, prescale, progress, seconds)
+                self._finalCheck(width, state)
             finally:
                 self._rungProgress = True
 
@@ -2028,7 +2078,10 @@ class EyeScanEngine:
             out of step, or the runs at the two ends of the UI, counts
             ``-half`` and ``+half``, counted no errors, whatever the steps and
             ranges; the cross is still measured and the points are kept),
-            otherwise the status the scan ended with. An opening is extrapolated only
+            otherwise the status the scan ended with. The centre and edge runs repeated
+            after the last point catch a sampler that a drop shorter than one
+            point left out of step unseen, and end the scan ``CLOSED`` with the
+            same warning. An opening is extrapolated only
             when both tail fits of its axis passed every gate and the open run
             does not reach the range limit.
             The status is ``ERROR``, with nothing written, when the rule in
@@ -2128,6 +2181,7 @@ class EyeScanEngine:
                                               wall, info, hook)
                 centre = state.eye.centre
                 if centre is None:
+                    self._finalCheck(width, state)
                     return
                 state.rowVert = nearestTowardZero(centre.vert)
                 state.colHorz = nearestTowardZero(centre.horz)
@@ -2141,6 +2195,7 @@ class EyeScanEngine:
                       lambda pos: self._checkedPoint(state.colHorz, width, state, vert=pos, **kwCross),
                       f'Vertical cross at horizontal count {state.colHorz}', crossSeconds)
                 state.vertDone = True
+                self._finalCheck(width, state)
             finally:
                 self._rungProgress = True
 
