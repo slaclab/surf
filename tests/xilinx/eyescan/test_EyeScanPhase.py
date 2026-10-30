@@ -76,11 +76,12 @@ def test_rate_rule_above_ten_gbps_sets_bit_11_on_every_run():
         counts = [int(c) for c in res.horzCounts]
         # One entry per run; a point takes several runs, so each count repeats
         seen = [count for count, _ in model.horzLog]
-        assert [c for i, c in enumerate(seen) if i == 0 or c != seen[i - 1]][2:] == counts
+        assert [c for i, c in enumerate(seen) if i == 0 or c != seen[i - 1]][2:-2] == counts
         # The first run is the activation probe at the eye centre, the second is the run at +half
-        # that finds the data transitions
+        # that finds the data transitions; the same two runs follow the last point
         assert seen[0] == 0
         assert seen[1] == 64
+        assert seen[-2:] == [0, 64]
         assert all(bit == 1 for _, bit in model.horzLog)
     finally:
         root.stop()

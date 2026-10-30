@@ -195,9 +195,11 @@ def test_vertical_offsets_are_written_as_magnitude_and_direction(full):
 
 
 def test_rows_run_centre_out_and_columns_ascend(full):
-    # Run 0 is the activation probe and run 1 is the run at +half that finds the data transitions
+    # Run 0 is the activation probe and run 1 is the run at +half that finds the data transitions; the last two
+    # runs are the centre run and the run at +half that follow the last point
     assert full.model.runLog[1] == (64, 0, 0, 0)
-    runs = full.model.runLog[2:]
+    assert [(horz, vert) for horz, vert, _, _ in full.model.runLog[-2:]] == [(0, 0), (64, 0)]
+    runs = full.model.runLog[2:-2]
     expected = [0] + [sign * 4 * k for k in range(1, 32) for sign in (-1, 1)]
 
     assert [v for v, _ in itertools.groupby(vert for _, vert, _, _ in runs)] == expected
