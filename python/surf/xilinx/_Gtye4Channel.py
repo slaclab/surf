@@ -13,12 +13,14 @@
 
 import pyrogue as pr
 
+from surf.xilinx import eyescan
+
 class Gtye4Channel(pr.Device):
 
     def _start(self):
         super()._start()
 
-    def __init__(self, **kwargs):
+    def __init__(self, eyeScan=True, **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -4061,3 +4063,11 @@ class Gtye4Channel(pr.Device):
             bitOffset = 0,
             mode = 'RO',
             name = 'es_rdata_byte9')
+
+        # Statistical eye-scan engine, no hardware access until it is used
+        if eyeScan:
+            self.add(eyescan.EyeScan(
+                name   = 'EyeScan',
+                family = 'GTYE4',
+                expand = False,
+            ))
