@@ -65,6 +65,7 @@ from surf.xilinx.eyescan import (  # noqa: E402
 
 from surf.xilinx.eyescan._EyeScanPort import IDLE_TIMEOUT  # noqa: E402
 from tests.xilinx.eyescan.gthe3_eye_model import makeGtRoot, makeLaneRoot  # noqa: E402
+from tests.xilinx.eyescan.test_EyeScanBathtub import heldElsewhere  # noqa: E402
 
 WINDOW = 0.3
 
@@ -468,14 +469,11 @@ def test_priming_reads_each_shared_word_before_its_first_write(rigs):
 
 def test_a_second_scan_while_one_holds_the_lock_is_refused(rigs):
     root, gt, model = rigs()
-    assert gt.EyeScan._scanLock.acquire(blocking=False)
-    try:
+    with heldElsewhere(gt.EyeScan._scanLock):
         with pytest.raises(EyeScanError):
             gt.EyeScan.probe(probeWindow=WINDOW)
         with pytest.raises(EyeScanError):
             gt.EyeScan.softCold(probeWindow=WINDOW)
-    finally:
-        gt.EyeScan._scanLock.release()
 
     assert model.writes == []
 

@@ -1317,16 +1317,19 @@ class EyeScanEngine:
             berUpper=math.nan, isBound=False, status=status, message=message)
 
     def _recoverLink(self, hook: RxResetHook, width: int, state: Any) -> None:
-        """Count a link drop, wait for ready, rewrite the masks and recheck the eye centre.
+        """Count a link drop, wait for ready, rewrite the masks and recheck the eye centre and the UI ends.
 
         The link comes back through a PHY re-init, which draws the alignment of
         the eye-scan sampler afresh (see ``SYNC_RESETS``). The eye-centre run of
         the activation is therefore repeated: a full error counter, or a run
         short of a full sample counter, sets the sync warning of the activation
         so the scan ends ``CLOSED`` with the warning instead of reporting a
-        closed eye without one. A centre run that does not reach END with
-        samples is left to the scan point that follows, where it is the second
-        drop.
+        closed eye without one. A clean centre run is followed by the edge runs
+        of the activation (see :meth:`_edgeCheck`), because a lane that came
+        back static counts no errors anywhere, and the grid may never land on
+        the ends of the UI: no transitions at both ends sets the same warning.
+        A centre or edge run that does not reach END with samples is left to
+        the scan point that follows, where it is the second drop.
 
         Raises
         ------
@@ -1349,10 +1352,16 @@ class EyeScanEngine:
         status, samples, errors = self._runProbe(state.probeWindow)
         if status != STATUS_END or samples == 0:
             return
-        if errors < _RUN_ERRORS and samples >= _RUN_SAMPLES:
-            return
         activation = state.activation
         if activation is None or activation.syncWarning:
+            return
+        if errors < _RUN_ERRORS and samples >= _RUN_SAMPLES:
+            # A clean centre, as after the activation: a live lane must also show its transitions at the ends
+            self._edgeCheck(activation, state.probeWindow, strict=False)
+            if activation.syncWarning:
+                activation.syncWarning += (' after the link returned from a drop during the scan; '
+                                           'the scan continues and reports what it measures')
+                self._noteSync(state.params, activation)
             return
         if errors >= _RUN_ERRORS:
             seen = f'the eye-centre error counter is full ({errors} errors in {samples} samples)'
@@ -2242,7 +2251,9 @@ class EyeScanEngine:
         end = time.monotonic()
         eyeEnd = None if state is None else state.eyeEnd
         meta = dict(eye.meta)
+        # The eye copied the warnings when the raster ended; a drop during the cross can have added one since
         meta.update(
+            warnings=list(params['warnings']),
             bathtubFloor=floor, targetBer=params['targetBer'], crossStep=1,
             rowVert=None if state is None else state.rowVert,
             columnHorz=None if state is None else state.colHorz,

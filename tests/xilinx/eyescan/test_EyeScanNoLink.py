@@ -29,10 +29,14 @@
 #   reaches END by itself with no samples during a scan is a link drop and the
 #   second one ends the scan UNLOCKED, as does a timeout while the ready signal
 #   reads False; a timeout with ready True stays TIMEOUT and so does a point.
-#   The recovery from a first drop repeats the eye-centre run: a drop that
-#   leaves the sampler out of step ends the scan CLOSED with the two-cause
-#   warning and every point kept, a drop that keeps it in step adds nothing.
-#   Healthy lanes are unchanged.
+#   The recovery from a first drop repeats the eye-centre run and, when it is
+#   clean, the two edge runs: a drop that leaves the sampler out of step, or
+#   that brings the lane back static, ends the scan CLOSED with the two-cause
+#   warning and every point kept, also on a grid that misses the ends of the
+#   UI; a drop that returns a live lane adds nothing beyond one run at +half.
+#   A drop that desynchronizes the sampler during either cross stage of the
+#   margin keeps its warning in the margin meta and the saved engine block,
+#   although the eye was assembled before it. Healthy lanes are unchanged.
 # - Timing: countReads=1 and a zero settle keep the emulated runs short; the
 #   model steps on status reads, so no test waits on real hardware time. The
 #   stuck runs use a 0.2 s run deadline.
@@ -44,7 +48,7 @@ pr = pytest.importorskip('pyrogue', reason='Eye-scan tests require Rogue/PyRogue
 import numpy as np  # noqa: E402
 rogue = pytest.importorskip('rogue', reason='Eye-scan tests require Rogue/PyRogue')
 
-from surf.xilinx.eyescan import EyeScanEngine, ResetPolicy, ScanStatus, loadResult  # noqa: E402
+from surf.xilinx.eyescan import EyeScanEngine, ResetPolicy, ScanControl, ScanStatus, loadResult  # noqa: E402
 from surf.xilinx.eyescan._EyeScanEngine import SYNC_RESETS  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import SAMPLE_MAX, makeGtRoot  # noqa: E402
@@ -70,13 +74,13 @@ def static(horz, ut):
 def rig(request):
     roots = []
 
-    def make(falseCalls=(), desyncOnDrop=False, **kw):
+    def make(falseCalls=(), desyncOnDrop=False, onDrop=None, **kw):
         kw.setdefault('requireReset', True)
         kw.setdefault('berFn', gauss)
         kw.setdefault('countReads', 1)
         root, gt, model = FAMS[request.param](**kw)
         roots.append(root)
-        hook = Hook(model, falseCalls, desyncOnDrop)
+        hook = Hook(model, falseCalls, desyncOnDrop, onDrop)
         gt.EyeScan.setRxReset(hook.pulse, hook.ready, settle=0.0, fallWait=0.05, timeout=0.5)
         return gt, model, hook
 
@@ -528,9 +532,88 @@ def test_a_drop_that_keeps_the_sampler_in_step_adds_no_warning(rig, scan):
     assert not any(OUT_OF_STEP in w for w in res.meta['warnings'])
 
 
-def runScan(gt, scan):
+def runScan(gt, scan, **grid):
+    kw = dict(probeWindow=WINDOW, lineRateGbps=6.25)
     if scan == 'bathtub':
-        return gt.EyeScan.runBathtub(step=16, floor=FLOOR, probeWindow=WINDOW, lineRateGbps=6.25)
+        return gt.EyeScan.runBathtub(**{**dict(step=16, floor=FLOOR), **grid}, **kw)
     if scan == 'eye':
-        return gt.EyeScan.runEye(horzStep=16, vertStep=32, probeWindow=WINDOW, lineRateGbps=6.25)
-    return gt.EyeScan.runMargin(horzStep=16, vertStep=32, probeWindow=WINDOW, lineRateGbps=6.25)
+        return gt.EyeScan.runEye(**{**dict(horzStep=16, vertStep=32), **grid}, **kw)
+    return gt.EyeScan.runMargin(**{**dict(horzStep=16, vertStep=32), **grid}, **kw)
+
+
+# Grids that never land on the ends of the UI, where a static lane would otherwise show its missing transitions
+NARROW = {'bathtub': dict(step=5),
+          'eye': dict(horzStep=8, vertStep=8, horzRange=8, vertRange=8),
+          'margin': dict(horzStep=8, vertStep=8, horzRange=8, vertRange=8)}
+
+
+def goesStatic(model):
+    """The lane that returns from the drop delivers a static input."""
+    model.berFn = static
+
+
+# Ready call 1 is the check before the first point, so the drop is seen before anything is measured
+@pytest.mark.parametrize('scan', ['bathtub', 'eye', 'margin'])
+def test_a_drop_that_brings_the_lane_back_static_ends_closed_on_a_grid_that_misses_the_ends(rig, scan):
+    gt, model, hook = rig(falseCalls=(1,), onDrop=goesStatic)
+    before = seedWords(model, gt)
+
+    res = runScan(gt, scan, **NARROW[scan])
+
+    assert res.status is ScanStatus.CLOSED, res.message
+    assert res.linkDrops == 1 and res.meta['linkDrops'] == 1
+    assert 'after the link returned from a drop' in res.message
+    assert OUT_OF_STEP in res.message and LINK_DOWN in res.message
+    warned = [w for w in res.meta['warnings'] if OUT_OF_STEP in w and LINK_DOWN in w]
+    assert len(warned) == 1 and 'after the link returned from a drop' in warned[0]
+    kept = res.eye if scan == 'margin' else res
+    assert kept.bits.sum() > 0 and kept.errors.sum() == 0
+    # The grid never reaches the ends of the UI, so the run at -half can only be the edge run of the recovery
+    assert [horz for horz, _, _, _ in model.runLog if abs(horz) == 64] == [64, 64, -64]
+    assert model.getField(gt.ES_CONTROL) == 0
+    assert seedWords(model, gt) == before
+
+
+@pytest.mark.parametrize('scan', ['bathtub', 'eye', 'margin'])
+def test_a_drop_that_returns_a_live_lane_runs_one_edge_run_and_stays_ok(rig, scan):
+    gt, model, hook = rig(falseCalls=(1,))
+
+    res = runScan(gt, scan, **NARROW[scan])
+
+    assert res.status is ScanStatus.OK, res.message
+    assert res.linkDrops == 1
+    assert OUT_OF_STEP not in res.message and LINK_DOWN not in res.message
+    assert not any(OUT_OF_STEP in w or LINK_DOWN in w for w in res.meta['warnings'])
+    # One run at +half after the activation and one after the recovery; a live lane never needs the -half run
+    assert [horz for horz, _, _, _ in model.runLog if abs(horz) == 64] == [64, 64]
+
+
+def dropAtStage(hook, stage):
+    """A ScanControl whose first stage message starting with ``stage`` schedules a drop at the next ready call."""
+    def onMessage(text):
+        if not hook.falseCalls and text.startswith(stage):
+            hook.falseCalls = {hook.calls + 1}
+    return ScanControl(onMessage=onMessage)
+
+
+@pytest.mark.parametrize('stage', ['Horizontal cross', 'Vertical cross'])
+def test_a_desync_drop_during_a_cross_stage_keeps_its_warning_in_the_margin_meta(rig, stage, tmp_path):
+    gt, model, hook = rig(desyncOnDrop=True)
+
+    res = gt.EyeScan.runMargin(horzStep=32, vertStep=64, horzRange=32, vertRange=64, probeWindow=WINDOW,
+                               lineRateGbps=6.25, control=dropAtStage(hook, stage))
+
+    assert res.status is ScanStatus.CLOSED, res.message
+    assert res.linkDrops == 1 and res.meta['linkDrops'] == 1
+    # The eye was healthy and assembled before the drop; the cross was measured through it
+    assert res.eye.status is ScanStatus.OK and res.eye.centre is not None
+    assert not any(OUT_OF_STEP in w for w in res.eye.meta['warnings'])
+    assert res.horz is not None and res.vert is not None and res.horz.complete and res.vert.complete
+    assert 'after the link returned from a drop' in res.activation.syncWarning
+    assert OUT_OF_STEP in res.message and LINK_DOWN in res.message
+    assert [w for w in res.meta['warnings'] if OUT_OF_STEP in w] == [res.activation.syncWarning]
+
+    outcome = gt.EyeScan.save(res, str(tmp_path), png=False)
+    assert outcome.errors == []
+    _, meta = loadResult(outcome.npzPath)
+    assert any(OUT_OF_STEP in w and LINK_DOWN in w for w in meta['engine']['warnings'])

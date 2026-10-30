@@ -29,6 +29,7 @@
 # - Timing: countReads=1 and a zero settle keep the emulated runs short; the
 #   model steps on status reads, so no test waits on real hardware time.
 
+import contextlib
 import sys
 import threading
 import time
@@ -79,13 +80,15 @@ class Hook:
     The activation handshake polls ready() a timing dependent number of times,
     so only the calls the scan loop makes are counted and scripted. With
     ``desyncOnDrop`` a scripted drop also leaves the model's sampler out of
-    step, as the PHY re-init behind a real drop can.
+    step, as the PHY re-init behind a real drop can; ``onDrop`` is called with
+    the model at every scripted drop to change the lane that comes back.
     """
 
-    def __init__(self, model, falseCalls=(), desyncOnDrop=False):
+    def __init__(self, model, falseCalls=(), desyncOnDrop=False, onDrop=None):
         self.model = model
         self.falseCalls = set(falseCalls)
         self.desyncOnDrop = desyncOnDrop
+        self.onDrop = onDrop
         self.calls = 0
         self.pulses = 0
 
@@ -101,6 +104,8 @@ class Hook:
         ready = self.calls not in self.falseCalls
         if not ready and self.desyncOnDrop:
             self.model.desynced = True
+        if not ready and self.onDrop is not None:
+            self.onDrop(self.model)
         return ready
 
 
@@ -494,6 +499,26 @@ def test_engine_bathtub_matches_the_child_call(rigs):
 
     assert res.status is ScanStatus.CLOSED
     assert np.array_equal(res.horzCounts, np.arange(-HALF, HALF + 1, 32))
+
+
+@contextlib.contextmanager
+def heldElsewhere(lock):
+    """Hold ``lock`` from another thread, as a running scan of another caller does; released on exit."""
+    taken, release = threading.Event(), threading.Event()
+
+    def holder():
+        with lock:
+            taken.set()
+            release.wait(30)
+
+    thread = threading.Thread(target=holder)
+    thread.start()
+    assert taken.wait(10)
+    try:
+        yield
+    finally:
+        release.set()
+        thread.join(10)
 
 
 def waitFor(predicate, timeout):

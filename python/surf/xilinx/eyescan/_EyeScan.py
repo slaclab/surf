@@ -73,6 +73,9 @@ _BAR_STEPS = 1000
 _BAR_RESERVED = 34
 
 
+_BUSY = 'another eye-scan run is in progress on this transceiver'
+
+
 class _ScanBusy(EyeScanError):
     """Another scan holds the scan lock: the call is refused and nothing else changes."""
 
@@ -129,7 +132,8 @@ class EyeScan(pr.Process):
         self._family = family
         self._hook = None
         self._hookObjs = None
-        self._scanLock = threading.Lock()
+        # Re-entrant: a Start run holds it across the scan and the save, and the scan itself takes it again
+        self._scanLock = threading.RLock()
         self._runGate = threading.Lock()
         self._lastProgress = 0.0
         self._scanStart = None
@@ -1007,7 +1011,7 @@ class EyeScan(pr.Process):
     def _scanning(self, control: ScanControl | None):
         # One scan at a time: a second caller is refused instead of queued
         if not self._scanLock.acquire(blocking=False):
-            raise _ScanBusy('another eye-scan run is in progress on this transceiver')
+            raise _ScanBusy(_BUSY)
         try:
             yield self._engine(control or ScanControl())
         finally:
@@ -1096,6 +1100,21 @@ class EyeScan(pr.Process):
         # The scan selected by Mode on the worker thread; Stop clears _runEn, which aborts the scan.
         # Everything one Start measures stays in the returned record, so a refused Start cannot alter another run
         run = SimpleNamespace(result=None, error=None, outcome=None, refused=False)
+        # The scan lock is held from here through the save: a synchronous caller that completed a scan between
+        # the publication of this result and its save would leave ResultFile naming a result that is not
+        # lastResult. The scan that holds the lock owns Status and the result files; only the Message tells of
+        # the refusal
+        if not self._scanLock.acquire(blocking=False):
+            run.error = _BUSY
+            run.refused = True
+            return run
+        try:
+            return self._runOwned(run)
+        finally:
+            self._scanLock.release()
+
+    def _runOwned(self, run: SimpleNamespace) -> SimpleNamespace:
+        # The scan selected by Mode and its save, with the scan lock held by the worker thread
         self._scanStart = time.monotonic()
         progress = _Throttle(self._setProgressValue)
         message = _Throttle(self.Message.set)
@@ -1106,10 +1125,6 @@ class EyeScan(pr.Process):
         try:
             params = self._processParams()
             run.result = self._runMode(params, control)
-        except _ScanBusy as exc:
-            # The scan that holds the lock owns Status and the result files; only the Message tells of the refusal
-            run.error = str(exc)
-            run.refused = True
         except EyeScanError as exc:
             self.Status.set(ScanStatus.ERROR.value)
             run.error = str(exc)

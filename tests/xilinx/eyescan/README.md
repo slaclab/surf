@@ -58,8 +58,10 @@ simulator.
   while running, and a subprocess ZMQ client reading `Progress` during a
   Margin scan. A Start refused by a running synchronous scan only fills its
   `Message` (Status, `ResultFile` and the result of the running scan stay), two
-  workers started at once run one scan with `Running` True until it ends, and a
-  synchronous scan publishes and saves before it releases the scan lock. An
+  workers started at once run one scan with `Running` True until it ends, a
+  synchronous scan publishes and saves before it releases the scan lock, and a
+  Start run keeps the lock until its result is saved, so a synchronous scan is
+  refused in between and `ResultFile` names `lastResult`. An
   analysis failure of a Start run ends ERROR with the measured counts saved, and
   a non-finite floor is refused before any bus transaction. Stop is timed at the RX reset handshake, a deep-prescale run
   (`slowFrom` and `slowReads` of the model hold a run in COUNT), the eye raster
@@ -114,9 +116,14 @@ simulator.
   samples during a scan, or times out while the ready signal reads False, is a
   link drop and the second one ends the scan `UNLOCKED`; a timeout with ready
   True and a stuck `point` stay `TIMEOUT`. The recovery from a first drop
-  repeats the eye-centre run, so a drop that leaves the sampler out of step
-  ends the bathtub, eye and margin `CLOSED` with the two-cause warning while a
-  drop that keeps it in step adds nothing. The scans run the two edge runs
+  repeats the eye-centre run and, when it is clean, the edge runs, so a drop
+  that leaves the sampler out of step, or that brings the lane back static,
+  ends the bathtub, eye and margin `CLOSED` with the two-cause warning, also on
+  a grid that misses the ends of the UI, while a drop that returns a live lane
+  adds one run at `+half` and nothing else. A drop that desynchronizes the
+  sampler during the horizontal or the vertical cross of a margin keeps its
+  warning in the margin meta and the saved `engine.warnings`, although the eye
+  was assembled before it. The scans run the two edge runs
   after every clean activation, so a static lane ends `CLOSED` at bathtub step 3
   and 5 and at eye and margin `horzStep` 3 and `horzRange` 32, while healthy
   lanes on those grids stay `OK` at the cost of one extra run at `+half`. An

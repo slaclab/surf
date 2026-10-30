@@ -35,8 +35,8 @@
 #   saved without a PNG, the scan words back at their pre-scan values and the
 #   same restore sequence, ES_CONTROL cleared first. An abort between points
 #   keeps exactly the points that completed, a synchronous run during a Start
-#   run is refused before any write, and Root.stop() during a scan restores the
-#   registers.
+#   run is refused before any write and stays refused until the Start run has
+#   saved its result, and Root.stop() during a scan restores the registers.
 # - Timing: countReads=1 and a zero settle keep the emulated runs short; small
 #   grids and a reduced floor keep each Start run to a few seconds.
 
@@ -58,6 +58,7 @@ interfaces = pytest.importorskip('pyrogue.interfaces', reason='Eye-scan tests re
 
 import surf.xilinx as xil  # noqa: E402
 import surf.xilinx.eyescan as es  # noqa: E402
+import surf.xilinx.eyescan._EyeScan as esDevice  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import Gthe3EyeModel, _newRoot, makeGtRoot  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, seedWords, waitFor  # noqa: E402
@@ -722,6 +723,37 @@ class LockProbe:
         child = self.child
         self.released.append((child.lastResult, child.Status.value(), child.ResultFile.value()))
         self.lock.release()
+
+
+def test_a_start_run_keeps_the_scan_lock_until_its_result_is_saved(rigs, tmp_path, monkeypatch):
+    child, model = rigs(berFn=gauss)
+    setKnobs(child, Mode='Bathtub', HorzStep=64, BathtubBerFloor=1e-6, SavePng=False)
+    entered, release = threading.Event(), threading.Event()
+    original = esDevice.saveResult
+
+    def gated(*args, **kwargs):
+        entered.set()
+        release.wait(10)
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(esDevice, 'saveResult', gated)
+    child.Start()
+    try:
+        assert entered.wait(30)
+        # The step-64 result is published but not yet saved: a synchronous scan is still refused
+        assert child.Status.value() == 'OK' and child.lastResult.meta['step'] == 64
+        with pytest.raises(es.EyeScanError, match='in progress'):
+            child.runBathtub(step=32, floor=1e-6, probeWindow=0.3)
+    finally:
+        release.set()
+    finish(child)
+
+    assert child.lastResult.meta['step'] == 64
+    npz = child.ResultFile.value()
+    _, meta = es.loadResult(npz)
+    assert meta['engine']['step'] == 64
+    assert files(tmp_path, '.npz') == [os.path.basename(npz)]
+    assert ' | saved ' in child.Message.value() and os.path.basename(npz) in child.Message.value()
 
 
 def test_a_scan_publishes_its_result_before_releasing_the_lock(rigs, tmp_path):

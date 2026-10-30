@@ -69,7 +69,7 @@ from surf.xilinx.eyescan._EyeScanMath import bitsPerRun, internalWidth, maskWord
 
 from tests.xilinx.eyescan.gthe3_eye_model import Gthe3EyeModel, fieldOf, makeGtRoot  # noqa: E402
 from tests.xilinx.eyescan.gtye4_eye_model import MASK_WORDS, Gtye4EyeModel, makeGtyRoot, maskVars  # noqa: E402
-from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, seedWords  # noqa: E402
+from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, gauss, heldElsewhere, seedWords  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanDevice import keysOf  # noqa: E402
 from tests.xilinx.eyescan.test_Gthe3Registers import ADDITIONS, rowsOf  # noqa: E402
 
@@ -522,7 +522,7 @@ def test_a_second_run_on_a_busy_transceiver_is_refused_without_bus_traffic(fam, 
     root, gt, model, hook = rigs(fam)
     assert model.transactions == 0
 
-    with gt.EyeScan._scanLock:
+    with heldElsewhere(gt.EyeScan._scanLock):
         with pytest.raises(EyeScanError, match='another eye-scan run is in progress'):
             gt.EyeScan.runBathtub(lineRateGbps=6.25)
 
