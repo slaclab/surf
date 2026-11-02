@@ -838,8 +838,9 @@ class _UpperPageProxy(pr.Device):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
+        # Daemon so a Root that fails to start cannot hang the process on exit
         self._queue = queue.Queue()
-        self._pollThread = threading.Thread(target=self._pollWorker)
+        self._pollThread = threading.Thread(target=self._pollWorker, daemon=True)
         self._pollThread.start()
 
         self._armed = False
@@ -937,24 +938,18 @@ class _UpperPageProxy(pr.Device):
                         transaction.done()
 
                 except _POLL_EXC as _exc:
+                    # The page-select byte may not have reached the module, so
+                    # rewrite it on the next access instead of trusting the cache
+                    self._armed = False
+                    # Report the failure to the caller (zeros would read as valid
+                    # data); retrying LinkVariables count it in ErrorCount
                     try:
-                        tt = transaction.type()
-                        if (tt == rim.Write) or (tt == rim.Post):
-                            transaction.done()
-                        else:
-                            dataBa = bytearray(4)
-                            transaction.setData(dataBa, 0)
-                            transaction.done()
-                    except Exception:
-                        pass
-                    try:
-                        self.parent.ErrorCount.set(
-                            self.parent.ErrorCount.value() + 1, write=False)
+                        transaction.error(f'QSFP upper page I2C access failed: {type(_exc).__name__}: {_exc}')
                     except Exception:
                         pass
                     try:
                         _log.warning(
-                            f"_UpperPageProxy._pollWorker masked I2C failure "
+                            f"_UpperPageProxy._pollWorker I2C failure "
                             f"at addr=0x{transaction.address():08x} type={transaction.type()}: "
                             f"{type(_exc).__name__}: {_exc}"
                         )
