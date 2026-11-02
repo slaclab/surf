@@ -168,6 +168,15 @@ do not require an FPGA or an HDL simulator.
   Q, the Q-scale tail fit, the open region and the extrapolated opening)
   against closed-form reference values and a seeded synthetic bathtub; no
   hardware model and no wall clock.
+- `test_EyeScanRunner.py`: the command-line runner (`addEyeScanArguments`,
+  `prepareEyeScan`, `runEyeScan`) and `Pgp4EyeScanLink` over `makeLaneRoot`:
+  the argument set and an application override of its defaults, lane lists,
+  invalid arguments and lanes refused before any write with no run folder
+  left, a read-only Status run, Probe and Bathtub files and the cross-lane
+  table, the GT and PGP4 Ctrl raw words, a loopback written and restored,
+  `LineRateGbps` set only on request, `extraMeta` in the saved metadata, two
+  lanes behind separate memory trees, and a real SIGINT that aborts the
+  running lane, skips the rest, returns 2 and restores the previous handler.
 
 With Rogue and the SURF Python package on `PYTHONPATH`, run the CI command:
 

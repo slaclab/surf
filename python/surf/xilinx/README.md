@@ -11,6 +11,7 @@ PyRogue models and helpers for Xilinx devices: the GT channel and common registe
 - `eyescan/_EyeScanFamilies.py`: the `GTHE3`, `GTHE4`, `GTYE3` and `GTYE4` descriptors (register roles, mask arrays, width and divider tables, phase rule, `hwVerified`) and `getFamily`.
 - `eyescan/_EyeScanTypes.py`: the typed results, `ScanStatus`, `ResetPolicy` and the eye-scan exceptions.
 - `eyescan/_EyeScanOutput.py`: the result files (npz, CSV, PNG), `loadResult`, the file stem and the surf version lookup.
+- `eyescan/_EyeScanRunner.py`: the command-line runner shared by the application scripts (`addEyeScanArguments`, `prepareEyeScan`, `runEyeScan`, `EyeScanLane`, the `EyeScanLink` adapter base and `RawWordReader`); `surf.protocols.pgp.Pgp4EyeScanLink` is the adapter of a `Pgp4AxiL` lane.
 
 ## GT eye scan
 
@@ -23,6 +24,8 @@ Register the RX reset of the lane once, after the device tree is built. The scan
 ```python
 gt.EyeScan.setRxReset(reset=laneDev.Ctrl.ResetRx, ready=laneDev.RxStatus.PhyRxActive)
 ```
+
+`surf.protocols.pgp.Pgp4EyeScanLink.connectRxReset(gt, laneDev)` makes the same registration.
 
 Run a bathtub and save it:
 
@@ -244,6 +247,43 @@ Decisions taken where the user guides leave room:
 
 When one of these families reaches hardware, run the eye-scan battery of the [design record](../../../docs/plans/eyescan/README.md) before setting `hwVerified`.
 
+### Command-line runner
+
+`surf.xilinx.eyescan` carries the command-line front end of the scan, so an application script only builds its root and names its lanes. The runner adds the scan options (`--lanes`, `--mode` with `Status`, `Probe`, `Bathtub`, `Eye` and `Margin`, the floors, steps, ranges, `--loopback`, `--lineRate`, `--outDir`, `--tag` and the rest), checks them and the lanes before any lane is written, runs the lanes one at a time, writes one run folder `eyescan_<yyyymmdd_hhmmss>[_<tag>]` per invocation with the per-lane npz, CSV and PNG files, prints the per-lane summaries and a cross-lane table, and returns 0, or 2 when a lane failed, a save failed or a stop skipped lanes. Ctrl-C aborts the running lane (its registers are restored and its partial result saved) and ends the run; a second Ctrl-C forces the exit.
+
+The application keeps its device options (`--dev`, the board type, the lane count) and the root:
+
+```python
+import argparse
+import sys
+
+import surf.protocols.pgp as pgp
+import surf.xilinx.eyescan as es
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dev', default='/dev/datadev_0')
+parser.add_argument('--numLane', type=int, default=8)
+es.addEyeScanArguments(parser)
+parser.set_defaults(lanes='4-7', lineRate=6.25)   # defaults of this image
+args = parser.parse_args()
+
+# Checks the arguments and creates the run folder before the hardware is touched
+plan = es.prepareEyeScan(args, args.numLane)
+
+# Idle root: no polling, no read at start, no traffic
+with MyRoot(dev=args.dev, numLane=args.numLane, pollEn=False, initRead=False) as root:
+    lanes = [es.EyeScanLane(lane, root.PgpGtDrp[lane], pgp.Pgp4EyeScanLink(root.Lane[lane]))
+             for lane in range(args.numLane)]
+    code = es.runEyeScan(args, plan, lanes, version=root.AxiPcieCore.AxiVersion)
+sys.exit(code)
+```
+
+- `EyeScanLane(lane, gt, link)` pairs a lane number with its GT channel and an optional link adapter. Raw words are read through the GT and link devices themselves, so lanes behind different memory maps can run in one call.
+- `EyeScanLink` is the adapter base: `counters()` and `rawWords()` are recorded before and after every run (a `LinkReady` counter that reads False is warned about), `statusFields()` are printed on the Status line, and `getLoopback` and `setLoopback` serve `--loopback` when `hasLoopback` is True. A lane without an adapter still scans; `--loopback` is then refused.
+- `Pgp4EyeScanLink(pgp)` records `LinkReady`, `PhyRxInitCnt` and `LinkDownCnt`, the raw `Ctrl` word, `PhyRxActive` and `LinkReady` on the Status line, and drives `Ctrl.Loopback`.
+- `version` (an `AxiVersion`) is printed and recorded as card information when given; `extraMeta` adds application fields to the metadata of every lane (saved under `application`).
+- `--lineRate` above 0 is written to `LineRateGbps` of every selected lane; 0 keeps the value the application set.
+
 ### Tests
 
 The tests run real Rogue memory transactions against emulated GTHE3, GTHE4, GTYE3 and GTYE4 DRP memories and need no FPGA. See [tests/xilinx/eyescan/README.md](../../../tests/xilinx/eyescan/README.md) for what each file covers. From the surf root, with Rogue and the surf Python package on `PYTHONPATH`, the CI command is
@@ -260,9 +300,9 @@ PYTHONPATH="$PWD/python" python -m pytest -q --noconftest tests/xilinx/eyescan
 
 The lint command of CI is `flake8 --count python/ scripts/ tests/`.
 
-Hardware runs use `software/scripts/EyeScan.py` of pgp-pcie-apps, which runs the `Status`, `Probe`, `Bathtub`, `Eye` and `Margin` modes on selected lanes and writes one run folder per invocation with the per-lane npz, CSV and PNG files:
+Hardware runs use an application script built on the [command-line runner](#command-line-runner), for example `software/scripts/PgpEyeScan.py` of pgp-pcie-apps:
 
 ```sh
-python software/scripts/EyeScan.py --lanes 4-7 --mode Eye --outDir <dir>
-python software/scripts/EyeScan.py --lanes 4-7 --mode Margin --outDir <dir>
+python software/scripts/PgpEyeScan.py --lanes 4-7 --mode Eye --outDir <dir>
+python software/scripts/PgpEyeScan.py --lanes 4-7 --mode Margin --outDir <dir>
 ```
