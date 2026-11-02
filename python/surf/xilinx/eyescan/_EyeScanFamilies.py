@@ -26,6 +26,8 @@ __all__ = [
     'PHASE_RULES',
     'EyeScanFamily',
     'GTHE3',
+    'GTHE4',
+    'GTYE3',
     'GTYE4',
     'FAMILIES',
     'UNSUPPORTED_FAMILIES',
@@ -170,7 +172,60 @@ GTYE4 = EyeScanFamily(
     defaultDivider        = 2,
 )
 
-FAMILIES = {'GTHE3': GTHE3, 'GTYE4': GTYE4}
+# UG576 Table C-2: the UltraScale+ GTH has the GTYE4 DRP addresses (status words at 0x251 to 0x253,
+# ten mask words per array) but the GTH sampler is still 40 bits wide. UG576 Table 4-20 note 1 keeps
+# ES_SDATA_MASK5 to ES_SDATA_MASK9 for GTY transceivers only, so the scan writes the five low words
+# like GTHE3 and leaves words 5 to 9 as plain driver registers. Not verified on hardware.
+GTHE4 = EyeScanFamily(
+    name                  = 'GTHE4',
+    hwVerified            = False,
+    regs                  = dict(GTHE3.regs),
+    arrays                = {
+        'sdataMask':      ('ES_SDATA_MASK{}', 5),
+        'qualMask':       ('ES_QUAL_MASK{}',  5),
+        'qualifier':      ('ES_QUALIFIER{}',  5),
+    },
+    busWidth              = 40,
+    rxDataWidthCodes      = dict(GTHE3.rxDataWidthCodes),
+    widthCombos           = GTHE3.widthCombos,
+    # UG576 Table 4-20: valid RXOUT_DIV settings are 1, 2, 4, 8 and 16
+    rxOutDivCodes         = dict(GTHE3.rxOutDivCodes),
+    horzBits              = 12,
+    countsPerHalfUiPerDiv = 32,
+    # UG576 keeps the sign rule for GTH: bit 11 is 0 for positive counts and 1 for negative counts
+    phaseUnification      = 'sign',
+    rateThresholdGbps     = 10.0,
+    vsCodeMax             = 127,
+    # The SURF UltraScale+ GTH IP cores (Pgp3GthUsIp*, PgpGthCore) use a 32-bit internal width
+    defaultWidth          = 32,
+    defaultDivider        = 2,
+)
+
+# UG578 Table B-2: the UltraScale GTY shares the GTYE4 eye-scan register layout (160-bit mask arrays,
+# RX_DATA_WIDTH codes up to 160 bits, RX_INT_DATAWIDTH up to 2). Not verified on hardware.
+GTYE3 = EyeScanFamily(
+    name                  = 'GTYE3',
+    hwVerified            = False,
+    regs                  = dict(GTHE3.regs),
+    arrays                = dict(GTYE4.arrays),
+    busWidth              = 80,
+    rxDataWidthCodes      = dict(GTYE4.rxDataWidthCodes),
+    widthCombos           = GTYE4.widthCombos,
+    rxOutDivCodes         = dict(GTYE4.rxOutDivCodes),
+    horzBits              = 12,
+    countsPerHalfUiPerDiv = 32,
+    # UG578 Table 4-20 reads bit 11 as 0 at or below 10 Gb/s and 1 above for UltraScale GTY (the
+    # 'rate' rule); the descriptor keeps 'sign' like the two hardware-verified families, where the
+    # C1100 GTYE4 lanes did not separate the two rules. Pass phaseUnification='rate' per call to
+    # follow the user guide text.
+    phaseUnification      = 'sign',
+    rateThresholdGbps     = 10.0,
+    vsCodeMax             = 127,
+    defaultWidth          = 64,
+    defaultDivider        = 2,
+)
+
+FAMILIES = {'GTHE3': GTHE3, 'GTHE4': GTHE4, 'GTYE3': GTYE3, 'GTYE4': GTYE4}
 
 UNSUPPORTED_FAMILIES = ('GTPE2', 'GTXE2')
 
