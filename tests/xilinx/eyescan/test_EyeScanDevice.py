@@ -18,8 +18,8 @@
 # - Checks: root.start() issues zero bus transactions; readState() decodes
 #   W=32, range 64 and the status name using reads only; an unsupported width
 #   pair is reported with both raw values instead of a guessed width; hook
-#   registration validates its arguments and never touches the bus; only
-#   Gthe3Channel and Gtye4Channel carry an EyeScan child; the child adds no
+#   registration validates its arguments and never touches the bus; only the
+#   four UltraScale GTH and GTY channel drivers carry an EyeScan child; the child adds no
 #   bus transaction at start, ReadAll or polling; neither the saved config YAML nor the state
 #   YAML contains an EyeScan entry and the GT config keys equal the pre-change
 #   writable variable names; the scan knobs and summary scalars exist with
@@ -96,7 +96,7 @@ def lane():
 
 
 def test_exports():
-    names = ('EyeScan', 'EyeScanFamily', 'GTHE3', 'getFamily', 'EyeScanPort', 'EyeScanEngine',
+    names = ('EyeScan', 'EyeScanFamily', 'GTHE3', 'GTHE4', 'GTYE3', 'GTYE4', 'getFamily', 'EyeScanPort', 'EyeScanEngine',
              'ScanStatus', 'ResetPolicy', 'EyeScanError', 'EyeScanNotActive', 'EyeScanAborted',
              'EyeScanTimeout', 'EyeScanUnlocked')
     assert [n for n in names if not hasattr(es, n)] == []
@@ -129,11 +129,13 @@ def test_gthe3_hardware_verified_flag_matches_the_hardware_record():
 
 
 def test_only_the_gth_and_gty_drivers_have_an_eyescan_child():
-    for cls in (xil.Gthe3Channel, xil.Gtye4Channel):
+    for cls in (xil.Gthe3Channel, xil.Gthe4Channel, xil.Gtye3Channel, xil.Gtye4Channel):
         assert hasattr(cls(name='A'), 'EyeScan')
         assert not hasattr(cls(name='B', eyeScan=False), 'EyeScan')
-    for cls in (xil.Gtxe2Channel, xil.Gtpe2Channel):
+    for cls in (xil.Gtxe2Channel, xil.Gtpe2Channel, xil.Gthe4Common, xil.Gtye3Common):
         assert not hasattr(cls(name='C'), 'EyeScan')
+    for cls, family in ((xil.Gthe4Channel, 'GTHE4'), (xil.Gtye3Channel, 'GTYE3')):
+        assert cls(name='D').EyeScan._family == family
 
 
 def test_start_issues_no_bus_transactions(lane):

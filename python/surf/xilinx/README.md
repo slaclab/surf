@@ -1,6 +1,6 @@
 # surf.xilinx (Python)
 
-PyRogue models and helpers for Xilinx devices: the GT channel and common register maps (`Gthe3Channel`, `Gtye4Channel`, `Gtxe2Channel`, `Gtpe2Channel` and their `*Common` devices), the AXI PCIe PHY, the system monitors, clock manager, GPIO and SPI PS blocks, the triple modular redundancy and SEM helpers, and the statistical eye scan of the GT receivers described below. Register names, offsets and bit fields mirror the RTL and the vendor user guides; see [python/README.md](../../README.md) for the package layout and the PyRogue API style.
+PyRogue models and helpers for Xilinx devices: the GT channel and common register maps (`Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel`, `Gtye4Channel`, `Gtxe2Channel`, `Gtpe2Channel` and their `*Common` devices), the AXI PCIe PHY, the system monitors, clock manager, GPIO and SPI PS blocks, the triple modular redundancy and SEM helpers, and the statistical eye scan of the GT receivers described below. Register names, offsets and bit fields mirror the RTL and the vendor user guides; see [python/README.md](../../README.md) for the package layout and the PyRogue API style.
 
 ## Module map of the eye scan
 
@@ -8,13 +8,13 @@ PyRogue models and helpers for Xilinx devices: the GT channel and common registe
 - `eyescan/_EyeScanEngine.py`: sampler activation, probe, point measurement, bathtub, eye, margin, abort and restore, plus `ScanControl` and the scan time model.
 - `eyescan/_EyeScanPort.py`: role-based register access to the GT DRP words with primed read-modify-write and the snapshot and restore of everything a scan changes.
 - `eyescan/_EyeScanMath.py`: bit counts, the prescale ladder, mask words, Poisson bounds and the Q-scale tail fits.
-- `eyescan/_EyeScanFamilies.py`: the `GTHE3` and `GTYE4` descriptors (register roles, mask arrays, width and divider tables, phase rule, `hwVerified`) and `getFamily`.
+- `eyescan/_EyeScanFamilies.py`: the `GTHE3`, `GTHE4`, `GTYE3` and `GTYE4` descriptors (register roles, mask arrays, width and divider tables, phase rule, `hwVerified`) and `getFamily`.
 - `eyescan/_EyeScanTypes.py`: the typed results, `ScanStatus`, `ResetPolicy` and the eye-scan exceptions.
 - `eyescan/_EyeScanOutput.py`: the result files (npz, CSV, PNG), `loadResult`, the file stem and the surf version lookup.
 
 ## GT eye scan
 
-Every `Gthe3Channel` (UltraScale GTH) and `Gtye4Channel` (UltraScale+ GTY) carries an `EyeScan` child. It measures a two-sided horizontal bathtub, a 2D statistical eye or a margin summary on the live link, with one Python call or with the Start and Stop commands of the PyDM GUI.
+Every `Gthe3Channel` (UltraScale GTH), `Gthe4Channel` (UltraScale+ GTH), `Gtye3Channel` (UltraScale GTY) and `Gtye4Channel` (UltraScale+ GTY) carries an `EyeScan` child. It measures a two-sided horizontal bathtub, a 2D statistical eye or a margin summary on the live link, with one Python call or with the Start and Stop commands of the PyDM GUI.
 
 ### Quick start
 
@@ -36,7 +36,7 @@ From PyDM, set `LineRateGbps`, `Mode` and `OutputDir` on the `EyeScan` node and 
 
 ### The EyeScan child
 
-- Added to every `Gthe3Channel` and `Gtye4Channel`. `Gthe3Channel(eyeScan=False)` and `Gtye4Channel(eyeScan=False)` leave it out.
+- Added to every `Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel` and `Gtye4Channel`; `eyeScan=False` on any of them leaves it out. The GTHE4 and GTYE3 drivers and descriptors were written from UG576 Table C-2 and UG578 Table B-2 and have not been run on hardware (`HwVerified` reads False); see [GT drivers from the user guides](#gt-drivers-from-the-user-guides).
 - Constructing it, starting the root and `ReadAll` do not access the hardware, nothing polls, and none of its variables is in the saved configuration or state YAML (the device is in the `NoConfig` and `NoState` groups and every variable is a `NoConfig` local).
 - `Gtxe2Channel` and `Gtpe2Channel` have no child. `getFamily('GTXE2')` and `getFamily('GTPE2')` raise `EyeScanError` ("eye scan is not supported for this family yet").
 - One scan runs at a time per channel. A synchronous call or a Start that finds another scan running is refused and changes nothing of the running scan.
@@ -183,6 +183,8 @@ The `closed` label is in the `MarginSummary`, the npz `meta` summary, the summar
 |--------|--------|------------|-------|
 | GTHE3 | `Gthe3Channel` | True | KCU1500 lanes 4 to 7 at 6.25 Gb/s. The first one-reset battery failed two repeatability checks on lane 6 and was indeterminate on lane 4; one repeat battery, fixed before the card was touched, passed every check, and the flag rests on it with the failure kept on record |
 | GTYE4 | `Gtye4Channel` | True | Varium C1100 lanes 4 to 7, 6.25 Gb/s battery that passed on its first run: one card, one image, the QSFP CDR most likely disabled, phase rule `sign` kept after an undecided comparison with `rate` at 6.25, 10.3125, 15.46875 and 25 Gb/s |
+| GTHE4 | `Gthe4Channel` | False | written from UG576 v1.7.1 Table C-2; no UltraScale+ GTH card was available, so the descriptor rests on the user guide and the emulated tests only |
+| GTYE3 | `Gtye3Channel` | False | written from UG578 v1.4 Table B-2; no UltraScale GTY card was available, so the descriptor rests on the user guide and the emulated tests only |
 | GTXE2 | `Gtxe2Channel` | not supported | no `EyeScan` child |
 | GTPE2 | `Gtpe2Channel` | not supported | no `EyeScan` child |
 
@@ -227,9 +229,24 @@ Stated as measured on the lanes above:
 
 The design record lists the open risks in full: [docs/plans/eyescan/README.md](../../../docs/plans/eyescan/README.md).
 
+### GT drivers from the user guides
+
+`Gthe4Channel`, `Gthe4Common` (UltraScale+ GTH, UG576 v1.7.1 Tables C-2 and C-1) and `Gtye3Channel`, `Gtye3Common` (UltraScale GTY, UG578 v1.4 Tables B-2 and B-1) were generated row by row from the DRP address maps of the user guides, in the `Gtye4Channel` style: one `RemoteVariable` per table row named after the attribute, 16-bit DRP words behind a 32-bit window (`offset = address << 2`), `RO` for the read-only rows, the two-word `RX_PRBS_ERR_CNT` as one list variable, and the symbolic encodings of the tables as enums. Every field was compared with its table row before the golden lists under `tests/xilinx/eyescan` were captured. Neither family has been run on hardware.
+
+Decisions taken where the user guides leave room:
+
+- GTHE4 eye-scan mask arrays. UG576 Table C-2 lists `ES_SDATA_MASK0` to `ES_SDATA_MASK9` (and the qualifier words) at the GTYE4 addresses, but Table 4-20 note 1 keeps words 5 to 9 for GTY transceivers and the GTH internal datapath stays 40 bits wide (Table 4-46). The `GTHE4` descriptor therefore writes the five low words of each array with the GTHE3 40-bit masks and leaves words 5 to 9 as plain driver registers; the emulated tests check that a scan never writes them. The read-only capture words `es_rdata_byte` and `es_sdata_byte` have five words each (Table 4-21).
+- GTHE4 width pairs and dividers. The GTH tables of UG576 (Tables 4-20 and 4-46) give the GTHE3 width pairs (no `RX_INT_DATAWIDTH` 2) and the dividers 1 to 16, so the `GTHE4` descriptor reuses the GTHE3 tables, and the `RXOUT_DIV` and `TXOUT_DIV` enums stop at 16. The 128 and 160 codes of `RX_DATA_WIDTH` are in the DRP table and stay in the enum, and the eye scan refuses them with the raw values.
+- GTYE3 is the GTYE4 layout: ten mask words per array, 80-bit sdata bus, `RX_INT_DATAWIDTH` up to 2, dividers up to 32 (the /32 divider is refused by the scan like on GTYE4 because the half UI would not fit the offset field).
+- Phase-unification bit 11 of `ES_HORZ_OFFSET`. UG578 Table 4-20 reads UltraScale GTY as 0 at or below 10 Gb/s and 1 above (the `rate` rule). Both hardware-verified families use `sign`, and on the C1100 GTYE4 lanes the two rules did not separate, so `GTYE3` and `GTHE4` keep `sign`; `phaseUnification='rate'` stays available on every scan call.
+- `Gtye3Channel` declares `TX_FIFO_BYP_EN` and `TX_PI_DIV2_MODE_B` with `overlapEn`, because UG578 v1.4 Table B-2 lists both on bit 0 of DRP word 0xFB (a revision 1.4 change of that word).
+- The GTHE4 `RX_PROGDIV_CFG` and `TX_PROGDIV_CFG` enums decode the binary pairs of Table C-2 to the same words as `Gtye4Channel`; the GTYE3 ones follow the UltraScale encodings of Table B-2, which differ for the 5, 16.5, 33 and 66 dividers.
+
+When one of these families reaches hardware, run the eye-scan battery of the [design record](../../../docs/plans/eyescan/README.md) before setting `hwVerified`.
+
 ### Tests
 
-The tests run real Rogue memory transactions against emulated GTHE3 and GTYE4 DRP memories and need no FPGA. See [tests/xilinx/eyescan/README.md](../../../tests/xilinx/eyescan/README.md) for what each file covers. From the surf root, with Rogue and the surf Python package on `PYTHONPATH`, the CI command is
+The tests run real Rogue memory transactions against emulated GTHE3, GTHE4, GTYE3 and GTYE4 DRP memories and need no FPGA. See [tests/xilinx/eyescan/README.md](../../../tests/xilinx/eyescan/README.md) for what each file covers. From the surf root, with Rogue and the surf Python package on `PYTHONPATH`, the CI command is
 
 ```sh
 PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/xilinx/eyescan
