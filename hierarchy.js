@@ -230,6 +230,9 @@ var hierarchy =
       [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
       [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
       [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
+      [ "AxiLiteCrossbar", "classAxiLiteCrossbar.html", null ],
+      [ "AxiDualPortRam", "classAxiDualPortRam.html", null ],
+      [ "SlaveAxiLiteIpIntegrator", "classSlaveAxiLiteIpIntegrator.html", null ],
       [ "AxiLiteFifoPop", "classAxiLiteFifoPop.html", [
         [ "FifoCascade", "classFifoCascade.html", [
           [ "Fifo", "classFifo.html", null ]
@@ -1065,6 +1068,8 @@ var hierarchy =
       [ "EthMacFlowCtrl", "classEthMacFlowCtrl.html", null ],
       [ "EthMacTxExport", "classEthMacTxExport.html", null ],
       [ "EthMacRxImport", "classEthMacRxImport.html", null ],
+      [ "EthMacTxExport", "classEthMacTxExport.html", null ],
+      [ "EthMacRxImport", "classEthMacRxImport.html", null ],
       [ "ClkRst", "classClkRst.html", null ],
       [ "SsiPrbsTx", "classSsiPrbsTx.html", null ],
       [ "UdpEngineWrapper", "classUdpEngineWrapper.html", [
@@ -1120,9 +1125,11 @@ var hierarchy =
       [ "ClkRst", "classClkRst.html", null ],
       [ "EthMacTop", "classEthMacTop.html", null ],
       [ "EthMacTop", "classEthMacTop.html", null ],
+      [ "EthMacTop", "classEthMacTop.html", null ],
       [ "EthMacTxBypass", "classEthMacTxBypass.html", null ],
       [ "EthMacTxCsum", "classEthMacTxCsum.html", null ],
       [ "EthMacRxCsum", "classEthMacRxCsum.html", null ],
+      [ "EthMacTxCsum", "classEthMacTxCsum.html", null ],
       [ "EthMacTxFifo", "classEthMacTxFifo.html", null ],
       [ "EthMacTx", "classEthMacTx.html", null ],
       [ "EthMacRxImport", "classEthMacRxImport.html", null ],
