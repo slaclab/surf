@@ -14,33 +14,15 @@
 # secrets.CONDA_UPLOAD_TOKEN_TAG
 
 name: CI
-# Triggers: every push runs the workflow (directory-scoped regression on
-# feature branches, full on pre-release/main/tags); PRs into main additionally
-# run it in full.
-# A feature branch with an open PR into main therefore runs the regression
-# job twice per push -- once selective (push ref) and once full (PR merge
-# ref). Distinct event/ref concurrency groups prevent push, PR, and manual
-# validation runs from cancelling one another. This is intentional: the push
-# run gives fast per-commit feedback and the PR run is the full pre-merge
-# release gate. In this repo feature branches normally target pre-release, so
-# the double run is confined to release PRs. The post-merge push to pre-release
-# is also full so the integration branch is checked after every feature merge.
-# Manual dispatch can simulate a changed-path list to exercise selective
-# execution on a runner; it does not alter the path source used by push or
-# pull-request events.
+# Triggers: feature-branch pushes run a selective (path-mapped) RTL regression;
+# pushes to pre-release, main, and tags, and PRs into main, run it in full.
+# Manual dispatch can simulate a changed-path list for selective mode.
+# Concurrency groups are keyed by event and ref so push, PR, and manual runs
+# never cancel one another.
 #
-# Regression coverage is split across two jobs, "Non-rogue Regression Tests"
-# and "Rogue Regression Tests". The split is a packaging boundary, not a
-# testing one. Rogue is distributed only through the tidair-tag conda channel
-# and is absent from pip_requirements.txt, so Rogue coverage needs Miniforge
-# and a conda login shell, whereas the non-rogue job deliberately builds and
-# simulates on apt mcode GHDL under actions/setup-python. Rogue coverage also
-# has to stay a distinct required suite because every Rogue test skips
-# silently when Rogue is missing (pytest.importorskip in the ADC DDR tests,
-# _check_rogue_python() in the SimLink contracts); inside the non-rogue job
-# they would be invisible no-ops. See tests/simlink/README.md for the
-# rationale on why the deterministic pyzmq peer cannot substitute for real
-# Rogue. Any future Rogue-dependent suite belongs in the Rogue job.
+# RTL and Rogue regressions are separate jobs because Rogue is conda-only
+# (tidair-tag channel) and every Rogue test skips silently without it, so the
+# Rogue job is the one place those tests are required to run.
 on:
   push:
   pull_request:
@@ -122,8 +104,12 @@ jobs:
 
 # ----------------------------------------------------------------------------
   test:
-    name: Non-rogue Regression Tests
+    name: "RTL test: ${{ matrix.module }}"
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [axi, base, common, devices, dsp, ethernet, protocols, simlink, xilinx]
 
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -150,10 +136,8 @@ jobs:
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: Verify Icarus and Verilator
-        # Fail before any suite runs if either simulator is missing or below
-        # the SimLink test floor. The Icarus and Verilator suites skip when
-        # their tools are absent, so without this step a broken install
-        # would pass the SimLink step as silent skips.
+        # Fail early on a missing or too-old simulator; the Icarus and
+        # Verilator suites would otherwise pass as silent skips.
         run: |
           iverilog -V
           verilator --version
@@ -171,99 +155,73 @@ jobs:
             echo "value=selective" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Parallel Regression Tests
+      - name: Regression Tests
         env:
+          MODULE: ${{ matrix.module }}
           CHANGED_FILES_OVERRIDE: ${{ inputs.changed_files_override }}
         run: |
-          # Define the full regression universe once so integration runs and
-          # selective-mode fallbacks cannot drift apart as suites are added.
-          full_targets=(
-            tests
-          )
-          # tests/simlink is owned by the dedicated step below, which runs it
-          # on every push with a bounded worker count. Exclude it here so the
-          # unbounded -n auto never starves its multi-instance peer handshake
-          # and so the suite is not run twice.
-          full_ignores=(
-            --ignore=tests/simlink
-          )
+          targets=("tests/${MODULE}")
 
-          # Import once before either run mode. The compliance check consumes
-          # the same ruckus source inventory as the cocotb runner and fails
-          # fast on new structural violations before expensive simulations.
-          make MODULES=$PWD import
-          python -m tests.common.compliance_audit check tests
+          # Selective mode keeps this module's share of the path selector
+          # output. tests/common (selector policy tests) and tests/simlink (no
+          # path maps to it) always run in full. FORCE_FULL or a selector
+          # error runs the whole module.
+          if [[ "${{ steps.mode.outputs.value }}" == "selective" ]] \
+             && [[ "${MODULE}" != "common" ]] && [[ "${MODULE}" != "simlink" ]]; then
+            selector_args=()
+            selection_source="git diff against origin/pre-release"
+            if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] \
+               && [[ -n "${CHANGED_FILES_OVERRIDE}" ]]; then
+              selector_args+=(--changed-files-override "${CHANGED_FILES_OVERRIDE}")
+              selection_source="manual changed-path simulation"
+            fi
 
-          # Full integration/release runs build and simulate on apt mcode GHDL
-          # and collect the coverage consumed by Codecov.
-          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
-            python -m pytest --cov -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
-            exit 0
-          fi
-
-          # Feature-branch pushes compare with origin/pre-release and map
-          # localized protocol/DSP/Ethernet paths to matching pytest
-          # directories. Any foundational, build-control, deleted/renamed,
-          # unknown, or otherwise indeterminate change emits FORCE_FULL.
-          selector_args=()
-          selection_source="git diff against origin/pre-release"
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]] \
-             && [[ -n "${CHANGED_FILES_OVERRIDE}" ]]; then
-            selector_args+=(--changed-files-override "${CHANGED_FILES_OVERRIDE}")
-            selection_source="manual changed-path simulation"
-          fi
-
-          if selector_output="$(python -m tests.common "${selector_args[@]}")"; then
-            selector_rc=0
-          else
-            selector_rc=$?
-          fi
-
-          echo "${selector_output}"
-
-          if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
-            echo "Directory selector forced a full run (rc=${selector_rc})"
-            {
-              echo "### Regression selection"
-              echo
-              echo "- Source: ${selection_source}"
-              echo "- Result: full regression"
-            } >> "${GITHUB_STEP_SUMMARY}"
-            python -m pytest -v -n auto --dist=worksteal "${full_ignores[@]}" "${full_targets[@]}"
-          else
-            # tests/common contains the selector's policy tests and always runs
-            # alongside any directory-owned cocotb targets.
-            targets=(tests/common)
-            if [[ -n "${selector_output}" ]]; then
-              mapfile -t selected < <(printf '%s\n' "${selector_output}")
-              targets+=("${selected[@]}")
+            if selector_output="$(python -m tests.common "${selector_args[@]}")"; then
+              selector_rc=0
             else
-              echo "No directory-owned cocotb tests for this change set -- running tests/common only."
+              selector_rc=$?
+            fi
+            echo "${selector_output}"
+
+            if [[ "${selector_rc}" -ne 0 ]] || grep -qx "FORCE_FULL" <<< "${selector_output}"; then
+              result="full ${MODULE} regression (selector rc=${selector_rc})"
+            else
+              mapfile -t targets < <(grep -E "^tests/${MODULE}(/|$)" <<< "${selector_output}" || true)
+              result="selective, pytest targets: ${targets[*]:-none}"
             fi
             {
-              echo "### Regression selection"
+              echo "### Regression selection: ${MODULE}"
               echo
               echo "- Source: ${selection_source}"
-              echo "- Result: selective regression"
-              echo "- Pytest targets: \`${targets[*]}\`"
+              echo "- Result: ${result}"
             } >> "${GITHUB_STEP_SUMMARY}"
-            python -m pytest -v -n auto --dist=worksteal "${targets[@]}"
+
+            if [[ "${#targets[@]}" -eq 0 ]]; then
+              echo "No selected targets for ${MODULE}; nothing to run."
+              exit 0
+            fi
           fi
 
-      - name: SimLink Regression Tests
-        # SimLink runs in its own step with a bounded worker count, and is
-        # excluded from the step above in both full and selective mode. Its
-        # native ctypes libraries and the multi-instance ZeroMQ traffic test are
-        # timing-sensitive, and an unbounded -n auto on a many-core runner
-        # over-subscribes badly enough to starve the multi-instance peer
-        # handshake. Cap workers at min(nproc, 8): still ~2x faster than serial
-        # on the hosted 4-core runner, without the high-concurrency starvation.
-        # Unconditional: the path selector maps no path to tests/simlink, so a
-        # selective feature-branch push would otherwise never exercise it.
-        run: |
-          python -m pytest --cov --cov-append -v \
-            -n "$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')" \
-            --dist=worksteal tests/simlink
+          # The cocotb runner and the compliance audit read build/SRC_VHDL.
+          make MODULES=$PWD import
+          if [[ "${MODULE}" == "common" ]]; then
+            python -m tests.common.compliance_audit check tests
+          fi
+
+          # Full runs collect the coverage uploaded to Codecov.
+          cov=()
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            cov=(--cov)
+          fi
+
+          # Cap SimLink at min(nproc, 8): an unbounded -n auto on a many-core
+          # runner starves its multi-instance ZeroMQ peer handshake.
+          workers=auto
+          if [[ "${MODULE}" == "simlink" ]]; then
+            workers="$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')"
+          fi
+
+          python -m pytest "${cov[@]}" -v -n "${workers}" --dist=worksteal "${targets[@]}"
 
       - name: Code Coverage
         if: steps.mode.outputs.value == 'full'
@@ -275,11 +233,8 @@ jobs:
 
   rogue_test:
     name: Rogue Regression Tests
-    # Every suite that needs a real Rogue install lives here, behind one
-    # pinned conda environment. Rogue is conda-only, so provisioning Miniforge
-    # dominates the runtime; running these suites as separate jobs paid that
-    # cost once per suite for no isolation benefit. Each suite keeps its own
-    # step so a failure still names the suite that broke.
+    # Every suite that needs a real Rogue install runs here, behind one pinned
+    # conda environment.
     runs-on: ubuntu-24.04
     timeout-minutes: 45
     defaults:
@@ -315,77 +270,43 @@ jobs:
           python -m pip install -r ruckus/scripts/pip_requirements.txt
 
       - name: Verify pinned Rogue
-        # Fail before any suite runs if the conda environment did not activate.
-        # Without this a missing Rogue would silently downgrade every suite
-        # below into a skip, which is exactly what this job exists to prevent.
+        # Fail early if the conda environment did not activate; a missing
+        # Rogue would turn every suite below into a silent skip.
         run: |
           python -c "import rogue, pyrogue; print(rogue.Version.current())"
 
       - name: Verify Icarus and Verilator
-        # Fail before any suite runs if either simulator is missing or below
-        # the SimLink test floor. The Icarus and Verilator suites skip when
-        # their tools are absent, so without this step a broken install
-        # would pass the SimLink step as silent skips.
+        # Fail early on a missing or too-old simulator; the Icarus and
+        # Verilator Rogue contracts would otherwise pass as silent skips.
         run: |
           iverilog -V
           verilator --version
           python -c "import sys, tests.simlink.iverilog.iverilog_test_utils as iu, tests.simlink.verilator.verilator_test_utils as vu; sys.exit(None if iu.tools_available() and vu.tools_available() else iu.SKIP_REASON + '; ' + vu.SKIP_REASON)"
 
       - name: Import HDL sources
-        # Required by the SimLink contract, which builds from build/SRC_VHDL.
-        # Inert for the pure-PyRogue suites.
+        # The SimLink contracts build from build/SRC_VHDL.
         run: |
           make MODULES="$PWD" import
 
-      - name: SimLink Rogue contract
+      - name: Rogue Tests
+        # SIMLINK_ROGUE_PYTHON points the SimLink contracts at the conda Rogue.
+        # PYTHONPATH makes the PyRogue suites exercise the in-repo python/surf
+        # model rather than an installed surf. Use one worker per logical CPU,
+        # capped at 8 like the simlink RTL leg: -n auto counts physical cores
+        # (2 on the 4-vCPU hosted runner).
         run: |
-          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
-            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueTcpMemoryRogue.py
-
-      - name: SimLink Rogue contract (Icarus)
-        run: |
-          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
-            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueIverilogRogue.py
-
-      - name: SimLink Rogue contract (Verilator)
-        run: |
-          SIMLINK_ROGUE_PYTHON="$(command -v python)" \
-            python -m pytest -q -n 0 tests/simlink/rogue/test_RogueVerilatorRogue.py
-
-      - name: ADC DDR Rogue tests
-        # PYTHONPATH exposes the in-repo python/surf package: these tests
-        # deliberately exercise the checked-in PyRogue model, not an installed
-        # surf. Keep it scoped to this step.
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/devices/analog_devices/test_AdcDdrCalibration.py \
-            tests/devices/analog_devices/test_AdcDdrModel.py
-
-      - name: DDR4 SPD and sensor Rogue tests
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/devices/micron/test_DdrSpd.py \
-            tests/devices/micron/test_Tse2004av.py
-
-      - name: Si570 Rogue tests
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/devices/silabs/test_Si570.py
-
-      - name: AxiLiteMasterProxy Rogue tests
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/axi/axi_lite/test_AxiLiteMasterProxyRogue.py
-
-      - name: QSFP Rogue tests
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/devices/transceivers/test_QsfpRogue.py
-
-      - name: Eye scan Rogue tests
-        run: |
-          PYTHONPATH="$PWD/python" python -m pytest -q -n 0 \
-            tests/xilinx/eyescan
+          workers="$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')"
+          SIMLINK_ROGUE_PYTHON="$(command -v python)" PYTHONPATH="$PWD/python" \
+            python -m pytest --cov -v -n "${workers}" --dist=worksteal \
+              tests/simlink/rogue \
+              tests/devices/analog_devices/test_AdcDdrCalibration.py \
+              tests/devices/analog_devices/test_AdcDdrModel.py \
+              tests/devices/micron/test_DdrSpd.py \
+              tests/devices/micron/test_Tse2004av.py \
+              tests/devices/silabs/test_Si570.py \
+              tests/axi/axi_lite/test_AxiLiteMasterProxyRogue.py \
+              tests/devices/transceivers/test_QsfpRogue.py \
+              tests/xilinx/eyescan
 
 # ----------------------------------------------------------------------------
 
