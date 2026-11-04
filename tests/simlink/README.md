@@ -56,8 +56,8 @@ driver without adding another simulator-specific layer. Icarus and Verilator sha
 `RogueSvRogueTb`) orchestrated by `common/sv_traffic_scenario.py`,
 `common/sv_multi_scenario.py`, `common/sv_relaunch_scenario.py` and
 `rogue/sv_rogue_scenario.py`; cocotb is not used there because cocotb 2.x
-needs Verilator 5.036 or newer while the CI floor is the ubuntu-24.04 apt
-Verilator 5.020, so each top checks its side in HDL, and the relaunch and
+needs Verilator 5.036 or newer while the CI floor is the ubuntu-26.04 apt
+Verilator 5.032, so each top checks its side in HDL, and the relaunch and
 real-Rogue tops finish only after the software side's result file exists,
 because the transport discards queued frames at simulator exit.
 
