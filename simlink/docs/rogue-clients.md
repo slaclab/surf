@@ -22,7 +22,7 @@ members of the pair. Use `127.0.0.1`; the simulator binds only to loopback.
 
 ## Install and verify Rogue
 
-The checked SURF contract uses the environment pinned in the repository-root
+The checked SURF contract uses the environment defined in the repository-root
 `conda-rogue.yml`:
 
 ```bash
@@ -31,9 +31,10 @@ conda activate surf-rogue-test
 python -c 'import rogue, pyrogue; print(rogue.Version.current())'
 ```
 
-That file currently pins `rogue=v6.15.0`. A site's standard Rogue environment
-is also suitable when it exposes the same interfaces. Do not use the pyzmq-only
-SURF regression environment as evidence that Rogue itself is installed.
+That file installs the latest conda-forge `slac-rogue` release. A site's
+standard Rogue environment is also suitable when it exposes the same
+interfaces. Do not use the pyzmq-only SURF regression environment as evidence
+that Rogue itself is installed.
 
 ## Memory client
 

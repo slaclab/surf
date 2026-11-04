@@ -98,7 +98,7 @@ RogueTcpMemory: Listening on ports N & N+1
 
 ## 4. Run the real Rogue/PyRogue contract
 
-The ordinary SURF test environment does not require Rogue. Create the pinned
+The ordinary SURF test environment does not require Rogue. Create the
 Rogue environment separately so its package constraints do not alter the test
 runner:
 
