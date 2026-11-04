@@ -41,10 +41,11 @@ import sys
 import threading
 import time
 
-import numpy as np
 import pytest
 
 pr = pytest.importorskip('pyrogue', reason='Eye-scan tests require Rogue/PyRogue')
+
+import numpy as np  # noqa: E402
 rogue = pytest.importorskip('rogue', reason='Eye-scan tests require Rogue/PyRogue')
 
 import surf.protocols.pgp as pgp  # noqa: E402
