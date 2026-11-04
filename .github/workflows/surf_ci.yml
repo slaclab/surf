@@ -232,8 +232,8 @@ jobs:
 
   rogue_test:
     name: Rogue Regression Tests
-    # Every suite that needs a real Rogue install runs here, against the latest
-    # conda-forge slac-rogue release.
+    # Every suite that needs a real Rogue install runs here, against the
+    # conda-forge slac-rogue release pinned in conda-rogue.yml.
     runs-on: ubuntu-26.04
     timeout-minutes: 45
     defaults:
@@ -287,6 +287,20 @@ jobs:
         run: |
           make MODULES="$PWD" import
 
+      - name: Determine run mode
+        # Same policy as the RTL matrix. The Rogue suite always runs in full;
+        # the mode only decides whether coverage is collected and uploaded.
+        id: mode
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/main" ]] \
+             || [[ "${{ github.ref }}" == "refs/heads/pre-release" ]] \
+             || [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "value=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=selective" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Rogue Tests
         # SIMLINK_ROGUE_PYTHON points the SimLink contracts at the conda Rogue.
         # PYTHONPATH makes the PyRogue suites exercise the in-repo python/surf
@@ -294,9 +308,15 @@ jobs:
         # capped at 8 like the simlink RTL leg: -n auto counts physical cores
         # (2 on the 4-vCPU hosted runner).
         run: |
+          # Full runs collect the coverage uploaded to Codecov.
+          cov=()
+          if [[ "${{ steps.mode.outputs.value }}" == "full" ]]; then
+            cov=(--cov)
+          fi
+
           workers="$(python -c 'import os; print(min(os.cpu_count() or 1, 8))')"
           SIMLINK_ROGUE_PYTHON="$(command -v python)" PYTHONPATH="$PWD/python" \
-            python -m pytest --cov -v -n "${workers}" --dist=worksteal \
+            python -m pytest "${cov[@]}" -v -n "${workers}" --dist=worksteal \
               tests/simlink/rogue \
               tests/devices/analog_devices/test_AdcDdrCalibration.py \
               tests/devices/analog_devices/test_AdcDdrModel.py \
@@ -306,6 +326,12 @@ jobs:
               tests/axi/axi_lite/test_AxiLiteMasterProxyRogue.py \
               tests/devices/transceivers/test_QsfpRogue.py \
               tests/xilinx/eyescan
+
+      - name: Code Coverage
+        if: steps.mode.outputs.value == 'full'
+        run: |
+          codecov
+          coverage report -m
 
 # ----------------------------------------------------------------------------
 

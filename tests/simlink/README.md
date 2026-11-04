@@ -196,8 +196,8 @@ SIMLINK_ROGUE_PYTHON=/path/to/rogue/bin/python \
 These also build and run through ruckus, as described above.
 
 The test skips when Rogue is unavailable. The required Linux CI contract uses
-the repository-root `conda-rogue.yml` and pins Rogue `v6.15.0` for
-reproducibility.
+the repository-root `conda-rogue.yml`, which pins conda-forge
+`slac-rogue=6.16.0` on `python=3.12` for reproducibility.
 
 To reproduce that package environment on Linux before running the command
 above:

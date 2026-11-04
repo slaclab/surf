@@ -31,10 +31,10 @@ conda activate surf-rogue-test
 python -c 'import rogue, pyrogue; print(rogue.Version.current())'
 ```
 
-That file installs the latest conda-forge `slac-rogue` release. A site's
-standard Rogue environment is also suitable when it exposes the same
-interfaces. Do not use the pyzmq-only SURF regression environment as evidence
-that Rogue itself is installed.
+That file pins conda-forge `slac-rogue=6.16.0` on `python=3.12`, the
+environment the required CI job runs. A site's standard Rogue environment is
+also suitable when it exposes the same interfaces. Do not use the pyzmq-only
+SURF regression environment as evidence that Rogue itself is installed.
 
 ## Memory client
 

@@ -12,5 +12,6 @@ name: surf-rogue-test
 channels:
   - conda-forge
 dependencies:
+  - python=3.12
   - pip
-  - slac-rogue
+  - slac-rogue=6.16.0
