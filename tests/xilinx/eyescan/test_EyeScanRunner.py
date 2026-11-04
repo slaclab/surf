@@ -14,7 +14,7 @@
 #   adapter (Pgp4EyeScanLink): the argument set and its defaults, the checks
 #   made before the hardware is touched, Status, Probe and Bathtub runs, the
 #   loopback write and restore, lanes behind separate memory trees, the
-#   Ctrl-C stop and the exit code.
+#   parallel scan of several lanes, the Ctrl-C stop and the exit code.
 # - Stimulus: real Rogue transactions against makeLaneRoot (a Pgp4AxiL lane
 #   and its Gthe3Channel behind LaneMemory, the RX reset hook on ResetRx and
 #   PhyRxActive), a temporary output directory per test and a real SIGINT
@@ -24,16 +24,23 @@
 #   save their files and print the cross-lane table; the raw words line
 #   covers the GT words and the PGP4 Ctrl word; a requested loopback is
 #   written and the previous value restored; LineRateGbps is set only on
-#   request; extraMeta reaches the saved metadata; a Ctrl-C aborts the running
-#   lane, skips the rest, returns 2 and restores the previous SIGINT handler.
+#   request; extraMeta reaches the saved metadata; a parallel run overlaps
+#   its lanes, saves the same results as a sequential one, prints the lines of
+#   each lane in lane order and keeps scanning when one lane raises; a Ctrl-C
+#   aborts the running lane of a sequential run and skips the rest, aborts
+#   every lane of a parallel run, returns 2 and restores the previous SIGINT
+#   handler and sys.stdout.
 # - Timing: countReads=1, a zero settle and a reduced floor and grid keep
 #   each run to a few seconds.
 
 import argparse
 import os
 import signal
+import sys
 import threading
+import time
 
+import numpy as np
 import pytest
 
 pr = pytest.importorskip('pyrogue', reason='Eye-scan tests require Rogue/PyRogue')
@@ -214,9 +221,9 @@ def test_a_requested_loopback_is_written_and_restored(lanes, tmp_path):
     seen = []
     measure = es._EyeScanRunner.measureLane
 
-    def spy(gt, args, control):
+    def spy(gt, args, control, **kw):
         seen.append(int(lane.Ctrl.Loopback.get()))
-        return measure(gt, args, control)
+        return measure(gt, args, control, **kw)
 
     es._EyeScanRunner.measureLane = spy
     try:
@@ -247,15 +254,18 @@ def test_connect_rx_reset_registers_the_pgp4_hook(lanes):
 
 
 @pytest.mark.skipif(threading.current_thread() is not threading.main_thread(), reason='SIGINT needs the main thread')
-def test_ctrl_c_aborts_the_running_lane_skips_the_rest_and_returns_2(lanes, tmp_path, capsys):
+def test_ctrl_c_aborts_the_running_lane_of_a_sequential_run_skips_the_rest_and_returns_2(lanes, tmp_path, capsys):
     # Every run of the first lane stays in COUNT until RUN is cleared
     gt0, lane0, model0, _ = lanes(slowFrom=0, slowReads=10**9)
     gt1, lane1, _, _ = lanes()
+    # The first surf version lookup runs git, which can outlast the timer before the handler is installed
+    es.surfVersion()
     handler = signal.getsignal(signal.SIGINT)
     timer = threading.Timer(1.0, os.kill, (os.getpid(), signal.SIGINT))
     timer.start()
     try:
-        code, plan = run(['--numLane', '2', *BATHTUB], [target(gt0, lane0, 0), target(gt1, lane1, 1)], tmp_path)
+        code, plan = run(['--numLane', '2', '--parallel', 'false', *BATHTUB],
+                         [target(gt0, lane0, 0), target(gt1, lane1, 1)], tmp_path)
     finally:
         timer.cancel()
     assert code == 2
@@ -265,3 +275,108 @@ def test_ctrl_c_aborts_the_running_lane_skips_the_rest_and_returns_2(lanes, tmp_
     assert 'Lane[1] bathtub' not in out
     rows = [line.split() for line in out.splitlines() if line.startswith('0 ')]
     assert rows and rows[-1][:3] == ['0', 'Bathtub', 'ABORTED']
+
+
+def npzArrays(folder):
+    out = {}
+    for name in sorted(os.listdir(folder)):
+        if name.endswith('.npz'):
+            arrays, meta = es.loadResult(os.path.join(folder, name))
+            out[meta['application']['lane']] = arrays
+    return out
+
+
+def test_a_parallel_run_overlaps_its_lanes_and_prints_them_in_lane_order(lanes, tmp_path, capsys):
+    made = [lanes(seed=seed) for seed in (1, 2, 3)]
+    spans = {}
+    measure = es._EyeScanRunner.measureLane
+
+    def spy(gt, args, control, **kw):
+        assert kw == {'progressBar': False}
+        start = time.monotonic()
+        try:
+            return measure(gt, args, control, **kw)
+        finally:
+            spans[gt] = (start, time.monotonic())
+
+    es._EyeScanRunner.measureLane = spy
+    try:
+        code, plan = run(['--numLane', '3', *BATHTUB], [target(gt, lane, n) for n, (gt, lane, _, _) in enumerate(made)], tmp_path)
+    finally:
+        es._EyeScanRunner.measureLane = measure
+    assert code == 0
+    assert not isinstance(sys.stdout, es._EyeScanRunner._LaneOutput)
+    # Every lane started before any lane ended
+    assert max(start for start, _ in spans.values()) < min(end for _, end in spans.values())
+    out = capsys.readouterr().out
+    first = [out.index(f'Lane[{n}] ') for n in range(3)]
+    last = [out.rindex(f'Lane[{n}] ') for n in range(3)]
+    assert last[0] < first[1] and last[1] < first[2]
+    assert out.index('Lane[2] ') < out.index('Summary (')
+    rows = [line.split() for line in out.splitlines() if line[:2] in ('0 ', '1 ', '2 ')]
+    assert [row[:3] for row in rows] == [[str(n), 'Bathtub', 'OK'] for n in range(3)]
+
+
+def test_a_parallel_run_saves_the_results_of_a_sequential_run(lanes, tmp_path):
+    folders = {}
+    for parallel in ('true', 'false'):
+        made = [lanes(seed=seed) for seed in (1, 2)]
+        out = tmp_path / parallel
+        code, plan = run(['--numLane', '2', '--parallel', parallel, *BATHTUB],
+                         [target(gt, lane, n) for n, (gt, lane, _, _) in enumerate(made)], out)
+        assert code == 0
+        folders[parallel] = npzArrays(plan.folder)
+    assert sorted(folders['true']) == sorted(folders['false']) == [0, 1]
+    for lane in (0, 1):
+        par, seq = folders['true'][lane], folders['false'][lane]
+        assert sorted(par) == sorted(seq)
+        for key in par:
+            assert np.array_equal(par[key], seq[key], equal_nan=par[key].dtype.kind == 'f'), (lane, key)
+
+
+def test_a_lane_that_raises_ends_error_and_the_other_lanes_finish(lanes, tmp_path, capsys):
+    gt0, lane0, _, _ = lanes()
+    gt1, lane1, _, _ = lanes(seed=2)
+    measure = es._EyeScanRunner.measureLane
+
+    def spy(gt, args, control, **kw):
+        if gt is gt0:
+            raise RuntimeError('emulated lane failure')
+        return measure(gt, args, control, **kw)
+
+    es._EyeScanRunner.measureLane = spy
+    try:
+        code, plan = run(['--numLane', '2', *BATHTUB], [target(gt0, lane0, 0), target(gt1, lane1, 1)], tmp_path)
+    finally:
+        es._EyeScanRunner.measureLane = measure
+    assert code == 2
+    out = capsys.readouterr().out
+    assert 'Lane[0] ERROR RuntimeError: emulated lane failure' in out
+    assert 'Lane[1] bathtub status=OK' in out
+    rows = [line.split() for line in out.splitlines() if line[:2] in ('0 ', '1 ')]
+    assert [row[:3] for row in rows] == [['0', 'Bathtub', 'ERROR'], ['1', 'Bathtub', 'OK']]
+
+
+@pytest.mark.skipif(threading.current_thread() is not threading.main_thread(), reason='SIGINT needs the main thread')
+def test_ctrl_c_aborts_every_lane_of_a_parallel_run_and_returns_2(lanes, tmp_path, capsys):
+    # Every run of both lanes stays in COUNT until RUN is cleared
+    made = [lanes(slowFrom=0, slowReads=10**9, seed=seed) for seed in (1, 2)]
+    # The first surf version lookup runs git, which can outlast the timer before the handler is installed
+    es.surfVersion()
+    handler = signal.getsignal(signal.SIGINT)
+    stdout = sys.stdout
+    timer = threading.Timer(1.0, os.kill, (os.getpid(), signal.SIGINT))
+    timer.start()
+    try:
+        code, plan = run(['--numLane', '2', *BATHTUB], [target(gt, lane, n) for n, (gt, lane, _, _) in enumerate(made)], tmp_path)
+    finally:
+        timer.cancel()
+    assert code == 2
+    assert signal.getsignal(signal.SIGINT) is handler
+    assert sys.stdout is stdout
+    out = capsys.readouterr().out
+    assert out.count('Stop requested: restoring the registers') == 1
+    rows = [line.split() for line in out.splitlines() if line[:2] in ('0 ', '1 ')]
+    assert [row[:3] for row in rows] == [['0', 'Bathtub', 'ABORTED'], ['1', 'Bathtub', 'ABORTED']]
+    # Both partial results are saved
+    assert sorted(npzArrays(plan.folder)) == [0, 1]

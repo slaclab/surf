@@ -7,7 +7,9 @@
 # Status, Probe, Bathtub, Eye and Margin runs, the text summaries, the result
 # files and the Ctrl-C handling. The application builds its own root and hands
 # the runner one EyeScanLane per lane (the GT channel and an optional link
-# adapter); nothing here knows the device tree of an application.
+# adapter); nothing here knows the device tree of an application. Bathtub, Eye
+# and Margin scan every selected lane at the same time by default, one worker
+# thread per lane under one combined progress bar.
 #-----------------------------------------------------------------------------
 # This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
@@ -21,14 +23,18 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import dataclasses
 import datetime
+import io
 import json
 import math
 import os
 import re
+import shutil
 import signal
 import socket
+import sys
 import threading
 from typing import Any, Iterable, Mapping
 
@@ -71,6 +77,20 @@ ENABLE_BITS = 0x0300
 
 # Status values that end a lane without failing the run
 GOOD_STATUS = ('OK', 'CLOSED')
+
+# Modes that can scan their lanes in parallel
+SCAN_MODES = ('Bathtub', 'Eye', 'Margin')
+
+# Steps of the combined progress bar of a parallel run and its redraw period in seconds
+PARALLEL_BAR_STEPS = 1000
+PARALLEL_POLL      = 0.25
+
+# Columns of the parallel bar line kept for the label padding, the bar, the percent and the ETA
+PARALLEL_BAR_RESERVED = 34
+
+# Serializes the result saves of parallel lanes: the free file name of a save is found by a check then a create,
+# so two lanes with the same device path saving in the same second would race for it
+_SAVE_LOCK = threading.Lock()
 
 # Allowed characters of the file name tag
 TAG_PATTERN = re.compile(r'[A-Za-z0-9_.-]{0,40}')
@@ -401,6 +421,14 @@ def addEyeScanArguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPar
         help     = "do not render the PNG plots (Bathtub, Eye and Margin)",
     )
 
+    parser.add_argument(
+        "--parallel",
+        type     = argBool,
+        required = False,
+        default  = True,
+        help     = "Bathtub, Eye and Margin: scan every selected lane at the same time under one combined progress bar and print the per-lane lines once every lane ended; false scans one lane at a time with a bar per lane. Status and Probe always run one lane at a time",
+    )
+
     return parser
 
 # Set the BER floor default of the mode: 1e-9 for Bathtub, the 1e-6 eye floor for Eye and Margin
@@ -666,7 +694,7 @@ def runProbeLane(target, reader, args, meta, state):
     gt      = target.gt
     lane    = meta['lane']
     control = ScanControl()
-    state.control = control
+    state.add(control)
     try:
         beginLane(target, reader, meta)
         rows  = []
@@ -746,17 +774,17 @@ def runProbeLane(target, reader, args, meta, state):
         meta['activation'] = rows
         return rows
     finally:
-        state.control = None
+        state.discard(control)
 
-# Run the engine call of the mode on one lane
-def measureLane(gt, args, control):
+# Run the engine call of the mode on one lane; progressBar False leaves the progress to the callback of control
+def measureLane(gt, args, control, progressBar=True):
     common = dict(
         confidence    = args.confidence,
         equalizer     = args.equalizer,
         resetPolicy   = ResetPolicy(args.resetPolicy),
         fixedPrescale = args.prescale,
         control       = control,
-        progressBar   = True,
+        progressBar   = progressBar,
     )
     grid = dict(
         horzStep  = args.horzStep,
@@ -770,15 +798,16 @@ def measureLane(gt, args, control):
         return gt.EyeScan.runEye(floor = args.berFloor, **grid, **common)
     return gt.EyeScan.runMargin(floor = args.berFloor, bathtubFloor = args.bathtubFloor, targetBer = args.targetBer, **grid, **common)
 
-# Scan one lane in Bathtub, Eye or Margin mode, save the result in finally and print its summary; returns (outcome, saved)
-def runScanLane(target, reader, args, meta, folder, state):
+# Scan one lane in Bathtub, Eye or Margin mode, save the result in finally and print its summary; returns (outcome, saved).
+# With onProgress the lane draws no bar of its own and reports its progress as onProgress(done, total)
+def runScanLane(target, reader, args, meta, folder, state, onProgress=None):
     gt       = target.gt
     lane     = meta['lane']
-    control  = ScanControl()
+    control  = ScanControl(onProgress = onProgress)
     previous = None
     outcome  = None
     saved    = None
-    state.control = control
+    state.add(control)
     try:
         beginLane(target, reader, meta)
         soft = runSoftCold(gt, args, meta, control)
@@ -791,7 +820,7 @@ def runScanLane(target, reader, args, meta, folder, state):
                 previous = int(target.link.getLoopback())
                 meta['loopback'] = {'requested': args.loopback, 'previous': previous}
                 target.link.setLoopback(args.loopback)
-            outcome = measureLane(gt, args, control)
+            outcome = measureLane(gt, args, control, progressBar = onProgress is None)
     finally:
         try:
             if previous is not None:
@@ -803,15 +832,16 @@ def runScanLane(target, reader, args, meta, folder, state):
                 # The result is saved before anything is printed and while a Ctrl-C only requests a stop
                 try:
                     if isinstance(outcome, (BathtubResult, EyeResult, MarginResult)):
-                        saved = gt.EyeScan.save(
-                            outcome,
-                            outDir      = folder,
-                            png         = (not args.noPng) and outcome.status is not ScanStatus.ABORTED,
-                            extraMeta   = meta,
-                            surfVersion = meta['surfVersion'],
-                        )
+                        with _SAVE_LOCK:
+                            saved = gt.EyeScan.save(
+                                outcome,
+                                outDir      = folder,
+                                png         = (not args.noPng) and outcome.status is not ScanStatus.ABORTED,
+                                extraMeta   = meta,
+                                surfVersion = meta['surfVersion'],
+                            )
                 finally:
-                    state.control = None
+                    state.discard(control)
     printSaved(lane, saved)
     if isinstance(outcome, BathtubResult):
         printBathtubSummary(lane, outcome)
@@ -1126,12 +1156,23 @@ def outcomeStatuses(outcome):
 
 #################################################################
 
-# Scan control of the lane being run and the stop request of the run, so Ctrl-C can end the run at any moment
+# Scan controls of the lanes being run and the stop request of the run, so Ctrl-C can end the run at any moment
 class _RunState:
 
     def __init__(self):
-        self.control = None
-        self.stop    = False
+        self.controls = set()
+        self.stop     = False
+        self._lock    = threading.Lock()
+
+    # Register the control of a lane that starts, so a Ctrl-C can abort it
+    def add(self, control):
+        with self._lock:
+            self.controls.add(control)
+
+    # Drop the control of a lane that ended
+    def discard(self, control):
+        with self._lock:
+            self.controls.discard(control)
 
     # True when a stop was requested or a lane ended ABORTED, so the run ends after the lane
     def stopAfterLane(self, statuses):
@@ -1142,9 +1183,11 @@ class _RunState:
         if self.stop:
             raise KeyboardInterrupt
         self.stop = True
-        control = self.control
-        if control is not None and not control.aborted:
+        with self._lock:
+            live = [control for control in self.controls if not control.aborted]
+        for control in live:
             control.abort()
+        if live:
             print('Stop requested: restoring the registers (Ctrl-C again to force)')
         else:
             print('Stop requested: the run ends after this lane (Ctrl-C again to force)')
@@ -1162,21 +1205,133 @@ def selectTargets(plan, targets):
     return [byLane[lane] for lane in plan.lanes]
 
 
+# Set up one lane and run the mode on it; returns (outcome, saved). onProgress goes to runScanLane
+def runLane(target, args, info, surfText, extraMeta, folder, state, onProgress=None):
+    gt     = target.gt
+    lane   = target.lane
+    reader = RawWordReader(gt)
+    meta   = laneMeta(args, lane, info, surfText, datetime.datetime.now().astimezone(), extraMeta)
+    if args.noResetHook:
+        gt.EyeScan.clearRxReset()
+    if args.mode == 'Probe':
+        outcome = runProbeLane(target, reader, args, meta, state)
+        saved   = saveProbeLane(folder, args, meta, outcome)
+        printSaved(lane, saved)
+        return outcome, saved
+    return runScanLane(target, reader, args, meta, folder, state, onProgress)
+
+# sys.stdout while lanes scan in parallel: what a lane thread prints goes to the buffer of that lane, every other
+# thread (the bar, the Ctrl-C handler) writes through
+class _LaneOutput:
+
+    def __init__(self, stream):
+        self._stream = stream
+        self._local  = threading.local()
+
+    @contextlib.contextmanager
+    def capture(self):
+        buffer = io.StringIO()
+        self._local.buffer = buffer
+        try:
+            yield buffer
+        finally:
+            self._local.buffer = None
+
+    def _target(self):
+        buffer = getattr(self._local, 'buffer', None)
+        return self._stream if buffer is None else buffer
+
+    def write(self, text):
+        return self._target().write(text)
+
+    def flush(self):
+        self._target().flush()
+
+    def __getattr__(self, name):
+        return getattr(self._stream, name)
+
+# Scan every target at the same time, one daemon thread per lane, under one combined progress bar.
+# Returns {lane: (outcome, saved, text)} with the lines each lane printed; a lane that raises ends ERROR
+# and never stops the others
+def runParallelLanes(targets, args, folder, state, info, surfText, extraMeta):
+    lanes     = [target.lane for target in targets]
+    fractions = dict.fromkeys(lanes, 0.0)
+    results   = {}
+    output    = _LaneOutput(sys.stdout)
+
+    def work(target):
+        lane = target.lane
+
+        def onProgress(done, total):
+            if total > 0:
+                fractions[lane] = min(1.0, done / total)
+
+        with output.capture() as buffer:
+            outcome, saved = None, None
+            try:
+                outcome, saved = runLane(target, args, info, surfText, extraMeta, folder, state, onProgress)
+            except Exception as exc:
+                print(f'Lane[{lane}] ERROR {type(exc).__name__}: {exc}')
+                outcome = {'status': ScanStatus.ERROR.value, 'message': f'{type(exc).__name__}: {exc}'}
+        fractions[lane] = 1.0
+        results[lane]   = (outcome, saved, buffer.getvalue())
+
+    label = f'{args.mode} {len(lanes)} lanes:'
+
+    def laneText():
+        text = ' '.join(f'{lane}:' + ('done' if lane in results else f'{fractions[lane] * 100:.0f}%') for lane in lanes)
+        # Trimmed so the line never wraps, a wrapped line would leave a copy behind on every redraw
+        return text[:max(0, shutil.get_terminal_size().columns - len(label) - PARALLEL_BAR_RESERVED)]
+
+    threads = [threading.Thread(target=work, args=(target,), name=f'EyeScanLane{target.lane}', daemon=True) for target in targets]
+    sys.stdout = output
+    try:
+        with click.progressbar(
+                length           = PARALLEL_BAR_STEPS,
+                label            = click.style(label, fg='green'),
+                width            = 0,
+                show_eta         = True,
+                show_percent     = True,
+                update_min_steps = 0,
+                item_show_func   = lambda text: text) as bar:
+            for thread in threads:
+                thread.start()
+            while True:
+                alive  = [thread for thread in threads if thread.is_alive()]
+                target = int(PARALLEL_BAR_STEPS * sum(fractions.values()) / len(lanes))
+                bar.update(max(0, target - bar.pos), laneText())
+                if not alive:
+                    break
+                alive[0].join(PARALLEL_POLL)
+    finally:
+        sys.stdout = output._stream
+    return results
+
+
 def runEyeScan(
         args: argparse.Namespace,
         plan: EyeScanPlan,
         targets: Iterable[EyeScanLane],
         version: Any = None,
         extraMeta: Mapping | None = None) -> int:
-    """Run the selected mode on every lane of the plan, one lane at a time.
+    """Run the selected mode on every lane of the plan.
 
     Call it with the root started, after ``prepareEyeScan``. A Bathtub, Eye or
     Margin run is refused with reads only before any lane is written; a refused
-    run removes the empty run folder. A Ctrl-C aborts the running scan, which
-    restores its registers and saves its partial result; the run then ends and
-    the table of the finished lanes is printed. A second Ctrl-C raises
-    ``KeyboardInterrupt``. The handler is only installed from the main thread
-    and the previous handler is restored at the end.
+    run removes the empty run folder.
+
+    With ``args.parallel`` (the default) and more than one lane, Bathtub, Eye
+    and Margin scan every lane at the same time, one thread per lane, under one
+    combined progress bar; the lines of each lane print in lane order once
+    every lane ended, and a lane that raises ends ``ERROR`` without stopping
+    the others. Otherwise, and always in Status and Probe, the lanes run one at
+    a time.
+
+    A Ctrl-C aborts every running scan, which restores its registers and saves
+    its partial result; the run then ends and the table of the finished lanes
+    is printed. A second Ctrl-C raises ``KeyboardInterrupt``. The handler is
+    only installed from the main thread and the previous handler is restored at
+    the end.
 
     Parameters
     ----------
@@ -1241,30 +1396,26 @@ def runEyeScan(
     if install:
         handler = signal.signal(signal.SIGINT, state.onSigint)
 
-    # Lanes run one at a time; the table of the lanes that finished prints even after an abort
-    rows = []
+    # Parallel lanes all start at once; otherwise lanes run one at a time. The table of the lanes that finished
+    # prints even after an abort
+    parallel = args.parallel and args.mode in SCAN_MODES and len(targets) > 1
+    rows     = []
     try:
+        results = runParallelLanes(targets, args, folder, state, info, surfText, extraMeta) if parallel else None
         for target in targets:
-            gt     = target.gt
-            lane   = target.lane
-            reader = RawWordReader(gt)
-            meta   = laneMeta(args, lane, info, surfText, datetime.datetime.now().astimezone(), extraMeta)
-            if args.noResetHook:
-                gt.EyeScan.clearRxReset()
-
-            if args.mode == 'Probe':
-                outcome = runProbeLane(target, reader, args, meta, state)
-                saved   = saveProbeLane(folder, args, meta, outcome)
-                printSaved(lane, saved)
+            lane = target.lane
+            if parallel:
+                outcome, saved, text = results[lane]
+                sys.stdout.write(text)
             else:
-                outcome, saved = runScanLane(target, reader, args, meta, folder, state)
+                outcome, saved = runLane(target, args, info, surfText, extraMeta, folder, state)
 
             rows.append(summaryRow(lane, args.mode, outcome, saved))
             statuses = outcomeStatuses(outcome)
             failed   = failed or (saved is not None and bool(saved.errors)) or any(status not in GOOD_STATUS for status in statuses)
 
-            # A stop request ends the run, the lane above already restored its registers
-            if state.stopAfterLane(statuses):
+            # A stop request ends a sequential run, the lane above already restored its registers
+            if not parallel and state.stopAfterLane(statuses):
                 # A stop before the last requested lane means lanes were skipped
                 failed = failed or target is not targets[-1]
                 break
