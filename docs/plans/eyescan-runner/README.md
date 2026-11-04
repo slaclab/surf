@@ -44,7 +44,13 @@ short script that builds its root and names its lanes. Usage is in
   arguments and lane lists before the root is built, and `runEyeScan` refuses
   missing or unfit lanes with reads only and removes the empty run folder.
 - The SIGINT handler is installed only from the main thread and the previous
-  handler is restored when the run ends.
+  handler is restored when the run ends. The handler only sets the stop flag
+  of the run: it takes no lock (it runs on the main thread between two of its
+  bytecodes, so a lock held by that thread would never be released) and keeps
+  no registry of live controls. Every lane control reads the flag through
+  `ScanControl(isAborted=...)`, so a lane that starts after the Ctrl-C ends
+  `ABORTED` before its soft re-cold, loopback or scan writes anything, and a
+  stop request always returns 2 (review of PR #1519).
 
 ## Files
 
@@ -56,7 +62,7 @@ short script that builds its root and names its lanes. Usage is in
 ## Validation
 
 - `PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/xilinx/eyescan`:
-  1285 passed (1257 before, 28 new; Rogue v6.16.0).
+  1292 passed (1257 before, 35 new; Rogue v6.16.0).
 - `flake8 --count python/ scripts/ tests/`: 0.
 
 ## Next steps

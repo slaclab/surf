@@ -29,7 +29,8 @@
 #   each lane in lane order and keeps scanning when one lane raises; a Ctrl-C
 #   aborts the running lane of a sequential run and skips the rest, aborts
 #   every lane of a parallel run, returns 2 and restores the previous SIGINT
-#   handler and sys.stdout.
+#   handler and sys.stdout; a lane that starts after the Ctrl-C ends ABORTED
+#   without a write; the handler only records the stop.
 # - Timing: countReads=1, a zero settle and a reduced floor and grid keep
 #   each run to a few seconds.
 
@@ -380,3 +381,77 @@ def test_ctrl_c_aborts_every_lane_of_a_parallel_run_and_returns_2(lanes, tmp_pat
     assert [row[:3] for row in rows] == [['0', 'Bathtub', 'ABORTED'], ['1', 'Bathtub', 'ABORTED']]
     # Both partial results are saved
     assert sorted(npzArrays(plan.folder)) == [0, 1]
+
+
+@pytest.mark.skipif(threading.current_thread() is not threading.main_thread(), reason='SIGINT needs the main thread')
+def test_a_lane_that_starts_after_the_ctrl_c_ends_aborted_without_a_write(lanes, tmp_path, capsys):
+    # Lane 0 stays in COUNT until RUN is cleared; lane 1 is held before its control exists until after the Ctrl-C
+    gt0, lane0, _, _ = lanes(slowFrom=0, slowReads=10**9)
+    gt1, lane1, model1, mem1 = lanes(seed=2)
+    es.surfVersion()
+    release  = threading.Event()
+    laneMeta = es._EyeScanRunner.laneMeta
+
+    def held(args, lane, *rest):
+        if lane == 1:
+            release.wait(10.0)
+        return laneMeta(args, lane, *rest)
+
+    def interrupt():
+        time.sleep(1.0)
+        os.kill(os.getpid(), signal.SIGINT)
+        time.sleep(1.0)
+        release.set()
+
+    thread = threading.Thread(target=interrupt)
+    before = writes(model1, mem1)
+    es._EyeScanRunner.laneMeta = held
+    thread.start()
+    try:
+        code, plan = run(['--numLane', '2', *BATHTUB], [target(gt0, lane0, 0), target(gt1, lane1, 1)], tmp_path)
+    finally:
+        release.set()
+        thread.join()
+        es._EyeScanRunner.laneMeta = laneMeta
+    assert code == 2
+    assert writes(model1, mem1) == before
+    out = capsys.readouterr().out
+    assert out.count('Stop requested: restoring the registers') == 1
+    assert 'Lane[1] stop requested before the scan started' in out
+    rows = [line.split() for line in out.splitlines() if line[:2] in ('0 ', '1 ')]
+    assert [row[:3] for row in rows] == [['0', 'Bathtub', 'ABORTED'], ['1', 'Bathtub', 'ABORTED']]
+    # Only the lane that was scanning has a partial result
+    assert sorted(npzArrays(plan.folder)) == [0]
+
+
+def test_a_stop_before_a_lane_starts_skips_its_soft_cold_loopback_and_scan(lanes, tmp_path):
+    gt, lane, model, mem = lanes()
+    lane.Ctrl.Loopback.set(0)
+    state = es._EyeScanRunner._RunState()
+    state.stop = True
+    before = writes(model, mem)
+    for argv, expected in ((BATHTUB + ['--loopback', '2', '--softCold', 'true'], {'status': 'ABORTED', 'message': 'stop requested before the scan started'}),
+                           (['--mode', 'Probe', '--repeat', '2'], [])):
+        args = parse(['--outDir', str(tmp_path / argv[1]), *argv])
+        plan = es.prepareEyeScan(args, 1)
+        outcome, saved = es._EyeScanRunner.runLane(target(gt, lane), args, None, 'v0', None, plan.folder, state)
+        assert outcome == expected
+        assert saved is None
+        assert es._EyeScanRunner.summaryRow(0, args.mode, outcome, saved)['status'] == 'ABORTED'
+        assert os.listdir(plan.folder) == []
+    assert writes(model, mem) == before
+    assert int(lane.Ctrl.Loopback.get()) == 0
+
+
+def test_the_sigint_handler_only_records_the_stop(capsys):
+    state   = es._EyeScanRunner._RunState()
+    control = state.control()
+    assert not control.aborted
+    state.onSigint(signal.SIGINT, None)
+    assert state.stop
+    assert capsys.readouterr().out == ''
+    # Every control reads the flag, whether made before or after the stop; the notice prints once from normal code
+    assert control.aborted and state.control().aborted
+    assert capsys.readouterr().out.count('Stop requested') == 1
+    with pytest.raises(KeyboardInterrupt):
+        state.onSigint(signal.SIGINT, None)

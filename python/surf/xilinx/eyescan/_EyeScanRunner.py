@@ -693,88 +693,85 @@ def runSoftCold(gt, args, meta, control):
 def runProbeLane(target, reader, args, meta, state):
     gt      = target.gt
     lane    = meta['lane']
-    control = ScanControl()
-    state.add(control)
+    control = state.control()
+    beginLane(target, reader, meta)
+    rows  = []
+    lines = []
     try:
-        beginLane(target, reader, meta)
-        rows  = []
-        lines = []
-        try:
-            with makeBar(args.repeat, f'{gt.name} Probe:') as bar:
-                for rep in range(1, args.repeat + 1):
-                    before = readRawWords(reader, target)
-                    soft   = runSoftCold(gt, args, meta, control)
-                    if soft is not None and 'status' in soft:
-                        after = readRawWords(reader, target)
-                        rows.append({
-                            'lane'       : lane,
-                            'rep'        : rep,
-                            'softCold'   : 'failed',
-                            'policy'     : args.resetPolicy,
-                            'status'     : soft['status'],
-                            'eyeScanEn'  : 0,
-                            'errDetEn'   : 0,
-                            'statusBefore': 0,
-                            'statusAfter': 0,
-                            'samples'    : 0,
-                            'reset'      : False,
-                            'sawFall'    : False,
-                            'tFall'      : None,
-                            'tReady'     : None,
-                            'elapsed'    : 0.0,
-                            'message'    : soft['message'],
-                            'rawBefore'  : before,
-                            'rawAfter'   : after,
-                        })
-                        lines.append(f'Lane[{lane}] rep={rep} soft re-cold failed: status={soft["status"]} msg={soft["message"]}')
-                        break
-                    result = gt.EyeScan.probe(resetPolicy = ResetPolicy(args.resetPolicy), control = control)
-                    after  = readRawWords(reader, target)
-                    if soft is None:
-                        softText = 'off'
-                    else:
-                        softText = 'stopped' if soft['stopped'] else 'still_active'
-                    row = {
+        with makeBar(args.repeat, f'{gt.name} Probe:') as bar:
+            for rep in range(1, args.repeat + 1):
+                # A stop ends the lane before its next repetition writes anything
+                if control.aborted:
+                    break
+                before = readRawWords(reader, target)
+                soft   = runSoftCold(gt, args, meta, control)
+                if soft is not None and 'status' in soft:
+                    after = readRawWords(reader, target)
+                    rows.append({
                         'lane'       : lane,
                         'rep'        : rep,
-                        'softCold'   : softText,
-                        'policy'     : result.policy.value,
-                        'status'     : result.status.value,
-                        'eyeScanEn'  : result.eyeScanEnReadback,
-                        'errDetEn'   : result.errDetEnReadback,
-                        'statusBefore': result.statusBefore,
-                        'statusAfter': result.statusAfter,
-                        'samples'    : result.sampleCount,
-                        'reset'      : result.resetCalled,
-                        'sawFall'    : result.sawFall,
-                        'tFall'      : result.tFall,
-                        'tReady'     : result.tReady,
-                        'elapsed'    : result.elapsed,
-                        'message'    : result.message,
+                        'softCold'   : 'failed',
+                        'policy'     : args.resetPolicy,
+                        'status'     : soft['status'],
+                        'eyeScanEn'  : 0,
+                        'errDetEn'   : 0,
+                        'statusBefore': 0,
+                        'statusAfter': 0,
+                        'samples'    : 0,
+                        'reset'      : False,
+                        'sawFall'    : False,
+                        'tFall'      : None,
+                        'tReady'     : None,
+                        'elapsed'    : 0.0,
+                        'message'    : soft['message'],
                         'rawBefore'  : before,
                         'rawAfter'   : after,
-                    }
-                    rows.append(row)
-                    lines.append(
-                        f'Lane[{lane}] rep={rep} softCold={softText} policy={row["policy"]} status={row["status"]} '
-                        f'enables={result.eyeScanEnReadback}/{result.errDetEnReadback} '
-                        f'statusBefore=0x{result.statusBefore:X} statusAfter=0x{result.statusAfter:X} '
-                        f'samples={result.sampleCount} reset={"yes" if result.resetCalled else "no"} '
-                        f'sawFall={result.sawFall} tFall={fmtTime(result.tFall)} tReady={fmtTime(result.tReady)} '
-                        f'elapsed={result.elapsed:.3f}s msg={result.message}'
-                    )
-                    bar.update(1)
-                    if control.aborted or state.stop:
-                        break
-        finally:
-            # The rows print once the bar is closed, so they never mix with its redraw
-            for line in lines:
-                print(line)
-        endLane(target, reader, meta)
-        meta['activation'] = rows
-        return rows
+                    })
+                    lines.append(f'Lane[{lane}] rep={rep} soft re-cold failed: status={soft["status"]} msg={soft["message"]}')
+                    break
+                result = gt.EyeScan.probe(resetPolicy = ResetPolicy(args.resetPolicy), control = control)
+                after  = readRawWords(reader, target)
+                if soft is None:
+                    softText = 'off'
+                else:
+                    softText = 'stopped' if soft['stopped'] else 'still_active'
+                row = {
+                    'lane'       : lane,
+                    'rep'        : rep,
+                    'softCold'   : softText,
+                    'policy'     : result.policy.value,
+                    'status'     : result.status.value,
+                    'eyeScanEn'  : result.eyeScanEnReadback,
+                    'errDetEn'   : result.errDetEnReadback,
+                    'statusBefore': result.statusBefore,
+                    'statusAfter': result.statusAfter,
+                    'samples'    : result.sampleCount,
+                    'reset'      : result.resetCalled,
+                    'sawFall'    : result.sawFall,
+                    'tFall'      : result.tFall,
+                    'tReady'     : result.tReady,
+                    'elapsed'    : result.elapsed,
+                    'message'    : result.message,
+                    'rawBefore'  : before,
+                    'rawAfter'   : after,
+                }
+                rows.append(row)
+                lines.append(
+                    f'Lane[{lane}] rep={rep} softCold={softText} policy={row["policy"]} status={row["status"]} '
+                    f'enables={result.eyeScanEnReadback}/{result.errDetEnReadback} '
+                    f'statusBefore=0x{result.statusBefore:X} statusAfter=0x{result.statusAfter:X} '
+                    f'samples={result.sampleCount} reset={"yes" if result.resetCalled else "no"} '
+                    f'sawFall={result.sawFall} tFall={fmtTime(result.tFall)} tReady={fmtTime(result.tReady)} '
+                    f'elapsed={result.elapsed:.3f}s msg={result.message}'
+                )
+                bar.update(1)
     finally:
-        state.discard(control)
+        # The rows print once the bar is closed, so they never mix with its redraw
+        for line in lines:
+            print(line)
+    endLane(target, reader, meta)
+    meta['activation'] = rows
+    return rows
 
 # Run the engine call of the mode on one lane; progressBar False leaves the progress to the callback of control
 def measureLane(gt, args, control, progressBar=True):
@@ -803,24 +800,28 @@ def measureLane(gt, args, control, progressBar=True):
 def runScanLane(target, reader, args, meta, folder, state, onProgress=None):
     gt       = target.gt
     lane     = meta['lane']
-    control  = ScanControl(onProgress = onProgress)
+    control  = state.control(onProgress)
     previous = None
     outcome  = None
     saved    = None
-    state.add(control)
     try:
         beginLane(target, reader, meta)
-        soft = runSoftCold(gt, args, meta, control)
-        if soft is not None and 'status' in soft:
-            print(f'Lane[{lane}] soft re-cold failed: status={soft["status"]} msg={soft["message"]}')
-            outcome = {'status': soft['status'], 'message': soft['message']}
+        # A stop before the lane starts ends it before the soft re-cold, the loopback or the scan writes anything
+        if control.aborted:
+            print(f'Lane[{lane}] stop requested before the scan started')
+            outcome = {'status': ScanStatus.ABORTED.value, 'message': 'stop requested before the scan started'}
         else:
-            # Loopback is only written on request and the previous value is written back in finally
-            if args.loopback is not None:
-                previous = int(target.link.getLoopback())
-                meta['loopback'] = {'requested': args.loopback, 'previous': previous}
-                target.link.setLoopback(args.loopback)
-            outcome = measureLane(gt, args, control, progressBar = onProgress is None)
+            soft = runSoftCold(gt, args, meta, control)
+            if soft is not None and 'status' in soft:
+                print(f'Lane[{lane}] soft re-cold failed: status={soft["status"]} msg={soft["message"]}')
+                outcome = {'status': soft['status'], 'message': soft['message']}
+            else:
+                # Loopback is only written on request and the previous value is written back in finally
+                if args.loopback is not None:
+                    previous = int(target.link.getLoopback())
+                    meta['loopback'] = {'requested': args.loopback, 'previous': previous}
+                    target.link.setLoopback(args.loopback)
+                outcome = measureLane(gt, args, control, progressBar = onProgress is None)
     finally:
         try:
             if previous is not None:
@@ -830,18 +831,15 @@ def runScanLane(target, reader, args, meta, folder, state, onProgress=None):
                 endLane(target, reader, meta)
             finally:
                 # The result is saved before anything is printed and while a Ctrl-C only requests a stop
-                try:
-                    if isinstance(outcome, (BathtubResult, EyeResult, MarginResult)):
-                        with _SAVE_LOCK:
-                            saved = gt.EyeScan.save(
-                                outcome,
-                                outDir      = folder,
-                                png         = (not args.noPng) and outcome.status is not ScanStatus.ABORTED,
-                                extraMeta   = meta,
-                                surfVersion = meta['surfVersion'],
-                            )
-                finally:
-                    state.discard(control)
+                if isinstance(outcome, (BathtubResult, EyeResult, MarginResult)):
+                    with _SAVE_LOCK:
+                        saved = gt.EyeScan.save(
+                            outcome,
+                            outDir      = folder,
+                            png         = (not args.noPng) and outcome.status is not ScanStatus.ABORTED,
+                            extraMeta   = meta,
+                            surfVersion = meta['surfVersion'],
+                        )
     printSaved(lane, saved)
     if isinstance(outcome, BathtubResult):
         printBathtubSummary(lane, outcome)
@@ -1149,48 +1147,49 @@ def saveProbeLane(folder, args, meta, rows):
 # Final status texts of a lane outcome: Probe rows, a lane failure or a result
 def outcomeStatuses(outcome):
     if isinstance(outcome, list):
-        return [row['status'] for row in outcome]
+        # A Probe stopped before its first repetition has no row
+        return [row['status'] for row in outcome] or [ScanStatus.ABORTED.value]
     if isinstance(outcome, dict):
         return [outcome['status']]
     return [outcome.status.value]
 
 #################################################################
 
-# Scan controls of the lanes being run and the stop request of the run, so Ctrl-C can end the run at any moment
+# Stop request of the run, read by the control of every lane, so a Ctrl-C ends the run at any moment: a lane
+# that is scanning aborts at its next check and a lane that starts later ends ABORTED before it writes anything
 class _RunState:
 
     def __init__(self):
-        self.controls = set()
         self.stop     = False
-        self._lock    = threading.Lock()
+        self._noticed = False
 
-    # Register the control of a lane that starts, so a Ctrl-C can abort it
-    def add(self, control):
-        with self._lock:
-            self.controls.add(control)
+    # Control of a lane: its abort source is the stop flag, whenever the lane starts
+    def control(self, onProgress=None):
+        return ScanControl(isAborted = self.aborted, onProgress = onProgress)
 
-    # Drop the control of a lane that ended
-    def discard(self, control):
-        with self._lock:
-            self.controls.discard(control)
+    # True once a stop was requested. The main thread prints the notice when it first sees the stop from normal
+    # code (a sequential lane checks its control; a parallel run polls in its bar loop)
+    def aborted(self):
+        if self.stop and threading.current_thread() is threading.main_thread():
+            self.notice()
+        return self.stop
+
+    # Print the stop notice once
+    def notice(self):
+        if not self._noticed:
+            self._noticed = True
+            print('Stop requested: restoring the registers (Ctrl-C again to force)')
 
     # True when a stop was requested or a lane ended ABORTED, so the run ends after the lane
     def stopAfterLane(self, statuses):
         return self.stop or any(status == ScanStatus.ABORTED.value for status in statuses)
 
-    # Record the stop request and abort the running scan if any; a second Ctrl-C raises KeyboardInterrupt
+    # Record the stop request; a second Ctrl-C raises KeyboardInterrupt. The handler runs on the main thread
+    # between two of its bytecodes, so it takes no lock and prints nothing: the lanes observe the flag
     def onSigint(self, signum, frame):
         if self.stop:
             raise KeyboardInterrupt
         self.stop = True
-        with self._lock:
-            live = [control for control in self.controls if not control.aborted]
-        for control in live:
-            control.abort()
-        if live:
-            print('Stop requested: restoring the registers (Ctrl-C again to force)')
-        else:
-            print('Stop requested: the run ends after this lane (Ctrl-C again to force)')
 
 # Lanes of the plan in its order, refusing a lane the application did not hand over
 def selectTargets(plan, targets):
@@ -1215,7 +1214,8 @@ def runLane(target, args, info, surfText, extraMeta, folder, state, onProgress=N
         gt.EyeScan.clearRxReset()
     if args.mode == 'Probe':
         outcome = runProbeLane(target, reader, args, meta, state)
-        saved   = saveProbeLane(folder, args, meta, outcome)
+        # A Probe stopped before its first repetition has no row and saves nothing
+        saved   = saveProbeLane(folder, args, meta, outcome) if outcome else None
         printSaved(lane, saved)
         return outcome, saved
     return runScanLane(target, reader, args, meta, folder, state, onProgress)
@@ -1297,6 +1297,8 @@ def runParallelLanes(targets, args, folder, state, info, surfText, extraMeta):
             for thread in threads:
                 thread.start()
             while True:
+                if state.stop:
+                    state.notice()
                 alive  = [thread for thread in threads if thread.is_alive()]
                 target = int(PARALLEL_BAR_STEPS * sum(fractions.values()) / len(lanes))
                 bar.update(max(0, target - bar.pos), laneText())
@@ -1328,10 +1330,11 @@ def runEyeScan(
     a time.
 
     A Ctrl-C aborts every running scan, which restores its registers and saves
-    its partial result; the run then ends and the table of the finished lanes
-    is printed. A second Ctrl-C raises ``KeyboardInterrupt``. The handler is
-    only installed from the main thread and the previous handler is restored at
-    the end.
+    its partial result, and a lane that has not started yet ends ``ABORTED``
+    without a write; the run then ends and the table of the finished lanes is
+    printed. A second Ctrl-C raises ``KeyboardInterrupt``. The handler only
+    records the stop request, is only installed from the main thread and the
+    previous handler is restored at the end.
 
     Parameters
     ----------
@@ -1351,7 +1354,7 @@ def runEyeScan(
     -------
     int
         0 when every lane ended OK or CLOSED; 2 when a lane failed, a save
-        failed or a stop skipped lanes.
+        failed or a stop was requested.
 
     Raises
     ------
@@ -1416,8 +1419,6 @@ def runEyeScan(
 
             # A stop request ends a sequential run, the lane above already restored its registers
             if not parallel and state.stopAfterLane(statuses):
-                # A stop before the last requested lane means lanes were skipped
-                failed = failed or target is not targets[-1]
                 break
     finally:
         if install:
@@ -1425,4 +1426,6 @@ def runEyeScan(
         if rows:
             printSummaryTable(rows)
 
-    return 2 if failed else 0
+    # A stop request always ends the run with the interrupted status, whether it skipped or aborted lanes or came
+    # after the last lane ended
+    return 2 if failed or state.stop else 0

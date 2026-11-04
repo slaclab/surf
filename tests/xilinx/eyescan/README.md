@@ -176,7 +176,9 @@ do not require an FPGA or an HDL simulator.
   table, the GT and PGP4 Ctrl raw words, a loopback written and restored,
   `LineRateGbps` set only on request, `extraMeta` in the saved metadata, two
   lanes behind separate memory trees, and a real SIGINT that aborts the
-  running lane, skips the rest, returns 2 and restores the previous handler.
+  running lane, skips the rest, returns 2 and restores the previous handler;
+  a lane that starts after the SIGINT ends ABORTED without a write and the
+  handler only records the stop.
 
 With Rogue and the SURF Python package on `PYTHONPATH`, run the CI command:
 
