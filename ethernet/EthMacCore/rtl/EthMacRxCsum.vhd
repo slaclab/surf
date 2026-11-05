@@ -57,7 +57,6 @@ architecture rtl of EthMacRxCsum is
    type RegType is record
       valid        : slv(1 downto 0);
       fragDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
-      eofeDet      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       ipv4Det      : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       udpDet       : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
       tcpDet       : slv(EMAC_CSUM_PIPELINE_C+1 downto 0);
@@ -79,7 +78,6 @@ architecture rtl of EthMacRxCsum is
    constant REG_INIT_C : RegType := (
       valid        => (others => '0'),
       fragDet      => (others => '0'),
-      eofeDet      => (others => '0'),
       ipv4Det      => (others => '0'),
       udpDet       => (others => '0'),
       tcpDet       => (others => '0'),
@@ -111,6 +109,7 @@ begin
    comb : process (ethRst, ipCsumEn, r, sAxisMaster, tcpCsumEn, udpCsumEn) is
       variable v     : RegType;
       variable dummy : Slv16Array(1 downto 0);
+      variable eofe  : sl;
    begin
       -- Latch the current value
       v := r;
@@ -140,7 +139,6 @@ begin
       if (r.mAxisMaster.tValid = '1') or (r.state = IDLE_S) or (r.pipeFlush = '1') then
          v.mAxisMasters := r.mAxisMasters(EMAC_CSUM_PIPELINE_C downto 0) & r.mAxisMaster;
          v.fragDet      := r.fragDet(EMAC_CSUM_PIPELINE_C downto 0) & r.fragDet(0);
-         v.eofeDet      := r.eofeDet(EMAC_CSUM_PIPELINE_C downto 0) & r.eofeDet(0);
          v.ipv4Det      := r.ipv4Det(EMAC_CSUM_PIPELINE_C downto 0) & r.ipv4Det(0);
          v.udpDet       := r.udpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.udpDet(0);
          v.tcpDet       := r.tcpDet(EMAC_CSUM_PIPELINE_C downto 0) & r.tcpDet(0);
@@ -150,34 +148,43 @@ begin
          v.roce         := r.roce(EMAC_CSUM_PIPELINE_C downto 0) & r.roce(0);
       end if;
 
+      -- Interpret SOF before checksum flags can alias it on a one-byte last beat
+      if (axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
+         -- Set the fragmentation flag
+         axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
+      end if;
+
       -- Check for tLast in pipeline
       if (v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1).tLast = '1') then
          -- Stop flushing the pipeline when last word exits
          v.pipeFlush := '0';
+         -- Preserve inbound and oversize errors while adding checksum errors
+         eofe := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C);
          -- Check if IPv4 is detected and being checked
          if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (ipCsumEn = '1') then
             -- Forward the result of checksum calculation
             axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_IPERR_BIT_C, not(r.valid(0)));
-            axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(0)));
+            eofe := eofe or not(r.valid(0));
          end if;
          -- Check if UDP is detected and being checked
          if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.udpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (udpCsumEn = '1') and (r.fragDet(EMAC_CSUM_PIPELINE_C+1) = '0') then
             -- Forward the result of checksum calculation
             axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_UDPERR_BIT_C, not(r.valid(1)));
-            axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(1)));
+            eofe := eofe or not(r.valid(1));
             -- Check for mismatch in IPv4 length with UDP length
             if (r.ipv4Len(EMAC_CSUM_PIPELINE_C+1) /= (r.protLen(EMAC_CSUM_PIPELINE_C+1) + 20)) then
                -- Set the error flags
                axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_UDPERR_BIT_C, '1');
-               axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, '1');
+               eofe := '1';
             end if;
          end if;
          -- Check if TCP is detected and being checked
          if (r.ipv4Det(EMAC_CSUM_PIPELINE_C+1) = '1') and (r.tcpDet(EMAC_CSUM_PIPELINE_C+1) = '1') and (tcpCsumEn = '1') and (r.fragDet(EMAC_CSUM_PIPELINE_C+1) = '0') then
             -- Forward the result of checksum calculation
             axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_TCPERR_BIT_C, not(r.valid(1)));
-            axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, not(r.valid(1)));
+            eofe := eofe or not(r.valid(1));
          end if;
+         axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_EOFE_BIT_C, eofe);
       end if;
 
       -- State Machine
@@ -186,7 +193,6 @@ begin
          when IDLE_S =>
             -- Reset the flags and counter
             v.fragDet(0) := '0';
-            v.eofeDet(0) := '0';
             v.ipv4Det(0) := '0';
             v.udpDet(0)  := '0';
             v.tcpDet(0)  := '0';
@@ -352,12 +358,6 @@ begin
             end if;
       ----------------------------------------------------------------------
       end case;
-
-      -- Check for first TUSER on the output AXIS stream
-      if (axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_SOF_BIT_C, 0) = '1') then
-         -- Set the fragmentation flag
-         axiStreamSetUserBit(INT_EMAC_AXIS_CONFIG_C, v.mAxisMasters(EMAC_CSUM_PIPELINE_C+1), EMAC_FRAG_BIT_C, r.fragDet(EMAC_CSUM_PIPELINE_C), 0);
-      end if;
 
       -- Outputs
       mAxisMaster          <= r.mAxisMasters(EMAC_CSUM_PIPELINE_C+1);

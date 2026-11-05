@@ -144,7 +144,6 @@ begin
       v.rxCountEn        := '0';
       v.rxCrcError       := '0';
       v.crcDataValid     := '0';
-      v.delRxDv          := '0';
       v.macMaster.tValid := '0';
       v.macMaster.tLast  := '0';
       v.macMaster.tUser  := (others => '0');
@@ -157,6 +156,8 @@ begin
          v.macData(63 downto 0) := r.macData(55 downto 0) & gmiiRxd;
 
          -- Delay the GMII valid for start up sequencing
+         -- Hold the SFD pulse between enabled clocks until it is shifted in.
+         v.delRxDv   := '0';
          v.delRxDvSr := r.delRxDvSr(6 downto 0) & r.delRxDv;
 
          -- Check for CRC reset

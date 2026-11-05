@@ -387,6 +387,8 @@ begin
                   v.eofeDet(0) := axiStreamGetUserBit(INT_EMAC_AXIS_CONFIG_C, rxMaster, EMAC_EOFE_BIT_C);
                   -- Check for overflow
                   if (rxMaster.tLast = '0') then
+                     -- Close the cached frame with its error transaction before draining the tail
+                     v.sMaster.tLast := '1';
                      -- Error detect
                      v.eofeDet(0) := '1';
                      -- Write the transaction data

@@ -117,5 +117,4 @@ def test_EthCrc32Parallel(parameters):
         parameters=hdl_parameters_from(parameters),
         extra_env=parameters,
         extra_vhdl_sources={"surf": ETHMAC_RTL_SOURCES},
-        sim_build_key="tests/sim_build/ethernet/EthMacCore/test_EthCrc32Parallel.shared",
     )

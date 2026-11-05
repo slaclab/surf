@@ -18,12 +18,18 @@
 #   pass through the primary output while the bypass output stays idle.
 # - Timing: The test waits on complete frames from each exposed output so the
 #   route decision and frame-hold behavior are checked together.
+# - Mixed stream: a seeded zero-gap burst of one- to four-beat frames mixing
+#   the bypass EtherType with near misses (0x9001, byte-swapped 0x0090) and
+#   ordinary types; both outputs are monitored every cycle and each frame must
+#   appear, beat for beat and in order, only on its own output.
 
 from __future__ import annotations
 
 import cocotb
 import os
 import pytest
+import random
+from cocotb.triggers import RisingEdge
 
 from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
@@ -31,12 +37,15 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     FlatEmacEndpoint,
     assert_beat_list,
     build_ethernet_frame,
+    cycle,
     expect_no_output,
     frame_beats_from_bytes,
     recv_frame,
     send_contiguous_frame,
+    send_frame_burst,
     setup_flat_emac_testbench,
 )
+from tests.ethernet.EthMacCore.ethmac_line_models import resolved_int
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacRxBypassWrapper.vhd"
@@ -94,6 +103,64 @@ async def eth_mac_rx_bypass_routing_test(dut):
     await primary_send
     assert_beat_list(primary_observed, primary_expected)
     await expect_no_output(byp_sink, clk=bench.clk, cycles=8)
+
+
+class RouteMonitor:
+    """Record every beat on one output of the router (no `TREADY`)."""
+
+    def __init__(self, clk, endpoint: FlatEmacEndpoint):
+        self.clk = clk
+        self.endpoint = endpoint
+        self.frames = []
+        self.partial = []
+        self.task = cocotb.start_soon(self._run())
+
+    async def _run(self) -> None:
+        """Lifetime agent: record routed output beats until the test ends."""
+        while True:
+            await RisingEdge(self.clk)
+            if resolved_int(self.endpoint._sig("TValid")):
+                self.partial.append(self.endpoint.snapshot())
+                if self.partial[-1].last:
+                    self.frames.append(self.partial)
+                    self.partial = []
+
+
+@cocotb.test()
+async def eth_mac_rx_bypass_mixed_stream_test(dut):
+    bypass_enabled = os.environ["BYP_EN_G"].lower() == "true"
+    seed = int(os.environ.get("ETHMAC_RX_BYPASS_SEED", "9000"))
+    rng = random.Random(seed)
+    bench = await setup_flat_emac_testbench(dut, source_prefix="sAxis")
+    prim = RouteMonitor(bench.clk, FlatEmacEndpoint(dut, prefix="mPrim"))
+    byp = RouteMonitor(bench.clk, FlatEmacEndpoint(dut, prefix="mByp"))
+
+    # A seeded zero-gap stream mixing the bypass EtherType with near misses
+    # (one byte different, byte-swapped) and ordinary traffic, in one- to
+    # four-beat frames, so routing is decided on every SOF with no idle cycle.
+    eth_types = [BYPASS_ETH_TYPE, BYPASS_ETH_TYPE, 0x9001, 0x0090, 0x8000, 0x88B5]
+    plan = [rng.choice(eth_types) for _ in range(16)]
+    frames = []
+    for index, eth_type in enumerate(plan):
+        length = rng.randint(14, 64)
+        frame = build_ethernet_frame(
+            dst_mac=0x101112131415,
+            src_mac=0x202122232425,
+            eth_type=eth_type,
+            payload=bytes(rng.getrandbits(8) for _ in range(length - 14)),
+        )
+        frames.append(frame_beats_from_bytes(frame, dest=index, eofe=index & 1))
+    await send_frame_burst(bench.source, frames, clk=bench.clk)
+    await cycle(bench.clk, 4)
+
+    to_bypass = [bypass_enabled and eth_type == BYPASS_ETH_TYPE for eth_type in plan]
+    expected_byp = [f for f, b in zip(frames, to_bypass, strict=True) if b]
+    expected_prim = [f for f, b in zip(frames, to_bypass, strict=True) if not b]
+    context = f"BYP_EN_G={bypass_enabled} seed={seed} plan={[hex(t) for t in plan]}"
+    assert not prim.partial and not byp.partial, context
+    assert len(byp.frames) == len(expected_byp) and len(prim.frames) == len(expected_prim), context
+    for observed, expected in zip(byp.frames + prim.frames, expected_byp + expected_prim, strict=True):
+        assert_beat_list(observed, expected)
 
 
 PARAMETER_SWEEP = [

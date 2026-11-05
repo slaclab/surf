@@ -18,14 +18,20 @@
 #   dropped.
 # - Timing: The bench uses real ready/valid handshakes on both sources so the
 #   mux arbitration is checked under the DUT's own acceptance rules.
+# - Sustained load: both sources offer four back-to-back frames from the same
+#   cycle under seeded sink backpressure; frames must not interleave, each
+#   source keeps its order, and with bypass enabled the strict bypass
+#   priority sends every bypass frame before the first primary frame.
 
 from __future__ import annotations
 
 import cocotb
 import os
 import pytest
+import random
+from cocotb.triggers import RisingEdge
 
-from tests.common.regression_utils import parameter_case, run_surf_vhdl_test
+from tests.common.regression_utils import parameter_case, run_surf_vhdl_test, sample_after_tpd
 from tests.ethernet.EthMacCore.ethmac_test_utils import (
     ETHMAC_RTL_SOURCES,
     FlatEmacEndpoint,
@@ -36,8 +42,10 @@ from tests.ethernet.EthMacCore.ethmac_test_utils import (
     frame_beats_from_bytes,
     recv_frame,
     send_contiguous_frame,
+    send_frame_burst,
     setup_flat_emac_testbench,
 )
+from tests.ethernet.EthMacCore.ethmac_line_models import resolved_int
 
 
 WRAPPER_PATH = "ethernet/EthMacCore/wrappers/EthMacTxBypassWrapper.vhd"
@@ -126,6 +134,85 @@ async def eth_mac_tx_bypass_arbitration_test(dut):
 
     await long_primary_send
     await late_bypass_send
+
+
+class AcceptedOutputMonitor:
+    """Record beats accepted on the mux output (`TVALID` and `TREADY`)."""
+
+    def __init__(self, clk, endpoint: FlatEmacEndpoint, ready_signal):
+        self.clk = clk
+        self.endpoint = endpoint
+        self.ready = ready_signal
+        self.frames = []
+        self.partial = []
+        self.task = cocotb.start_soon(self._run())
+
+    async def _run(self) -> None:
+        """Lifetime agent: record accepted mux output beats until the test ends."""
+        while True:
+            await RisingEdge(self.clk)
+            if resolved_int(self.endpoint._sig("TValid")) and resolved_int(self.ready):
+                self.partial.append(self.endpoint.snapshot())
+                if self.partial[-1].last:
+                    self.frames.append(self.partial)
+                    self.partial = []
+
+
+async def drive_random_ready(ready_signal, *, clk, rng: random.Random, cycles: int) -> None:
+    # Seeded sink backpressure for a bounded number of cycles, then ready.
+    for _ in range(cycles):
+        await sample_after_tpd(clk)
+        ready_signal.value = 1 if rng.random() < 0.6 else 0
+    await sample_after_tpd(clk)
+    ready_signal.value = 1
+
+
+@cocotb.test()
+async def eth_mac_tx_bypass_sustained_load_test(dut):
+    bypass_enabled = os.environ["BYP_EN_G"].lower() == "true"
+    seed = int(os.environ.get("ETHMAC_TX_BYPASS_SEED", "4242"))
+    rng = random.Random(seed)
+    bench = await setup_flat_emac_testbench(dut, source_prefix=None, initial_values={"mAxisTReady": 0})
+    prim_source = FlatEmacEndpoint(dut, prefix="sPrim")
+    byp_source = FlatEmacEndpoint(dut, prefix="sByp")
+    prim_source.set_idle()
+    byp_source.set_idle()
+    out = AcceptedOutputMonitor(bench.clk, FlatEmacEndpoint(dut, prefix="mAxis"), dut.mAxisTReady)
+
+    def make_frames(tag: int, eth_type: int) -> list:
+        frames = []
+        for index in range(4):
+            length = rng.randint(14, 80)
+            frame = build_ethernet_frame(
+                dst_mac=0x020000000000 | (tag << 8) | index,
+                src_mac=0x020000000099,
+                eth_type=eth_type,
+                payload=bytes(rng.getrandbits(8) for _ in range(length - 14)),
+            )
+            frames.append(frame_beats_from_bytes(frame, dest=tag + index))
+        return frames
+
+    # Both sources offer four back-to-back frames from the same cycle while
+    # the sink applies seeded backpressure.
+    prim_frames = make_frames(0x10, 0x88B5)
+    byp_frames = make_frames(0x80, BYPASS_ETH_TYPE)
+    ready_task = cocotb.start_soon(drive_random_ready(dut.mAxisTReady, clk=bench.clk, rng=rng, cycles=120))
+    prim_send = cocotb.start_soon(send_frame_burst(prim_source, prim_frames, clk=bench.clk))
+    byp_send = cocotb.start_soon(send_frame_burst(byp_source, byp_frames, clk=bench.clk))
+    await ready_task
+    await prim_send
+    await byp_send
+    await cycle(bench.clk, 16)
+
+    # Frames never interleave and each source keeps its order. With bypass
+    # enabled the arbitration is strict priority (IDLE_S checks bypass
+    # first), so back-to-back bypass frames all go before any primary frame;
+    # with bypass disabled the bypass port is discarded (ready forced high).
+    expected = (byp_frames + prim_frames) if bypass_enabled else prim_frames
+    assert not out.partial, f"seed={seed}: partial output frame"
+    assert len(out.frames) == len(expected), f"BYP_EN_G={bypass_enabled} seed={seed}: {len(out.frames)} frames"
+    for observed, frame in zip(out.frames, expected, strict=True):
+        assert_beat_list(observed, frame)
 
 
 PARAMETER_SWEEP = [

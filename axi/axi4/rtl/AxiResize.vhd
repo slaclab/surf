@@ -6,6 +6,14 @@
 -- Disclaimer: This module doesn't support the following:
 --             Narrow write transfers
 --             Unaligned transfers
+--             Read bursts ending partway through a master beat when upsizing
+--
+-- When the master data width is wider than the slave data width, each read
+-- burst's slave beat count (ARLEN+1) must be a multiple of the master/slave
+-- data-width ratio. For example, 32-bit to 64-bit conversion requires an even
+-- number of slave beats per read burst. Otherwise, the final master beat is
+-- returned in full, producing extra slave beats with RLAST on the extra final
+-- beat. The requested slave burst length is not tracked by this module.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
