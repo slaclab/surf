@@ -340,7 +340,7 @@ def stream_word_from_protocol_bytes(protocol_bytes: bytes) -> int:
 
 
 def format_transport_frame(beats) -> str:
-    header = parse_header(protocol_bytes_from_stream_word(beats[0].data))
+    header = parse_header(b"".join(protocol_bytes_from_stream_word(beat.data) for beat in beats))
     return (
         f"flags=0x{header.flags:02x}, seq={header.sequence}, "
         f"ack={header.acknowledge}, beats={[f'0x{beat.data:016x}' for beat in beats]}"
@@ -366,7 +366,7 @@ async def recv_matching_transport_frame(
             beats.append(beat)
             if beat.last == 1:
                 try:
-                    header = parse_header(protocol_bytes_from_stream_word(beats[0].data))
+                    header = parse_header(b"".join(protocol_bytes_from_stream_word(beat.data) for beat in beats))
                 except ValueError:
                     seen.append(f"malformed beats={[f'0x{item.data:016x}' for item in beats]}")
                 else:

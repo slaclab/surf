@@ -447,6 +447,7 @@ class RssiCore(pr.Device):
                 0: 'CHECK_BUFFER_S',
                 1: 'DATA_S',
                 2: 'SENT_S',
+                3: 'READ_S',
             },
         ))
 
