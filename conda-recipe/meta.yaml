@@ -11,15 +11,15 @@ build:
 
 requirements:
    build:
-     - python>=3.7
-     - rogue
+     - python>=3.11
+     - slac-rogue
      - git
      - gitpython
      - numpy
 
    run:
-     - python>=3.7
-     - rogue
+     - python>=3.11
+     - slac-rogue
      - numpy
 
 about:
