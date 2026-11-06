@@ -444,10 +444,19 @@ class LaneMemory(rim.Slave):
         self._status = None
 
     def attach(self, lane):
-        """Derive the Ctrl and RxStatus bit positions from the live variables."""
-        self.ctrlAddr, self.resetLsb, _ = fieldOf32(lane.Ctrl.ResetRx)
-        self.statusAddr, self.phyLsb, _ = fieldOf32(lane.RxStatus.PhyRxActive)
-        self.words[self.statusAddr] = 1 << self.phyLsb
+        """Derive the Ctrl and RxStatus bit positions from the live Pgp4AxiL variables."""
+        statusAddr, phyLsb, _ = fieldOf32(lane.RxStatus.PhyRxActive)
+        self.attachBits(lane.Ctrl.ResetRx, statusAddr, phyLsb)
+
+    def attachBits(self, resetVar, readyAddr, readyLsb):
+        """Register the reset bit (a live variable) and the ready bit (byte address and lsb) the fake toggles.
+
+        The ready bit starts set; other bits already seeded in the ready word
+        are kept.
+        """
+        self.ctrlAddr, self.resetLsb, _ = fieldOf32(resetVar)
+        self.statusAddr, self.phyLsb = int(readyAddr), int(readyLsb)
+        self.words[self.statusAddr] = self.words.get(self.statusAddr, 0) | (1 << self.phyLsb)
 
     def _doTransaction(self, transaction):
         with transaction.lock():

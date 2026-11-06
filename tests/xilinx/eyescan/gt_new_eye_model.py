@@ -105,3 +105,46 @@ def makeGtye3Root(neighbours=True, **kw):
 def makeGthe4Root(neighbours=True, **kw):
     """Started root with one Gthe4Channel over an emulated GT; returns (root, gt, model)."""
     return _makeRoot('Gthe4Channel', Gthe4EyeModel(**kw), neighbours)
+
+
+# JESD204b lane roots: a JesdRx core and one GT channel behind a LaneMemory,
+# the RX reset hook on the shared ResetGTs and the DataValid bit of the lane.
+# GTHE3 is the AMC carrier (KU040) case; GTHE4 prepares the UltraScale+ (KU15P)
+# carriers, whose model follows UG576 only.
+JESD_FAMILIES = {
+    'GTHE3': ('Gthe3Channel', Gthe3EyeModel),
+    'GTHE4': ('Gthe4Channel', Gthe4EyeModel),
+}
+
+
+def makeJesdLaneRoot(family='GTHE3', numRxLanes=4, lane=0, neighbours=True, riseReads=2, seed=None, **kw):
+    """Started root with a JesdRx and one GT channel of ``family`` behind LaneMemory.
+
+    ``seed(mem)``, when given, fills the JesdRx words before the fake's ready
+    bit is registered, so a seed may set every lane's status word and the
+    chosen lane still starts ready. The reset hook of the EyeScan child is
+    registered through ``JesdRxEyeScanLink.connectRxReset`` on ``ResetGTs``
+    and the ``DataValid`` bit of ``lane``, with short timings.
+    Returns (root, gt, jesdRx, model, mem).
+    """
+    import surf.protocols.jesd204b as jesd
+    import surf.xilinx as xil
+    from tests.xilinx.eyescan.gthe3_eye_model import LaneMemory
+    cls, modelCls = JESD_FAMILIES[family]
+    model = modelCls(**kw)
+    mem = LaneMemory(model, riseReads=riseReads)
+    root = pr.Root(pollEn=False, initRead=False, initWrite=False, timeout=1.0)
+    jesdRx = jesd.JesdRx(name='JesdRx', offset=0x0, memBase=mem, numRxLanes=numRxLanes)
+    gt = getattr(xil, cls)(name='Gt', offset=LaneMemory.GT_BASE, memBase=mem)
+    root.add(jesdRx)
+    root.add(gt)
+    model.seedHardwareLike(gt)
+    if neighbours:
+        model.seedNeighbours(gt)
+    root.start()
+    if seed is not None:
+        seed(mem)
+    # DataValid spans every lane: the ready bit of this lane is bit 1 of the lane's status word
+    mem.attachBits(jesdRx.ResetGTs, int(jesdRx.DataValid.address) + 4 * lane, jesdRx.DataValid.bitOffset[0])
+    jesd.JesdRxEyeScanLink.connectRxReset(gt, jesdRx, lane, settle=0.0, fallWait=0.05, timeout=0.5)
+    return root, gt, jesdRx, model, mem
