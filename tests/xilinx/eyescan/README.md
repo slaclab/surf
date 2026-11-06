@@ -19,7 +19,9 @@ do not require an FPGA or an HDL simulator.
 - `gt_new_eye_model.py`: the GTYE3 model (the GTYE4 model over the `Gtye3Channel`
   field positions) and the GTHE4 model (the GTHE3 sampler over the `Gthe4Channel`
   positions with a 32-bit seed and all thirty mask words seeded, so a write to the
-  GTY-only words 5 to 9 is caught), with `makeGtye3Root` and `makeGthe4Root`.
+  GTY-only words 5 to 9 is caught), with `makeGtye3Root`, `makeGthe4Root` and
+  `makeJesdLaneRoot` (a `JesdRx` lane with a GTHE3 or GTHE4 channel behind
+  `LaneMemory`, hook on `ResetGTs` and the lane's `DataValid` bit).
 - `test_EyeScanFamilies.py`: the GTHE3, GTHE4, GTYE3 and GTYE4 families side by side: role
   and mask word resolution, the bits that share a DRP word with a scan field,
   the RESET, COUNT, END sequence and status decode, bit counts per run, mask
@@ -179,6 +181,18 @@ do not require an FPGA or an HDL simulator.
   running lane, skips the rest, returns 2 and restores the previous handler;
   a lane that starts after the SIGINT ends ABORTED without a write and the
   handler only records the stop.
+- `test_JesdRxEyeScanLink.py`: the JESD204b RX adapter `JesdRxEyeScanLink`
+  over `makeJesdLaneRoot` (a `JesdRx` and one GT channel behind `LaneMemory`),
+  on the emulated GTHE3 lane of the AMC carrier and the emulated GTHE4 lane of
+  the UltraScale+ carriers (model only, `hwVerified=False`, no GTHE4 JESD lane
+  scanned on hardware yet): the lane bits read out of the status registers
+  that span every lane, the per-lane error counters, the raw `Enable` and
+  `Ctrl` words, a lane outside the core refused by the constructor, the ready
+  factory and `connectRxReset`, the refused loopback, the hook on the shared
+  `ResetGTs` with the `DataValid` bit of one lane as ready (the JESD settle and
+  timeout, the neighbour bits of the control word kept through the pulse,
+  another lane's bit not counted, a one-lane core), and Status and Bathtub
+  runs that end OK with the JESD evidence in the saved metadata.
 
 With Rogue and the SURF Python package on `PYTHONPATH`, run the CI command:
 
