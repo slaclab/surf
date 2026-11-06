@@ -10,9 +10,8 @@
 
 name: surf-rogue-test
 channels:
-  - tidair-tag
   - conda-forge
 dependencies:
   - python=3.12
   - pip
-  - rogue=v6.15.0
+  - slac-rogue=6.16.0
