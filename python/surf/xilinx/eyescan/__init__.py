@@ -15,3 +15,4 @@ from surf.xilinx.eyescan._EyeScanPort     import *
 from surf.xilinx.eyescan._EyeScanEngine   import *
 from surf.xilinx.eyescan._EyeScanOutput   import *
 from surf.xilinx.eyescan._EyeScan         import *
+from surf.xilinx.eyescan._EyeScanRunner   import *

@@ -12,10 +12,14 @@ from surf.xilinx._AxiSysMonUltraScale import *
 from surf.xilinx._ClockManager        import *
 from surf.xilinx._GpioPs              import *
 from surf.xilinx._GtRxAlignCheck      import *
+from surf.xilinx._Gtye3Channel        import *
+from surf.xilinx._Gtye3Common         import *
 from surf.xilinx._Gtye4Channel        import *
 from surf.xilinx._Gtye4Common         import *
 from surf.xilinx._Gthe3Channel        import *
 from surf.xilinx._Gthe3Common         import *
+from surf.xilinx._Gthe4Channel        import *
+from surf.xilinx._Gthe4Common         import *
 from surf.xilinx._Gtxe2Channel        import *
 from surf.xilinx._Gtpe2Channel        import *
 from surf.xilinx._Gtpe2Common         import *
