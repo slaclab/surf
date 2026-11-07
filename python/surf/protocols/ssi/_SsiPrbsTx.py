@@ -128,7 +128,7 @@ class SsiPrbsTx(pr.Device):
 
         self.add(pr.RemoteVariable(
             name         =  "DataCount",
-            description  =  "Cumulative count of PRBS data words transmitted",
+            description  =  "Word count of the packet being transmitted (reads 0 between packets)",
             offset       =   0x0C,
             bitSize      =   32,
             bitOffset    =   0x00,
