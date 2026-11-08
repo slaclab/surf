@@ -229,7 +229,8 @@ begin
       end if;
 
       if r.statReset = '1' then
-         v.genMissed := (others => '0');
+         v.genMissed  := (others => '0');
+         v.frameCount := (others => '0');
       end if;
 
       -- Reset
