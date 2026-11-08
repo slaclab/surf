@@ -210,7 +210,7 @@ class SsiPrbsRateGen(pr.Device):
             name         =  "FrameCount",
             description  =  "Cumulative count of PRBS packets generated",
             offset       =  0x40,
-            bitSize      =  64,
+            bitSize      =  32,
             bitOffset    =  0,
             base         =  pr.UInt,
             pollInterval =  1,
