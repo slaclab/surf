@@ -9,4 +9,4 @@ pytest
 pytest-cov
 pytest-xdist
 cpplint
-vsg
+vsg==3.36.0
