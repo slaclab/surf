@@ -141,6 +141,16 @@ class EyeScanLink:
         """Return the name and value pairs printed on the Status line of the lane."""
         return {}
 
+    def resetGroup(self) -> Any:
+        """Return the key of the RX reset this lane shares with other lanes, or ``None`` when the reset is its own.
+
+        Two selected lanes whose keys compare equal reset each other's GT
+        through their RX reset hooks, so the runner refuses to scan them in
+        parallel. The key is typically the device that owns the reset; its
+        ``path`` names it in the refusal.
+        """
+        return None
+
     def getLoopback(self) -> int:
         """Return the GT loopback mode."""
         raise NotImplementedError
@@ -426,7 +436,7 @@ def addEyeScanArguments(parser: argparse.ArgumentParser) -> argparse.ArgumentPar
         type     = argBool,
         required = False,
         default  = True,
-        help     = "Bathtub, Eye and Margin: scan every selected lane at the same time under one combined progress bar and print the per-lane lines once every lane ended; false scans one lane at a time with a bar per lane. Status and Probe always run one lane at a time",
+        help     = "Bathtub, Eye and Margin: scan every selected lane at the same time under one combined progress bar and print the per-lane lines once every lane ended; false scans one lane at a time with a bar per lane. Status and Probe always run one lane at a time. Refused when two selected lanes share one RX reset (see EyeScanLink.resetGroup)",
     )
 
     return parser
@@ -518,6 +528,19 @@ def prepareEyeScan(args: argparse.Namespace, numLane: int) -> EyeScanPlan:
 
 # Refuse a run a lane cannot take, with reads only, before any lane is written
 def checkLanes(targets, args):
+    # Lanes on one shared RX reset would reset each other's GT mid-scan when run in parallel
+    if args.parallel and args.mode in SCAN_MODES and len(targets) > 1:
+        owners = []
+        for target in targets:
+            group = None if target.link is None else target.link.resetGroup()
+            if group is None:
+                continue
+            for seenGroup, seenLane in owners:
+                if seenGroup == group:
+                    raise ValueError(
+                        f'Invalid lanes {seenLane} and {target.lane}: one RX reset ({getattr(group, "path", group)}) '
+                        'covers both, so they cannot scan in parallel; use --parallel false')
+            owners.append((group, target.lane))
     for target in targets:
         lane, gt = target.lane, target.gt
         if 'EyeScan' not in gt.nodes:
@@ -1327,7 +1350,9 @@ def runEyeScan(
     combined progress bar; the lines of each lane print in lane order once
     every lane ended, and a lane that raises ends ``ERROR`` without stopping
     the others. Otherwise, and always in Status and Probe, the lanes run one at
-    a time.
+    a time. A parallel run of two lanes whose links share one RX reset (the
+    same ``EyeScanLink.resetGroup``) is refused, as their hooks would reset
+    each other's GT mid-scan.
 
     A Ctrl-C aborts every running scan, which restores its registers and saves
     its partial result, and a lane that has not started yet ends ``ABORTED``

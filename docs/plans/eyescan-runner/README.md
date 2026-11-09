@@ -21,8 +21,15 @@ short script that builds its root and names its lanes. Usage is in
   tree. The argument set is the script's minus `--dev`, `--boardType` and
   `--numLane`; the `--lanes` default is every lane and the `--lineRate` default
   is 0, which an application restores with `parser.set_defaults`.
-- Not run on hardware through the new entry point yet; the application scripts
-  are not converted yet.
+- The PGP application scripts are not converted yet. The first hardware run
+  through the new entry point was a JESD lane (below).
+- `surf.protocols.jesd204b.JesdRxEyeScanLink` is the second adapter: one lane
+  of a `JesdRx` core, hook on the shared `ResetGTs` with the lane's `DataValid`
+  bit as ready, tested over emulated GTHE3 and GTHE4 JESD lanes. The shared
+  reset brought `EyeScanLink.resetGroup()` to the runner: two selected lanes
+  with the same key are refused `--parallel true` in `checkLanes`. Status, Probe,
+  Bathtub and Eye ran `OK` on the four GTHE3 lanes of an AMC carrier (8B10B,
+  7.02 Gb/s) from an application script on `runEyeScan`.
 
 ## Decisions
 
@@ -56,13 +63,16 @@ short script that builds its root and names its lanes. Usage is in
 
 - `python/surf/xilinx/eyescan/_EyeScanRunner.py`, `python/surf/xilinx/eyescan/__init__.py`
 - `python/surf/protocols/pgp/_Pgp4EyeScanLink.py`, `python/surf/protocols/pgp/__init__.py`
-- `tests/xilinx/eyescan/test_EyeScanRunner.py`
+- `python/surf/protocols/jesd204b/_JesdRxEyeScanLink.py`, `python/surf/protocols/jesd204b/__init__.py`
+- `tests/xilinx/eyescan/test_EyeScanRunner.py`, `tests/xilinx/eyescan/test_JesdRxEyeScanLink.py`
+  (with `makeJesdLaneRoot` in `gt_new_eye_model.py` and `LaneMemory.attachBits` in `gthe3_eye_model.py`)
 - `python/surf/xilinx/README.md`, `tests/xilinx/eyescan/README.md`
 
 ## Validation
 
 - `PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/xilinx/eyescan`:
-  1292 passed (1257 before, 35 new; Rogue v6.16.0).
+  1292 passed (1257 before, 35 new; Rogue v6.16.0); 1307 with the JESD
+  adapter tests.
 - `flake8 --count python/ scripts/ tests/`: 0.
 
 ## Next steps
