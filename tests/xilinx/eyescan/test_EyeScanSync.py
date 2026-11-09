@@ -10,8 +10,8 @@
 
 # Test methodology:
 # - Sweep: the activation check that the eye-scan sampler is in step with the
-#   data sampler before anything is scanned, on emulated GTHE3 and GTYE4
-#   lanes: a probe at the eye centre whose error counter fills is followed by
+#   data sampler before anything is scanned, on emulated GTHE3, GTHE4,
+#   GTYE3 and GTYE4 lanes: a probe at the eye centre whose error counter fills is followed by
 #   another RX reset, a bounded number of times.
 # - Stimulus: real Rogue transactions against Gthe3EyeModel and Gtye4EyeModel
 #   with the seeded dual-Dirac BER model of the bathtub tests and a callable
@@ -58,6 +58,7 @@ from surf.xilinx.eyescan._EyeScanPort import EyeScanPort  # noqa: E402
 from surf.xilinx.eyescan._EyeScanEngine import SYNC_RESETS  # noqa: E402
 
 from tests.xilinx.eyescan.gthe3_eye_model import ERROR_MAX, SAMPLE_MAX, makeGtRoot  # noqa: E402
+from tests.xilinx.eyescan.gt_new_eye_model import makeGthe4Root, makeGtye3Root  # noqa: E402
 from tests.xilinx.eyescan.gtye4_eye_model import makeGtyRoot  # noqa: E402
 from tests.xilinx.eyescan.test_EyeScanBathtub import Hook, closed, gauss, seedWords  # noqa: E402
 
@@ -68,10 +69,10 @@ WINDOW = 0.3
 OUT_OF_STEP = 'out of step with the data sampler'
 LINK_DOWN = 'link is closed or unlocked'
 
-FAMS = {'GTHE3': makeGtRoot, 'GTYE4': makeGtyRoot}
+FAMS = {'GTHE3': makeGtRoot, 'GTYE4': makeGtyRoot, 'GTYE3': makeGtye3Root, 'GTHE4': makeGthe4Root}
 
 
-@pytest.fixture(params=['GTHE3', 'GTYE4'])
+@pytest.fixture(params=sorted(FAMS))
 def rig(request):
     roots = []
 

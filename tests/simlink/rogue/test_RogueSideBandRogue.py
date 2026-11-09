@@ -209,6 +209,7 @@ def test_RogueSideBandRogue():
             str(RESULT_PATH),
             str(READY_PATH),
         ],
+        stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True,

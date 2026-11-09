@@ -1,6 +1,6 @@
 # surf.xilinx (Python)
 
-PyRogue models and helpers for Xilinx devices: the GT channel and common register maps (`Gthe3Channel`, `Gtye4Channel`, `Gtxe2Channel`, `Gtpe2Channel` and their `*Common` devices), the AXI PCIe PHY, the system monitors, clock manager, GPIO and SPI PS blocks, the triple modular redundancy and SEM helpers, and the statistical eye scan of the GT receivers described below. Register names, offsets and bit fields mirror the RTL and the vendor user guides; see [python/README.md](../../README.md) for the package layout and the PyRogue API style.
+PyRogue models and helpers for Xilinx devices: the GT channel and common register maps (`Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel`, `Gtye4Channel`, `Gtxe2Channel`, `Gtpe2Channel` and their `*Common` devices), the AXI PCIe PHY, the system monitors, clock manager, GPIO and SPI PS blocks, the triple modular redundancy and SEM helpers, and the statistical eye scan of the GT receivers described below. Register names, offsets and bit fields mirror the RTL and the vendor user guides; see [python/README.md](../../README.md) for the package layout and the PyRogue API style.
 
 ## Module map of the eye scan
 
@@ -8,13 +8,14 @@ PyRogue models and helpers for Xilinx devices: the GT channel and common registe
 - `eyescan/_EyeScanEngine.py`: sampler activation, probe, point measurement, bathtub, eye, margin, abort and restore, plus `ScanControl` and the scan time model.
 - `eyescan/_EyeScanPort.py`: role-based register access to the GT DRP words with primed read-modify-write and the snapshot and restore of everything a scan changes.
 - `eyescan/_EyeScanMath.py`: bit counts, the prescale ladder, mask words, Poisson bounds and the Q-scale tail fits.
-- `eyescan/_EyeScanFamilies.py`: the `GTHE3` and `GTYE4` descriptors (register roles, mask arrays, width and divider tables, phase rule, `hwVerified`) and `getFamily`.
+- `eyescan/_EyeScanFamilies.py`: the `GTHE3`, `GTHE4`, `GTYE3` and `GTYE4` descriptors (register roles, mask arrays, width and divider tables, phase rule, `hwVerified`) and `getFamily`.
 - `eyescan/_EyeScanTypes.py`: the typed results, `ScanStatus`, `ResetPolicy` and the eye-scan exceptions.
 - `eyescan/_EyeScanOutput.py`: the result files (npz, CSV, PNG), `loadResult`, the file stem and the surf version lookup.
+- `eyescan/_EyeScanRunner.py`: the command-line runner shared by the application scripts (`addEyeScanArguments`, `prepareEyeScan`, `runEyeScan`, `EyeScanLane`, the `EyeScanLink` adapter base and `RawWordReader`); `surf.protocols.pgp.Pgp4EyeScanLink` is the adapter of a `Pgp4AxiL` lane.
 
 ## GT eye scan
 
-Every `Gthe3Channel` (UltraScale GTH) and `Gtye4Channel` (UltraScale+ GTY) carries an `EyeScan` child. It measures a two-sided horizontal bathtub, a 2D statistical eye or a margin summary on the live link, with one Python call or with the Start and Stop commands of the PyDM GUI.
+Every `Gthe3Channel` (UltraScale GTH), `Gthe4Channel` (UltraScale+ GTH), `Gtye3Channel` (UltraScale GTY) and `Gtye4Channel` (UltraScale+ GTY) carries an `EyeScan` child. It measures a two-sided horizontal bathtub, a 2D statistical eye or a margin summary on the live link, with one Python call or with the Start and Stop commands of the PyDM GUI.
 
 ### Quick start
 
@@ -23,6 +24,8 @@ Register the RX reset of the lane once, after the device tree is built. The scan
 ```python
 gt.EyeScan.setRxReset(reset=laneDev.Ctrl.ResetRx, ready=laneDev.RxStatus.PhyRxActive)
 ```
+
+`surf.protocols.pgp.Pgp4EyeScanLink.connectRxReset(gt, laneDev)` makes the same registration.
 
 Run a bathtub and save it:
 
@@ -36,7 +39,7 @@ From PyDM, set `LineRateGbps`, `Mode` and `OutputDir` on the `EyeScan` node and 
 
 ### The EyeScan child
 
-- Added to every `Gthe3Channel` and `Gtye4Channel`. `Gthe3Channel(eyeScan=False)` and `Gtye4Channel(eyeScan=False)` leave it out.
+- Added to every `Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel` and `Gtye4Channel`; `eyeScan=False` on any of them leaves it out. The GTHE4 and GTYE3 drivers and descriptors were written from UG576 Table C-2 and UG578 Table B-2 and have not been run on hardware (`HwVerified` reads False); see [GT drivers from the user guides](#gt-drivers-from-the-user-guides).
 - Constructing it, starting the root and `ReadAll` do not access the hardware, nothing polls, and none of its variables is in the saved configuration or state YAML (the device is in the `NoConfig` and `NoState` groups and every variable is a `NoConfig` local).
 - `Gtxe2Channel` and `Gtpe2Channel` have no child. `getFamily('GTXE2')` and `getFamily('GTPE2')` raise `EyeScanError` ("eye scan is not supported for this family yet").
 - One scan runs at a time per channel. A synchronous call or a Start that finds another scan running is refused and changes nothing of the running scan.
@@ -183,6 +186,8 @@ The `closed` label is in the `MarginSummary`, the npz `meta` summary, the summar
 |--------|--------|------------|-------|
 | GTHE3 | `Gthe3Channel` | True | KCU1500 lanes 4 to 7 at 6.25 Gb/s. The first one-reset battery failed two repeatability checks on lane 6 and was indeterminate on lane 4; one repeat battery, fixed before the card was touched, passed every check, and the flag rests on it with the failure kept on record |
 | GTYE4 | `Gtye4Channel` | True | Varium C1100 lanes 4 to 7, 6.25 Gb/s battery that passed on its first run: one card, one image, the QSFP CDR most likely disabled, phase rule `sign` kept after an undecided comparison with `rate` at 6.25, 10.3125, 15.46875 and 25 Gb/s |
+| GTHE4 | `Gthe4Channel` | False | written from UG576 v1.7.1 Table C-2; no UltraScale+ GTH card was available, so the descriptor rests on the user guide and the emulated tests only |
+| GTYE3 | `Gtye3Channel` | False | written from UG578 v1.4 Table B-2; no UltraScale GTY card was available, so the descriptor rests on the user guide and the emulated tests only |
 | GTXE2 | `Gtxe2Channel` | not supported | no `EyeScan` child |
 | GTPE2 | `Gtpe2Channel` | not supported | no `EyeScan` child |
 
@@ -227,9 +232,62 @@ Stated as measured on the lanes above:
 
 The design record lists the open risks in full: [docs/plans/eyescan/README.md](../../../docs/plans/eyescan/README.md).
 
+### GT drivers from the user guides
+
+`Gthe4Channel`, `Gthe4Common` (UltraScale+ GTH, UG576 v1.7.1 Tables C-2 and C-1) and `Gtye3Channel`, `Gtye3Common` (UltraScale GTY, UG578 v1.4 Tables B-2 and B-1) were generated row by row from the DRP address maps of the user guides, in the `Gtye4Channel` style: one `RemoteVariable` per table row named after the attribute, 16-bit DRP words behind a 32-bit window (`offset = address << 2`), `RO` for the read-only rows, the two-word `RX_PRBS_ERR_CNT` as one list variable, and the symbolic encodings of the tables as enums. Every field was compared with its table row before the golden lists under `tests/xilinx/eyescan` were captured. Neither family has been run on hardware.
+
+Decisions taken where the user guides leave room:
+
+- GTHE4 eye-scan mask arrays. UG576 Table C-2 lists `ES_SDATA_MASK0` to `ES_SDATA_MASK9` (and the qualifier words) at the GTYE4 addresses, but Table 4-20 note 1 keeps words 5 to 9 for GTY transceivers and the GTH internal datapath stays 40 bits wide (Table 4-46). The `GTHE4` descriptor therefore writes the five low words of each array with the GTHE3 40-bit masks and leaves words 5 to 9 as plain driver registers; the emulated tests check that a scan never writes them. The read-only capture words `es_rdata_byte` and `es_sdata_byte` have five words each (Table 4-21).
+- GTHE4 width pairs and dividers. The GTH tables of UG576 (Tables 4-20 and 4-46) give the GTHE3 width pairs (no `RX_INT_DATAWIDTH` 2) and the dividers 1 to 16, so the `GTHE4` descriptor reuses the GTHE3 tables, and the `RXOUT_DIV` and `TXOUT_DIV` enums stop at 16. The 128 and 160 codes of `RX_DATA_WIDTH` are in the DRP table and stay in the enum, and the eye scan refuses them with the raw values.
+- GTYE3 is the GTYE4 layout: ten mask words per array, 80-bit sdata bus, `RX_INT_DATAWIDTH` up to 2, dividers up to 32 (the /32 divider is refused by the scan like on GTYE4 because the half UI would not fit the offset field).
+- Phase-unification bit 11 of `ES_HORZ_OFFSET`. UG578 Table 4-20 reads UltraScale GTY as 0 at or below 10 Gb/s and 1 above (the `rate` rule). Both hardware-verified families use `sign`, and on the C1100 GTYE4 lanes the two rules did not separate, so `GTYE3` and `GTHE4` keep `sign`; `phaseUnification='rate'` stays available on every scan call.
+- `Gtye3Channel` declares `TX_FIFO_BYP_EN` and `TX_PI_DIV2_MODE_B` with `overlapEn`, because UG578 v1.4 Table B-2 lists both on bit 0 of DRP word 0xFB (a revision 1.4 change of that word).
+- The GTHE4 `RX_PROGDIV_CFG` and `TX_PROGDIV_CFG` enums decode the binary pairs of Table C-2 to the same words as `Gtye4Channel`; the GTYE3 ones follow the UltraScale encodings of Table B-2, which differ for the 5, 16.5, 33 and 66 dividers.
+
+When one of these families reaches hardware, run the eye-scan battery of the [design record](../../../docs/plans/eyescan/README.md) before setting `hwVerified`.
+
+### Command-line runner
+
+`surf.xilinx.eyescan` carries the command-line front end of the scan, so an application script only builds its root and names its lanes. The runner adds the scan options (`--lanes`, `--mode` with `Status`, `Probe`, `Bathtub`, `Eye` and `Margin`, the floors, steps, ranges, `--loopback`, `--lineRate`, `--outDir`, `--tag` and the rest), checks them and the lanes before any lane is written, runs the lanes, writes one run folder `eyescan_<yyyymmdd_hhmmss>[_<tag>]` per invocation with the per-lane npz, CSV and PNG files, prints the per-lane summaries and a cross-lane table, and returns 0, or 2 when a lane failed, a save failed or a stop skipped lanes. `--lanes` takes single lanes and ranges separated by commas, for example `4-7`, `0,1,3,4` or `0,4-7`. With `--parallel true` (the default) and more than one lane, Bathtub, Eye and Margin scan every lane at the same time, one thread per lane under one combined progress bar, print the lines of each lane in lane order once every lane ended, and a lane that raises ends `ERROR` without stopping the others; the lanes are independent (each `EyeScan` holds its own scan lock and engine, and the RX reset hook of a lane resets only its own RX datapath), so the run takes about as long as its slowest lane. `--parallel false`, Status and Probe run the lanes one at a time with a bar per lane. Ctrl-C aborts every running lane (its registers are restored and its partial result saved), ends a lane that has not started yet as `ABORTED` without a write, and ends the run with exit code 2; a second Ctrl-C forces the exit.
+
+The application keeps its device options (`--dev`, the board type, the lane count) and the root:
+
+```python
+import argparse
+import sys
+
+import surf.protocols.pgp as pgp
+import surf.xilinx.eyescan as es
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--dev', default='/dev/datadev_0')
+parser.add_argument('--numLane', type=int, default=8)
+es.addEyeScanArguments(parser)
+parser.set_defaults(lanes='4-7', lineRate=6.25)   # defaults of this image
+args = parser.parse_args()
+
+# Checks the arguments and creates the run folder before the hardware is touched
+plan = es.prepareEyeScan(args, args.numLane)
+
+# Idle root: no polling, no read at start, no traffic
+with MyRoot(dev=args.dev, numLane=args.numLane, pollEn=False, initRead=False) as root:
+    lanes = [es.EyeScanLane(lane, root.PgpGtDrp[lane], pgp.Pgp4EyeScanLink(root.Lane[lane]))
+             for lane in range(args.numLane)]
+    code = es.runEyeScan(args, plan, lanes, version=root.AxiPcieCore.AxiVersion)
+sys.exit(code)
+```
+
+- `EyeScanLane(lane, gt, link)` pairs a lane number with its GT channel and an optional link adapter. Raw words are read through the GT and link devices themselves, so lanes behind different memory maps can run in one call.
+- `EyeScanLink` is the adapter base: `counters()` and `rawWords()` are recorded before and after every run (a `LinkReady` counter that reads False is warned about), `statusFields()` are printed on the Status line, `resetGroup()` names the RX reset the lane shares with other lanes (`None` when the reset is its own; two selected lanes with the same key are refused `--parallel true`, since their hooks would reset each other's GT mid-scan), and `getLoopback` and `setLoopback` serve `--loopback` when `hasLoopback` is True. A lane without an adapter still scans; `--loopback` is then refused.
+- `Pgp4EyeScanLink(pgp)` records `LinkReady`, `PhyRxInitCnt` and `LinkDownCnt`, the raw `Ctrl` word, `PhyRxActive` and `LinkReady` on the Status line, and drives `Ctrl.Loopback`.
+- `JesdRxEyeScanLink(jesdRx, lane)` (`surf.protocols.jesd204b`) is the adapter of one lane of a `JesdRx` core: it records the lane's `DataValid` bit as `LinkReady`, `StatusValidCnt`, `DisparityErr`, `NotInTableErr`, `AlignErr` and `PositionErr` (all ints), the raw `Enable` word and the control word at 0x10 that holds `ResetGTs` (named `Ctrl`), and `GTReady`, `DataValid`, `nSync` and `CommaDetected` on the Status line; it has no loopback, and a lane outside the core is refused with `ValueError`. `JesdRxEyeScanLink.connectRxReset(gt, jesdRx, lane)` registers `jesdRx.ResetGTs` and the lane's `DataValid` bit as the RX reset hook with `settle=1.0` and `timeout=10.0` instead of the `setRxReset` defaults, because the lane re-synchronizes through the ILAS after the reset. `ResetGTs` resets every GT of the link, in the AMC carrier wrappers the TX GTs (DAC link) included, and the hook waits for the RX lane only: `resetGroup()` returns the `JesdRx` device, so the runner refuses `--parallel true` for two lanes of one core (`--parallel false` scans them one at a time), and the application checks or re-runs the bring-up of the TX side after the scan, the runner does not.
+- `version` (an `AxiVersion`) is printed and recorded as card information when given; `extraMeta` adds application fields to the metadata of every lane (saved under `application`).
+- `--lineRate` above 0 is written to `LineRateGbps` of every selected lane; 0 keeps the value the application set.
+
 ### Tests
 
-The tests run real Rogue memory transactions against emulated GTHE3 and GTYE4 DRP memories and need no FPGA. See [tests/xilinx/eyescan/README.md](../../../tests/xilinx/eyescan/README.md) for what each file covers. From the surf root, with Rogue and the surf Python package on `PYTHONPATH`, the CI command is
+The tests run real Rogue memory transactions against emulated GTHE3, GTHE4, GTYE3 and GTYE4 DRP memories and need no FPGA. See [tests/xilinx/eyescan/README.md](../../../tests/xilinx/eyescan/README.md) for what each file covers. From the surf root, with Rogue and the surf Python package on `PYTHONPATH`, the CI command is
 
 ```sh
 PYTHONPATH="$PWD/python" python -m pytest -q -n 0 tests/xilinx/eyescan
@@ -243,9 +301,9 @@ PYTHONPATH="$PWD/python" python -m pytest -q --noconftest tests/xilinx/eyescan
 
 The lint command of CI is `flake8 --count python/ scripts/ tests/`.
 
-Hardware runs use `software/scripts/EyeScan.py` of pgp-pcie-apps, which runs the `Status`, `Probe`, `Bathtub`, `Eye` and `Margin` modes on selected lanes and writes one run folder per invocation with the per-lane npz, CSV and PNG files:
+Hardware runs use an application script built on the [command-line runner](#command-line-runner), for example `software/scripts/PgpEyeScan.py` of pgp-pcie-apps:
 
 ```sh
-python software/scripts/EyeScan.py --lanes 4-7 --mode Eye --outDir <dir>
-python software/scripts/EyeScan.py --lanes 4-7 --mode Margin --outDir <dir>
+python software/scripts/PgpEyeScan.py --lanes 4-7 --mode Eye --outDir <dir>
+python software/scripts/PgpEyeScan.py --lanes 4-7 --mode Margin --outDir <dir>
 ```
