@@ -1,8 +1,8 @@
 <map id="Debouncer" name="Debouncer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,152,105,177"/>
-<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="55,45,49,79,51,119,58,151,53,152,46,119,44,78,50,44"/>
-<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="59,79,133,104"/>
-<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="73,42,92,77,88,80,69,44"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="86,117,67,153,62,151,81,115"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="12,157,104,184"/>
+<area shape="rect" id="Node000002" href="$classSynchronizer.html" title=" " alt="" coords="5,5,111,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="52,46,49,81,49,108,57,156,52,156,43,109,43,81,50,51"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="59,81,132,109"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="72,44,91,80,86,81,71,49"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="84,121,67,158,62,155,79,124"/>
 </map>

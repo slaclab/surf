@@ -1,7 +1,7 @@
 <map id="AxiLiteWriteFilter" name="AxiLiteWriteFilter">
-<area shape="rect" id="Node000001" title=" " alt="" coords="146,5,281,31"/>
-<area shape="rect" id="Node000002" href="$classAxiLiteWriteFilterIpIntegrator.html" title=" " alt="" coords="5,79,216,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,41,129,81,126,76,184,36"/>
-<area shape="rect" id="Node000003" href="$classAxiLiteWriteFilterTb.html" title=" " alt="" coords="241,79,391,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="243,36,301,76,298,81,240,41"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="145,5,279,33"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteWriteFilterIpIntegrator.html" title=" " alt="" coords="5,81,216,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="184,42,130,83,127,78,179,43"/>
+<area shape="rect" id="Node000003" href="$classAxiLiteWriteFilterTb.html" title=" " alt="" coords="239,81,390,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="244,40,299,81,294,80,242,45"/>
 </map>

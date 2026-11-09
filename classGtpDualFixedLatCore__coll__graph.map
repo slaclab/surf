@@ -1,13 +1,13 @@
 <map id="GtpDualFixedLatCore" name="GtpDualFixedLatCore">
-<area shape="rect" id="Node000001" title=" " alt="" coords="201,152,359,177"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,79,96,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="108,106,245,149,243,154,106,111"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
-<area shape="rect" id="Node000004" href="$classGtpRxCommaAligner.html" title=" " alt="" coords="121,79,279,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="225,111,269,150,265,154,221,115"/>
-<area shape="rect" id="Node000005" href="$classDecoder8b10b.html" title=" " alt="" coords="303,79,419,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="340,115,295,154,292,150,336,111"/>
-<area shape="rect" id="Node000006" href="$classGtpTxPhaseAligner.html" title=" " alt="" coords="444,79,591,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="467,110,319,154,318,149,465,105"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="199,157,357,184"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,81,95,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="110,111,241,154,237,158,109,116"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,111,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="59,46,61,81,55,80,57,51"/>
+<area shape="rect" id="Node000004" href="$classGtpRxCommaAligner.html" title=" " alt="" coords="119,81,277,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="225,117,266,157,261,156,223,122"/>
+<area shape="rect" id="Node000005" href="$classDecoder8b10b.html" title=" " alt="" coords="302,81,417,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="336,118,294,159,291,154,331,120"/>
+<area shape="rect" id="Node000006" href="$classGtpTxPhaseAligner.html" title=" " alt="" coords="441,81,587,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="460,113,321,159,320,154,455,114"/>
 </map>

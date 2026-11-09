@@ -22,7 +22,7 @@ var searchData=
   ['clinkuartthrottle_19',['ClinkUartThrottle',['../classClinkUartThrottle.html',1,'']]],
   ['clkoutbufdiff_20',['ClkOutBufDiff',['../classClkOutBufDiff.html',1,'']]],
   ['clkoutbufsingle_21',['ClkOutBufSingle',['../classClkOutBufSingle.html',1,'']]],
-  ['clkrst_22',['clkrst',['../classClkRst.html',1,'ClkRst'],['../classClkRst_1_1ClkRst.html',1,'ClkRst.ClkRst']]],
+  ['clkrst_22',['ClkRst',['../classClkRst.html',1,'ClkRst'],['../classClkRst_1_1ClkRst.html',1,'ClkRst.ClkRst']]],
   ['clockdivider_23',['ClockDivider',['../classClockDivider.html',1,'']]],
   ['clockmanager7_24',['ClockManager7',['../classClockManager7.html',1,'']]],
   ['clockmanager7pkg_25',['ClockManager7Pkg',['../classClockManager7Pkg.html',1,'']]],

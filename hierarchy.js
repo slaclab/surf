@@ -1,6 +1,6 @@
 var hierarchy =
 [
-    [ "AxisJtagDebugBridgeStub", "classAxisJtagDebugBridge_1_1AxisJtagDebugBridgeStub.html", [
+    [ "AxisJtagDebugBridge::AxisJtagDebugBridgeStub", "classAxisJtagDebugBridge_1_1AxisJtagDebugBridgeStub.html", [
       [ "Ad9249Group", "classAd9249Group.html", [
         [ "ClkRst", "classClkRst.html", null ],
         [ "ClockManager7", "classClockManager7.html", [

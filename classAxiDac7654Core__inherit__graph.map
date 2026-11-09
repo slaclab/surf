@@ -1,7 +1,7 @@
 <map id="AxiDac7654Core" name="AxiDac7654Core">
-<area shape="rect" id="Node000001" title=" " alt="" coords="76,79,207,104"/>
-<area shape="rect" id="Node000002" href="$classAxiDac7654Reg.html" title=" " alt="" coords="5,5,131,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,38,131,77,128,80,88,42"/>
-<area shape="rect" id="Node000003" href="$classAxiDac7654Spi.html" title=" " alt="" coords="155,5,275,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="195,42,155,80,151,77,191,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="75,81,204,109"/>
+<area shape="rect" id="Node000002" href="$classAxiDac7654Reg.html" title=" " alt="" coords="5,5,130,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="92,42,129,80,124,81,90,47"/>
+<area shape="rect" id="Node000003" href="$classAxiDac7654Spi.html" title=" " alt="" coords="153,5,272,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="191,43,154,83,151,78,186,45"/>
 </map>

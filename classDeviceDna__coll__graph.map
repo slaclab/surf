@@ -1,15 +1,15 @@
 <map id="DeviceDna" name="DeviceDna">
-<area shape="rect" id="Node000001" title=" " alt="" coords="116,225,209,251"/>
-<area shape="rect" id="Node000002" href="$classDeviceDna7Series.html" title=" " alt="" coords="5,152,147,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,184,150,223,147,227,99,188"/>
-<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="59,79,133,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="92,118,82,153,77,151,86,117"/>
-<area shape="rect" id="Node000006" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="171,152,331,177"/>
-<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="134,107,226,149,224,154,132,112"/>
-<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="43,5,149,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="99,44,99,79,93,79,93,44"/>
-<area shape="rect" id="Node000005" href="$classSynchronizerVector.html" title=" " alt="" coords="167,79,313,104"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="202,112,104,154,102,149,200,107"/>
-<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="246,117,252,151,246,152,241,118"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="228,188,179,227,175,223,224,184"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="116,232,208,260"/>
+<area shape="rect" id="Node000002" href="$classDeviceDna7Series.html" title=" " alt="" coords="5,157,146,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="103,192,149,231,144,232,101,197"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="59,81,132,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="89,121,82,157,77,155,87,126"/>
+<area shape="rect" id="Node000006" href="$classDeviceDnaUltraScale.html" title=" " alt="" coords="169,157,328,184"/>
+<area shape="poly" id="edge6_Node000006_Node000003" title=" " alt="" coords="137,113,224,155,219,157,136,118"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="43,5,148,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="96,46,98,81,93,80,95,51"/>
+<area shape="rect" id="Node000005" href="$classSynchronizerVector.html" title=" " alt="" coords="165,81,311,109"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="194,118,106,159,103,154,197,113"/>
+<area shape="poly" id="edge7_Node000006_Node000005" title=" " alt="" coords="244,122,249,157,244,155,241,126"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="224,194,179,234,176,230,219,195"/>
 </map>

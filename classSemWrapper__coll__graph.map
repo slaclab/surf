@@ -1,11 +1,11 @@
 <map id="SemWrapper" name="SemWrapper">
-<area shape="rect" id="Node000001" title=" " alt="" coords="108,225,215,251"/>
-<area shape="rect" id="Node000002" href="$classIprog7SeriesCore.html" title=" " alt="" coords="95,152,228,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,191,164,225,159,225,159,191"/>
-<area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="5,79,152,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="104,111,150,150,146,154,101,115"/>
-<area shape="rect" id="Node000004" href="$classSynchronizerEdge.html" title=" " alt="" coords="176,79,315,104"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="223,115,177,154,173,150,220,111"/>
-<area shape="rect" id="Node000005" href="$classSynchronizer.html" title=" " alt="" coords="192,5,299,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="248,44,248,79,243,79,243,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="108,232,214,260"/>
+<area shape="rect" id="Node000002" href="$classIprog7SeriesCore.html" title=" " alt="" coords="95,157,227,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="163,198,163,233,159,231,159,202"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerVector.html" title=" " alt="" coords="5,81,152,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="105,117,149,156,144,157,104,122"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,81,312,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="220,118,177,158,174,154,216,121"/>
+<area shape="rect" id="Node000005" href="$classSynchronizer.html" title=" " alt="" coords="191,5,296,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="245,46,246,82,241,80,243,51"/>
 </map>

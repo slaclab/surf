@@ -1,15 +1,15 @@
 <map id="SaciSlave" name="SaciSlave">
-<area shape="rect" id="Node000001" title=" " alt="" coords="337,5,423,31"/>
-<area shape="rect" id="Node000002" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="140,79,279,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="341,38,238,81,236,76,339,33"/>
-<area shape="rect" id="Node000006" href="$classAxiLiteSaciMasterTb.html" title=" " alt="" coords="303,79,457,104"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="383,44,383,79,377,79,377,44"/>
-<area shape="rect" id="Node000007" href="$classSaciSlaveWrapper.html" title=" " alt="" coords="482,79,622,104"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="421,33,525,76,523,81,419,38"/>
-<area shape="rect" id="Node000003" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="33,152,188,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="184,114,128,154,125,150,181,110"/>
-<area shape="rect" id="Node000005" href="$classSaciAxiLiteMasterWrapper.html" title=" " alt="" coords="212,152,407,177"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="238,110,295,150,291,154,235,114"/>
-<area shape="rect" id="Node000004" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="5,225,216,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="113,191,113,225,108,225,108,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="337,5,422,33"/>
+<area shape="rect" id="Node000002" href="$classSaciAxiLiteMaster.html" title=" " alt="" coords="140,81,278,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,41,240,83,238,78,337,38"/>
+<area shape="rect" id="Node000006" href="$classAxiLiteSaciMasterTb.html" title=" " alt="" coords="302,81,456,109"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="381,47,382,82,377,79,378,51"/>
+<area shape="rect" id="Node000007" href="$classSaciSlaveWrapper.html" title=" " alt="" coords="480,81,620,109"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="424,37,522,80,517,81,424,42"/>
+<area shape="rect" id="Node000003" href="$classSaciAxiLiteMasterTb.html" title=" " alt="" coords="33,157,187,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="177,120,129,158,126,154,181,116"/>
+<area shape="rect" id="Node000005" href="$classSaciAxiLiteMasterWrapper.html" title=" " alt="" coords="211,157,404,184"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="239,115,293,156,287,156,238,121"/>
+<area shape="rect" id="Node000004" href="$classSaciAxiLiteMasterTbWrapper.html" title=" " alt="" coords="5,232,215,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="112,198,112,233,108,231,108,202"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="Iprog7SeriesCore" name="Iprog7SeriesCore">
-<area shape="rect" id="Node000001" title=" " alt="" coords="95,152,228,177"/>
-<area shape="rect" id="Node000002" href="$classSynchronizerVector.html" title=" " alt="" coords="5,79,152,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="104,111,150,150,146,154,101,115"/>
-<area shape="rect" id="Node000003" href="$classSynchronizerEdge.html" title=" " alt="" coords="176,79,315,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="223,115,177,154,173,150,220,111"/>
-<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="192,5,299,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="248,44,248,79,243,79,243,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="95,157,227,184"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerVector.html" title=" " alt="" coords="5,81,152,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,117,149,156,144,157,104,122"/>
+<area shape="rect" id="Node000003" href="$classSynchronizerEdge.html" title=" " alt="" coords="175,81,312,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="220,118,177,158,174,154,215,120"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="191,5,296,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="245,47,246,82,241,79,242,51"/>
 </map>

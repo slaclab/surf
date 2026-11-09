@@ -1,9 +1,9 @@
 <map id="DspAddSubTb" name="DspAddSubTb">
-<area shape="rect" id="Node000001" title=" " alt="" coords="33,152,145,177"/>
-<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,79,69,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,114,83,150,79,153,52,117"/>
-<area shape="rect" id="Node000003" href="$classDspAddSub.html" title=" " alt="" coords="93,79,189,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="127,117,100,153,96,150,123,114"/>
-<area shape="rect" id="Node000004" href="$classFifoOutputPipeline.html" title=" " alt="" coords="70,5,213,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="144,44,144,79,139,79,139,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="33,157,145,184"/>
+<area shape="rect" id="Node000002" href="$classClkRst.html" title=" " alt="" coords="5,81,69,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="56,119,82,156,77,157,54,124"/>
+<area shape="rect" id="Node000003" href="$classDspAddSub.html" title=" " alt="" coords="93,81,189,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="125,120,100,158,96,154,121,123"/>
+<area shape="rect" id="Node000004" href="$classFifoOutputPipeline.html" title=" " alt="" coords="70,5,212,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="142,47,144,81,138,80,140,51"/>
 </map>

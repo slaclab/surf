@@ -1,11 +1,11 @@
 <map id="TenGigEthGtyUltraScaleRst" name="TenGigEthGtyUltraScaleRst">
-<area shape="rect" id="Node000001" title=" " alt="" coords="22,152,221,177"/>
-<area shape="rect" id="Node000004" href="$classTenGigEthGtyUltraScale.html" title=" " alt="" coords="33,225,210,251"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="124,191,124,225,119,225,119,191"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="84,79,159,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="124,118,124,152,119,152,119,118"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="68,5,175,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="124,44,124,79,119,79,119,44"/>
-<area shape="rect" id="Node000005" href="$classTenGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="5,299,237,324"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="124,264,124,299,119,299,119,264"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="22,157,220,184"/>
+<area shape="rect" id="Node000004" href="$classTenGigEthGtyUltraScale.html" title=" " alt="" coords="33,232,209,260"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="122,198,124,233,118,231,120,202"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="84,81,158,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="122,122,124,157,118,156,120,127"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="68,5,174,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="122,46,124,81,118,80,120,51"/>
+<area shape="rect" id="Node000005" href="$classTenGigEthGtyUltraScaleWrapper.html" title=" " alt="" coords="5,308,237,336"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="123,274,123,309,119,306,119,278"/>
 </map>

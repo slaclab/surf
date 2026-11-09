@@ -1,25 +1,25 @@
 <map id="DeviceDna7Series" name="DeviceDna7Series">
-<area shape="rect" id="Node000001" title=" " alt="" coords="355,104,496,129"/>
-<area shape="rect" id="Node000005" href="$classDeviceDna.html" title=" " alt="" coords="544,104,637,129"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="510,114,544,114,544,119,510,119"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="196,79,271,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="285,95,355,105,354,110,284,101"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,79,112,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,89,196,89,196,94,125,94"/>
-<area shape="rect" id="Node000004" href="$classSynchronizerVector.html" title=" " alt="" coords="160,128,307,153"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="320,127,354,123,355,128,321,132"/>
-<area shape="rect" id="Node000006" href="$classAxiVersion.html" title=" " alt="" coords="685,104,776,129"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="651,114,685,114,685,119,651,119"/>
-<area shape="rect" id="Node000007" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="841,5,1008,31"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="752,92,784,64,823,40,853,28,854,33,825,44,787,69,756,96"/>
-<area shape="rect" id="Node000008" href="$classAxiVersionTb.html" title=" " alt="" coords="871,55,978,80"/>
-<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="789,99,823,90,873,77,874,83,825,95,790,104"/>
-<area shape="rect" id="Node000009" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="844,104,1005,129"/>
-<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="790,114,844,114,844,119,790,119"/>
-<area shape="rect" id="Node000010" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="864,153,985,179"/>
-<area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="790,130,825,139,870,151,868,156,823,145,789,135"/>
-<area shape="rect" id="Node000011" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="824,203,1025,228"/>
-<area shape="poly" id="edge10_Node000006_Node000011" title=" " alt="" coords="756,137,787,165,825,189,854,200,853,205,823,194,784,169,752,141"/>
-<area shape="rect" id="Node000012" href="$classSugoiTopTb.html" title=" " alt="" coords="1073,203,1169,228"/>
-<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1039,213,1073,213,1073,218,1039,218"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="353,109,493,137"/>
+<area shape="rect" id="Node000005" href="$classDeviceDna.html" title=" " alt="" coords="541,109,634,137"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="509,121,544,123,538,123,509,126"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="195,83,268,110"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="284,101,355,113,350,114,284,106"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,83,111,110"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,94,197,95,192,98,127,99"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerVector.html" title=" " alt="" coords="159,135,305,162"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="320,134,355,132,350,133,321,139"/>
+<area shape="rect" id="Node000006" href="$classAxiVersion.html" title=" " alt="" coords="682,109,772,137"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="649,121,684,123,679,123,649,126"/>
+<area shape="rect" id="Node000007" href="$classAxiVersionIpIntegrator.html" title=" " alt="" coords="837,5,1003,33"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="751,96,781,69,819,43,847,34,852,33,821,48,784,73,753,101"/>
+<area shape="rect" id="Node000008" href="$classAxiVersionTb.html" title=" " alt="" coords="867,57,973,85"/>
+<area shape="poly" id="edge7_Node000006_Node000008" title=" " alt="" coords="787,104,819,95,864,86,869,85,821,100,788,109"/>
+<area shape="rect" id="Node000009" href="$classAxiLiteIpBusBridgeTb.html" title=" " alt="" coords="840,109,1000,137"/>
+<area shape="poly" id="edge8_Node000006_Node000009" title=" " alt="" coords="787,121,842,123,837,123,788,126"/>
+<area shape="rect" id="Node000010" href="$classSrpV3AxiLiteTb.html" title=" " alt="" coords="860,161,980,189"/>
+<area shape="poly" id="edge9_Node000006_Node000010" title=" " alt="" coords="787,137,821,146,868,161,862,161,819,151,787,142"/>
+<area shape="rect" id="Node000011" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="820,213,1020,241"/>
+<area shape="poly" id="edge10_Node000006_Node000011" title=" " alt="" coords="753,146,784,174,821,198,852,213,847,212,819,203,781,178,751,151"/>
+<area shape="rect" id="Node000012" href="$classSugoiTopTb.html" title=" " alt="" coords="1068,213,1164,241"/>
+<area shape="poly" id="edge11_Node000011_Node000012" title=" " alt="" coords="1036,225,1071,227,1065,227,1036,230"/>
 </map>

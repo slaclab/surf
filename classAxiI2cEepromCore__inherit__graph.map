@@ -1,13 +1,13 @@
 <map id="AxiI2cEepromCore" name="AxiI2cEepromCore">
-<area shape="rect" id="Node000001" title=" " alt="" coords="13,299,156,324"/>
-<area shape="rect" id="Node000006" href="$classAxiI2cEeprom.html" title=" " alt="" coords="29,372,141,397"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="87,338,87,372,82,372,82,338"/>
-<area shape="rect" id="Node000002" href="$classI2cRegMaster.html" title=" " alt="" coords="29,225,140,251"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="87,264,87,299,82,299,82,264"/>
-<area shape="rect" id="Node000003" href="$classI2cMaster.html" title=" " alt="" coords="41,152,128,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="87,191,87,225,82,225,82,191"/>
-<area shape="rect" id="Node000004" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="5,79,164,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="87,118,87,152,82,152,82,118"/>
-<area shape="rect" id="Node000005" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="11,5,158,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="87,44,87,79,82,79,82,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="13,308,155,336"/>
+<area shape="rect" id="Node000006" href="$classAxiI2cEeprom.html" title=" " alt="" coords="28,384,140,411"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="86,350,87,384,81,382,82,353"/>
+<area shape="rect" id="Node000002" href="$classI2cRegMaster.html" title=" " alt="" coords="29,232,139,260"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="85,273,87,308,81,307,83,278"/>
+<area shape="rect" id="Node000003" href="$classI2cMaster.html" title=" " alt="" coords="41,157,127,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="85,198,87,232,81,231,83,203"/>
+<area shape="rect" id="Node000004" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="5,81,163,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="84,122,87,157,81,156,84,127"/>
+<area shape="rect" id="Node000005" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="11,5,157,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="84,46,87,81,81,80,84,51"/>
 </map>

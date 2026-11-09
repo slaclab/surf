@@ -1,5 +1,5 @@
 <map id="RogueSimLinkMemoryRelaunchHarness" name="RogueSimLinkMemoryRelaunchHarness">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,235,119"/>
-<area shape="rect" id="Node000002" href="$classRogueTcpMemory.html" title=" " alt="" coords="51,5,189,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,44,123,79,117,79,117,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,234,126"/>
+<area shape="rect" id="Node000002" href="$classRogueTcpMemory.html" title=" " alt="" coords="51,5,188,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="121,47,122,81,117,79,118,51"/>
 </map>

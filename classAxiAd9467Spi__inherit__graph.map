@@ -1,7 +1,7 @@
 <map id="AxiAd9467Spi" name="AxiAd9467Spi">
-<area shape="rect" id="Node000001" title=" " alt="" coords="11,79,123,104"/>
-<area shape="rect" id="Node000003" href="$classAxiAd9467Core.html" title=" " alt="" coords="5,152,128,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="69,118,69,152,64,152,64,118"/>
-<area shape="rect" id="Node000002" href="$classIoBufWrapper.html" title=" " alt="" coords="11,5,122,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="69,44,69,79,64,79,64,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="10,81,122,109"/>
+<area shape="rect" id="Node000003" href="$classAxiAd9467Core.html" title=" " alt="" coords="5,157,127,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="68,123,69,157,63,155,64,126"/>
+<area shape="rect" id="Node000002" href="$classIoBufWrapper.html" title=" " alt="" coords="11,5,121,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="67,46,69,81,63,80,65,51"/>
 </map>

@@ -1,21 +1,21 @@
 <map id="Si5394I2c" name="Si5394I2c">
-<area shape="rect" id="Node000001" title=" " alt="" coords="225,372,310,397"/>
-<area shape="rect" id="Node000002" href="$classSi5394I2cCore.html" title=" " alt="" coords="210,299,325,324"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="270,338,270,372,265,372,265,338"/>
-<area shape="rect" id="Node000003" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,225,188,251"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="138,253,240,296,238,301,136,258"/>
-<area shape="rect" id="Node000004" href="$classI2cRegMaster.html" title=" " alt="" coords="212,225,323,251"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="270,264,270,299,265,299,265,264"/>
-<area shape="rect" id="Node000005" href="$classI2cMaster.html" title=" " alt="" coords="221,152,308,177"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="268,191,270,225,264,225,263,191"/>
-<area shape="rect" id="Node000006" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="177,79,336,104"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="262,117,266,152,261,152,257,118"/>
-<area shape="rect" id="Node000007" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="183,5,330,31"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="259,44,259,79,254,79,254,44"/>
-<area shape="rect" id="Node000008" href="$classPwrUpRst.html" title=" " alt="" coords="365,225,450,251"/>
-<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="374,259,291,301,289,296,371,254"/>
-<area shape="rect" id="Node000009" href="$classRstSync.html" title=" " alt="" coords="374,152,449,177"/>
-<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="413,191,411,225,405,225,407,191"/>
-<area shape="rect" id="Node000010" href="$classSynchronizer.html" title=" " alt="" coords="361,79,467,104"/>
-<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="416,118,414,152,409,152,410,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="225,384,309,411"/>
+<area shape="rect" id="Node000002" href="$classSi5394I2cCore.html" title=" " alt="" coords="210,308,324,336"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="269,350,269,385,265,382,265,353"/>
+<area shape="rect" id="Node000003" href="$classSimpleDualPortRamXpm.html" title=" " alt="" coords="5,232,188,260"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="141,264,239,306,235,309,141,269"/>
+<area shape="rect" id="Node000004" href="$classI2cRegMaster.html" title=" " alt="" coords="212,232,322,260"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="269,274,270,309,265,306,266,278"/>
+<area shape="rect" id="Node000005" href="$classI2cMaster.html" title=" " alt="" coords="222,157,307,184"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="267,198,269,233,264,231,264,202"/>
+<area shape="rect" id="Node000006" href="$classi2c__master__byte__ctrl.html" title=" " alt="" coords="178,81,335,109"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="261,122,266,157,261,155,259,127"/>
+<area shape="rect" id="Node000007" href="$classi2c__master__bit__ctrl.html" title=" " alt="" coords="184,5,329,33"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="257,46,259,81,254,80,256,51"/>
+<area shape="rect" id="Node000008" href="$classPwrUpRst.html" title=" " alt="" coords="364,232,448,260"/>
+<area shape="poly" id="edge7_Node000002_Node000008" title=" " alt="" coords="370,267,293,310,291,305,365,269"/>
+<area shape="rect" id="Node000009" href="$classRstSync.html" title=" " alt="" coords="373,157,446,184"/>
+<area shape="poly" id="edge8_Node000008_Node000009" title=" " alt="" coords="410,198,409,233,404,231,407,202"/>
+<area shape="rect" id="Node000010" href="$classSynchronizer.html" title=" " alt="" coords="360,81,465,109"/>
+<area shape="poly" id="edge9_Node000009_Node000010" title=" " alt="" coords="413,122,413,157,408,155,410,127"/>
 </map>

@@ -1,19 +1,19 @@
 <map id="SinCosTaylor" name="SinCosTaylor">
-<area shape="rect" id="Node000001" title=" " alt="" coords="122,299,227,324"/>
-<area shape="rect" id="Node000002" href="$classSlvFixedDelay.html" title=" " alt="" coords="59,152,173,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="90,188,75,202,64,218,58,234,62,249,75,265,92,278,129,296,127,301,89,283,71,269,58,252,53,233,59,215,71,198,86,184"/>
-<area shape="rect" id="Node000006" href="$classSinCosLut.html" title=" " alt="" coords="73,225,159,251"/>
-<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="119,191,119,225,113,225,113,191"/>
-<area shape="rect" id="Node000007" href="$classcfixedDelay.html" title=" " alt="" coords="184,225,283,251"/>
-<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="148,182,216,223,213,227,145,187"/>
-<area shape="rect" id="Node000003" href="$classSrl16Delay.html" title=" " alt="" coords="5,79,99,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="74,113,108,150,104,154,70,116"/>
-<area shape="rect" id="Node000004" href="$classLutFixedDelay.html" title=" " alt="" coords="123,79,237,104"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="162,116,128,154,124,150,158,113"/>
-<area shape="rect" id="Node000005" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="91,5,269,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="183,44,183,79,177,79,177,44"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="136,260,167,297,163,300,132,263"/>
-<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="217,263,186,300,182,297,213,260"/>
-<area shape="rect" id="Node000008" href="$classsfixedMult.html" title=" " alt="" coords="307,225,397,251"/>
-<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="312,258,205,301,203,296,310,253"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="119,308,224,336"/>
+<area shape="rect" id="Node000002" href="$classSlvFixedDelay.html" title=" " alt="" coords="58,157,171,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,197,73,211,62,227,58,243,62,259,74,274,89,287,126,307,121,308,86,291,70,278,57,261,52,243,57,225,68,208,86,193"/>
+<area shape="rect" id="Node000006" href="$classSinCosLut.html" title=" " alt="" coords="72,232,157,260"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="115,198,117,233,112,231,113,203"/>
+<area shape="rect" id="Node000007" href="$classcfixedDelay.html" title=" " alt="" coords="182,232,279,260"/>
+<area shape="poly" id="edge8_Node000007_Node000002" title=" " alt="" coords="148,190,212,231,207,233,147,196"/>
+<area shape="rect" id="Node000003" href="$classSrl16Delay.html" title=" " alt="" coords="5,81,98,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="73,118,106,155,100,157,73,123"/>
+<area shape="rect" id="Node000004" href="$classLutFixedDelay.html" title=" " alt="" coords="122,81,235,109"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="155,123,128,158,123,155,158,119"/>
+<area shape="rect" id="Node000005" href="$classSinglePortRamPrimitive.html" title=" " alt="" coords="90,5,266,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="179,46,181,81,176,80,177,51"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="135,270,164,308,159,307,133,275"/>
+<area shape="poly" id="edge7_Node000001_Node000007" title=" " alt="" coords="213,271,184,310,180,305,208,273"/>
+<area shape="rect" id="Node000008" href="$classsfixedMult.html" title=" " alt="" coords="303,232,392,260"/>
+<area shape="poly" id="edge9_Node000001_Node000008" title=" " alt="" coords="305,266,204,310,202,305,299,267"/>
 </map>

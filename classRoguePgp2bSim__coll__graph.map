@@ -1,23 +1,23 @@
 <map id="RoguePgp2bSim" name="RoguePgp2bSim">
-<area shape="rect" id="Node000001" title=" " alt="" coords="624,167,752,192"/>
-<area shape="rect" id="Node000002" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="411,129,576,155"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="574,155,624,164,623,170,573,160"/>
-<area shape="rect" id="Node000003" href="$classRogueTcpStreamPacer.html" title=" " alt="" coords="196,5,363,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="349,33,364,40,399,61,432,85,481,127,477,131,428,89,396,65,361,44,347,38"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamDeMux.html" title=" " alt="" coords="211,55,347,80"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="341,81,364,89,462,127,460,132,362,94,339,86"/>
-<area shape="rect" id="Node000005" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,104,148,129"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="142,98,226,77,227,83,143,103"/>
-<area shape="rect" id="Node000006" href="$classAxiStreamResize.html" title=" " alt="" coords="213,104,346,129"/>
-<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="162,114,212,114,212,119,162,119"/>
-<area shape="rect" id="Node000008" href="$classAxiStreamMux.html" title=" " alt="" coords="220,153,339,179"/>
-<area shape="poly" id="edge9_Node000008_Node000005" title=" " alt="" coords="143,130,227,151,226,156,142,135"/>
-<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="360,124,411,130,410,135,360,129"/>
-<area shape="rect" id="Node000007" href="$classRogueTcpStream.html" title=" " alt="" coords="214,203,345,228"/>
-<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="339,196,362,189,459,152,461,157,364,194,340,201"/>
-<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="352,155,410,149,411,154,353,161"/>
-<area shape="rect" id="Node000009" href="$classRogueSideBandWrap.html" title=" " alt="" coords="414,203,573,228"/>
-<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="575,198,623,189,624,194,576,203"/>
-<area shape="rect" id="Node000010" href="$classRogueSideBand.html" title=" " alt="" coords="217,252,341,277"/>
-<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="348,246,437,225,438,231,349,251"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="620,188,748,216"/>
+<area shape="rect" id="Node000002" href="$classRogueTcpStreamWrap.html" title=" " alt="" coords="408,136,572,164"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="560,166,632,187,627,187,559,171"/>
+<area shape="rect" id="Node000003" href="$classRogueTcpStreamPacer.html" title=" " alt="" coords="195,5,360,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="346,36,361,43,396,65,428,90,477,136,472,135,425,94,393,70,359,48,346,42"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDeMux.html" title=" " alt="" coords="210,57,345,85"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="339,88,361,95,458,135,453,136,359,100,339,93"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamPipeline.html" title=" " alt="" coords="5,109,147,137"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="146,102,223,84,219,87,148,107"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamResize.html" title=" " alt="" coords="211,109,344,137"/>
+<area shape="poly" id="edge6_Node000006_Node000005" title=" " alt="" coords="161,121,213,122,209,124,162,126"/>
+<area shape="rect" id="Node000008" href="$classAxiStreamMux.html" title=" " alt="" coords="219,161,336,189"/>
+<area shape="poly" id="edge9_Node000008_Node000005" title=" " alt="" coords="147,139,223,159,218,162,147,144"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="359,131,410,139,405,140,359,136"/>
+<area shape="rect" id="Node000007" href="$classRogueTcpStream.html" title=" " alt="" coords="212,213,342,241"/>
+<area shape="poly" id="edge7_Node000002_Node000007" title=" " alt="" coords="338,205,359,198,451,165,457,163,361,203,340,210"/>
+<area shape="poly" id="edge8_Node000002_Node000008" title=" " alt="" coords="351,164,410,159,405,160,352,169"/>
+<area shape="rect" id="Node000009" href="$classRogueSideBandWrap.html" title=" " alt="" coords="412,213,569,241"/>
+<area shape="poly" id="edge10_Node000001_Node000009" title=" " alt="" coords="584,212,623,210,618,210,584,218"/>
+<area shape="rect" id="Node000010" href="$classRogueSideBand.html" title=" " alt="" coords="216,265,339,293"/>
+<area shape="poly" id="edge11_Node000009_Node000010" title=" " alt="" coords="351,258,428,242,433,241,352,264"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="GLinkTxToRx" name="GLinkTxToRx">
-<area shape="rect" id="Node000001" title=" " alt="" coords="75,152,182,177"/>
-<area shape="rect" id="Node000002" href="$classGLinkEncoder.html" title=" " alt="" coords="5,79,116,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="83,112,120,150,116,154,79,116"/>
-<area shape="rect" id="Node000003" href="$classGLinkDecoder.html" title=" " alt="" coords="140,79,253,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="178,116,142,154,138,150,174,112"/>
-<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="143,5,250,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="199,44,199,79,194,79,194,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="76,157,181,184"/>
+<area shape="rect" id="Node000002" href="$classGLinkEncoder.html" title=" " alt="" coords="5,81,116,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="84,118,119,156,114,157,82,123"/>
+<area shape="rect" id="Node000003" href="$classGLinkDecoder.html" title=" " alt="" coords="140,81,253,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="176,119,142,158,139,154,172,121"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="144,5,249,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="198,47,199,82,194,79,195,51"/>
 </map>

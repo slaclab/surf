@@ -1,14 +1,14 @@
 <map id="SynchronizerOneShotTb" name="SynchronizerOneShotTb">
-<area shape="rect" id="Node000001" title=" " alt="" coords="87,225,265,251"/>
-<area shape="rect" id="Node000002" href="$classSynchronizerOneShot.html" title=" " alt="" coords="27,152,189,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,185,167,223,163,227,127,189"/>
-<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="5,79,80,104"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="65,113,99,150,95,154,61,116"/>
-<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="55,5,161,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="90,43,55,80,51,77,86,39"/>
-<area shape="rect" id="Node000005" href="$classSynchronizerEdge.html" title=" " alt="" coords="104,79,243,104"/>
-<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="130,39,165,77,161,80,126,43"/>
-<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="155,116,121,154,117,150,151,113"/>
-<area shape="rect" id="Node000006" href="$classClkRst.html" title=" " alt="" coords="213,152,277,177"/>
-<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="226,189,189,227,185,223,223,185"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="86,232,262,260"/>
+<area shape="rect" id="Node000002" href="$classSynchronizerOneShot.html" title=" " alt="" coords="26,157,186,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="130,194,165,232,159,232,127,198"/>
+<area shape="rect" id="Node000003" href="$classRstSync.html" title=" " alt="" coords="5,81,79,109"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="64,118,97,155,92,157,63,123"/>
+<area shape="rect" id="Node000004" href="$classSynchronizer.html" title=" " alt="" coords="53,5,159,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="83,47,56,82,51,79,86,43"/>
+<area shape="rect" id="Node000005" href="$classSynchronizerEdge.html" title=" " alt="" coords="103,81,240,109"/>
+<area shape="poly" id="edge5_Node000005_Node000004" title=" " alt="" coords="128,42,162,80,157,81,127,47"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="152,118,120,158,116,154,148,122"/>
+<area shape="rect" id="Node000006" href="$classClkRst.html" title=" " alt="" coords="210,157,274,184"/>
+<area shape="poly" id="edge6_Node000001_Node000006" title=" " alt="" coords="222,195,188,234,185,230,217,197"/>
 </map>

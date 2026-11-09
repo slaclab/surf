@@ -1,10 +1,10 @@
 <map id="AxiStreamTap" name="AxiStreamTap">
-<area shape="rect" id="Node000001" title=" " alt="" coords="93,152,205,177"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamDeMux.html" title=" " alt="" coords="5,79,141,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,111,139,150,135,154,94,115"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="78,5,221,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="129,42,88,80,84,76,125,38"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamMux.html" title=" " alt="" coords="166,79,285,104"/>
-<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="173,38,215,76,211,80,170,42"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="205,115,164,154,160,150,201,111"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="92,157,203,184"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamDeMux.html" title=" " alt="" coords="5,81,141,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,117,137,156,132,157,96,122"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamPipeline.html" title=" " alt="" coords="77,5,218,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="122,46,88,82,84,79,125,42"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamMux.html" title=" " alt="" coords="165,81,282,109"/>
+<area shape="poly" id="edge4_Node000004_Node000003" title=" " alt="" coords="173,41,213,80,208,81,171,46"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="202,119,163,158,160,154,197,120"/>
 </map>

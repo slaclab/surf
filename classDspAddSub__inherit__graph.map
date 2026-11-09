@@ -1,15 +1,15 @@
 <map id="DspAddSub" name="DspAddSub">
-<area shape="rect" id="Node000001" title=" " alt="" coords="271,79,367,104"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="151,152,322,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="297,115,252,154,248,150,294,111"/>
-<area shape="rect" id="Node000007" href="$classDspAddSubTb.html" title=" " alt="" coords="346,152,458,177"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="345,111,390,150,387,154,341,115"/>
-<area shape="rect" id="Node000002" href="$classFifoOutputPipeline.html" title=" " alt="" coords="248,5,391,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="322,44,322,79,317,79,317,44"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamDmaV2DescIpIntegrator.html" title=" " alt="" coords="5,225,252,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="209,187,148,227,145,223,207,183"/>
-<area shape="rect" id="Node000005" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="277,225,415,251"/>
-<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="267,183,330,223,327,227,264,187"/>
-<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="239,299,453,324"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="349,264,349,299,343,299,343,264"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="270,81,365,109"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamDmaV2Desc.html" title=" " alt="" coords="151,157,321,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="294,118,252,158,249,154,290,121"/>
+<area shape="rect" id="Node000007" href="$classDspAddSubTb.html" title=" " alt="" coords="344,157,456,184"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="344,117,388,156,383,156,343,122"/>
+<area shape="rect" id="Node000002" href="$classFifoOutputPipeline.html" title=" " alt="" coords="247,5,388,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="319,46,320,82,315,80,316,51"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamDmaV2DescIpIntegrator.html" title=" " alt="" coords="5,232,251,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="202,195,149,234,146,230,206,192"/>
+<area shape="rect" id="Node000005" href="$classAxiStreamDmaV2.html" title=" " alt="" coords="275,232,413,260"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="268,191,328,232,322,232,267,196"/>
+<area shape="rect" id="Node000006" href="$classAxiStreamDmaV2IpIntegrator.html" title=" " alt="" coords="237,308,451,336"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="346,274,346,309,342,306,342,278"/>
 </map>

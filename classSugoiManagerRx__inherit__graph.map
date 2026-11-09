@@ -1,15 +1,15 @@
 <map id="SugoiManagerRx" name="SugoiManagerRx">
-<area shape="rect" id="Node000001" title=" " alt="" coords="136,225,268,251"/>
-<area shape="rect" id="Node000006" href="$classSugoiManagerCore.html" title=" " alt="" coords="129,299,275,324"/>
-<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="205,264,205,299,199,299,199,264"/>
-<area shape="rect" id="Node000002" href="$classSugoiManagerRx7Series.html" title=" " alt="" coords="5,152,185,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,183,186,223,183,227,122,187"/>
-<area shape="rect" id="Node000003" href="$classSugoiManagerRxUltrascale.html" title=" " alt="" coords="209,152,408,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,187,221,227,218,223,279,183"/>
-<area shape="rect" id="Node000004" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="242,79,375,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="311,118,311,152,306,152,306,118"/>
-<area shape="rect" id="Node000005" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="239,5,378,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="311,44,311,79,306,79,306,44"/>
-<area shape="rect" id="Node000007" href="$classSugoiTopTb.html" title=" " alt="" coords="154,372,250,397"/>
-<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="205,338,205,372,199,372,199,338"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="135,232,266,260"/>
+<area shape="rect" id="Node000006" href="$classSugoiManagerCore.html" title=" " alt="" coords="128,308,272,336"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="202,274,203,309,198,306,199,278"/>
+<area shape="rect" id="Node000002" href="$classSugoiManagerRx7Series.html" title=" " alt="" coords="5,157,185,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="126,191,184,231,179,233,126,196"/>
+<area shape="rect" id="Node000003" href="$classSugoiManagerRxUltrascale.html" title=" " alt="" coords="208,157,406,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="273,195,221,234,218,230,278,192"/>
+<area shape="rect" id="Node000004" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="241,81,373,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="308,122,309,157,305,155,306,127"/>
+<area shape="rect" id="Node000005" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="238,5,376,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="308,46,310,81,304,80,306,51"/>
+<area shape="rect" id="Node000007" href="$classSugoiTopTb.html" title=" " alt="" coords="153,384,248,411"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="202,350,203,385,198,382,198,353"/>
 </map>

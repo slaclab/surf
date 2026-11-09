@@ -1,17 +1,17 @@
 <map id="mkTransportLayer" name="mkTransportLayer">
-<area shape="rect" id="Node000001" title=" " alt="" coords="139,152,278,177"/>
-<area shape="rect" id="Node000002" href="$classFIFO2.html" title=" " alt="" coords="5,5,65,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,38,134,102,195,150,192,154,131,106,57,42"/>
-<area shape="rect" id="Node000005" href="$classmkQP.html" title=" " alt="" coords="145,79,206,104"/>
-<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="71,34,154,76,151,81,69,39"/>
-<area shape="rect" id="Node000003" href="$classFIFO20.html" title=" " alt="" coords="281,79,349,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="288,114,228,154,225,150,286,109"/>
-<area shape="rect" id="Node000004" href="$classCounter.html" title=" " alt="" coords="295,5,368,31"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="310,42,272,80,218,153,214,150,268,77,306,38"/>
-<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="295,39,202,81,200,76,293,34"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="189,115,206,151,201,153,184,118"/>
-<area shape="rect" id="Node000006" href="$classBRAM2.html" title=" " alt="" coords="90,5,159,31"/>
-<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="143,41,169,77,165,80,139,44"/>
-<area shape="rect" id="Node000007" href="$classSizedFIFO.html" title=" " alt="" coords="184,5,271,31"/>
-<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="213,43,186,80,182,77,209,40"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="138,157,276,184"/>
+<area shape="rect" id="Node000002" href="$classFIFO2.html" title=" " alt="" coords="5,5,65,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="60,41,133,107,192,156,187,157,129,111,58,46"/>
+<area shape="rect" id="Node000005" href="$classmkQP.html" title=" " alt="" coords="144,81,204,109"/>
+<area shape="poly" id="edge5_Node000005_Node000002" title=" " alt="" coords="73,38,151,79,147,82,73,43"/>
+<area shape="rect" id="Node000003" href="$classFIFO20.html" title=" " alt="" coords="279,81,346,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="284,117,227,159,224,154,279,118"/>
+<area shape="rect" id="Node000004" href="$classCounter.html" title=" " alt="" coords="292,5,364,33"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="305,42,269,83,239,123,216,158,213,154,235,120,265,79,301,45"/>
+<area shape="poly" id="edge7_Node000005_Node000004" title=" " alt="" coords="284,41,202,83,200,78,289,39"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="187,121,204,157,199,155,184,125"/>
+<area shape="rect" id="Node000006" href="$classBRAM2.html" title=" " alt="" coords="89,5,157,33"/>
+<area shape="poly" id="edge6_Node000005_Node000006" title=" " alt="" coords="142,44,167,81,162,81,140,49"/>
+<area shape="rect" id="Node000007" href="$classSizedFIFO.html" title=" " alt="" coords="181,5,268,33"/>
+<area shape="poly" id="edge8_Node000005_Node000007" title=" " alt="" coords="209,44,185,82,181,79,204,48"/>
 </map>

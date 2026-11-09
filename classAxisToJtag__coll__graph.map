@@ -1,9 +1,9 @@
 <map id="AxisToJtag" name="AxisToJtag">
-<area shape="rect" id="Node000001" title=" " alt="" coords="109,152,199,177"/>
-<area shape="rect" id="Node000002" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,79,148,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="101,111,143,150,140,154,97,115"/>
-<area shape="rect" id="Node000003" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,79,291,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="211,115,168,154,165,150,207,111"/>
-<area shape="rect" id="Node000004" href="$classJtagSerDesCore.html" title=" " alt="" coords="170,5,293,31"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="234,44,234,79,229,79,229,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="110,157,198,184"/>
+<area shape="rect" id="Node000002" href="$classAxiStreamSelector.html" title=" " alt="" coords="5,81,148,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="102,117,143,156,137,157,100,122"/>
+<area shape="rect" id="Node000003" href="$classAxisToJtagCore.html" title=" " alt="" coords="172,81,290,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="209,119,169,158,166,154,204,120"/>
+<area shape="rect" id="Node000004" href="$classJtagSerDesCore.html" title=" " alt="" coords="170,5,292,33"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="233,47,234,82,229,79,230,51"/>
 </map>

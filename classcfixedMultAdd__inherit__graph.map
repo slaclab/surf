@@ -1,7 +1,7 @@
 <map id="cfixedMultAdd" name="cfixedMultAdd">
-<area shape="rect" id="Node000001" title=" " alt="" coords="59,5,174,31"/>
-<area shape="rect" id="Node000002" href="$classcfixedMult.html" title=" " alt="" coords="5,79,95,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="98,43,63,80,59,77,94,39"/>
-<area shape="rect" id="Node000003" href="$classCfixedMultAddTb.html" title=" " alt="" coords="119,79,251,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,39,176,77,172,80,135,42"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="60,5,173,33"/>
+<area shape="rect" id="Node000002" href="$classcfixedMult.html" title=" " alt="" coords="5,81,94,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="97,44,63,82,59,79,92,45"/>
+<area shape="rect" id="Node000003" href="$classCfixedMultAddTb.html" title=" " alt="" coords="117,81,248,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="139,42,174,81,168,81,137,47"/>
 </map>

@@ -1,9 +1,9 @@
 <map id="SspEncoder12b14b" name="SspEncoder12b14b">
-<area shape="rect" id="Node000001" title=" " alt="" coords="43,79,189,104"/>
-<area shape="rect" id="Node000004" href="$classSsp12b14bTb.html" title=" " alt="" coords="61,152,171,177"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="119,118,119,152,113,152,113,118"/>
-<area shape="rect" id="Node000002" href="$classSspFramer.html" title=" " alt="" coords="5,5,96,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="73,39,107,77,103,80,69,43"/>
-<area shape="rect" id="Node000003" href="$classEncoder12b14b.html" title=" " alt="" coords="120,5,243,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="163,43,129,80,125,77,159,39"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="42,81,187,109"/>
+<area shape="rect" id="Node000004" href="$classSsp12b14bTb.html" title=" " alt="" coords="60,157,169,184"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="116,123,117,157,112,155,113,126"/>
+<area shape="rect" id="Node000002" href="$classSspFramer.html" title=" " alt="" coords="5,5,96,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="72,42,106,80,101,81,72,48"/>
+<area shape="rect" id="Node000003" href="$classEncoder12b14b.html" title=" " alt="" coords="119,5,240,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="160,43,128,82,124,79,156,46"/>
 </map>

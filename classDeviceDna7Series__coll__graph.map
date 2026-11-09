@@ -1,9 +1,9 @@
 <map id="DeviceDna7Series" name="DeviceDna7Series">
-<area shape="rect" id="Node000001" title=" " alt="" coords="55,152,196,177"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,79,96,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,113,116,150,113,154,77,116"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
-<area shape="rect" id="Node000004" href="$classSynchronizerVector.html" title=" " alt="" coords="120,79,267,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="175,116,138,154,134,150,171,112"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="54,157,195,184"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,81,95,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,118,115,156,110,157,79,123"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,111,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="59,46,61,81,55,80,57,51"/>
+<area shape="rect" id="Node000004" href="$classSynchronizerVector.html" title=" " alt="" coords="118,81,264,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="172,119,138,158,135,154,167,121"/>
 </map>

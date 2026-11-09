@@ -1,11 +1,11 @@
 <map id="Pgp2fcAlignmentController" name="Pgp2fcAlignmentController">
-<area shape="rect" id="Node000001" title=" " alt="" coords="19,152,216,177"/>
-<area shape="rect" id="Node000005" href="$classPgp2fcAlignmentControllerWrapper.html" title=" " alt="" coords="19,225,216,265"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="120,191,120,225,115,225,115,191"/>
-<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,79,96,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="79,113,110,150,106,154,75,116"/>
-<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,112,31"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
-<area shape="rect" id="Node000004" href="$classAxiLiteMaster.html" title=" " alt="" coords="120,79,232,104"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="160,116,129,154,125,150,156,113"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="17,157,214,184"/>
+<area shape="rect" id="Node000005" href="$classPgp2fcAlignmentControllerWrapper.html" title=" " alt="" coords="17,232,214,277"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="117,198,118,233,113,231,114,202"/>
+<area shape="rect" id="Node000002" href="$classRstSync.html" title=" " alt="" coords="21,81,95,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,118,108,156,103,157,77,124"/>
+<area shape="rect" id="Node000003" href="$classSynchronizer.html" title=" " alt="" coords="5,5,111,33"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="58,46,61,81,55,80,58,51"/>
+<area shape="rect" id="Node000004" href="$classAxiLiteMaster.html" title=" " alt="" coords="118,81,230,109"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="156,119,128,158,124,154,152,123"/>
 </map>

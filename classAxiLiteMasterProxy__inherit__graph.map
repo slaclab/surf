@@ -1,19 +1,19 @@
 <map id="AxiLiteMasterProxy" name="AxiLiteMasterProxy">
-<area shape="rect" id="Node000001" title=" " alt="" coords="165,80,315,105"/>
-<area shape="rect" id="Node000003" href="$classAxiLiteMasterProxyIpIntegrator.html" title=" " alt="" coords="363,5,588,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="279,72,362,39,405,28,406,33,363,45,281,77"/>
-<area shape="rect" id="Node000004" href="$classAxiI2cEeprom.html" title=" " alt="" coords="419,55,531,80"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="328,81,419,71,420,76,329,86"/>
-<area shape="rect" id="Node000005" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="394,104,557,129"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="329,99,394,106,393,111,328,104"/>
-<area shape="rect" id="Node000009" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="390,153,561,179"/>
-<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="282,108,363,139,406,151,405,156,362,145,280,113"/>
-<area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="5,80,117,105"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,90,165,90,165,95,131,95"/>
-<area shape="rect" id="Node000006" href="$classSff8472Core.html" title=" " alt="" coords="651,80,753,105"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="570,104,651,95,651,101,571,109"/>
-<area shape="rect" id="Node000007" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="636,129,768,155"/>
-<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="571,125,636,132,635,137,570,130"/>
-<area shape="rect" id="Node000008" href="$classSff8472.html" title=" " alt="" coords="816,129,887,155"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="782,139,816,139,816,145,782,145"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="165,84,313,112"/>
+<area shape="rect" id="Node000003" href="$classAxiLiteMasterProxyIpIntegrator.html" title=" " alt="" coords="361,5,585,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,75,360,43,406,33,401,34,362,48,284,80"/>
+<area shape="rect" id="Node000004" href="$classAxiI2cEeprom.html" title=" " alt="" coords="418,57,529,85"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="328,85,420,77,414,78,329,90"/>
+<area shape="rect" id="Node000005" href="$classAxiI2cRegMasterCore.html" title=" " alt="" coords="392,109,554,137"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="328,105,395,114,390,115,329,110"/>
+<area shape="rect" id="Node000009" href="$classAxiLiteCrossbarI2cMux.html" title=" " alt="" coords="388,161,558,189"/>
+<area shape="poly" id="edge8_Node000001_Node000009" title=" " alt="" coords="285,116,362,146,407,161,402,161,360,151,284,121"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteMaster.html" title=" " alt="" coords="5,84,117,112"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="132,95,167,97,162,99,133,100"/>
+<area shape="rect" id="Node000006" href="$classSff8472Core.html" title=" " alt="" coords="649,84,749,112"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="569,110,651,103,646,104,570,115"/>
+<area shape="rect" id="Node000007" href="$classAxiI2cRegMaster.html" title=" " alt="" coords="633,136,765,164"/>
+<area shape="poly" id="edge6_Node000005_Node000007" title=" " alt="" coords="569,132,636,142,630,142,569,137"/>
+<area shape="rect" id="Node000008" href="$classSff8472.html" title=" " alt="" coords="813,136,883,164"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="780,147,815,150,810,150,781,152"/>
 </map>

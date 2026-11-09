@@ -1,11 +1,11 @@
 <map id="SugoiManagerRx" name="SugoiManagerRx">
-<area shape="rect" id="Node000001" title=" " alt="" coords="136,225,268,251"/>
-<area shape="rect" id="Node000002" href="$classSugoiManagerRx7Series.html" title=" " alt="" coords="5,152,185,177"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,183,186,223,183,227,122,187"/>
-<area shape="rect" id="Node000003" href="$classSugoiManagerRxUltrascale.html" title=" " alt="" coords="209,152,408,177"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="282,187,221,227,218,223,279,183"/>
-<area shape="rect" id="Node000004" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="242,79,375,104"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="311,118,311,152,306,152,306,118"/>
-<area shape="rect" id="Node000005" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="239,5,378,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="311,44,311,79,306,79,306,44"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="135,232,266,260"/>
+<area shape="rect" id="Node000002" href="$classSugoiManagerRx7Series.html" title=" " alt="" coords="5,157,185,184"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,191,184,231,179,232,125,196"/>
+<area shape="rect" id="Node000003" href="$classSugoiManagerRxUltrascale.html" title=" " alt="" coords="208,157,406,184"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="278,193,220,234,218,230,273,194"/>
+<area shape="rect" id="Node000004" href="$classIdelaye3Wrapper.html" title=" " alt="" coords="241,81,373,109"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="309,122,309,158,305,155,305,127"/>
+<area shape="rect" id="Node000005" href="$classDelaye3PatchFsm.html" title=" " alt="" coords="238,5,376,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="308,47,309,82,305,79,306,51"/>
 </map>

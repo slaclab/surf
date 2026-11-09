@@ -1,7 +1,7 @@
 <map id="DualPortRam" name="DualPortRam">
-<area shape="rect" id="Node000001" title=" " alt="" coords="121,79,229,104"/>
-<area shape="rect" id="Node000002" href="$classTrueDualPortRamInferred.html" title=" " alt="" coords="5,5,192,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,38,164,76,160,80,119,42"/>
-<area shape="rect" id="Node000003" href="$classLutRam.html" title=" " alt="" coords="216,5,288,31"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="231,42,189,80,186,76,228,38"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="120,81,228,109"/>
+<area shape="rect" id="Node000002" href="$classTrueDualPortRamInferred.html" title=" " alt="" coords="5,5,191,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="123,41,163,80,158,81,121,46"/>
+<area shape="rect" id="Node000003" href="$classLutRam.html" title=" " alt="" coords="214,5,286,33"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="228,43,189,83,186,78,223,45"/>
 </map>

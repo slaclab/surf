@@ -1,9 +1,9 @@
 <map id="SugoiSubordinateFsm" name="SugoiSubordinateFsm">
-<area shape="rect" id="Node000001" title=" " alt="" coords="24,5,188,31"/>
-<area shape="rect" id="Node000002" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="23,79,189,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="109,44,109,79,103,79,103,44"/>
-<area shape="rect" id="Node000003" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="5,152,207,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="109,118,109,152,103,152,103,118"/>
-<area shape="rect" id="Node000004" href="$classSugoiTopTb.html" title=" " alt="" coords="58,225,154,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="109,191,109,225,103,225,103,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="24,5,187,33"/>
+<area shape="rect" id="Node000002" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="23,81,188,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="106,46,108,81,103,80,105,51"/>
+<area shape="rect" id="Node000003" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="5,157,206,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="107,122,108,157,103,156,104,127"/>
+<area shape="rect" id="Node000004" href="$classSugoiTopTb.html" title=" " alt="" coords="58,232,153,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="107,198,108,233,103,231,104,202"/>
 </map>

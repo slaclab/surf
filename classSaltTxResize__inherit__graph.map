@@ -1,9 +1,9 @@
 <map id="SaltTxResize" name="SaltTxResize">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,112,31"/>
-<area shape="rect" id="Node000002" href="$classSaltTx.html" title=" " alt="" coords="27,79,90,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="61,44,61,79,56,79,56,44"/>
-<area shape="rect" id="Node000003" href="$classSaltCore.html" title=" " alt="" coords="20,152,97,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="61,118,61,152,56,152,56,118"/>
-<area shape="rect" id="Node000004" href="$classSaltCoreTb.html" title=" " alt="" coords="12,225,105,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="61,191,61,225,56,225,56,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,111,33"/>
+<area shape="rect" id="Node000002" href="$classSaltTx.html" title=" " alt="" coords="27,81,89,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="58,46,61,81,55,80,58,51"/>
+<area shape="rect" id="Node000003" href="$classSaltCore.html" title=" " alt="" coords="20,157,96,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="59,122,61,157,55,156,57,127"/>
+<area shape="rect" id="Node000004" href="$classSaltCoreTb.html" title=" " alt="" coords="12,232,104,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="60,198,61,233,55,231,56,202"/>
 </map>

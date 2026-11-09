@@ -1,32 +1,32 @@
 <map id="Encoder8b10b" name="Encoder8b10b">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,129,120,155"/>
-<area shape="rect" id="Node000002" href="$classLineCode8b10bTb.html" title=" " alt="" coords="182,5,321,31"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,117,118,77,167,40,192,28,194,33,169,44,121,81,84,120"/>
-<area shape="rect" id="Node000003" href="$classPgpParallelSimModel.html" title=" " alt="" coords="172,55,331,80"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="98,120,167,89,201,78,202,83,169,94,101,125"/>
-<area shape="rect" id="Node000004" href="$classSaltTxLvds.html" title=" " alt="" coords="205,104,298,129"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,130,204,120,205,126,134,135"/>
-<area shape="rect" id="Node000007" href="$classSspEncoder8b10b.html" title=" " alt="" coords="183,153,320,179"/>
-<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="134,148,183,155,182,160,134,154"/>
-<area shape="rect" id="Node000012" href="$classSugoiManagerCore.html" title=" " alt="" coords="179,216,324,241"/>
-<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="105,158,224,213,221,218,103,163"/>
-<area shape="rect" id="Node000014" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="168,291,335,316"/>
-<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="85,164,122,206,170,251,227,288,224,293,166,255,119,210,81,167"/>
-<area shape="rect" id="Node000005" href="$classSaltCore.html" title=" " alt="" coords="482,5,559,31"/>
-<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="310,100,333,89,347,77,356,64,366,52,381,40,406,29,433,22,482,16,482,21,434,27,408,34,384,44,369,55,360,68,351,81,336,94,312,105"/>
-<area shape="rect" id="Node000006" href="$classSaltCoreTb.html" title=" " alt="" coords="708,5,801,31"/>
-<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="573,15,708,15,708,21,573,21"/>
-<area shape="rect" id="Node000008" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="443,55,598,80"/>
-<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="319,146,333,138,347,126,356,114,366,101,381,89,411,77,443,70,444,75,413,82,384,94,369,105,360,117,351,130,336,143,322,151"/>
-<area shape="rect" id="Node000009" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="444,104,597,129"/>
-<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="330,148,382,138,445,127,446,132,383,143,331,153"/>
-<area shape="rect" id="Node000010" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="383,153,659,179"/>
-<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="334,163,383,163,383,169,334,169"/>
-<area shape="rect" id="Node000011" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="423,203,618,228"/>
-<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="334,178,451,200,450,205,333,184"/>
-<area shape="rect" id="Node000013" href="$classSugoiTopTb.html" title=" " alt="" coords="707,279,803,304"/>
-<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="339,237,707,283,706,288,338,242"/>
-<area shape="rect" id="Node000015" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="420,304,621,329"/>
-<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="348,305,420,309,419,314,348,311"/>
-<area shape="poly" id="edge15_Node000015_Node000013" title=" " alt="" coords="635,302,706,294,706,299,635,307"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,136,119,164"/>
+<area shape="rect" id="Node000002" href="$classLineCode8b10bTb.html" title=" " alt="" coords="181,5,318,33"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="81,122,118,82,165,44,194,32,190,35,168,48,121,86,85,125"/>
+<area shape="rect" id="Node000003" href="$classPgpParallelSimModel.html" title=" " alt="" coords="170,57,328,85"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="101,126,166,95,202,84,198,87,168,100,104,131"/>
+<area shape="rect" id="Node000004" href="$classSaltTxLvds.html" title=" " alt="" coords="203,109,296,137"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="133,137,205,128,201,131,135,142"/>
+<area shape="rect" id="Node000007" href="$classSspEncoder8b10b.html" title=" " alt="" coords="181,161,318,189"/>
+<area shape="poly" id="edge6_Node000001_Node000007" title=" " alt="" coords="133,157,183,165,178,167,135,162"/>
+<area shape="rect" id="Node000012" href="$classSugoiManagerCore.html" title=" " alt="" coords="177,225,322,253"/>
+<area shape="poly" id="edge11_Node000001_Node000012" title=" " alt="" coords="106,168,168,198,220,224,215,225,166,203,106,173"/>
+<area shape="rect" id="Node000014" href="$classSugoiSubordinateCore.html" title=" " alt="" coords="167,301,332,329"/>
+<area shape="poly" id="edge13_Node000001_Node000014" title=" " alt="" coords="84,173,122,218,168,262,223,300,218,301,165,267,118,221,83,179"/>
+<area shape="rect" id="Node000005" href="$classSaltCore.html" title=" " alt="" coords="480,5,556,33"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="308,105,331,94,345,82,353,69,363,56,379,44,403,33,430,25,481,19,477,21,431,30,405,38,381,48,367,60,358,72,349,85,333,99,311,110"/>
+<area shape="rect" id="Node000006" href="$classSaltCoreTb.html" title=" " alt="" coords="705,5,797,33"/>
+<area shape="poly" id="edge5_Node000005_Node000006" title=" " alt="" coords="571,17,707,18,702,20,572,22"/>
+<area shape="rect" id="Node000008" href="$classSspDecoder8b10bTb.html" title=" " alt="" coords="440,57,595,85"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="320,152,330,146,345,134,353,121,363,108,379,96,408,83,442,77,437,79,410,88,381,100,367,112,358,124,349,137,334,151,322,157"/>
+<area shape="rect" id="Node000009" href="$classSspEncoder8b10bTb.html" title=" " alt="" coords="442,109,594,137"/>
+<area shape="poly" id="edge8_Node000007_Node000009" title=" " alt="" coords="332,157,379,147,445,137,440,139,381,152,334,162"/>
+<area shape="rect" id="Node000010" href="$classSspLowSpeedDecoder8b10bWrapperTb.html" title=" " alt="" coords="380,161,655,189"/>
+<area shape="poly" id="edge9_Node000007_Node000010" title=" " alt="" coords="333,173,382,174,377,176,334,178"/>
+<area shape="rect" id="Node000011" href="$classSelectioDeserUltraScaleTb.html" title=" " alt="" coords="420,213,615,241"/>
+<area shape="poly" id="edge10_Node000007_Node000011" title=" " alt="" coords="333,189,381,198,445,212,440,213,379,203,333,194"/>
+<area shape="rect" id="Node000013" href="$classSugoiTopTb.html" title=" " alt="" coords="703,289,799,317"/>
+<area shape="poly" id="edge12_Node000012_Node000013" title=" " alt="" coords="337,248,705,295,701,299,337,253"/>
+<area shape="rect" id="Node000015" href="$classSugoiSubordinateSimModel.html" title=" " alt="" coords="418,315,618,342"/>
+<area shape="poly" id="edge14_Node000014_Node000015" title=" " alt="" coords="348,317,420,323,414,324,348,323"/>
+<area shape="poly" id="edge15_Node000015_Node000013" title=" " alt="" coords="633,313,700,309,705,308,634,319"/>
 </map>

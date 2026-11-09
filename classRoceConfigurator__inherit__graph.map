@@ -1,11 +1,11 @@
 <map id="RoceConfigurator" name="RoceConfigurator">
-<area shape="rect" id="Node000001" title=" " alt="" coords="143,5,277,31"/>
-<area shape="rect" id="Node000002" href="$classRoCEv2Engine.html" title=" " alt="" coords="64,79,180,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="187,41,138,81,135,76,184,37"/>
-<area shape="rect" id="Node000005" href="$classRoceConfiguratorWrapper.html" title=" " alt="" coords="205,79,394,104"/>
-<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="237,37,286,76,283,81,233,41"/>
-<area shape="rect" id="Node000003" href="$classRoCEv2AxiStreamRdma.html" title=" " alt="" coords="33,152,211,177"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="125,118,125,152,119,152,119,118"/>
-<area shape="rect" id="Node000004" href="$classRoCEv2AxiStreamRdmaWrapper.html" title=" " alt="" coords="5,225,239,251"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="125,191,125,225,119,225,119,191"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="143,5,276,33"/>
+<area shape="rect" id="Node000002" href="$classRoCEv2Engine.html" title=" " alt="" coords="64,81,179,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="180,45,139,82,135,79,184,41"/>
+<area shape="rect" id="Node000005" href="$classRoceConfiguratorWrapper.html" title=" " alt="" coords="203,81,392,109"/>
+<area shape="poly" id="edge4_Node000001_Node000005" title=" " alt="" coords="237,41,285,80,279,81,236,46"/>
+<area shape="rect" id="Node000003" href="$classRoCEv2AxiStreamRdma.html" title=" " alt="" coords="33,157,210,184"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="123,122,124,157,119,155,120,127"/>
+<area shape="rect" id="Node000004" href="$classRoCEv2AxiStreamRdmaWrapper.html" title=" " alt="" coords="5,232,238,260"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="123,198,124,233,119,231,120,202"/>
 </map>

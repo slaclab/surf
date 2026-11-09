@@ -1,9 +1,9 @@
 <map id="AxiLiteRegs" name="AxiLiteRegs">
-<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,249,31"/>
-<area shape="rect" id="Node000002" href="$classAxiLiteRegsIpIntegrator.html" title=" " alt="" coords="5,79,180,104"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="172,40,112,81,109,76,170,36"/>
-<area shape="rect" id="Node000003" href="$classAxiStreamFrameRateLimiter.html" title=" " alt="" coords="204,79,411,104"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="229,36,291,76,288,81,227,40"/>
-<area shape="rect" id="Node000004" href="$classAxiStreamFrameRateLimiterIpIntegrator.html" title=" " alt="" coords="204,152,411,192"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="310,118,310,152,305,152,305,118"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="150,5,248,33"/>
+<area shape="rect" id="Node000002" href="$classAxiLiteRegsIpIntegrator.html" title=" " alt="" coords="5,81,180,109"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="166,44,113,83,110,78,170,40"/>
+<area shape="rect" id="Node000003" href="$classAxiStreamFrameRateLimiter.html" title=" " alt="" coords="204,81,410,109"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="232,39,291,80,285,81,231,45"/>
+<area shape="rect" id="Node000004" href="$classAxiStreamFrameRateLimiterIpIntegrator.html" title=" " alt="" coords="204,157,410,201"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="309,123,309,158,305,154,305,126"/>
 </map>
