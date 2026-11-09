@@ -14,7 +14,8 @@
 #   span every lane, the per-lane error counters, the raw configuration words,
 #   the refused loopback, the lane range check, the RX reset hook on the
 #   shared ResetGTs with the DataValid bit of one lane as the ready signal and
-#   its timings, and Status and Bathtub runs through runEyeScan.
+#   its timings, the reset group that refuses a parallel scan of two lanes of
+#   one core, and Status and Bathtub runs through runEyeScan.
 # - Stimulus: real Rogue transactions against makeJesdLaneRoot (a JesdRx and
 #   one GT channel behind LaneMemory, the JesdRx words seeded before the hook
 #   is attached), over the emulated GTHE3 lane of the AMC carrier and the
@@ -26,8 +27,11 @@
 #   a loopback request is refused before any write; the hook keeps the
 #   setRxReset timings the adapter chose, pulses ResetGTs and leaves the
 #   neighbour bits of the control word as they were; ready follows the
-#   DataValid bit of its lane on a fresh read, also on a one-lane core; a
-#   Bathtub run ends OK on both families, records the JESD evidence in the
+#   DataValid bit of its lane on a fresh read, also on a one-lane core;
+#   resetGroup names the JesdRx, two lanes of one core are refused --parallel
+#   true before any write and with no run folder while two cores scan in
+#   parallel and --parallel false scans one core lane by lane; a Bathtub run
+#   ends OK on both families, records the JESD evidence in the
 #   saved metadata and leaves Enable and Ctrl unchanged.
 # - Timing: countReads=1, a zero settle and a reduced floor and grid keep each
 #   run to a few seconds.
@@ -208,6 +212,46 @@ def test_a_one_lane_core_works_with_the_bitmask_read(jesdLanes):
     assert ready() is False
     with pytest.raises(ValueError, match='1 RX lanes, no lane 1'):
         jesd.JesdRxEyeScanLink(jesdRx, 1)
+
+
+def test_reset_group_names_the_core_and_the_base_link_has_none(jesdLanes):
+    gt, jesdRx, model, mem = jesdLanes()
+    assert jesd.JesdRxEyeScanLink(jesdRx, 0).resetGroup() is jesdRx
+    assert jesd.JesdRxEyeScanLink(jesdRx, 1).resetGroup() is jesdRx
+    assert es.EyeScanLink().resetGroup() is None
+
+
+@pytest.mark.parametrize('mode', ['Bathtub', 'Eye', 'Margin'])
+def test_two_lanes_of_one_core_are_refused_a_parallel_scan_before_any_write(jesdLanes, mode, tmp_path):
+    gt, jesdRx, model, mem = jesdLanes()
+    targets = [target(gt, jesdRx, lane=0, number=0), target(gt, jesdRx, lane=1, number=1)]
+    before = writes(model, mem)
+    with pytest.raises(ValueError, match=f'Invalid lanes 0 and 1: one RX reset \\({jesdRx.path}\\) covers both'):
+        run(['--mode', mode, '--numLane', '2', '--noPng', 'true'], targets, tmp_path)
+    assert os.listdir(tmp_path) == []
+    assert writes(model, mem) == before
+
+
+def test_status_and_a_sequential_scan_take_two_lanes_of_one_core(jesdLanes, tmp_path, capsys):
+    gt, jesdRx, model, mem = jesdLanes()
+    targets = [target(gt, jesdRx, lane=0, number=0), target(gt, jesdRx, lane=1, number=1)]
+    code, plan = run(['--numLane', '2'], targets, tmp_path)
+    assert code == 0
+    code, plan = run([*BATHTUB, '--numLane', '2', '--parallel', 'false'], targets, tmp_path)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert 'Lane[0] bathtub status=OK' in out and 'Lane[1] bathtub status=OK' in out
+
+
+def test_lanes_of_two_cores_scan_in_parallel(jesdLanes, tmp_path, capsys):
+    gt0, jesdRx0, model0, mem0 = jesdLanes()
+    gt1, jesdRx1, model1, mem1 = jesdLanes()
+    assert jesdRx0.path == jesdRx1.path     # two cores with the same path: the key is the device, not its name
+    targets = [target(gt0, jesdRx0, lane=0, number=0), target(gt1, jesdRx1, lane=0, number=1)]
+    code, plan = run([*BATHTUB, '--numLane', '2'], targets, tmp_path)
+    assert code == 0
+    out = capsys.readouterr().out
+    assert 'Lane[0] bathtub status=OK' in out and 'Lane[1] bathtub status=OK' in out
 
 
 @pytest.mark.parametrize('family', FAMILIES)

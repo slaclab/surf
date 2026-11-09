@@ -25,7 +25,9 @@ short script that builds its root and names its lanes. Usage is in
   through the new entry point was a JESD lane (below).
 - `surf.protocols.jesd204b.JesdRxEyeScanLink` is the second adapter: one lane
   of a `JesdRx` core, hook on the shared `ResetGTs` with the lane's `DataValid`
-  bit as ready, tested over emulated GTHE3 and GTHE4 JESD lanes. Status, Probe,
+  bit as ready, tested over emulated GTHE3 and GTHE4 JESD lanes. The shared
+  reset brought `EyeScanLink.resetGroup()` to the runner: two selected lanes
+  with the same key are refused `--parallel true` in `checkLanes`. Status, Probe,
   Bathtub and Eye ran `OK` on the four GTHE3 lanes of an AMC carrier (8B10B,
   7.02 Gb/s) from an application script on `runEyeScan`.
 

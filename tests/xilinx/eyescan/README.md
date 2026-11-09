@@ -191,8 +191,11 @@ do not require an FPGA or an HDL simulator.
   factory and `connectRxReset`, the refused loopback, the hook on the shared
   `ResetGTs` with the `DataValid` bit of one lane as ready (the JESD settle and
   timeout, the neighbour bits of the control word kept through the pulse,
-  another lane's bit not counted, a one-lane core), and Status and Bathtub
-  runs that end OK with the JESD evidence in the saved metadata.
+  another lane's bit not counted, a one-lane core), `resetGroup` naming the
+  core (two lanes of one core refused `--parallel true` before any write and
+  with no run folder, two cores scanned in parallel, `--parallel false` on one
+  core), and Status and Bathtub runs that end OK with the JESD evidence in the
+  saved metadata.
 
 With Rogue and the SURF Python package on `PYTHONPATH`, run the CI command:
 

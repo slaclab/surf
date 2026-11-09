@@ -10,9 +10,10 @@
 # JesdRx has one RX reset for the whole link, ResetGTs. In the AMC carrier GT
 # wrappers it resets every GT of the bay, the TX GTs (DAC link) included. The
 # hook registered here pulses that shared reset and waits only for the RX
-# DataValid bit of its own lane, so the lanes of one JesdRx must scan one at a
-# time (--parallel false) and the application has to check, or bring up again,
-# the TX side after the scan; the runner does not.
+# DataValid bit of its own lane. The lanes of one JesdRx therefore scan one at
+# a time: resetGroup() names the core, and the runner refuses --parallel true
+# for two lanes of the same core. The application has to check, or bring up
+# again, the TX side after the scan; the runner does not.
 #-----------------------------------------------------------------------------
 # This file is part of the 'SLAC Firmware Standard Library'. It is subject to
 # the license terms in the LICENSE.txt file found in the top-level directory
@@ -102,9 +103,10 @@ class JesdRxEyeScanLink(EyeScanLink):
 
         Registration only stores the hook, it never accesses hardware, so it
         can run while the device tree is built. ``ResetGTs`` resets every GT
-        of the link, so the lanes of one ``jesdRx`` must not scan in parallel,
-        and the hook waits for the RX lane only: whether the TX GTs the reset
-        also hit come back is for the application to check. After the reset
+        of the link, so the runner refuses a parallel scan of two lanes of one
+        ``jesdRx`` (see :meth:`resetGroup`), and the hook waits for the RX
+        lane only: whether the TX GTs the reset also hit come back is for the
+        application to check. After the reset
         the lane returns through PLL lock, CDR lock, code group synchronization
         and the ILAS, which takes longer than the GT relock the ``setRxReset``
         defaults are tuned for; hence the longer ``settle`` and ``timeout``.
@@ -155,3 +157,7 @@ class JesdRxEyeScanLink(EyeScanLink):
             'nSync'         : _laneBit(rx.nSync, lane),
             'CommaDetected' : _laneBit(rx.CommaDetected, lane),
         }
+
+    def resetGroup(self) -> Any:
+        # ResetGTs is one reset for every lane of the core, so the lanes of one JesdRx share the device as key
+        return self.jesdRx
