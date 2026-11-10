@@ -20,6 +20,9 @@ The suite progresses from leaves to integration:
   retransmission, connection negotiation, close, and recovery.
 - `test_RssiAxiLiteRegItf.py` covers the register map, range clamping,
   negotiated/current readback, counters, and visible controls/status.
+- `test_RssiCoreRx.py` checks default core RX coverage with an independent wire
+  peer: DATA+BUSY, duplicate suppression, sequence wrap, and close/reopen with
+  unread data. It also checks real client/server negotiation.
 - `test_RssiCore.py` covers direct client/server negotiation, payload transfer,
   backpressure, loss/retransmission, checksums, keepalive, close/reopen, BUSY,
   and AXI-Lite-controlled behavior.
