@@ -143,5 +143,92 @@ class Lmk04828(ti.Lmk048Base):
             mode        = 'WO',
         ))
 
+        # Lock detect: PLL1 in 0x182 and PLL2 in 0x183, each with the sticky lost
+        # flag in bit 2, the readback in bit 1 and the clear in bit 0 (LMK04828
+        # datasheet, tables 81 and 82); the LMK04832 lays these bits out differently.
+        # Each register is read-write, so its block reads the device (a block
+        # holding a write-only register returns its shadow), with no write verify,
+        # since the code loader writes the read-only flags with values the device
+        # does not keep
+        self.add(pr.RemoteVariable(
+            name        = 'LmkReg_0x0182',
+            description = 'RB_PLL1_LD_LOST, RB_PLL1_LD, CLR_PLL1_LD_LOST',
+            offset      = (0x0182 << 2),
+            bitSize     = 8,
+            mode        = 'RW',
+            verify      = False,
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'RB_PLL1_LD_LOST',
+            description = 'This is set when PLL1 DLD edge falls. Does not set if cleared while PLL1 DLD is low.',
+            offset      = (0x0182 << 2),
+            bitSize     = 1,
+            bitOffset   = 2,
+            mode        = 'RO',
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'RB_PLL1_LD',
+            description = 'Read back 0: PLL1 DLD is low., Read back 1: PLL1 DLD is high.',
+            offset      = (0x0182 << 2),
+            bitSize     = 1,
+            bitOffset   = 1,
+            mode        = 'RO',
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name        = 'CLR_PLL1_LD_LOST',
+            description = 'Clear PLL1 lock detect lost sticky bit',
+            offset      = (0x0182 << 2),
+            bitSize     = 1,
+            bitOffset   = 0,
+            overlapEn   = True,
+            function    = pr.RemoteCommand.toggle
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'LmkReg_0x0183',
+            description = 'RB_PLL2_LD_LOST, RB_PLL2_LD, CLR_PLL2_LD_LOST',
+            offset      = (0x0183 << 2),
+            bitSize     = 8,
+            mode        = 'RW',
+            verify      = False,
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'RB_PLL2_LD_LOST',
+            description = 'This is set when PLL2 DLD edge falls. Does not set if cleared while PLL2 DLD is low.',
+            offset      = (0x0183 << 2),
+            bitSize     = 1,
+            bitOffset   = 2,
+            mode        = 'RO',
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteVariable(
+            name        = 'RB_PLL2_LD',
+            description = 'Read back 0: PLL2 DLD is low., Read back 1: PLL2 DLD is high.',
+            offset      = (0x0183 << 2),
+            bitSize     = 1,
+            bitOffset   = 1,
+            mode        = 'RO',
+            overlapEn   = True,
+        ))
+
+        self.add(pr.RemoteCommand(
+            name        = 'CLR_PLL2_LD_LOST',
+            description = 'Clear PLL2 lock detect lost sticky bit',
+            offset      = (0x0183 << 2),
+            bitSize     = 1,
+            bitOffset   = 0,
+            overlapEn   = True,
+            function    = pr.RemoteCommand.toggle
+        ))
+
         # Default to simple view
         self.simpleView(simpleViewList)
