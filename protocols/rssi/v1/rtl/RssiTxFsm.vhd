@@ -16,8 +16,11 @@
 --                   - Release appBusy flag and go back to INIT.
 --              Acknowledgment FSM.
 --                   - IDLE Waits for ack_i (ack request) and ackN_i(ack number)(from RxFSM),
---                   - Increments firstUnackAddr until the ackN_i is found in Window buffer,
---                   - If it does not find the SEQ number it reports Ack Error,
+--                     latches an ackN_i that refers to an outstanding segment, ignores
+--                     duplicate or stale ackN_i (peer segments can arrive reordered),
+--                     and reports Ack Error for an ackN_i of a segment never sent,
+--                   - Increments firstUnackAddr until the latched ackN is found in Window buffer,
+--                     extending the walk when a newer outstanding ackN_i arrives meanwhile,
 --                   - Goes back to IDLE.
 --              Transport side FSM. Send and resend various segments to Transport side.
 --                   - INIT Initializes seqN to initSeqN. Waits until new connection requested. ConnFSM going out of Closed state.
@@ -211,6 +214,7 @@ architecture rtl of RssiTxFsm is
       lastSentAddr   : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
 
       lastAckSeqN : slv(7 downto 0);
+      ackN        : slv(7 downto 0);    -- Latched ackN being walked in ACK_S
       --eackAddr       : slv(WINDOW_ADDR_SIZE_G-1 downto 0);
       --eackIndex      : integer;
       bufferFull  : sl;
@@ -288,6 +292,7 @@ architecture rtl of RssiTxFsm is
       nextSentAddr   => (others => '0'),
 
       lastAckSeqN => (others => '0'),
+      ackN        => (others => '0'),
       --eackAddr       => (others => '0'),
       --eackIndex      => 0,
       bufferFull  => '0',
@@ -379,7 +384,9 @@ begin
                    sndNull_i, sndResend_i, sndRst_i, sndSyn_i, tspSsiSlave_i,
                    windowSize_i) is
 
-      variable v : RegType;
+      variable v        : RegType;
+      variable outsDist : slv(7 downto 0);
+      variable ackDist  : slv(7 downto 0);
 
    begin
       v := r;
@@ -447,6 +454,16 @@ begin
       ------------------------------------------------------------
       -- /////////////////////////////////////////////////////////
 
+      -- Distance from lastAckSeqN to the newest buffered segment (zero when
+      -- the window is empty). An ackN refers to an outstanding segment when
+      -- its distance from lastAckSeqN is in the range 1 to outsDist.
+      if (r.windowArray(conv_integer(r.firstUnackAddr)).occupied = '1') then
+         outsDist := r.windowArray(conv_integer(r.lastSentAddr)).seqN - r.lastAckSeqN;
+      else
+         outsDist := (others => '0');
+      end if;
+      ackDist := ackN_i - r.lastAckSeqN;
+
       case r.ackState is
          ----------------------------------------------------------------------
          when IDLE_S =>
@@ -461,22 +478,32 @@ begin
 
             -- Next state condition
             if (ack_i = '1') then
-               v.ackState := ACK_S;
+               if (ackDist /= 0) and (ackDist <= outsDist) then
+                  -- Latch the target so later headers cannot move it mid-walk
+                  v.ackN     := ackN_i;
+                  v.ackState := ACK_S;
+               elsif ((r.lastAckSeqN - ackN_i) > windowSize_i) then
+                  -- Acknowledges a segment that was never sent
+                  v.ackState := ERR_S;
+               end if;
+               -- Otherwise the ackN is a duplicate or a stale (reordered) ACK
+               -- that is already covered by lastAckSeqN, so ignore it
             end if;
          ----------------------------------------------------------------------
          when ACK_S =>
             v.txAckState := x"1";
 
-            -- If the same ackN received do nothing
-            if (r.lastAckSeqN = ackN_i) then
-               v.firstUnackAddr := r.firstUnackAddr;
-            -- Increment ACK address until seqN is found next received
-            elsif r.firstUnackAddr < (windowSize_i-1) then
-               v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
-               v.firstUnackAddr                                       := r.firstUnackAddr+1;
+            -- A newer outstanding ACK received during the walk extends it
+            if (ack_i = '1') and (ackDist <= outsDist) and (ackDist > (r.ackN - r.lastAckSeqN)) then
+               v.ackN := ackN_i;
+            end if;
+
+            -- Release the first unacknowledged segment
+            v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
+            if r.firstUnackAddr < (windowSize_i-1) then
+               v.firstUnackAddr := r.firstUnackAddr+1;
             else
-               v.windowArray(conv_integer(r.firstUnackAddr)).occupied := '0';
-               v.firstUnackAddr                                       := (others => '0');
+               v.firstUnackAddr := (others => '0');
             end if;
 
             --v.eackAddr       := r.firstUnackAddr;
@@ -484,18 +511,8 @@ begin
             v.ackErr := '0';
 
             -- Next state condition
-
-            -- If the same ackN received
-            if (r.lastAckSeqN = ackN_i) then
-
-               -- Go back to IDLE
-               v.ackState := IDLE_S;
-
-            elsif (r.firstUnackAddr = r.lastSentAddr and r.windowArray(conv_integer(r.firstUnackAddr)).seqN /= ackN_i) then
-               -- If the acked seqN is not found go to error state
-               v.ackState := ERR_S;
-            elsif (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = ackN_i) then
-               v.lastAckSeqN := ackN_i;  -- Save the last Acked seqN
+            if (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = v.ackN) then
+               v.lastAckSeqN := v.ackN;  -- Save the last Acked seqN
                --if eack_i = '1' then
                -- Go back to init when the acked seqN is found
                --   v.ackState   := EACK_S;
@@ -503,6 +520,9 @@ begin
                -- Go back to init when the acked seqN is found
                v.ackState    := IDLE_S;
             --end if;
+            elsif (r.firstUnackAddr = r.lastSentAddr) then
+               -- If the acked seqN is not found go to error state
+               v.ackState := ERR_S;
             end if;
             ----------------------------------------------------------------------
             -- when EACK_S =>
