@@ -18,16 +18,18 @@
 #   checksum, monitor, connection logic, FIFOs and segment RAM. The RTL client
 #   is held closed; an independent Python wire peer performs SYN/SYN+ACK/ACK
 #   negotiation, checks outgoing DATA, and replies only with ACK segments.
-# - Stimulus: For each trial the server sends three DATA segments. The peer
-#   ACKs the second one, then after a swept idle gap sends the ACK it had
-#   already sent before the trial (stale and older than the window base), and
-#   finally ACKs the third segment. Sweeping the gap lands the stale header
-#   both while RssiTxFsm walks its window and just after the walk completes.
+# - Stimulus: For each stale-ACK trial the server sends 15 DATA segments. The
+#   peer ACKs s4, then s13, followed by s2 (older than the base) or s8 (older
+#   than the target), and finally s14. Sweeping the gap lands the stale header
+#   during and after the walk. A separate negative case sends an ACK beyond
+#   the last transmitted segment during a valid walk, within RX's range check.
 # - Checks: Exact DATA payload and sequence, valid header checksums, no
 #   ackErr or retransmission-limit status, and a continuously active
-#   connection. Each trial reuses the four-entry window, so a window that
-#   failed to drain stalls the next trial; a final idle period longer than the
-#   retransmission timeout proves no segment was left unacknowledged.
+#   connection for stale ACKs. Each trial reuses the 16-entry window, so a
+#   window that failed to drain stalls the next trial; a final idle period
+#   longer than the retransmission timeout proves no segment was left
+#   unacknowledged. The unsent-ACK case requires ACK-error status and
+#   connection teardown.
 # - Timing: The wrapper accelerates one timeout unit to one clock. Sources
 #   drive on falling edges and sample acceptance at rising edges before
 #   registered TREADY changes; they hold the beat through TPD_G. The collector
@@ -256,6 +258,43 @@ async def reordered_stale_ack_does_not_reset_connection_test(dut):
         # past the retransmission timeout.
         await tb.cycle(PARAMETERS["RETRANS_TOUT_G"] + 64)
         assert not tb.frames, f"Unexpected retransmission: {list(tb.frames)}"
+    finally:
+        await cancel_and_join_tasks(tb.tasks)
+
+
+@cocotb.test(timeout_time=40, timeout_unit="us")
+async def unsent_ack_during_core_walk_raises_ack_error_test(dut):
+    tb = TB(dut)
+    try:
+        await tb.start()
+        next_sequence = (await tb.connect() + 1) & 0xFF
+        sequences = []
+        for index in range(SEGMENTS_PER_TRIAL):
+            word = 0xCAFE_0000 + index
+            await tb.send(tb.app, [SsiBeat(data=word, keep=0xFF, last=1, sof=1)])
+            header, beats = await tb.receive()
+            assert header.flags == RSSI_FLAG_ACK
+            assert header.sequence == next_sequence
+            assert [beat.data for beat in beats[1:]] == [word]
+            sequences.append(header.sequence)
+            next_sequence = (next_sequence + 1) & 0xFF
+
+        # ACK 14 entries, then acknowledge one beyond all 15 sent entries.
+        # Four idle cycles keep RX from replacing the first ACK number before
+        # its strobe. The second strobe arrives five cycles after the first,
+        # inside the 14-entry walk and inside RX's negotiated 16-entry range.
+        await tb.ack(sequences[-2])
+        await tb.cycle(4)
+        tb.require_connected = False
+        await tb.ack(next_sequence)
+        saw_error = False
+        saw_disconnect = False
+        for _ in range(64):
+            await tb.cycle()
+            saw_error |= bool(int(dut.srvStatusReg_o.value) & STATUS_ACK_ERR)
+            saw_disconnect |= not bool(int(dut.srvConnected_o.value))
+        assert saw_error, "Unsent wire ACK during the walk did not raise ackErr"
+        assert saw_disconnect, "ACK error did not close the connection"
     finally:
         await cancel_and_join_tasks(tb.tasks)
 

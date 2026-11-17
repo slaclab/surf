@@ -511,7 +511,12 @@ begin
             v.ackErr := '0';
 
             -- Next state condition
-            if (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = v.ackN) then
+            if (ack_i = '1') and (ackDist > outsDist) and
+               ((r.lastAckSeqN - ackN_i) > windowSize_i) then
+               -- An unsent ACK is an error even on the final walk cycle.
+               -- Duplicate and recent stale ACKs still leave the target intact.
+               v.ackState := ERR_S;
+            elsif (r.windowArray(conv_integer(r.firstUnackAddr)).seqN = v.ackN) then
                v.lastAckSeqN := v.ackN;  -- Save the last Acked seqN
                --if eack_i = '1' then
                -- Go back to init when the acked seqN is found

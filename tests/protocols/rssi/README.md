@@ -31,6 +31,8 @@ The suite progresses from leaves to integration:
 - `test_RssiCoreStaleAck.py` reproduces slaclab/surf#1542 through the real
   server core: a wire peer delivers an older ACK right behind a newer one,
   sweeping the gap across the TX window walk, and the link must not reset.
+  An ACK for unsent data during a walk must still raise an ACK error and
+  close the connection.
 - `test_RssiCoreWrapper.py` and `test_RssiCoreWrapperMultiStream.py` cover the
   packetizer/chunker boundary, segment/window configurations, routing,
   multi-stream loss recovery, and application-side sidebands.

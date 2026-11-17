@@ -24,7 +24,8 @@
 #   Separate cases drive peer ACK numbers to release one or multiple
 #   outstanding segments, change `ackN_i` mid-walk, repeat stale or
 #   duplicate ACKs, extend a walk with a newer ACK, and acknowledge a
-#   segment that was never sent.
+#   segment that was never sent. Invalid ACK timing covers every cycle of a
+#   three-entry walk and the following idle cycle, including sequence rollover.
 # - Checks: Standalone ACK emits exactly one RSSI ACK segment, preserves the
 #   current TX sequence, and carries the expected checksum.  DATA, NULL, RST,
 #   and SYN emit the expected headers and consume sequence numbers where the
@@ -33,7 +34,9 @@
 #   buffered segments.  A walk finishes on the ACK number that started it,
 #   stale or duplicate ACKs neither raise `ackErr` nor move `lastAckN_o`
 #   backwards (slaclab/surf#1542), and an ACK of an unsent segment still
-#   raises `ackErr`.  Checksum injection corrupts ACK, NULL, and DATA header
+#   raises `ackErr`, including on the walk's final cycle. Stale/duplicate ACKs
+#   during a walk must still drain the valid target without an error.
+#   Checksum injection corrupts ACK, NULL, and DATA header
 #   checksums without corrupting payload.
 # - Timing: Output checks start with `TREADY` asserted, then present checksum
 #   valid after the DUT's checksum request so the header RAM path is sampled
@@ -113,6 +116,7 @@ class TB:
         connected: bool = True,
         tx_ack_flag: int = 1,
         buffer_size: int = 4,
+        init_sequence: int = 0x12,
     ):
         bench = await setup_flat_ssi_testbench(
             dut,
@@ -129,7 +133,7 @@ class TB:
                 "sndNull_i": 0,
                 "windowSize_i": 4,
                 "bufferSize_i": buffer_size,
-                "initSeqN_i": 0x12,
+                "initSeqN_i": init_sequence,
                 "txAckFlag_i": tx_ack_flag,
                 "rxAckN_i": 0x34,
                 "localBusy_i": 0,
@@ -933,6 +937,44 @@ async def ack_for_unsent_segment_raises_ack_error_test(dut):
 
     await _pulse_ack(tb, seq[1] + 1)
     assert await _ack_err_seen(tb, 16), "ACK of an unsent segment did not raise ackErr"
+
+
+@cocotb.test()
+@cocotb.parametrize(ack_delay=[0, 1, 2, 3], init_sequence=[0x12, 0xFE])
+async def unsent_ack_during_window_walk_raises_ack_error_test(dut, ack_delay, init_sequence):
+    tb = await TB.create(dut, init_sequence=init_sequence)
+    seq = await _send_one_word_segments(tb, 1)
+    # Establish the ACK base before sending across sequence rollover.
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+    assert int(dut.lastAckN_o.value) == seq[0]
+    seq.extend(await _send_one_word_segments(tb, 3))
+
+    await _pulse_ack(tb, seq[3])
+    # Delays 0/1/2 hit the first/middle/final release; 3 reaches idle.
+    await tb.cycle(ack_delay)
+    unsent = (seq[3] + 1) & 0xFF
+    await _pulse_ack(tb, unsent)
+    assert await _ack_err_seen(tb, 8), "Unsent ACK was ignored during/after the walk"
+    assert int(dut.lastAckN_o.value) != unsent, "Unsent ACK advanced the ACK base"
+
+
+@cocotb.test()
+@cocotb.parametrize(ack_delay=[0, 2], stale_offset=[0, 1])
+async def stale_ack_during_window_walk_is_ignored_test(dut, ack_delay, stale_offset):
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 4)
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+
+    await _pulse_ack(tb, seq[3])
+    await tb.cycle(ack_delay)
+    # A duplicate of the completed ACK base, or an older recent ACK, must
+    # not abort the valid walk even when it coincides with completion.
+    await _pulse_ack(tb, seq[0] - stale_offset)
+    assert not await _ack_err_seen(tb, 8), "Stale/duplicate ACK aborted the walk"
+    assert int(dut.lastAckN_o.value) == seq[3]
+    assert int(dut.bufferEmpty_o.value) == 1
 
 
 PARAMETER_SWEEP = [pytest.param({}, id="small_window")]
