@@ -22,13 +22,21 @@
 #   resend, and close requests, drive application payload beats, and return
 #   checksum-valid strobes only after the DUT asks for a header checksum.
 #   Separate cases drive peer ACK numbers to release one or multiple
-#   outstanding segments.
+#   outstanding segments, change `ackN_i` mid-walk, repeat stale or
+#   duplicate ACKs, extend a walk with a newer ACK, and acknowledge a
+#   segment that was never sent. Invalid ACK timing covers every cycle of a
+#   three-entry walk and the following idle cycle, including sequence rollover.
 # - Checks: Standalone ACK emits exactly one RSSI ACK segment, preserves the
 #   current TX sequence, and carries the expected checksum.  DATA, NULL, RST,
 #   and SYN emit the expected headers and consume sequence numbers where the
 #   RSSI profile requires it.  Multi-word DATA preserves payload/TKEEP/TLAST
 #   across the segment RAM and resend path.  Cumulative ACK frees multiple
-#   buffered segments.  Checksum injection corrupts ACK, NULL, and DATA header
+#   buffered segments.  A walk finishes on the ACK number that started it,
+#   stale or duplicate ACKs neither raise `ackErr` nor move `lastAckN_o`
+#   backwards (slaclab/surf#1542), and an ACK of an unsent segment still
+#   raises `ackErr`, including on the walk's final cycle. Stale/duplicate ACKs
+#   during a walk must still drain the valid target without an error.
+#   Checksum injection corrupts ACK, NULL, and DATA header
 #   checksums without corrupting payload.
 # - Timing: Output checks start with `TREADY` asserted, then present checksum
 #   valid after the DUT's checksum request so the header RAM path is sampled
@@ -108,6 +116,7 @@ class TB:
         connected: bool = True,
         tx_ack_flag: int = 1,
         buffer_size: int = 4,
+        init_sequence: int = 0x12,
     ):
         bench = await setup_flat_ssi_testbench(
             dut,
@@ -124,7 +133,7 @@ class TB:
                 "sndNull_i": 0,
                 "windowSize_i": 4,
                 "bufferSize_i": buffer_size,
-                "initSeqN_i": 0x12,
+                "initSeqN_i": init_sequence,
                 "txAckFlag_i": tx_ack_flag,
                 "rxAckN_i": 0x34,
                 "localBusy_i": 0,
@@ -809,6 +818,162 @@ async def rst_segment_emits_header_and_consumes_sequence_without_buffering_test(
 
     await tb.cycle(2)
     assert int(dut.txSeqN_o.value) == (initial_seq + 1) & 0xFF
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+async def _send_one_word_segments(tb, count: int) -> list[int]:
+    # Buffer `count` one-word DATA segments and return their sequence numbers.
+    sequences = []
+    for index in range(count):
+        seq = int(tb.dut.txSeqN_o.value)
+        payload_word = 0x0101_0101_0101_0101 * (index + 1)
+        expected_header = _header_with_test_checksum(
+            build_data_header(sequence=seq, acknowledge=0x34, enable_checksum=False)
+        )
+        recv_task = cocotb.start_soon(
+            recv_frame_and_check(
+                tb.sink,
+                clk=tb.clk,
+                ready_signal=tb.dut.mAxisTReady,
+                fields=("data", "keep", "last", "sof", "eofe"),
+                expected=[
+                    (stream_word_from_protocol_bytes(expected_header), 0xFF, 0, 1, 0),
+                    (payload_word, 0xFF, 1, 0, 0),
+                ],
+            )
+        )
+        await send_contiguous_frame(
+            tb.source,
+            [SsiBeat(data=payload_word, keep=0xFF, last=1, sof=1, eofe=0)],
+            clk=tb.clk,
+        )
+        await tb.provide_checksum_after_strobe()
+        await recv_task
+        await tb.finish_checksum()
+        await tb.cycle(2)
+        sequences.append(seq)
+    return sequences
+
+
+async def _pulse_ack(tb, ack_number: int, *, then_ack_number: int | None = None) -> None:
+    # `ackN_i` follows the RX FSM's most recently parsed header, so it may
+    # change on the cycle after the ACK strobe while the window walk runs.
+    tb.dut.ackN_i.value = ack_number & 0xFF
+    await tb.pulse("ack_i")
+    if then_ack_number is not None:
+        tb.dut.ackN_i.value = then_ack_number & 0xFF
+
+
+async def _ack_err_seen(tb, cycles: int) -> bool:
+    seen = False
+    for _ in range(cycles):
+        await tb.cycle()
+        seen |= int(tb.dut.ackErr_o.value) == 1
+    return seen
+
+
+@cocotb.test()
+async def ack_number_change_during_window_walk_does_not_raise_ack_error_test(dut):
+    # slaclab/surf#1542: a header parsed during the walk changes ackN_i to a
+    # stale value. The walk must finish on the ACK number that started it.
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 4)
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+    assert int(dut.lastAckN_o.value) == seq[0]
+
+    await _pulse_ack(tb, seq[3], then_ack_number=seq[0] - 1)
+    assert not await _ack_err_seen(tb, 16), "Stale ackN_i during the walk raised ackErr"
+    assert int(dut.lastAckN_o.value) == seq[3]
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+@cocotb.test()
+async def stale_ack_after_window_walk_is_ignored_test(dut):
+    # slaclab/surf#1542: the RX FSM range-checks a header against lastAckN
+    # while a walk is still running, then strobes it after the walk ends.
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 4)
+    await _pulse_ack(tb, seq[2])
+    assert not await _ack_err_seen(tb, 8)
+    assert int(dut.lastAckN_o.value) == seq[2]
+    assert int(dut.bufferEmpty_o.value) == 0
+
+    await _pulse_ack(tb, seq[1])
+    assert not await _ack_err_seen(tb, 8), "Stale ACK raised ackErr"
+    assert int(dut.lastAckN_o.value) == seq[2], "Stale ACK moved lastAckN backwards"
+    assert int(dut.bufferEmpty_o.value) == 0
+
+    # Duplicate of the current ACK is also ignored.
+    await _pulse_ack(tb, seq[2])
+    assert not await _ack_err_seen(tb, 8), "Duplicate ACK raised ackErr"
+    assert int(dut.lastAckN_o.value) == seq[2]
+
+    await _pulse_ack(tb, seq[3])
+    assert not await _ack_err_seen(tb, 8)
+    assert int(dut.lastAckN_o.value) == seq[3]
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+@cocotb.test()
+async def newer_ack_during_window_walk_extends_release_test(dut):
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 4)
+    await _pulse_ack(tb, seq[1])
+    await _pulse_ack(tb, seq[3])
+    assert not await _ack_err_seen(tb, 16)
+    assert int(dut.lastAckN_o.value) == seq[3]
+    assert int(dut.bufferEmpty_o.value) == 1
+
+
+@cocotb.test()
+async def ack_for_unsent_segment_raises_ack_error_test(dut):
+    # Ignoring stale ACKs must not hide a peer that acknowledges data the
+    # transmitter never sent.
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 2)
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+
+    await _pulse_ack(tb, seq[1] + 1)
+    assert await _ack_err_seen(tb, 16), "ACK of an unsent segment did not raise ackErr"
+
+
+@cocotb.test()
+@cocotb.parametrize(ack_delay=[0, 1, 2, 3], init_sequence=[0x12, 0xFE])
+async def unsent_ack_during_window_walk_raises_ack_error_test(dut, ack_delay, init_sequence):
+    tb = await TB.create(dut, init_sequence=init_sequence)
+    seq = await _send_one_word_segments(tb, 1)
+    # Establish the ACK base before sending across sequence rollover.
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+    assert int(dut.lastAckN_o.value) == seq[0]
+    seq.extend(await _send_one_word_segments(tb, 3))
+
+    await _pulse_ack(tb, seq[3])
+    # Delays 0/1/2 hit the first/middle/final release; 3 reaches idle.
+    await tb.cycle(ack_delay)
+    unsent = (seq[3] + 1) & 0xFF
+    await _pulse_ack(tb, unsent)
+    assert await _ack_err_seen(tb, 8), "Unsent ACK was ignored during/after the walk"
+    assert int(dut.lastAckN_o.value) != unsent, "Unsent ACK advanced the ACK base"
+
+
+@cocotb.test()
+@cocotb.parametrize(ack_delay=[0, 2], stale_offset=[0, 1])
+async def stale_ack_during_window_walk_is_ignored_test(dut, ack_delay, stale_offset):
+    tb = await TB.create(dut)
+    seq = await _send_one_word_segments(tb, 4)
+    await _pulse_ack(tb, seq[0])
+    assert not await _ack_err_seen(tb, 4)
+
+    await _pulse_ack(tb, seq[3])
+    await tb.cycle(ack_delay)
+    # A duplicate of the completed ACK base, or an older recent ACK, must
+    # not abort the valid walk even when it coincides with completion.
+    await _pulse_ack(tb, seq[0] - stale_offset)
+    assert not await _ack_err_seen(tb, 8), "Stale/duplicate ACK aborted the walk"
+    assert int(dut.lastAckN_o.value) == seq[3]
     assert int(dut.bufferEmpty_o.value) == 1
 
 

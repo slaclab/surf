@@ -28,6 +28,11 @@ The suite progresses from leaves to integration:
 - `test_RssiCoreKeepalive.py` covers sustained server DATA with an independent
   ACK-only wire peer and subsequent receive-liveness timeout through the real
   server core. It runs by default, independently of the gated core tests.
+- `test_RssiCoreStaleAck.py` reproduces slaclab/surf#1542 through the real
+  server core: a wire peer delivers an older ACK right behind a newer one,
+  sweeping the gap across the TX window walk, and the link must not reset.
+  An ACK for unsent data during a walk must still raise an ACK error and
+  close the connection.
 - `test_RssiCoreWrapper.py` and `test_RssiCoreWrapperMultiStream.py` cover the
   packetizer/chunker boundary, segment/window configurations, routing,
   multi-stream loss recovery, and application-side sidebands.
