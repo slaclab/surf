@@ -14,7 +14,6 @@
 #-----------------------------------------------------------------------------
 
 import pyrogue as pr
-import surf.xilinx
 
 class Pgp3AxiL(pr.Device):
     def __init__(self,
@@ -538,49 +537,3 @@ class Pgp3AxiL(pr.Device):
 
     def countReset(self):
         self.CountReset()
-
-class Pgp3GthUs(pr.Device):
-    def __init__(self, *,
-                 enDrp = True,
-                 enMon = True,
-                 numVc = 4,
-                 monWriteEn = False,
-                 monErrorCountBits = 4,
-                 monStatusCountBits = 32,
-                 **kwargs):
-        super().__init__(self, **kwargs)
-
-        if enMon:
-            self.add(Pgp3AxiL(
-                offset = 0x0,
-                numVc = numVc,
-                writeEn = monWriteEn,
-                errorCountBits = monErrorCountBits,
-                statusCountBits = monStatusCountBits,
-            ))
-
-        if enDrp:
-            self.add(surf.xilinx.Gthe3Channel(
-                offset = 0x1000,
-                expand = False,
-            ))
-
-
-class Pgp3GthUsWrapper(pr.Device):
-    def __init__(self, *,
-                 lanes = 1,
-                 enGtDrp = True,
-                 enQpllDrp = False,
-                 enMon = True,
-                 **kwargs):
-        super().__init__(self, **kwargs)
-
-        self.addNodes(
-            nodeClass = Pgp3GthUs,
-            number = lanes,
-            stride = 0x2000,
-            name = 'Pgp3GthUs',
-            offset = 0x0,
-            enMon = enMon,
-            enDrp = enGtDrp
-        )

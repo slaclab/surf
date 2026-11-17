@@ -255,7 +255,7 @@ begin
             v.data(7 downto 0)   := toSlv(AXIS_NUM_SLOTS_G, 8);
             v.data(15 downto 8)  := toSlv(ADDR_WIDTH_C, 8);
             v.data(23 downto 16) := toSlv(r.ch, 8);
-            v.data(31 downto 16) := (others => '0');
+            v.data(31 downto 24) := (others => '0');
          -----------------------------------------------------------------------
          when others =>
             v.we := '0';

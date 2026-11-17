@@ -263,9 +263,12 @@ begin
                for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
                   if (r.slave(s).wrReqNum = m and r.slave(s).wrReqs(m) = '1' and r.master(m).wrAcks(s) = '1') then
 
-                     -- Forward write response
-                     v.sAxiWriteSlaves(s).bresp  := mAxiWriteSlaves(m).bresp;
-                     v.sAxiWriteSlaves(s).bvalid := mAxiWriteSlaves(m).bvalid;
+                     -- Hold the write response until the source accepts it
+                     if (r.sAxiWriteSlaves(s).bvalid = '0' and mAxiWriteSlaves(m).bvalid = '1') then
+                        v.sAxiWriteSlaves(s).bresp   := mAxiWriteSlaves(m).bresp;
+                        v.sAxiWriteSlaves(s).bvalid  := '1';
+                        v.mAxiWriteMasters(m).bready := '0';
+                     end if;
 
                      -- bvalid or rvalid indicates txn concluding
                      if (r.sAxiWriteSlaves(s).bvalid = '1' and sAxiWriteMasters(s).bready = '1') then
@@ -333,10 +336,13 @@ begin
                for m in NUM_MASTER_SLOTS_G-1 downto 0 loop
                   if (r.slave(s).rdReqNum = m and r.slave(s).rdReqs(m) = '1' and r.master(m).rdAcks(s) = '1') then
 
-                     -- Forward read response
-                     v.sAxiReadSlaves(s).rresp  := mAxiReadSlaves(m).rresp;
-                     v.sAxiReadSlaves(s).rdata  := mAxiReadSlaves(m).rdata;
-                     v.sAxiReadSlaves(s).rvalid := mAxiReadSlaves(m).rvalid;
+                     -- Hold the read response until the source accepts it
+                     if (r.sAxiReadSlaves(s).rvalid = '0' and mAxiReadSlaves(m).rvalid = '1') then
+                        v.sAxiReadSlaves(s).rresp   := mAxiReadSlaves(m).rresp;
+                        v.sAxiReadSlaves(s).rdata   := mAxiReadSlaves(m).rdata;
+                        v.sAxiReadSlaves(s).rvalid  := '1';
+                        v.mAxiReadMasters(m).rready := '0';
+                     end if;
 
                      -- rvalid indicates txn concluding
                      if (r.sAxiReadSlaves(s).rvalid = '1' and sAxiReadMasters(s).rready = '1') then
@@ -379,9 +385,10 @@ begin
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
                -- buses to this master's outputs.
                if (r.master(m).wrValid = '1') then
-                  v.master(m).wrAcks    := r.master(m).wrAcks;
-                  v.mAxiWriteMasters(m) := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
-                  v.master(m).wrState   := M_WAIT_READYS_S;
+                  v.master(m).wrAcks           := r.master(m).wrAcks;
+                  v.mAxiWriteMasters(m)        := sAxiWriteMasters(conv_integer(r.master(m).wrAckNum));
+                  v.mAxiWriteMasters(m).bready := '1';
+                  v.master(m).wrState          := M_WAIT_READYS_S;
                end if;
 
             when M_WAIT_READYS_S =>
@@ -438,9 +445,10 @@ begin
                -- Upon valid request (set 1 cycle previous by arbitrate()), connect slave side
                -- buses to this master's outputs.
                if (r.master(m).rdValid = '1') then
-                  v.master(m).rdAcks   := r.master(m).rdAcks;
-                  v.mAxiReadMasters(m) := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
-                  v.master(m).rdState  := M_WAIT_READYS_S;
+                  v.master(m).rdAcks          := r.master(m).rdAcks;
+                  v.mAxiReadMasters(m)        := sAxiReadMasters(conv_integer(r.master(m).rdAckNum));
+                  v.mAxiReadMasters(m).rready := '1';
+                  v.master(m).rdState         := M_WAIT_READYS_S;
                end if;
 
             when M_WAIT_READYS_S =>

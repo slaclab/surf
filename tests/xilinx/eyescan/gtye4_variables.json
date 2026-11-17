@@ -1,0 +1,6304 @@
+[
+ {
+  "name": "ACJTAG_DEBUG_MODE",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ACJTAG_MODE",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ACJTAG_RESET",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ADAPT_CFG0",
+  "class": "RemoteVariable",
+  "offset": 580,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ADAPT_CFG1",
+  "class": "RemoteVariable",
+  "offset": 584,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ADAPT_CFG2",
+  "class": "RemoteVariable",
+  "offset": 456,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_COMMA_DOUBLE",
+  "class": "RemoteVariable",
+  "offset": 156,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_COMMA_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 156,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_COMMA_WORD",
+  "class": "RemoteVariable",
+  "offset": 156,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_MCOMMA_DET",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_MCOMMA_VALUE",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_PCOMMA_DET",
+  "class": "RemoteVariable",
+  "offset": 344,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ALIGN_PCOMMA_VALUE",
+  "class": "RemoteVariable",
+  "offset": 344,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "A_RXOSCALRESET",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "A_RXPROGDIVRESET",
+  "class": "RemoteVariable",
+  "offset": 176,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "A_RXTERMINATION",
+  "class": "RemoteVariable",
+  "offset": 1128,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "A_TXDIFFCTRL",
+  "class": "RemoteVariable",
+  "offset": 168,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "A_TXPROGDIVRESET",
+  "class": "RemoteVariable",
+  "offset": 176,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "BLOCKSEL",
+  "class": "RemoteVariable",
+  "offset": 52,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CBCC_DATA_SOURCE_SEL",
+  "class": "RemoteVariable",
+  "offset": 396,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CDR_SWAP_MODE_EN",
+  "class": "RemoteVariable",
+  "offset": 8,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CFOK_PWRSVE_EN",
+  "class": "RemoteVariable",
+  "offset": 12,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_KEEP_ALIGN",
+  "class": "RemoteVariable",
+  "offset": 116,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_MAX_SKEW",
+  "class": "RemoteVariable",
+  "offset": 80,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_1_1",
+  "class": "RemoteVariable",
+  "offset": 80,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_1_2",
+  "class": "RemoteVariable",
+  "offset": 808,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_1_3",
+  "class": "RemoteVariable",
+  "offset": 84,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_1_4",
+  "class": "RemoteVariable",
+  "offset": 88,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_1_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 96,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_1",
+  "class": "RemoteVariable",
+  "offset": 96,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_2",
+  "class": "RemoteVariable",
+  "offset": 100,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_3",
+  "class": "RemoteVariable",
+  "offset": 104,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_4",
+  "class": "RemoteVariable",
+  "offset": 108,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 112,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_2_USE",
+  "class": "RemoteVariable",
+  "offset": 112,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CHAN_BOND_SEQ_LEN",
+  "class": "RemoteVariable",
+  "offset": 80,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CH_HSPMUX",
+  "class": "RemoteVariable",
+  "offset": 1112,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_CFG_0",
+  "class": "RemoteVariable",
+  "offset": 988,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_CFG_1",
+  "class": "RemoteVariable",
+  "offset": 992,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_CFG_2",
+  "class": "RemoteVariable",
+  "offset": 876,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_CFG_3",
+  "class": "RemoteVariable",
+  "offset": 852,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_DCC_PWRDN",
+  "class": "RemoteVariable",
+  "offset": 852,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL1_IQ_PWRDN",
+  "class": "RemoteVariable",
+  "offset": 852,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL2_CFG_0",
+  "class": "RemoteVariable",
+  "offset": 996,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL2_CFG_1",
+  "class": "RemoteVariable",
+  "offset": 1028,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL2_CFG_2",
+  "class": "RemoteVariable",
+  "offset": 868,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL2_CFG_3",
+  "class": "RemoteVariable",
+  "offset": 856,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CKCAL2_CFG_4",
+  "class": "RemoteVariable",
+  "offset": 860,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_CORRECT_USE",
+  "class": "RemoteVariable",
+  "offset": 144,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_KEEP_IDLE",
+  "class": "RemoteVariable",
+  "offset": 112,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_MAX_LAT",
+  "class": "RemoteVariable",
+  "offset": 116,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_MIN_LAT",
+  "class": "RemoteVariable",
+  "offset": 112,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_PRECEDENCE",
+  "class": "RemoteVariable",
+  "offset": 116,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_REPEAT_WAIT",
+  "class": "RemoteVariable",
+  "offset": 116,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_1_1",
+  "class": "RemoteVariable",
+  "offset": 120,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_1_2",
+  "class": "RemoteVariable",
+  "offset": 124,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_1_3",
+  "class": "RemoteVariable",
+  "offset": 128,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_1_4",
+  "class": "RemoteVariable",
+  "offset": 132,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_1_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 136,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_1",
+  "class": "RemoteVariable",
+  "offset": 136,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_2",
+  "class": "RemoteVariable",
+  "offset": 140,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_3",
+  "class": "RemoteVariable",
+  "offset": 144,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_4",
+  "class": "RemoteVariable",
+  "offset": 148,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 144,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_2_USE",
+  "class": "RemoteVariable",
+  "offset": 144,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CLK_COR_SEQ_LEN",
+  "class": "RemoteVariable",
+  "offset": 116,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "COMMA_ALIGN_LATENCY",
+  "class": "RemoteVariable",
+  "offset": 2368,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "CPLL_CFG0",
+  "class": "RemoteVariable",
+  "offset": 636,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_CFG1",
+  "class": "RemoteVariable",
+  "offset": 640,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_CFG2",
+  "class": "RemoteVariable",
+  "offset": 752,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_CFG3",
+  "class": "RemoteVariable",
+  "offset": 728,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_FBDIV",
+  "class": "RemoteVariable",
+  "offset": 160,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_FBDIV_45",
+  "class": "RemoteVariable",
+  "offset": 160,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_INIT_CFG0",
+  "class": "RemoteVariable",
+  "offset": 172,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_IPS_EN",
+  "class": "RemoteVariable",
+  "offset": 168,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_IPS_REFCLK_SEL",
+  "class": "RemoteVariable",
+  "offset": 168,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_LOCK_CFG",
+  "class": "RemoteVariable",
+  "offset": 76,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CPLL_REFCLK_DIV",
+  "class": "RemoteVariable",
+  "offset": 168,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CTLE3_OCAP_EXT_CTRL",
+  "class": "RemoteVariable",
+  "offset": 896,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "CTLE3_OCAP_EXT_EN",
+  "class": "RemoteVariable",
+  "offset": 896,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DDI_CTRL",
+  "class": "RemoteVariable",
+  "offset": 744,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DDI_REALIGN_WAIT",
+  "class": "RemoteVariable",
+  "offset": 744,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DEC_MCOMMA_DETECT",
+  "class": "RemoteVariable",
+  "offset": 820,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DEC_PCOMMA_DETECT",
+  "class": "RemoteVariable",
+  "offset": 176,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DEC_VALID_COMMA_ONLY",
+  "class": "RemoteVariable",
+  "offset": 820,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DELAY_ELEC",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DMONITOR_CFG0",
+  "class": "RemoteVariable",
+  "offset": 404,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "DMONITOR_CFG1",
+  "class": "RemoteVariable",
+  "offset": 232,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_CLK_PHASE_SEL",
+  "class": "RemoteVariable",
+  "offset": 592,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_CONTROL",
+  "class": "RemoteVariable",
+  "offset": 240,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_ERRDET_EN",
+  "class": "RemoteVariable",
+  "offset": 240,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_EYE_SCAN_EN",
+  "class": "RemoteVariable",
+  "offset": 240,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_HORZ_OFFSET",
+  "class": "RemoteVariable",
+  "offset": 316,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   12
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_PMA_CFG",
+  "class": "RemoteVariable",
+  "offset": 324,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_PRESCALE",
+  "class": "RemoteVariable",
+  "offset": 240,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER0",
+  "class": "RemoteVariable",
+  "offset": 252,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER1",
+  "class": "RemoteVariable",
+  "offset": 256,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER2",
+  "class": "RemoteVariable",
+  "offset": 260,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER3",
+  "class": "RemoteVariable",
+  "offset": 264,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER4",
+  "class": "RemoteVariable",
+  "offset": 268,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER5",
+  "class": "RemoteVariable",
+  "offset": 924,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER6",
+  "class": "RemoteVariable",
+  "offset": 928,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER7",
+  "class": "RemoteVariable",
+  "offset": 932,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER8",
+  "class": "RemoteVariable",
+  "offset": 936,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUALIFIER9",
+  "class": "RemoteVariable",
+  "offset": 940,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK0",
+  "class": "RemoteVariable",
+  "offset": 272,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK1",
+  "class": "RemoteVariable",
+  "offset": 276,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK2",
+  "class": "RemoteVariable",
+  "offset": 280,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK3",
+  "class": "RemoteVariable",
+  "offset": 284,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK4",
+  "class": "RemoteVariable",
+  "offset": 288,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK5",
+  "class": "RemoteVariable",
+  "offset": 944,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK6",
+  "class": "RemoteVariable",
+  "offset": 948,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK7",
+  "class": "RemoteVariable",
+  "offset": 952,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK8",
+  "class": "RemoteVariable",
+  "offset": 956,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_QUAL_MASK9",
+  "class": "RemoteVariable",
+  "offset": 960,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK0",
+  "class": "RemoteVariable",
+  "offset": 292,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK1",
+  "class": "RemoteVariable",
+  "offset": 296,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK2",
+  "class": "RemoteVariable",
+  "offset": 300,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK3",
+  "class": "RemoteVariable",
+  "offset": 304,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK4",
+  "class": "RemoteVariable",
+  "offset": 308,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK5",
+  "class": "RemoteVariable",
+  "offset": 964,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK6",
+  "class": "RemoteVariable",
+  "offset": 968,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK7",
+  "class": "RemoteVariable",
+  "offset": 972,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK8",
+  "class": "RemoteVariable",
+  "offset": 976,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ES_SDATA_MASK9",
+  "class": "RemoteVariable",
+  "offset": 980,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "EYESCAN_VP_RANGE",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "EYE_SCAN_SWAP_EN",
+  "class": "RemoteVariable",
+  "offset": 12,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "FTS_DESKEW_SEQ_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 312,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "FTS_LANE_DESKEW_CFG",
+  "class": "RemoteVariable",
+  "offset": 316,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "FTS_LANE_DESKEW_EN",
+  "class": "RemoteVariable",
+  "offset": 312,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "GEARBOX_MODE",
+  "class": "RemoteVariable",
+  "offset": 612,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ISCAN_CK_PH_SEL2",
+  "class": "RemoteVariable",
+  "offset": 844,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LOCAL_MASTER",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_BIAS_CTRL",
+  "class": "RemoteVariable",
+  "offset": 844,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_EN_RCAL_B",
+  "class": "RemoteVariable",
+  "offset": 844,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_EXT_RCAL",
+  "class": "RemoteVariable",
+  "offset": 1004,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_IND_CTRL0",
+  "class": "RemoteVariable",
+  "offset": 848,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_IND_CTRL1",
+  "class": "RemoteVariable",
+  "offset": 848,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_IND_CTRL2",
+  "class": "RemoteVariable",
+  "offset": 844,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "LPBK_RG_CTRL",
+  "class": "RemoteVariable",
+  "offset": 848,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "OOBDIVCTL",
+  "class": "RemoteVariable",
+  "offset": 92,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "OOB_PWRUP",
+  "class": "RemoteVariable",
+  "offset": 396,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_AUTO_REALIGN",
+  "class": "RemoteVariable",
+  "offset": 92,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_PIPE_RX_ELECIDLE",
+  "class": "RemoteVariable",
+  "offset": 92,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ASYNC_EBUF_BYPASS",
+  "class": "RemoteVariable",
+  "offset": 96,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ELECIDLE_EI2_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ELECIDLE_H2L_COUNT",
+  "class": "RemoteVariable",
+  "offset": 88,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ELECIDLE_H2L_DISABLE",
+  "class": "RemoteVariable",
+  "offset": 16,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ELECIDLE_HI_COUNT",
+  "class": "RemoteVariable",
+  "offset": 84,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_ELECIDLE_LP4_DISABLE",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCI3_RX_FIFO_DISABLE",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE3_CLK_COR_EMPTY_THRSH",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE3_CLK_COR_FULL_THRSH",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE3_CLK_COR_MAX_LAT",
+  "class": "RemoteVariable",
+  "offset": 1116,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE3_CLK_COR_MIN_LAT",
+  "class": "RemoteVariable",
+  "offset": 1116,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE3_CLK_COR_THRSH_TIMER",
+  "class": "RemoteVariable",
+  "offset": 1116,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_64B_DYN_CLKSW_DIS",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_BUFG_DIV_CTRL",
+  "class": "RemoteVariable",
+  "offset": 780,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_GEN4_64BIT_INT_EN",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_GEN4_NEW_EIEOS_DET_EN",
+  "class": "RemoteVariable",
+  "offset": 384,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_PLL_SEL_MODE_GEN12",
+  "class": "RemoteVariable",
+  "offset": 692,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_PLL_SEL_MODE_GEN3",
+  "class": "RemoteVariable",
+  "offset": 692,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_PLL_SEL_MODE_GEN4",
+  "class": "RemoteVariable",
+  "offset": 692,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_RXPCS_CFG_GEN3",
+  "class": "RemoteVariable",
+  "offset": 784,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_RXPMA_CFG",
+  "class": "RemoteVariable",
+  "offset": 676,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_TXPCS_CFG_GEN3",
+  "class": "RemoteVariable",
+  "offset": 680,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCIE_TXPMA_CFG",
+  "class": "RemoteVariable",
+  "offset": 684,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCS_PCIE_EN",
+  "class": "RemoteVariable",
+  "offset": 340,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PCS_RSVD0",
+  "class": "RemoteVariable",
+  "offset": 384,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PD_TRANS_TIME_FROM_P2",
+  "class": "RemoteVariable",
+  "offset": 472,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   12
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PD_TRANS_TIME_NONE_P2",
+  "class": "RemoteVariable",
+  "offset": 476,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PD_TRANS_TIME_TO_P2",
+  "class": "RemoteVariable",
+  "offset": 476,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "PREIQ_FREQ_BST",
+  "class": "RemoteVariable",
+  "offset": 1004,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RATE_SW_USE_DRP",
+  "class": "RemoteVariable",
+  "offset": 692,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RCLK_SIPO_DLY_ENB",
+  "class": "RemoteVariable",
+  "offset": 1032,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RCLK_SIPO_INV_EN",
+  "class": "RemoteVariable",
+  "offset": 1032,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RTX_BUF_CML_CTRL",
+  "class": "RemoteVariable",
+  "offset": 884,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RTX_BUF_TERM_CTRL",
+  "class": "RemoteVariable",
+  "offset": 884,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUFRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 12,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_ADDR_MODE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_EIDLE_HI_CNT",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_EIDLE_LO_CNT",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_EN",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_RESET_ON_CB_CHANGE",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_RESET_ON_COMMAALIGN",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_RESET_ON_EIDLE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_RESET_ON_RATE_CHANGE",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_THRESH_OVFLW",
+  "class": "RemoteVariable",
+  "offset": 404,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_THRESH_OVRD",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXBUF_THRESH_UNDFLW",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDRFREQRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 12,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDRPHRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 16,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG0",
+  "class": "RemoteVariable",
+  "offset": 56,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG0_GEN3",
+  "class": "RemoteVariable",
+  "offset": 648,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG1",
+  "class": "RemoteVariable",
+  "offset": 60,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG1_GEN3",
+  "class": "RemoteVariable",
+  "offset": 652,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG2",
+  "class": "RemoteVariable",
+  "offset": 64,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG2_GEN2",
+  "class": "RemoteVariable",
+  "offset": 1236,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG2_GEN3",
+  "class": "RemoteVariable",
+  "offset": 656,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG2_GEN4",
+  "class": "RemoteVariable",
+  "offset": 1132,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG3",
+  "class": "RemoteVariable",
+  "offset": 68,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG3_GEN2",
+  "class": "RemoteVariable",
+  "offset": 1236,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG3_GEN3",
+  "class": "RemoteVariable",
+  "offset": 660,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG3_GEN4",
+  "class": "RemoteVariable",
+  "offset": 1136,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG4",
+  "class": "RemoteVariable",
+  "offset": 72,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG4_GEN3",
+  "class": "RemoteVariable",
+  "offset": 664,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG5",
+  "class": "RemoteVariable",
+  "offset": 720,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_CFG5_GEN3",
+  "class": "RemoteVariable",
+  "offset": 700,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_FR_RESET_ON_EIDLE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_HOLD_DURING_EIDLE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_LOCK_CFG0",
+  "class": "RemoteVariable",
+  "offset": 164,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_LOCK_CFG1",
+  "class": "RemoteVariable",
+  "offset": 180,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_LOCK_CFG2",
+  "class": "RemoteVariable",
+  "offset": 872,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_LOCK_CFG3",
+  "class": "RemoteVariable",
+  "offset": 1016,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_LOCK_CFG4",
+  "class": "RemoteVariable",
+  "offset": 892,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCDR_PH_RESET_ON_EIDLE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCFOK_CFG0",
+  "class": "RemoteVariable",
+  "offset": 588,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCFOK_CFG1",
+  "class": "RemoteVariable",
+  "offset": 184,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCFOK_CFG2",
+  "class": "RemoteVariable",
+  "offset": 196,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL1_IQ_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1064,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL1_I_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1056,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL1_Q_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1060,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL2_DX_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1080,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL2_D_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1068,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL2_S_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1076,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXCKCAL2_X_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1072,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFELPMRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 16,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFELPM_KL_CFG0",
+  "class": "RemoteVariable",
+  "offset": 212,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFELPM_KL_CFG1",
+  "class": "RemoteVariable",
+  "offset": 216,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFELPM_KL_CFG2",
+  "class": "RemoteVariable",
+  "offset": 564,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_CFG0",
+  "class": "RemoteVariable",
+  "offset": 824,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_CFG1",
+  "class": "RemoteVariable",
+  "offset": 828,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_GC_CFG0",
+  "class": "RemoteVariable",
+  "offset": 812,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_GC_CFG1",
+  "class": "RemoteVariable",
+  "offset": 816,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_GC_CFG2",
+  "class": "RemoteVariable",
+  "offset": 244,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H2_CFG0",
+  "class": "RemoteVariable",
+  "offset": 188,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H2_CFG1",
+  "class": "RemoteVariable",
+  "offset": 192,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H3_CFG0",
+  "class": "RemoteVariable",
+  "offset": 528,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H3_CFG1",
+  "class": "RemoteVariable",
+  "offset": 1100,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H4_CFG0",
+  "class": "RemoteVariable",
+  "offset": 1096,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H4_CFG1",
+  "class": "RemoteVariable",
+  "offset": 1092,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H5_CFG0",
+  "class": "RemoteVariable",
+  "offset": 716,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H5_CFG1",
+  "class": "RemoteVariable",
+  "offset": 608,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H6_CFG0",
+  "class": "RemoteVariable",
+  "offset": 732,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H6_CFG1",
+  "class": "RemoteVariable",
+  "offset": 736,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H7_CFG0",
+  "class": "RemoteVariable",
+  "offset": 740,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H7_CFG1",
+  "class": "RemoteVariable",
+  "offset": 768,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H8_CFG0",
+  "class": "RemoteVariable",
+  "offset": 772,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H8_CFG1",
+  "class": "RemoteVariable",
+  "offset": 776,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H9_CFG0",
+  "class": "RemoteVariable",
+  "offset": 788,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_H9_CFG1",
+  "class": "RemoteVariable",
+  "offset": 796,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HA_CFG0",
+  "class": "RemoteVariable",
+  "offset": 800,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HA_CFG1",
+  "class": "RemoteVariable",
+  "offset": 1176,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HB_CFG0",
+  "class": "RemoteVariable",
+  "offset": 1180,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HB_CFG1",
+  "class": "RemoteVariable",
+  "offset": 24,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HC_CFG0",
+  "class": "RemoteVariable",
+  "offset": 1052,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HC_CFG1",
+  "class": "RemoteVariable",
+  "offset": 320,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HD_CFG0",
+  "class": "RemoteVariable",
+  "offset": 376,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HD_CFG1",
+  "class": "RemoteVariable",
+  "offset": 696,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HE_CFG0",
+  "class": "RemoteVariable",
+  "offset": 152,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HE_CFG1",
+  "class": "RemoteVariable",
+  "offset": 724,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HF_CFG0",
+  "class": "RemoteVariable",
+  "offset": 372,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_HF_CFG1",
+  "class": "RemoteVariable",
+  "offset": 1040,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_KH_CFG0",
+  "class": "RemoteVariable",
+  "offset": 1088,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_KH_CFG1",
+  "class": "RemoteVariable",
+  "offset": 712,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_KH_CFG2",
+  "class": "RemoteVariable",
+  "offset": 708,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_KH_CFG3",
+  "class": "RemoteVariable",
+  "offset": 704,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_OS_CFG0",
+  "class": "RemoteVariable",
+  "offset": 352,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_OS_CFG1",
+  "class": "RemoteVariable",
+  "offset": 360,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_UT_CFG0",
+  "class": "RemoteVariable",
+  "offset": 632,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_UT_CFG1",
+  "class": "RemoteVariable",
+  "offset": 440,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_UT_CFG2",
+  "class": "RemoteVariable",
+  "offset": 1024,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_VP_CFG0",
+  "class": "RemoteVariable",
+  "offset": 448,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDFE_VP_CFG1",
+  "class": "RemoteVariable",
+  "offset": 460,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDLY_CFG",
+  "class": "RemoteVariable",
+  "offset": 364,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXDLY_LCFG",
+  "class": "RemoteVariable",
+  "offset": 368,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXELECIDLE_CFG",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXGBOX_FIFO_INIT_RD_ADDR",
+  "class": "RemoteVariable",
+  "offset": 748,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXGBOX_FIFO_LATENCY",
+  "class": "RemoteVariable",
+  "offset": 2468,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "RXGEARBOX_EN",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXISCANRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 48,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_CFG",
+  "class": "RemoteVariable",
+  "offset": 200,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_GC_CFG",
+  "class": "RemoteVariable",
+  "offset": 228,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_KH_CFG0",
+  "class": "RemoteVariable",
+  "offset": 204,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_KH_CFG1",
+  "class": "RemoteVariable",
+  "offset": 208,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_OS_CFG0",
+  "class": "RemoteVariable",
+  "offset": 220,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXLPM_OS_CFG1",
+  "class": "RemoteVariable",
+  "offset": 224,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXOOB_CFG",
+  "class": "RemoteVariable",
+  "offset": 396,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXOOB_CLK_CFG",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXOSCALRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXOUT_DIV",
+  "class": "RemoteVariable",
+  "offset": 396,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPCSRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPHBEACON_CFG",
+  "class": "RemoteVariable",
+  "offset": 764,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPHDLY_CFG",
+  "class": "RemoteVariable",
+  "offset": 356,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPHSAMP_CFG",
+  "class": "RemoteVariable",
+  "offset": 756,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPHSLIP_CFG",
+  "class": "RemoteVariable",
+  "offset": 760,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPH_MONITOR_SEL",
+  "class": "RemoteVariable",
+  "offset": 388,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPI_CFG0",
+  "class": "RemoteVariable",
+  "offset": 468,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPI_CFG1",
+  "class": "RemoteVariable",
+  "offset": 840,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPMACLK_SEL",
+  "class": "RemoteVariable",
+  "offset": 44,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPMARESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 20,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPRBS_ERR_LOOPBACK",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXPRBS_LINKACQ_CNT",
+  "class": "RemoteVariable",
+  "offset": 548,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXREFCLKDIV2_SEL",
+  "class": "RemoteVariable",
+  "offset": 1128,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXSLIDE_AUTO_WAIT",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXSLIDE_MODE",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXSYNC_MULTILANE",
+  "class": "RemoteVariable",
+  "offset": 556,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXSYNC_OVRD",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RXSYNC_SKIP_DA",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_AFE_CM_EN",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_BIAS_CFG0",
+  "class": "RemoteVariable",
+  "offset": 380,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_BUFFER_CFG",
+  "class": "RemoteVariable",
+  "offset": 92,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CAPFF_SARC_ENB",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CLK25_DIV",
+  "class": "RemoteVariable",
+  "offset": 436,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CLKMUX_EN",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CLK_SLIP_OVRD",
+  "class": "RemoteVariable",
+  "offset": 688,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CM_BUF_CFG",
+  "class": "RemoteVariable",
+  "offset": 388,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CM_BUF_PD",
+  "class": "RemoteVariable",
+  "offset": 388,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CM_SEL",
+  "class": "RemoteVariable",
+  "offset": 388,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CM_TRIM",
+  "class": "RemoteVariable",
+  "offset": 388,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CTLE_PWR_SAVING",
+  "class": "RemoteVariable",
+  "offset": 832,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_CTLE_RES_CTRL",
+  "class": "RemoteVariable",
+  "offset": 836,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DATA_WIDTH",
+  "class": "RemoteVariable",
+  "offset": 12,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DDI_SEL",
+  "class": "RemoteVariable",
+  "offset": 820,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DEFER_RESET_BUF_EN",
+  "class": "RemoteVariable",
+  "offset": 92,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DEGEN_CTRL",
+  "class": "RemoteVariable",
+  "offset": 832,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFELPM_CFG0",
+  "class": "RemoteVariable",
+  "offset": 620,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFELPM_CFG1",
+  "class": "RemoteVariable",
+  "offset": 620,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFELPM_KLKH_AGC_STUP_EN",
+  "class": "RemoteVariable",
+  "offset": 620,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_AGC_CFG1",
+  "class": "RemoteVariable",
+  "offset": 328,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_KL_LPM_KH_CFG0",
+  "class": "RemoteVariable",
+  "offset": 620,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_KL_LPM_KH_CFG1",
+  "class": "RemoteVariable",
+  "offset": 620,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_KL_LPM_KL_CFG0",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_KL_LPM_KL_CFG1",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DFE_LPM_HOLD_DURING_EIDLE",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DISPERR_SEQ_MATCH",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_DIVRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 176,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EN_CTLE_RCAL_B",
+  "class": "RemoteVariable",
+  "offset": 836,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EN_SUM_RCAL_B",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EYESCAN_VS_CODE",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EYESCAN_VS_NEG_DIR",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EYESCAN_VS_RANGE",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_EYESCAN_VS_UT_SIGN",
+  "class": "RemoteVariable",
+  "offset": 604,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_FABINT_USRCLK_FLOP",
+  "class": "RemoteVariable",
+  "offset": 16,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_I2V_FILTER_EN",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_INT_DATAWIDTH",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_PMA_POWER_SAVE",
+  "class": "RemoteVariable",
+  "offset": 36,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_PMA_RSV0",
+  "class": "RemoteVariable",
+  "offset": 864,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_PRBS_ERR_CNT",
+  "class": "RemoteVariable",
+  "offset": 2424,
+  "bitOffset": [
+   0,
+   32
+  ],
+  "bitSize": [
+   16,
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "RX_PROGDIV_CFG",
+  "class": "RemoteVariable",
+  "offset": 792,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_PROGDIV_RATE",
+  "class": "RemoteVariable",
+  "offset": 1036,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_RESLOAD_CTRL",
+  "class": "RemoteVariable",
+  "offset": 832,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_RESLOAD_OVRD",
+  "class": "RemoteVariable",
+  "offset": 832,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SAMPLE_PERIOD",
+  "class": "RemoteVariable",
+  "offset": 748,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SIG_VALID_DLY",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_DEGEN_AVTT_OVERITE",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_DFETAPREP_EN",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_IREF_TUNE",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_PWR_SAVING",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_RES_CTRL",
+  "class": "RemoteVariable",
+  "offset": 836,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_VCMTUNE",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_VCM_BIAS_TUNE_EN",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_VCM_OVWR",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_SUM_VREF_TUNE",
+  "class": "RemoteVariable",
+  "offset": 392,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_TUNE_AFE_OS",
+  "class": "RemoteVariable",
+  "offset": 560,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_VREG_CTRL",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_VREG_PDB",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_WIDEMODE_CDR",
+  "class": "RemoteVariable",
+  "offset": 408,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_WIDEMODE_CDR_GEN3",
+  "class": "RemoteVariable",
+  "offset": 412,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_WIDEMODE_CDR_GEN4",
+  "class": "RemoteVariable",
+  "offset": 420,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_XCLK_SEL",
+  "class": "RemoteVariable",
+  "offset": 400,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "RX_XMODE_SEL",
+  "class": "RemoteVariable",
+  "offset": 844,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "ReadDevice",
+  "class": "BaseCommand",
+  "offset": null,
+  "bitOffset": [],
+  "bitSize": [],
+  "mode": "WO"
+ },
+ {
+  "name": "SAMPLE_CLK_PHASE",
+  "class": "RemoteVariable",
+  "offset": 592,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SAS_12G_MODE",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SATA_BURST_SEQ_LEN",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SATA_BURST_VAL",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SATA_CPLL_CFG",
+  "class": "RemoteVariable",
+  "offset": 168,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SATA_EIDLE_VAL",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SELCKOK",
+  "class": "RemoteVariable",
+  "offset": 68,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SHOW_REALIGN_COMMA",
+  "class": "RemoteVariable",
+  "offset": 156,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "SRSTMODE",
+  "class": "RemoteVariable",
+  "offset": 36,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TAPDLY_SET_TX",
+  "class": "RemoteVariable",
+  "offset": 452,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TERM_RCAL_CFG",
+  "class": "RemoteVariable",
+  "offset": 464,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   15
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TERM_RCAL_OVRD",
+  "class": "RemoteVariable",
+  "offset": 472,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TRANS_TIME_RATE",
+  "class": "RemoteVariable",
+  "offset": 480,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TST_RSV0",
+  "class": "RemoteVariable",
+  "offset": 484,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TST_RSV1",
+  "class": "RemoteVariable",
+  "offset": 484,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXAMONSEL",
+  "class": "RemoteVariable",
+  "offset": 52,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXBUF_EN",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXBUF_RESET_ON_RATE_CHANGE",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXDLY_CFG",
+  "class": "RemoteVariable",
+  "offset": 568,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXDLY_LCFG",
+  "class": "RemoteVariable",
+  "offset": 248,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXDRV_FREQBAND",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXFE_CFG0",
+  "class": "RemoteVariable",
+  "offset": 628,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXFE_CFG1",
+  "class": "RemoteVariable",
+  "offset": 644,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXFE_CFG2",
+  "class": "RemoteVariable",
+  "offset": 332,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXFE_CFG3",
+  "class": "RemoteVariable",
+  "offset": 336,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXFIFO_ADDR_CFG",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXGBOX_FIFO_INIT_RD_ADDR",
+  "class": "RemoteVariable",
+  "offset": 748,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXGBOX_FIFO_LATENCY",
+  "class": "RemoteVariable",
+  "offset": 2444,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "TXGEARBOX_EN",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXOUT_DIV",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPCSRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 36,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPHDLY_CFG0",
+  "class": "RemoteVariable",
+  "offset": 576,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPHDLY_CFG1",
+  "class": "RemoteVariable",
+  "offset": 444,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPH_CFG",
+  "class": "RemoteVariable",
+  "offset": 572,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPH_CFG2",
+  "class": "RemoteVariable",
+  "offset": 888,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPH_MONITOR_SEL",
+  "class": "RemoteVariable",
+  "offset": 452,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_CFG0",
+  "class": "RemoteVariable",
+  "offset": 668,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_CFG1",
+  "class": "RemoteVariable",
+  "offset": 672,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_GRAY_SEL",
+  "class": "RemoteVariable",
+  "offset": 612,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_INVSTROBE_SEL",
+  "class": "RemoteVariable",
+  "offset": 612,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_PPM",
+  "class": "RemoteVariable",
+  "offset": 688,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_PPM_CFG",
+  "class": "RemoteVariable",
+  "offset": 616,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   8
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPI_SYNFREQ_PPM",
+  "class": "RemoteVariable",
+  "offset": 612,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXPMARESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 36,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXREFCLKDIV2_SEL",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSWBST_BST",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSWBST_EN",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSWBST_MAG",
+  "class": "RemoteVariable",
+  "offset": 1000,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSYNC_MULTILANE",
+  "class": "RemoteVariable",
+  "offset": 556,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSYNC_OVRD",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TXSYNC_SKIP_DA",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_CLK25_DIV",
+  "class": "RemoteVariable",
+  "offset": 488,
+  "bitOffset": [
+   11
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_CLKMUX_EN",
+  "class": "RemoteVariable",
+  "offset": 504,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DATA_WIDTH",
+  "class": "RemoteVariable",
+  "offset": 488,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DCC_LOOP_RST_CFG",
+  "class": "RemoteVariable",
+  "offset": 1048,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DEEMPH0",
+  "class": "RemoteVariable",
+  "offset": 492,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DEEMPH1",
+  "class": "RemoteVariable",
+  "offset": 492,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DEEMPH2",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DEEMPH3",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   6
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DIVRESET_TIME",
+  "class": "RemoteVariable",
+  "offset": 176,
+  "bitOffset": [
+   7
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_DRIVE_MODE",
+  "class": "RemoteVariable",
+  "offset": 504,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   5
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_EIDLE_ASSERT_DELAY",
+  "class": "RemoteVariable",
+  "offset": 504,
+  "bitOffset": [
+   5
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_EIDLE_DEASSERT_DELAY",
+  "class": "RemoteVariable",
+  "offset": 504,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_FABINT_USRCLK_FLOP",
+  "class": "RemoteVariable",
+  "offset": 44,
+  "bitOffset": [
+   4
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_FIFO_BYP_EN",
+  "class": "RemoteVariable",
+  "offset": 40,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_IDLE_DATA_ZERO",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_INT_DATAWIDTH",
+  "class": "RemoteVariable",
+  "offset": 532,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_LOOPBACK_DRIVE_HIZ",
+  "class": "RemoteVariable",
+  "offset": 504,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MAINCURSOR_SEL",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_FULL_0",
+  "class": "RemoteVariable",
+  "offset": 508,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_FULL_1",
+  "class": "RemoteVariable",
+  "offset": 508,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_FULL_2",
+  "class": "RemoteVariable",
+  "offset": 512,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_FULL_3",
+  "class": "RemoteVariable",
+  "offset": 512,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_FULL_4",
+  "class": "RemoteVariable",
+  "offset": 516,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_LOW_0",
+  "class": "RemoteVariable",
+  "offset": 516,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_LOW_1",
+  "class": "RemoteVariable",
+  "offset": 520,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_LOW_2",
+  "class": "RemoteVariable",
+  "offset": 520,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_LOW_3",
+  "class": "RemoteVariable",
+  "offset": 524,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_MARGIN_LOW_4",
+  "class": "RemoteVariable",
+  "offset": 524,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PHICAL_CFG0",
+  "class": "RemoteVariable",
+  "offset": 1008,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PHICAL_CFG1",
+  "class": "RemoteVariable",
+  "offset": 1012,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PI_BIASSET",
+  "class": "RemoteVariable",
+  "offset": 1004,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PMADATA_OPT",
+  "class": "RemoteVariable",
+  "offset": 552,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PMA_POWER_SAVE",
+  "class": "RemoteVariable",
+  "offset": 36,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PMA_RSV0",
+  "class": "RemoteVariable",
+  "offset": 596,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PMA_RSV1",
+  "class": "RemoteVariable",
+  "offset": 984,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PROGCLK_SEL",
+  "class": "RemoteVariable",
+  "offset": 48,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PROGDIV_CFG",
+  "class": "RemoteVariable",
+  "offset": 348,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_PROGDIV_RATE",
+  "class": "RemoteVariable",
+  "offset": 1044,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_RXDETECT_CFG",
+  "class": "RemoteVariable",
+  "offset": 500,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   14
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_RXDETECT_REF",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   3
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_SAMPLE_PERIOD",
+  "class": "RemoteVariable",
+  "offset": 748,
+  "bitOffset": [
+   6
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_SW_MEAS",
+  "class": "RemoteVariable",
+  "offset": 496,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_VREG_CTRL",
+  "class": "RemoteVariable",
+  "offset": 904,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   3
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_VREG_PDB",
+  "class": "RemoteVariable",
+  "offset": 904,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_VREG_VREFSEL",
+  "class": "RemoteVariable",
+  "offset": 904,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "TX_XCLK_SEL",
+  "class": "RemoteVariable",
+  "offset": 488,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB3_RXTERMINATION_CTRL",
+  "class": "RemoteVariable",
+  "offset": 384,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   2
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_BOTH_BURST_IDLE",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_BURSTMAX_U3WAKE",
+  "class": "RemoteVariable",
+  "offset": 1140,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_BURSTMIN_U3WAKE",
+  "class": "RemoteVariable",
+  "offset": 1140,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_CLK_COR_EQ_EN",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   13
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_EXT_CNTL",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   14
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_IDLEMAX_POLLING",
+  "class": "RemoteVariable",
+  "offset": 1148,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_IDLEMIN_POLLING",
+  "class": "RemoteVariable",
+  "offset": 1144,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   10
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSPING_BURST",
+  "class": "RemoteVariable",
+  "offset": 1156,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSPOLLING_BURST",
+  "class": "RemoteVariable",
+  "offset": 1152,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSPOLLING_IDLE_MS",
+  "class": "RemoteVariable",
+  "offset": 1172,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSU1EXIT_BURST",
+  "class": "RemoteVariable",
+  "offset": 1160,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSU2LPEXIT_BURST_MS",
+  "class": "RemoteVariable",
+  "offset": 1164,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPSU3WAKE_BURST_MS",
+  "class": "RemoteVariable",
+  "offset": 1168,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   9
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPS_TPERIOD",
+  "class": "RemoteVariable",
+  "offset": 1128,
+  "bitOffset": [
+   1
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_LFPS_TPERIOD_ACCURATE",
+  "class": "RemoteVariable",
+  "offset": 1128,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_MODE",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_PCIE_ERR_REP_DIS",
+  "class": "RemoteVariable",
+  "offset": 1120,
+  "bitOffset": [
+   12
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_PING_SATA_MAX_INIT",
+  "class": "RemoteVariable",
+  "offset": 432,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_PING_SATA_MIN_INIT",
+  "class": "RemoteVariable",
+  "offset": 424,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_POLL_SATA_MAX_BURST",
+  "class": "RemoteVariable",
+  "offset": 428,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_POLL_SATA_MIN_BURST",
+  "class": "RemoteVariable",
+  "offset": 420,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_RAW_ELEC",
+  "class": "RemoteVariable",
+  "offset": 1124,
+  "bitOffset": [
+   15
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_RXIDLE_P0_CTRL",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   8
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_TXIDLE_TUNE_ENABLE",
+  "class": "RemoteVariable",
+  "offset": 416,
+  "bitOffset": [
+   9
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_U1_SATA_MAX_WAKE",
+  "class": "RemoteVariable",
+  "offset": 432,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_U1_SATA_MIN_WAKE",
+  "class": "RemoteVariable",
+  "offset": 424,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_U2_SAS_MAX_COM",
+  "class": "RemoteVariable",
+  "offset": 428,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USB_U2_SAS_MIN_COM",
+  "class": "RemoteVariable",
+  "offset": 420,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   7
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "USE_PCS_CLK_PHASE_SEL",
+  "class": "RemoteVariable",
+  "offset": 592,
+  "bitOffset": [
+   10
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "WriteDevice",
+  "class": "BaseCommand",
+  "offset": null,
+  "bitOffset": [],
+  "bitSize": [],
+  "mode": "WO"
+ },
+ {
+  "name": "Y_ALL_MODE",
+  "class": "RemoteVariable",
+  "offset": 1032,
+  "bitOffset": [
+   2
+  ],
+  "bitSize": [
+   1
+  ],
+  "mode": "RW"
+ },
+ {
+  "name": "enable",
+  "class": "EnableVariable",
+  "offset": null,
+  "bitOffset": [],
+  "bitSize": [],
+  "mode": "RW"
+ },
+ {
+  "name": "es_control_status",
+  "class": "RemoteVariable",
+  "offset": 2380,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   4
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_error_count",
+  "class": "RemoteVariable",
+  "offset": 2372,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte0",
+  "class": "RemoteVariable",
+  "offset": 2400,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte1",
+  "class": "RemoteVariable",
+  "offset": 2396,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte2",
+  "class": "RemoteVariable",
+  "offset": 2392,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte3",
+  "class": "RemoteVariable",
+  "offset": 2388,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte4",
+  "class": "RemoteVariable",
+  "offset": 2384,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte5",
+  "class": "RemoteVariable",
+  "offset": 2592,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte6",
+  "class": "RemoteVariable",
+  "offset": 2596,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte7",
+  "class": "RemoteVariable",
+  "offset": 2600,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte8",
+  "class": "RemoteVariable",
+  "offset": 2604,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_rdata_byte9",
+  "class": "RemoteVariable",
+  "offset": 2608,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sample_count",
+  "class": "RemoteVariable",
+  "offset": 2376,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte0",
+  "class": "RemoteVariable",
+  "offset": 2420,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte1",
+  "class": "RemoteVariable",
+  "offset": 2416,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte2",
+  "class": "RemoteVariable",
+  "offset": 2412,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte3",
+  "class": "RemoteVariable",
+  "offset": 2408,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte4",
+  "class": "RemoteVariable",
+  "offset": 2404,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte5",
+  "class": "RemoteVariable",
+  "offset": 2572,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte6",
+  "class": "RemoteVariable",
+  "offset": 2576,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte7",
+  "class": "RemoteVariable",
+  "offset": 2580,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte8",
+  "class": "RemoteVariable",
+  "offset": 2584,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ },
+ {
+  "name": "es_sdata_byte9",
+  "class": "RemoteVariable",
+  "offset": 2588,
+  "bitOffset": [
+   0
+  ],
+  "bitSize": [
+   16
+  ],
+  "mode": "RO"
+ }
+]

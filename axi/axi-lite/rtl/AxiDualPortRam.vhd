@@ -73,8 +73,11 @@ architecture rtl of AxiDualPortRam is
 
    constant NOT_RST_C : sl := not RST_POLARITY_G;
 
-   -- Number of Axi address bits that need to be manually decoded
-   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2((DATA_WIDTH_G-1)/32));
+   -- Number of Axi address bits that need to be manually decoded: enough to
+   -- select one of the wordCount(DATA_WIDTH_G, 32) words of a RAM line
+   -- (log2((DATA_WIDTH_G-1)/32) was one bit short for 3, 5, 9, ... words, e.g.
+   -- DATA_WIDTH_G = 96: word 2 of a line aliased into the next line)
+   constant AXI_DEC_BITS_C : integer := ite(DATA_WIDTH_G <= 32, 0, log2(wordCount(DATA_WIDTH_G, 32)));
 
    constant AXI_DEC_ADDR_HIGH_C : integer := 1+AXI_DEC_BITS_C;
    constant AXI_DEC_ADDR_LOW_C  : integer := 2;
@@ -86,7 +89,11 @@ architecture rtl of AxiDualPortRam is
 
    constant ADDR_AXI_WORDS_C : natural := wordCount(DATA_WIDTH_G, 32);
    constant ADDR_AXI_BYTES_C : natural := wordCount(DATA_WIDTH_G, 8);
-   constant RAM_WIDTH_C      : natural := ADDR_AXI_WORDS_C*32;
+   -- AXI-side vectors cover every decodable word slot (power of two) so the
+   -- padding slots above ADDR_AXI_WORDS_C stay in range: reads return 0 and
+   -- writes hit strobe bits that never reach the RAM
+   constant AXI_WORDS_C      : natural := 2**AXI_DEC_BITS_C;
+   constant RAM_WIDTH_C      : natural := AXI_WORDS_C*32;
    constant STRB_WIDTH_C     : natural := minimum(4, ADDR_AXI_BYTES_C);
 
    constant RAM_READ_LATENCY_C : natural := ite(SYNTH_MODE_G = "xpm", READ_LATENCY_G, ite(READ_LATENCY_G >= 2, 2, 1));
@@ -99,7 +106,7 @@ architecture rtl of AxiDualPortRam is
       axiWriteSlave : AxiLiteWriteSlaveType;
       axiReadSlave  : AxiLiteReadSlaveType;
       axiAddr       : slv(ADDR_WIDTH_G-1 downto 0);
-      axiWrStrobe   : slv(ADDR_AXI_WORDS_C*4-1 downto 0);
+      axiWrStrobe   : slv(AXI_WORDS_C*4-1 downto 0);
       rdLatecy      : natural range 0 to 4;
       state         : StateType;
    end record;
@@ -309,7 +316,7 @@ begin
    axiWrAddr   <= axiSyncOut(ADDR_WIDTH_G+DATA_WIDTH_G-1 downto DATA_WIDTH_G);
    axiWrStrobe <= axiSyncOut(ADDR_WIDTH_G+DATA_WIDTH_G+ADDR_AXI_BYTES_C-1 downto ADDR_WIDTH_G+DATA_WIDTH_G);
 
-   axiWrMap : for i in 0 to ADDR_AXI_WORDS_C-1 generate
+   axiWrMap : for i in 0 to AXI_WORDS_C-1 generate
       axiWrDataFanout((i+1)*32-1 downto i*32) <= axiWriteMaster.wdata;
    end generate axiWrMap;
 

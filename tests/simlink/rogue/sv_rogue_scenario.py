@@ -194,7 +194,7 @@ def _attempt_sv_rogue(run_sim, base_port, build_dir, rogue_python):
             hex(CLIENT_OPCODE), hex(CLIENT_REMDATA),
             str(sideband_result), str(sideband_ready),
         ],
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
+        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
     )
 
     peers = (

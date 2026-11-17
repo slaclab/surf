@@ -7,6 +7,7 @@ This tree contains Xilinx-specific RTL wrappers, primitive integrations, and hel
 - Family folders such as `7Series/`, `Virtex5/`, `UltraScale/`, `UltraScale+/`, and `Versal/` hold family-specific wrappers and primitive integrations.
 - `7Series/gtx7/` contains the GTXE2 channel wrapper and documents its [fixed-latency RX alignment and shared-CPLL reset behavior](7Series/gtx7/README.md).
 - `general/` contains Xilinx helpers that are not tied to a single family directory.
+- The PyRogue GT eye scan of `Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel` and `Gtye4Channel` is documented in [python/surf/xilinx/README.md](../python/surf/xilinx/README.md).
 - `xvc-udp/` contains Xilinx Virtual Cable over UDP support and has its own [README.md](xvc-udp/README.md).
 - `dummy/` contains placeholder or compatibility support used by build flows.
 

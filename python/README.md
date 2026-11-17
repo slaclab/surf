@@ -8,7 +8,7 @@ The Python package lives under `python/surf` and is installed as `surf`. It prim
 - `surf/devices/`: vendor and component-specific PyRogue register maps.
 - `surf/ethernet/`: Ethernet, MAC, UDP, RoCE, and high-speed Ethernet support models.
 - `surf/protocols/`: protocol-specific PyRogue models such as CoaXPress, PGP, RSSI, SSI, and related blocks.
-- `surf/xilinx/`: Xilinx register maps and helper devices.
+- `surf/xilinx/`: Xilinx register maps and helper devices, including the statistical GT eye scan of the `Gthe3Channel`, `Gthe4Channel`, `Gtye3Channel` and `Gtye4Channel` drivers ([README.md](surf/xilinx/README.md)).
 - `surf/misc/` and `surf/dsp/`: smaller utilities and DSP-related support.
 
 Implementation modules usually use private filenames such as `_AxiVersion.py` and are re-exported from package `__init__.py` files. Keep register names, offsets, bit offsets, modes, and descriptions synchronized with the corresponding RTL packages and user-facing hardware documentation.

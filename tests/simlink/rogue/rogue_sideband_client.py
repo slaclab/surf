@@ -12,6 +12,7 @@
 import argparse
 import json
 from pathlib import Path
+import sys
 import threading
 import traceback
 
@@ -24,7 +25,7 @@ def write_result(path, result):
     temporary.replace(path)
 
 
-def run(port, send_opcode, send_remdata, ready_path):
+def run(port, send_opcode, send_remdata, result_path, ready_path):
     received = []
     event = threading.Event()
 
@@ -36,29 +37,39 @@ def run(port, send_opcode, send_remdata, ready_path):
             "opCode": int(op_code) if op_code is not None else None,
             "remData": int(remote_data) if remote_data is not None else None,
         })
-        event.set()
+        if (any(entry["opCode"] is not None for entry in received)
+                and any(entry["remData"] is not None for entry in received)):
+            event.set()
 
     with pis.SideBandSim("127.0.0.1", port) as sideband:
         sideband.setRecvCb(on_sideband)
         ready_path.write_text("ready\n")
 
         # HDL -> client first (the DUT drives its tx opcode/remData), proving the
-        # pipe before we send client -> HDL. The ready file is written (above)
-        # BEFORE the parent starts GHDL, so this deadline must cover GHDL
-        # analyze + elaborate + sim boot + reset -- generous for a cold/loaded
-        # CI runner, still bounded so a stuck peer fails rather than hangs.
+        # pipe before we send client -> HDL. Wait for both the opcode and the
+        # remData event so the result below records both. The ready file is
+        # written (above) BEFORE the parent starts GHDL, so this deadline must
+        # cover GHDL analyze + elaborate + sim boot + reset -- generous for a
+        # cold/loaded CI runner, still bounded so a stuck peer fails rather
+        # than hangs.
         if not event.wait(60.0):
-            raise TimeoutError("no HDL-to-Rogue sideband event within 60 s")
+            raise TimeoutError("no HDL-to-Rogue opcode and remData events within 60 s")
 
         sideband.send(opCode=send_opcode)
         sideband.send(remData=send_remdata)
 
-    return {
-        "ok": True,
-        "received": received,
-        "sent_opcode": send_opcode,
-        "sent_remdata": send_remdata,
-    }
+        write_result(result_path, {
+            "ok": True,
+            "received": received,
+            "sent_opcode": send_opcode,
+            "sent_remdata": send_remdata,
+        })
+
+        # SideBandSim closes its sockets with linger=0, which discards any
+        # reply frames ZMQ has not yet flushed to the HDL. Hold the sockets
+        # open until the parent closes stdin, which it does only after the
+        # simulator (and its rx* checks) has finished.
+        sys.stdin.read()
 
 
 def main():
@@ -70,12 +81,11 @@ def main():
     parser.add_argument("ready", type=Path)
     args = parser.parse_args()
     try:
-        result = run(args.port, args.opcode, args.remdata, args.ready)
+        run(args.port, args.opcode, args.remdata, args.result, args.ready)
     except Exception as exc:  # noqa: BLE001
         result = {"ok": False, "error": str(exc), "traceback": traceback.format_exc()}
         write_result(args.result, result)
         raise
-    write_result(args.result, result)
 
 
 if __name__ == "__main__":

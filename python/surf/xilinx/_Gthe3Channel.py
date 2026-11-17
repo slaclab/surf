@@ -13,6 +13,8 @@
 
 import pyrogue as pr
 
+from surf.xilinx import eyescan
+
 DIV_ENU = {
     0: '2',
     1: '3',
@@ -26,7 +28,7 @@ DIV_ENU = {
     16: '1'}
 
 class Gthe3Channel(pr.Device):
-    def __init__(self, **kwargs):
+    def __init__(self, eyeScan=True, **kwargs):
         super().__init__(**kwargs)
 
         ##############################
@@ -1777,40 +1779,44 @@ class Gthe3Channel(pr.Device):
             # mode         = "RW",
         # ))
 
-        # self.add(pr.RemoteVariable(
-            # name         = "RX_EYESCAN_VS_NEG_DIR",
-            # description  = "Eye scan vertical scan negative direction enable",
-            # offset       =  0x25D,
-            # bitSize      =  1,
-            # bitOffset    =  2,
-            # mode         = "RW",
-        # ))
+        self.add(pr.RemoteVariable(
+            name        = "RX_EYESCAN_VS_NEG_DIR",
+            description = "Eye scan vertical scan negative direction enable",
+            offset      =  0x25D,
+            bitSize     =  1,
+            bitOffset   =  2,
+            mode        = "RW",
+            groups      = ['NoConfig'],
+        ))
 
-        # self.add(pr.RemoteVariable(
-            # name         = "RX_EYESCAN_VS_UT_SIGN",
-            # description  = "Eye scan vertical scan UT sign selection",
-            # offset       =  0x25D,
-            # bitSize      =  1,
-            # bitOffset    =  1,
-            # mode         = "RW",
-        # ))
+        self.add(pr.RemoteVariable(
+            name        = "RX_EYESCAN_VS_UT_SIGN",
+            description = "Eye scan vertical scan UT sign selection",
+            offset      =  0x25D,
+            bitSize     =  1,
+            bitOffset   =  1,
+            mode        = "RW",
+            groups      = ['NoConfig'],
+        ))
 
-        # self.add(pr.RemoteVariable(
-            # name         = "RX_EYESCAN_VS_CODE",
-            # description  = "Eye scan vertical scan voltage code",
-            # offset       =  0x25C,
-            # bitSize      =  7,
-            # bitOffset    =  2,
-            # mode         = "RW",
-        # ))
+        self.add(pr.RemoteVariable(
+            name        = "RX_EYESCAN_VS_CODE",
+            description = "Eye scan vertical scan voltage code",
+            offset      =  0x25C,
+            bitSize     =  7,
+            bitOffset   =  2,
+            mode        = "RW",
+            groups      = ['NoConfig'],
+        ))
 
-        # self.add(pr.RemoteVariable(
-            # name         = "RX_EYESCAN_VS_RANGE",
-            # description  = "Eye scan vertical scan voltage range",
-            # offset       =  0x25C,
-            # bitSize      =  2,
-            # mode         = "RW",
-        # ))
+        self.add(pr.RemoteVariable(
+            name        = "RX_EYESCAN_VS_RANGE",
+            description = "Eye scan vertical scan voltage range",
+            offset      =  0x25C,
+            bitSize     =  2,
+            mode        = "RW",
+            groups      = ['NoConfig'],
+        ))
 
         self.add(pr.RemoteVariable(
             name        = "PMA_RSV1",
@@ -3140,14 +3146,15 @@ class Gthe3Channel(pr.Device):
             mode        = "RW",
         ))
 
-        # self.add(pr.RemoteVariable(
-            # name         = "ES_HORZ_OFFSET",
-            # description  = "Eye scan horizontal offset setting",
-            # offset       =  0x13C,
-            # bitSize      =  12,
-            # bitOffset    =  4,
-            # mode         = "RW",
-        # ))
+        self.add(pr.RemoteVariable(
+            name        = "ES_HORZ_OFFSET",
+            description = "Eye scan horizontal offset setting",
+            offset      =  0x13C,
+            bitSize     =  12,
+            bitOffset   =  4,
+            mode        = "RW",
+            groups      = ['NoConfig'],
+        ))
 
         # self.add(pr.RemoteVariable(
             # name         = "FTS_LANE_DESKEW_CFG",
@@ -3252,3 +3259,35 @@ class Gthe3Channel(pr.Device):
             bitOffset   =  1,
             mode        = "RW",
         ))
+
+        addVar(
+            offset      = 0x151,
+            bitSize     = 16,
+            bitOffset   = 0,
+            mode        = 'RO',
+            name        = 'es_error_count',
+            description = 'Error counter of the last eye-scan run (saturates at 0xFFFF)')
+
+        addVar(
+            offset      = 0x152,
+            bitSize     = 16,
+            bitOffset   = 0,
+            mode        = 'RO',
+            name        = 'es_sample_count',
+            description = 'Prescaled sample counter of the last eye-scan run')
+
+        addVar(
+            offset      = 0x153,
+            bitSize     = 4,
+            bitOffset   = 0,
+            mode        = 'RO',
+            name        = 'es_control_status',
+            description = 'Eye-scan state [3:1] plus done [0]: WAIT 0x1, RESET 0x2, COUNT 0x6, END 0x5, ARMED 0xA, READ 0x9 (0x0 is read on a lane whose sampler was never enabled)')
+
+        # Statistical eye-scan engine, no hardware access until it is used
+        if eyeScan:
+            self.add(eyescan.EyeScan(
+                name   = 'EyeScan',
+                family = 'GTHE3',
+                expand = False,
+            ))

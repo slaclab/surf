@@ -20,7 +20,10 @@
 # - Checks: AXI writes must update RAM contents when enabled, system-side reads
 #   must see those updates, byte-masked system writes must only update the
 #   selected bytes, and AXI writes must return `SLVERR` when `AXI_WR_EN` is
-#   disabled and wrapper error responses are enabled.
+#   disabled and wrapper error responses are enabled. Wide-word cases write
+#   every 32-bit word of adjacent RAM lines and check for aliasing into the
+#   neighboring line, and the padding slots above the last real word must read
+#   as zero and absorb writes without disturbing any line.
 # - Timing: Common-clock cases use one shared clock coroutine, asynchronous
 #   cases use separate AXI and system clocks, and system-side read visibility
 #   is checked after bounded waits derived from `READ_LATENCY`.
@@ -51,6 +54,11 @@ class TB:
         self.read_latency = int(os.environ["READ_LATENCY"])
         self.data_width = int(os.environ["DATA_WIDTH"])
         self.byte_count = self.data_width // 8
+        # Each RAM line spans word_count AXI-Lite words and the line stride is
+        # padded to the next power of two so every word slot decodes uniquely
+        # (16 bytes per line for 96-bit data).
+        self.word_count = (self.data_width + 31) // 32
+        self.line_stride = 4 * 2 ** (self.word_count - 1).bit_length()
 
         if self.common_clk:
             start_lockstep_clocks(dut.S_AXI_ACLK, dut.CLK, period_ns=6.0)
@@ -134,8 +142,51 @@ async def axi_round_trip_and_sys_read_test(dut):
     expected_data = payload if tb.axi_wr_en else b"\x00\x00\x00\x00"
     assert rd_txn.data == expected_data
 
-    sys_data = await tb.sys_read(addr >> 2)
+    sys_data = await tb.sys_read(addr // tb.line_stride)
     assert sys_data == int.from_bytes(expected_data, "little")
+
+
+@cocotb.test(skip=not env_flag("AXI_WR_EN", default=True))
+async def wide_word_decode_test(dut):
+    tb = TB(dut)
+    await tb.reset()
+
+    # Write a distinct value to every word of three adjacent lines, then check
+    # that each word reads back over AXI-Lite and that the system port sees
+    # the assembled line (fails when a word aliases into the next line).
+    vals = {}
+    for line in range(3):
+        for word in range(tb.word_count):
+            vals[(line, word)] = 0xA0000000 + (line << 8) + word
+            wr_txn = await tb.axil.write(
+                line * tb.line_stride + 4 * word,
+                vals[(line, word)].to_bytes(4, "little"),
+            )
+            assert wr_txn.resp == AxiResp.OKAY
+
+    for (line, word), value in vals.items():
+        rd_txn = await tb.axil.read(line * tb.line_stride + 4 * word, 4)
+        assert rd_txn.resp == AxiResp.OKAY
+        assert int.from_bytes(rd_txn.data, "little") == value, f"line {line} word {word}"
+
+    def line_value(line):
+        return sum(vals[(line, word)] << (32 * word) for word in range(tb.word_count))
+
+    for line in range(3):
+        assert await tb.sys_read(line) == line_value(line), f"line {line}"
+
+    # Padding slots between the last real word and the line stride read as
+    # zero with OKAY, and a write there is a no-op for the addressed line and
+    # for the line that follows it.
+    for slot in range(tb.word_count, tb.line_stride // 4):
+        rd_txn = await tb.axil.read(4 * slot, 4)
+        assert rd_txn.resp == AxiResp.OKAY
+        assert rd_txn.data == b"\x00\x00\x00\x00", f"padding slot {slot}"
+        wr_txn = await tb.axil.write(4 * slot, (0xDEADBEEF).to_bytes(4, "little"))
+        assert wr_txn.resp == AxiResp.OKAY
+
+    for line in range(2):
+        assert await tb.sys_read(line) == line_value(line), f"line {line} after padding write"
 
 
 @cocotb.test(skip=not env_flag("SYS_WR_EN", default=False))
@@ -144,7 +195,7 @@ async def sys_write_visibility_test(dut):
     await tb.reset()
 
     await tb.sys_write(addr=6, data=0xAABBCCDD, we_mask=(1 << tb.byte_count) - 1)
-    rd_txn = await tb.axil.read(6 << 2, 4)
+    rd_txn = await tb.axil.read(6 * tb.line_stride, 4)
     assert rd_txn.resp == AxiResp.OKAY
     assert rd_txn.data == b"\xDD\xCC\xBB\xAA"
 
@@ -152,7 +203,7 @@ async def sys_write_visibility_test(dut):
         # Update only the low two bytes from the system port so the test proves
         # the wrapper preserves byte write enables when requested.
         await tb.sys_write(addr=6, data=0x11223344, we_mask=0x3)
-        rd_txn = await tb.axil.read(6 << 2, 4)
+        rd_txn = await tb.axil.read(6 * tb.line_stride, 4)
         assert rd_txn.resp == AxiResp.OKAY
         assert rd_txn.data == b"\x44\x33\xBB\xAA"
 
@@ -196,6 +247,19 @@ PARAMETER_SWEEP = [
         COMMON_CLK="false",
         ADDR_WIDTH="6",
         DATA_WIDTH="32",
+    ),
+    parameter_case(
+        "axi_rw_96bit_common_clk",
+        EN_ERROR_RESP="true",
+        SYNTH_MODE="inferred",
+        MEMORY_TYPE="block",
+        READ_LATENCY="2",
+        AXI_WR_EN="true",
+        SYS_WR_EN="false",
+        SYS_BYTE_WR_EN="false",
+        COMMON_CLK="true",
+        ADDR_WIDTH="6",
+        DATA_WIDTH="96",
     ),
     parameter_case(
         "axi_read_only",

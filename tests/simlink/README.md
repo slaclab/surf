@@ -56,8 +56,8 @@ driver without adding another simulator-specific layer. Icarus and Verilator sha
 `RogueSvRogueTb`) orchestrated by `common/sv_traffic_scenario.py`,
 `common/sv_multi_scenario.py`, `common/sv_relaunch_scenario.py` and
 `rogue/sv_rogue_scenario.py`; cocotb is not used there because cocotb 2.x
-needs Verilator 5.036 or newer while the CI floor is the ubuntu-24.04 apt
-Verilator 5.020, so each top checks its side in HDL, and the relaunch and
+needs Verilator 5.036 or newer while the CI floor is the ubuntu-26.04 apt
+Verilator 5.032, so each top checks its side in HDL, and the relaunch and
 real-Rogue tops finish only after the software side's result file exists,
 because the transport discards queued frames at simulator exit.
 
@@ -196,8 +196,8 @@ SIMLINK_ROGUE_PYTHON=/path/to/rogue/bin/python \
 These also build and run through ruckus, as described above.
 
 The test skips when Rogue is unavailable. The required Linux CI contract uses
-the repository-root `conda-rogue.yml` and pins Rogue `v6.15.0` for
-reproducibility.
+the repository-root `conda-rogue.yml`, which pins conda-forge
+`slac-rogue=6.16.0` on `python=3.12` for reproducibility.
 
 To reproduce that package environment on Linux before running the command
 above:

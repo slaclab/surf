@@ -14,7 +14,9 @@
 
 CC       := gcc
 CPPFLAGS := -I../shared $(shell pkg-config --cflags libzmq)
-CFLAGS   := $(shell iverilog-vpi --cflags) -pthread -MMD -MP
+# Keep only option tokens: the Ubuntu 26.04 iverilog 12.0-3 package bakes a
+# stray "0-3" into iverilog-vpi --cflags, which gcc treats as an input file.
+CFLAGS   := $(filter -%,$(shell iverilog-vpi --cflags)) -pthread -MMD -MP
 LDFLAGS  := $(shell iverilog-vpi --ldflags)
 LDLIBS   := $(shell iverilog-vpi --ldlibs) -pthread $(shell pkg-config --libs libzmq)
 

@@ -58,6 +58,8 @@ architecture rtl of EthMacRxImportXgmii is
       phyRxdDly   : slv(63 downto 0);
       phyRxcDly   : slv(7 downto 0);
       gapInserted : sl;
+      rxCountEn   : sl;
+      rxCrcError  : sl;
    end record RegType;
 
    constant REG_INIT_C : RegType := (
@@ -65,7 +67,9 @@ architecture rtl of EthMacRxImportXgmii is
       phyRxc      => x"FF",
       phyRxdDly   => x"0707070707070707",
       phyRxcDly   => x"FF",
-      gapInserted => '0');
+      gapInserted => '0',
+      rxCountEn   => '0',
+      rxCrcError  => '0');
 
    signal r   : RegType := REG_INIT_C;
    signal rin : RegType;
@@ -154,11 +158,19 @@ architecture rtl of EthMacRxImportXgmii is
 
 begin
 
-   comb : process (phyRxChar, phyRxdata, r) is
+   comb : process (crcGood, intAdvance, intLastLine, phyReady, phyRxChar,
+                   phyRxdata, r) is
       variable v : RegType;
    begin
       -- Latch the current value
       v := r;
+
+      -- XGMII counts an active-frame link-loss abort as an RX CRC error;
+      -- GMII leaves its counters unchanged on that abort path. intAdvance
+      -- limits this to one event, with none for idle link changes. Register
+      -- both pulses on the AXI-conversion edge for downstream sampling.
+      v.rxCrcError := intAdvance and ((intLastLine and (not crcGood)) or (not phyReady));
+      v.rxCountEn  := intAdvance and intLastLine and crcGood and phyReady;
 
 --    -- Check delayed copy
 --    v.phyRxcDly := phyRxChar;
@@ -204,6 +216,9 @@ begin
 
       -- Register the variable for next clock cycle
       rin <= v;
+
+      rxCrcError <= r.rxCrcError;
+      rxCountEn  <= r.rxCountEn;
 
    end process comb;
 
@@ -263,16 +278,20 @@ begin
                axiStreamSetUserBit(AXI_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, not crcGood);
             end if;
 
+            -- Close the active frame once before stopping output on link loss.
+            -- Link loss takes priority even over a coincident good final beat:
+            -- conservatively mark that completed frame with EOFE as well.
+            if phyReady = '0' then
+               varMaster.tLast := intAdvance;
+               axiStreamSetUserBit(AXI_CONFIG_C, varMaster, EMAC_EOFE_BIT_C, '1');
+            end if;
+
          end if;
       end if;
 
       macMaster <= varMaster;
 
    end process;
-
-   -- Errors and counter
-   rxCrcError <= intAdvance and intLastLine and (not crcGood);
-   rxCountEn  <= intAdvance and intLastLine and crcGood;
 
    -- Logic to determine CRC width and valid clear timing.
    process (crcDataValid, crcDataWidth, phyRxc, phyRxcDly, rxdAlign)
@@ -504,7 +523,12 @@ begin
             macData <= crcFifoOut after TPD_G;
 
             -- Determine when data is output
-            if frameShift4 = '1' and frameShift5 = '0' then
+            -- The AXI conversion closes this beat with EOFE on link loss.
+            -- Keep draining the CRC pipeline so its FIFO stays aligned.
+            if phyReady = '0' then
+               intAdvance   <= '0' after TPD_G;
+               intFirstLine <= '0' after TPD_G;
+            elsif frameShift4 = '1' and frameShift5 = '0' then
                intAdvance   <= '1' after TPD_G;
                intFirstLine <= '1' after TPD_G;
             elsif intLastLine = '1' then

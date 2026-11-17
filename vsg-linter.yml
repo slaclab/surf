@@ -603,6 +603,26 @@ rule:
     disable: true
 
   ##############################################################################################################
+  # Index Constraint Rules
+  ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/index_constraint_rules.html#index-constraint-100
+  index_constraint_100:
+    # New in VSG 3.36.0: no space before an index constraint. SURF style keeps one, as in
+    # "AxiStreamSlaveArray (LANES_G-1 downto 0)" and "array (N-1 downto 0) of", so the rule is disabled.
+    disable: true
+
+  ##############################################################################################################
+  # Index Subtype Definition Rules
+  ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/index_subtype_definition_rules.html#index-subtype-definition-101
+  index_subtype_definition_101:
+    # New in VSG 3.36.0: one space between "range" and "<>". Disabled with unbounded_array_definition_100, since
+    # the two rules fire on the same "array (natural range <>)" declarations.
+    disable: true
+
+  ##############################################################################################################
   # Instantiation Rules
   ##############################################################################################################
 
@@ -1121,6 +1141,18 @@ rule:
   signal_400:
     disable: true
 
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/signal_rules.html#signal-402
+  signal_402:
+    # New in VSG 3.36.0: alignment of multi-line array initial values. SURF aligns them to the opening
+    # parenthesis on the assignment line, which the rule rejects.
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/signal_rules.html#signal-403
+  signal_403:
+    # New in VSG 3.36.0: wants the parenthesis of a multi-line array initial value on its own line. SURF keeps
+    # ":= (" on the assignment line.
+    disable: true
+
   ##############################################################################################################
   # Subprogram Body Rules
   ##############################################################################################################
@@ -1205,6 +1237,21 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/latest/type_mark_rules.html#type-mark-500
   type_mark_500:
+    disable: true
+
+  ##############################################################################################################
+  # Unbounded Array Definition Rules
+  ##############################################################################################################
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/unbounded_array_definition_rules.html#unbounded-array-definition-100
+  unbounded_array_definition_100:
+    # New in VSG 3.36.0: no space between "array" and "(". SURF style is "array (natural range <>)".
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/unbounded_array_definition_rules.html#unbounded-array-definition-101
+  unbounded_array_definition_101:
+    # New in VSG 3.36.0: one space before "of". Fires on a few "range<>)of" declarations; disabled with the
+    # other 3.36.0 rules rather than reformatting them here.
     disable: true
 
   ##############################################################################################################
@@ -1305,6 +1352,12 @@ rule:
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/whitespace_rules.html#whitespace-100
   whitespace_100:
+    disable: true
+
+  # https://vhdl-style-guide.readthedocs.io/en/3.36.0/whitespace_rules.html#whitespace-103
+  whitespace_103:
+    # New in VSG 3.36.0: one space after "to" and "downto". Fires on "0 to(N-1)" in JesdRxLane; disabled with
+    # the other 3.36.0 rules rather than editing RTL here.
     disable: true
 
   # https://vhdl-style-guide.readthedocs.io/en/3.31.0/whitespace_rules.html#whitespace-200

@@ -208,24 +208,29 @@ begin
       else
          v.genCount := r.genCount + 1;
 
-         if r.genOne = '1' then
-            v.trig := '1';
-
-         elsif r.genCount = r.genPeriod then
+         if r.genCount = r.genPeriod then
             v.genCount := (others => '0');
             v.trig     := '1';
+         end if;
+      end if;
 
-            if busy = '1' then
-               v.trig      := '0';
-               v.genMissed := r.genMissed + 1;
-            else
-               v.frameCount := r.frameCount + 1;
-            end if;
+      -- One shot frame, with or without genEnable
+      if r.genOne = '1' then
+         v.trig := '1';
+      end if;
+
+      if v.trig = '1' then
+         if busy = '1' then
+            v.trig      := '0';
+            v.genMissed := r.genMissed + 1;
+         else
+            v.frameCount := r.frameCount + 1;
          end if;
       end if;
 
       if r.statReset = '1' then
-         v.genMissed := (others => '0');
+         v.genMissed  := (others => '0');
+         v.frameCount := (others => '0');
       end if;
 
       -- Reset
