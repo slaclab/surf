@@ -2,11 +2,12 @@
 -- Company    : SLAC National Accelerator Laboratory
 -------------------------------------------------------------------------------
 -- Description: Fixed point math functions on two's complement (signed) and
---              unsigned vectors: magnitude, saturation, rounding shifts,
---              saturating add/subtract, real to Q format conversion, clamp
---              and complex magnitude approximations. All are combinational
---              and sized from their arguments, so they drop into a pipeline
---              stage or an elaboration time constant.
+--              unsigned vectors: range constants, magnitude, saturation,
+--              rounding and saturating shifts, saturating add/subtract, real
+--              to Q format conversion, clamp and complex magnitude
+--              approximations. All are combinational and sized from their
+--              arguments, so they drop into a pipeline stage or an
+--              elaboration time constant.
 -------------------------------------------------------------------------------
 -- This file is part of 'SLAC Firmware Standard Library'.
 -- It is subject to the license terms in the LICENSE.txt file found in the
@@ -27,30 +28,96 @@ use surf.StdRtlPkg.all;
 
 package DspFixedPkg is
 
+   -- Rounding modes of shiftRightRound and rescale: how a value exactly half
+   -- way between two results is resolved
+   type RoundModeType is (
+      ROUND_TRUNC_C,                    -- toward -infinity (floor), no rounding logic
+      ROUND_HALF_UP_C,                  -- ties toward +infinity
+      ROUND_HALF_DOWN_C,                -- ties toward -infinity
+      ROUND_HALF_AWAY_C,                -- ties away from zero (symmetric)
+      ROUND_HALF_ZERO_C,                -- ties toward zero (symmetric)
+      ROUND_HALF_EVEN_C,                -- ties to the even result (convergent, no bias)
+      ROUND_HALF_ODD_C);                -- ties to the odd result
+
+   -- Range of a width bit vector
+   function maxSigned (width : positive) return signed;
+   function minSigned (width : positive) return signed;
+   function maxUnsigned (width : positive) return unsigned;
+
+   -- Magnitude and negation
    function absMag (x : signed) return unsigned;  -- |x|, one bit wider than x
    function absMag (x : slv) return slv;
+   function absSat (x : signed) return signed;    -- |x| in the width of x, the most negative value clamps
+   function negSat (x : signed) return signed;    -- -x in the width of x, the most negative value clamps
+
+   -- Saturation
    function saturate (x : signed; width : positive) return signed;  -- narrow to width bits, clamped instead of wrapped
    function saturate (x : unsigned; width : positive) return unsigned;
-   function shiftRightRound (x : signed; n : natural; convergent : boolean := false) return signed;  -- x/2^n rounded, ties up or to even
-   function shiftRightRound (x : unsigned; n : natural; convergent : boolean := false) return unsigned;
-   function addSat (a, b : signed) return signed;  -- clamped to the width of the wider operand
+   function inRange (x : signed; width : positive) return boolean;  -- true if x fits in width bits without clamping
+   function inRange (x : unsigned; width : positive) return boolean;
+
+   -- Shifts
+   function shiftRightRound (x : signed; n : natural; mode : RoundModeType := ROUND_HALF_UP_C) return signed;  -- x/2^n rounded, width of x
+   function shiftRightRound (x : unsigned; n : natural; mode : RoundModeType := ROUND_HALF_UP_C) return unsigned;
+   function shiftLeftSat (x : signed; n : natural) return signed;  -- x*2^n in the width of x, clamped
+   function shiftLeftSat (x : unsigned; n : natural) return unsigned;
+   function rescale (x : signed; n : natural; width : positive; mode : RoundModeType := ROUND_HALF_UP_C) return signed;  -- x/2^n rounded then clamped to width bits
+   function rescale (x : unsigned; n : natural; width : positive; mode : RoundModeType := ROUND_HALF_UP_C) return unsigned;
+
+   -- Saturating add and subtract, clamped to the width of the wider operand
+   function addSat (a, b : signed) return signed;
    function subSat (a, b : signed) return signed;
    function addSat (a, b : unsigned) return unsigned;
    function subSat (a, b : unsigned) return unsigned;  -- clamped at zero
-   function toFixed (x : real; width : positive; fracBits : natural) return slv;  -- real to Q format, 32 bits at most
+
+   -- Real conversion for constants and coefficient tables, 32 bits at most
+   function toFixed (x : real; width : positive; fracBits : natural) return slv;  -- real to Q format, rounded and clamped
    function toReal (x : signed; fracBits : natural) return real;
    function toReal (x : unsigned; fracBits : natural) return real;
    function toReal (x : slv; fracBits : natural) return real;  -- two's complement
-   function clamp (x, lo, hi : integer) return integer;  -- bound x to lo..hi
+
+   -- Bound x to lo..hi
+   function clamp (x, lo, hi : integer) return integer;
    function clamp (x, lo, hi : signed) return signed;
    function clamp (x, lo, hi : unsigned) return unsigned;
-   function magL1 (i, q : signed) return unsigned;    -- |I|+|Q|, one bit wider
-   function magLinf (i, q : signed) return unsigned;  -- max(|I|,|Q|), one bit wider
+
+   -- Complex magnitude approximations, one bit wider than the wider input
+   function magL1 (i, q : signed) return unsigned;    -- |I|+|Q|
+   function magLinf (i, q : signed) return unsigned;  -- max(|I|,|Q|)
 
 end package DspFixedPkg;
 
 package body DspFixedPkg is
 
+   -----------------------------------------------------------------------------
+   -- Range of a width bit vector
+   -----------------------------------------------------------------------------
+   function maxSigned (width : positive)
+      return signed is
+      variable ret : signed(width-1 downto 0) := (others => '1');
+   begin
+      ret(width-1) := '0';
+      return ret;
+   end function;
+
+   function minSigned (width : positive)
+      return signed is
+      variable ret : signed(width-1 downto 0) := (others => '0');
+   begin
+      ret(width-1) := '1';
+      return ret;
+   end function;
+
+   function maxUnsigned (width : positive)
+      return unsigned is
+      constant RET_C : unsigned(width-1 downto 0) := (others => '1');
+   begin
+      return RET_C;
+   end function;
+
+   -----------------------------------------------------------------------------
+   -- Magnitude and negation
+   -----------------------------------------------------------------------------
    -- |x| of a two's complement vector, one bit wider than x so the most
    -- negative value (for example -32768 of 16 bits) does not overflow
    function absMag (x : signed)
@@ -68,22 +135,36 @@ package body DspFixedPkg is
       return slv(absMag(signed(x)));
    end function;
 
+   -- |x| kept in the width of x: the most negative value clamps to the most
+   -- positive one instead of wrapping back onto itself
+   function absSat (x : signed)
+      return signed is
+   begin
+      return saturate(signed(absMag(x)), x'length);
+   end function;
+
+   -- -x kept in the width of x, the most negative value clamps
+   function negSat (x : signed)
+      return signed is
+   begin
+      return saturate(-resize(x, x'length+1), x'length);
+   end function;
+
+   -----------------------------------------------------------------------------
+   -- Saturation
+   -----------------------------------------------------------------------------
    -- Narrow a two's complement vector to width bits, clamping to the
    -- representable range instead of wrapping
    function saturate (x : signed; width : positive)
       return signed is
-      variable minVal : signed(width-1 downto 0) := (others => '0');
-      variable maxVal : signed(width-1 downto 0) := (others => '0');
    begin
       if (x'length <= width) then
          return resize(x, width);
       end if;
-      minVal(width-1) := '1';
-      maxVal          := not minVal;
-      if (x > resize(maxVal, x'length)) then
-         return maxVal;
-      elsif (x < resize(minVal, x'length)) then
-         return minVal;
+      if (x > resize(maxSigned(width), x'length)) then
+         return maxSigned(width);
+      elsif (x < resize(minSigned(width), x'length)) then
+         return minSigned(width);
       else
          return resize(x, width);
       end if;
@@ -92,51 +173,102 @@ package body DspFixedPkg is
    -- Unsigned variant
    function saturate (x : unsigned; width : positive)
       return unsigned is
-      constant MAX_C : unsigned(width-1 downto 0) := (others => '1');
    begin
       if (x'length <= width) then
          return resize(x, width);
       end if;
-      if (x > resize(MAX_C, x'length)) then
-         return MAX_C;
+      if (x > resize(maxUnsigned(width), x'length)) then
+         return maxUnsigned(width);
       else
          return resize(x, width);
       end if;
    end function;
 
-   -- Divide a two's complement vector by 2^n, rounded to the nearest integer.
-   -- Ties round up (toward +infinity), or to the even result when convergent
-   -- (the DSP48 pattern, no bias). The result has the width of x.
-   function shiftRightRound (x : signed; n : natural; convergent : boolean := false)
+   -- True when saturate(x, width) would return x unchanged: the test for an
+   -- overflow flag next to a saturating datapath
+   function inRange (x : signed; width : positive)
+      return boolean is
+   begin
+      if (x'length <= width) then
+         return true;
+      end if;
+      return (x <= resize(maxSigned(width), x'length)) and (x >= resize(minSigned(width), x'length));
+   end function;
+
+   function inRange (x : unsigned; width : positive)
+      return boolean is
+   begin
+      if (x'length <= width) then
+         return true;
+      end if;
+      return (x <= resize(maxUnsigned(width), x'length));
+   end function;
+
+   -----------------------------------------------------------------------------
+   -- Shifts
+   -----------------------------------------------------------------------------
+   -- Divide a two's complement vector by 2^n, rounded to the nearest integer
+   -- with the tie rule of mode (ROUND_TRUNC_C floors instead). The result has
+   -- the width of x: no rounded result can exceed it once n is at least 1.
+   function shiftRightRound (x : signed; n : natural; mode : RoundModeType := ROUND_HALF_UP_C)
       return signed is
-      variable ext  : signed(x'length downto 0);
-      variable half : signed(x'length downto 0) := (others => '0');
-      variable ret  : signed(x'length downto 0) := (others => '0');
+      constant NEGATIVE_C : boolean := (x(x'left) = '1');
+      variable ext        : signed(x'length downto 0);
+      variable ret        : signed(x'length downto 0) := (others => '0');
+      variable dropped    : unsigned(x'length downto 0);
+      variable half       : unsigned(x'length downto 0) := (others => '0');
+      variable above      : boolean;
+      variable tie        : boolean;
+      variable inc        : boolean;
    begin
       if (n = 0) then
          return resize(x, x'length);
       end if;
-      -- |x|/2^n is below one half
+      -- |x|/2^n is below one half: zero, or minus one when flooring a negative value
       if (n > x'length) then
+         if (mode = ROUND_TRUNC_C) and NEGATIVE_C then
+            ret := (others => '1');
+         end if;
          return resize(ret, x'length);
       end if;
-      -- One bit of headroom for the rounding carry
-      ext       := resize(x, x'length+1);
+      -- Floor, with one bit of headroom for the rounding carry
+      ext := resize(x, x'length+1);
+      ret := shift_right(ext, n);
+      -- The discarded bits against one half
+      dropped := unsigned(ext);
+      for k in dropped'range loop
+         if (k >= n) then
+            dropped(k) := '0';
+         end if;
+      end loop;
       half(n-1) := '1';
-      ret       := shift_right(ext + half, n);
-      -- Half way exactly: the discarded bits of x are a one followed by zeros
-      if (convergent) and (ext(n-1 downto 0) = half(n-1 downto 0)) then
-         ret(0) := '0';
+      above     := (dropped > half);
+      tie       := (dropped = half);
+      case mode is
+         when ROUND_TRUNC_C     => inc := false;
+         when ROUND_HALF_UP_C   => inc := above or tie;
+         when ROUND_HALF_DOWN_C => inc := above;
+         when ROUND_HALF_AWAY_C => inc := above or (tie and not NEGATIVE_C);
+         when ROUND_HALF_ZERO_C => inc := above or (tie and NEGATIVE_C);
+         when ROUND_HALF_EVEN_C => inc := above or (tie and (ret(0) = '1'));
+         when ROUND_HALF_ODD_C  => inc := above or (tie and (ret(0) = '0'));
+      end case;
+      if (inc) then
+         ret := ret + 1;
       end if;
       return resize(ret, x'length);
    end function;
 
-   -- Unsigned variant
-   function shiftRightRound (x : unsigned; n : natural; convergent : boolean := false)
+   -- Unsigned variant: the symmetric modes behave like their positive half
+   function shiftRightRound (x : unsigned; n : natural; mode : RoundModeType := ROUND_HALF_UP_C)
       return unsigned is
-      variable ext  : unsigned(x'length downto 0);
-      variable half : unsigned(x'length downto 0) := (others => '0');
-      variable ret  : unsigned(x'length downto 0) := (others => '0');
+      variable ext     : unsigned(x'length downto 0);
+      variable ret     : unsigned(x'length downto 0) := (others => '0');
+      variable dropped : unsigned(x'length downto 0);
+      variable half    : unsigned(x'length downto 0) := (others => '0');
+      variable above   : boolean;
+      variable tie     : boolean;
+      variable inc     : boolean;
    begin
       if (n = 0) then
          return resize(x, x'length);
@@ -145,19 +277,69 @@ package body DspFixedPkg is
       if (n > x'length) then
          return resize(ret, x'length);
       end if;
-      -- One bit of headroom for the rounding carry
-      ext       := resize(x, x'length+1);
+      -- Floor, with one bit of headroom for the rounding carry
+      ext := resize(x, x'length+1);
+      ret := shift_right(ext, n);
+      -- The discarded bits against one half
+      dropped := ext;
+      for k in dropped'range loop
+         if (k >= n) then
+            dropped(k) := '0';
+         end if;
+      end loop;
       half(n-1) := '1';
-      ret       := shift_right(ext + half, n);
-      -- Half way exactly: the discarded bits of x are a one followed by zeros
-      if (convergent) and (ext(n-1 downto 0) = half(n-1 downto 0)) then
-         ret(0) := '0';
+      above     := (dropped > half);
+      tie       := (dropped = half);
+      case mode is
+         when ROUND_TRUNC_C     => inc := false;
+         when ROUND_HALF_UP_C   => inc := above or tie;
+         when ROUND_HALF_DOWN_C => inc := above;
+         when ROUND_HALF_AWAY_C => inc := above or tie;
+         when ROUND_HALF_ZERO_C => inc := above;
+         when ROUND_HALF_EVEN_C => inc := above or (tie and (ret(0) = '1'));
+         when ROUND_HALF_ODD_C  => inc := above or (tie and (ret(0) = '0'));
+      end case;
+      if (inc) then
+         ret := ret + 1;
       end if;
       return resize(ret, x'length);
    end function;
 
-   -- Add or subtract, clamped to the representable range of the wider operand
-   -- instead of wrapping
+   -- Multiply by 2^n in the width of x, clamped instead of losing the top bits
+   function shiftLeftSat (x : signed; n : natural)
+      return signed is
+      variable ext : signed(x'length+n-1 downto 0);
+   begin
+      ext := shift_left(resize(x, x'length+n), n);
+      return saturate(ext, x'length);
+   end function;
+
+   function shiftLeftSat (x : unsigned; n : natural)
+      return unsigned is
+      variable ext : unsigned(x'length+n-1 downto 0);
+   begin
+      ext := shift_left(resize(x, x'length+n), n);
+      return saturate(ext, x'length);
+   end function;
+
+   -- Drop n fractional bits with rounding, then clamp to width bits: the
+   -- usual step from an accumulator or product back to the bus width
+   function rescale (x : signed; n : natural; width : positive; mode : RoundModeType := ROUND_HALF_UP_C)
+      return signed is
+   begin
+      return saturate(shiftRightRound(x, n, mode), width);
+   end function;
+
+   function rescale (x : unsigned; n : natural; width : positive; mode : RoundModeType := ROUND_HALF_UP_C)
+      return unsigned is
+   begin
+      return saturate(shiftRightRound(x, n, mode), width);
+   end function;
+
+   -----------------------------------------------------------------------------
+   -- Saturating add and subtract
+   -----------------------------------------------------------------------------
+   -- Clamped to the representable range of the wider operand instead of wrapping
    function addSat (a, b : signed)
       return signed is
       constant WIDTH_C : positive := ite(a'length > b'length, a'length, b'length);
@@ -198,6 +380,9 @@ package body DspFixedPkg is
       return diff;
    end function;
 
+   -----------------------------------------------------------------------------
+   -- Real conversion
+   -----------------------------------------------------------------------------
    -- Real to two's complement Q format: width bits with fracBits of them
    -- fractional, rounded to the nearest code (ties away from zero) and clamped
    -- to the representable range. Meant for constants and coefficient tables.
@@ -240,6 +425,9 @@ package body DspFixedPkg is
       return toReal(signed(x), fracBits);
    end function;
 
+   -----------------------------------------------------------------------------
+   -- Clamp
+   -----------------------------------------------------------------------------
    -- Bound x to the range lo to hi
    function clamp (x, lo, hi : integer)
       return integer is
@@ -278,8 +466,11 @@ package body DspFixedPkg is
       end if;
    end function;
 
-   -- Magnitude approximations of a complex sample, one bit wider than the
-   -- wider of i and q: |I|+|Q| overestimates |I+jQ| by up to sqrt(2)
+   -----------------------------------------------------------------------------
+   -- Complex magnitude approximations
+   -----------------------------------------------------------------------------
+   -- One bit wider than the wider of i and q: |I|+|Q| overestimates |I+jQ| by
+   -- up to sqrt(2)
    function magL1 (i, q : signed)
       return unsigned is
       constant WIDTH_C : positive := ite(i'length > q'length, i'length, q'length) + 1;
