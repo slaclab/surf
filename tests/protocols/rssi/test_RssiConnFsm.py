@@ -404,3 +404,14 @@ def test_RssiConnFsm(parameters):
         parameters=parameters,
         extra_env=cocotb_filtered_env(parameters, rf"{role}_.*_test$"),
     )
+
+
+@pytest.mark.parametrize("parameters", PARAMETER_SWEEP)
+def test_RssiConnFsm_timeout(parameters):
+    case = ("server_retries_syn_ack_then_times_out_waiting_for_ack_test"
+            if parameters["SERVER_G"] else
+            "client_retries_syn_then_times_out_waiting_for_syn_ack_test")
+    run_surf_vhdl_test(
+        test_file=__file__, toplevel="surf.rssiconnfsmwrapper",
+        parameters=parameters, extra_env={**parameters, "COCOTB_TESTCASE": case},
+    )
